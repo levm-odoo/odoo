@@ -410,7 +410,7 @@ class PropertiesCase(TestPropertiesMixin):
             }])
             self.env.invalidate_all()
 
-        with self.assertQueryCount(7):
+        with self.assertQueryCount(9):
             messages = self.env['test_new_api.message'].create([{
                 'name': 'Test Message',
                 'discussion': self.discussion_1.id,

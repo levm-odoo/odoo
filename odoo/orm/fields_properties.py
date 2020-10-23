@@ -284,7 +284,7 @@ class Properties(Field):
 
                 _logger.info('Properties field: User #%i changed definition of %r', records.env.user.id, container)
 
-        return super().write(records, value)
+        super().write(records, value)
 
     def _compute(self, records):
         """Add the default properties value when the container is changed."""

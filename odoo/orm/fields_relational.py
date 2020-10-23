@@ -319,9 +319,6 @@ class Many2one(_Relational[M]):
         # discard the records that are not modified
         cache = records.env.cache
         cache_value = self.convert_to_cache(value, records)
-        records = cache.get_records_different_from(records, self, cache_value)
-        if not records:
-            return
 
         # remove records from the cache of one2many fields of old corecords
         self._remove_inverses(records, cache_value)
@@ -368,6 +365,11 @@ class Many2one(_Relational[M]):
             if ids0 is not None or not corecord.id:
                 ids1 = tuple(unique((ids0 or ()) + valid_records._ids))
                 cache.set(corecord, invf, ids1)
+
+    def filter_not_equal(self, records, value):
+        if isinstance(value, dict):
+            return records
+        return super().filter_not_equal(records, value)
 
     def condition_to_sql(self, field_expr: str, operator: str, value, model: BaseModel, alias: str, query: Query) -> SQL:
         if operator not in ('any', 'not any') or field_expr != self.name:
@@ -588,18 +590,10 @@ class _RelationalMulti(_Relational[M], typing.Generic[M]):
         if not records_commands_list:
             return
 
-        for idx, (recs, value) in enumerate(records_commands_list):
-            if isinstance(value, tuple):
-                value = [Command.set(value)]
-            elif isinstance(value, BaseModel) and value._name == self.comodel_name:
-                value = [Command.set(value._ids)]
-            elif value is False or value is None:
-                value = [Command.clear()]
-            elif isinstance(value, list) and value and not isinstance(value[0], (tuple, list)):
-                value = [Command.set(tuple(value))]
-            if not isinstance(value, list):
-                raise ValueError("Wrong value for %s: %s" % (self, value))
-            records_commands_list[idx] = (recs, value)
+        records_commands_list = [
+            (recs, self.convert_to_commands(value))
+            for recs, value in records_commands_list
+        ]
 
         record_ids = {rid for recs, cs in records_commands_list for rid in recs._ids}
         if all(record_ids):
@@ -607,6 +601,20 @@ class _RelationalMulti(_Relational[M], typing.Generic[M]):
         else:
             assert not any(record_ids), f"{records_commands_list} contains a mix of real and new records. It is not supported."
             self.write_new(records_commands_list)
+
+    def convert_to_commands(self, value):
+        """ Convert ``value`` into an equivalent list of commands. """
+        if isinstance(value, tuple):
+            value = [Command.set(value)]
+        elif isinstance(value, BaseModel) and value._name == self.comodel_name:
+            value = [Command.set(value._ids)]
+        elif value is False or value is None:
+            value = [Command.clear()]
+        elif isinstance(value, list) and value and not isinstance(value[0], (tuple, list)):
+            value = [Command.set(tuple(value))]
+        if not isinstance(value, list):
+            raise ValueError(f"Wrong value for {self}: {value}")
+        return value
 
     def _check_sudo_commands(self, comodel):
         # if the model doesn't accept sudo commands
@@ -970,6 +978,59 @@ class One2many(_RelationalMulti[M]):
                         cache.update(recs, self, itertools.repeat(()))
                         lines = browse(command[2] if command[0] == Command.SET else [])
                         cache.set(recs[-1], self, lines._ids)
+
+    def filter_not_equal(self, records, value):
+        commands = self.convert_to_commands(value)
+        if not commands:
+            # non-stored fields without a value are considered not equal,
+            # otherwise their computation will fail to assign them
+            ids = () if self.store else records.env.cache.get_missing_ids(records, self)
+            return records.browse(ids)
+
+        # new records without value in cache are considered not equal (onchange)
+        new_ids = [id_ for id_ in records._ids if not id_]
+        if new_ids and any(
+            True for id_ in records.env.cache.get_missing_ids(records.browse(new_ids), self)
+        ):
+            return records
+
+        # check for obvious changes
+        comodel = records.env[self.comodel_name]
+        for command in commands:
+            if command[0] == Command.CREATE:
+                return records
+            elif command[0] == Command.UPDATE:
+                line = comodel.browse([command[1]])
+                if any(comodel._fields[name].filter_not_equal(line, val)
+                       for name, val in command[2].items()):
+                    return records
+            elif command[0] == Command.DELETE:
+                return records
+            elif command[0] == Command.UNLINK:
+                inverse_field = comodel._fields[self.inverse_name]
+                if getattr(inverse_field, 'ondelete', False) == 'cascade':
+                    return records
+
+        # check for actual changes
+        old_vals = [set(record[self.name]._ids) for record in records]
+        new_vals = [set(ids) for ids in old_vals]
+        for command in commands:
+            if command[0] == Command.UNLINK:
+                for ids in new_vals:
+                    ids.discard(command[1])
+            elif command[0] == Command.LINK:
+                for ids in new_vals:
+                    ids.add(command[1])
+            elif command[0] == Command.CLEAR:
+                for ids in new_vals:
+                    ids.clear()
+            elif command[0] == Command.SET:
+                new_vals = [set(command[2]) for _ in new_vals]
+        return records.browse(
+            id_
+            for id_, old_val, new_val in zip(records._ids, old_vals, new_vals)
+            if old_val != new_val
+        )
 
     def _get_query_for_condition_value(self, model: BaseModel, comodel: BaseModel, value) -> Query:
         inverse_field = comodel._fields[self.inverse_name]
@@ -1484,6 +1545,55 @@ class Many2many(_RelationalMulti[M]):
                 for invf in model.pool.field_inverses[self]
                 if invf.model_name == self.comodel_name
             ])
+
+    def filter_not_equal(self, records, value):
+        commands = self.convert_to_commands(value)
+        if not commands:
+            # non-stored fields without a value are considered not equal,
+            # otherwise their computation will fail to assign them
+            ids = () if self.store else records.env.cache.get_missing_ids(records, self)
+            return records.browse(ids)
+
+        # new records without value in cache are considered not equal (onchange)
+        new_ids = [id_ for id_ in records._ids if not id_]
+        if new_ids and any(
+            True for id_ in records.env.cache.get_missing_ids(records.browse(new_ids), self)
+        ):
+            return records
+
+        # check for obvious changes
+        comodel = records.env[self.comodel_name]
+        for command in commands:
+            if command[0] == Command.CREATE:
+                return records
+            elif command[0] == Command.UPDATE:
+                line = comodel.browse([command[1]])
+                if any(comodel._fields[key].filter_not_equal(line, val)
+                       for key, val in command[2].items()):
+                    return records
+            elif command[0] == Command.DELETE:
+                return records
+
+        # check for actual changes
+        old_vals = [set(record[self.name]._ids) for record in records]
+        new_vals = [set(ids) for ids in old_vals]
+        for command in commands:
+            if command[0] == Command.UNLINK:
+                for ids in new_vals:
+                    ids.discard(command[1])
+            elif command[0] == Command.LINK:
+                for ids in new_vals:
+                    ids.add(command[1])
+            elif command[0] == Command.CLEAR:
+                for ids in new_vals:
+                    ids.clear()
+            elif command[0] == Command.SET:
+                new_vals = [set(command[2]) for _ in new_vals]
+        return records.browse(
+            id_
+            for id_, old_val, new_val in zip(records._ids, old_vals, new_vals)
+            if old_val != new_val
+        )
 
     def _condition_to_sql_relational(self, model: BaseModel, alias: str, exists: bool, coquery: Query, query: Query) -> SQL:
         assert not self.auto_join, f"auto_join not implemented for many2many fields ({self})"

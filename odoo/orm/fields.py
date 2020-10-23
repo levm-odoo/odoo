@@ -1328,16 +1328,18 @@ class Field(typing.Generic[T]):
         :param records:
         :param value: a value in any format
         """
-        # discard the records that are not modified
         cache = records.env.cache
         cache_value = self.convert_to_cache(value, records)
-        records = cache.get_records_different_from(records, self, cache_value)
-        if not records:
-            return
-
-        # update the cache
         dirty = self.store and any(records._ids)
         cache.update(records, self, itertools.repeat(cache_value), dirty=dirty)
+
+    def filter_not_equal(self, records, value):
+        """ Return the subset of ``records`` on which the value of ``self`` is
+        either not in cache, or different from ``value``.
+        """
+        cache = records.env.cache
+        cache_value = self.convert_to_cache(value, records)
+        return cache.get_records_different_from(records, self, cache_value)
 
     ############################################################################
     #
@@ -1496,7 +1498,9 @@ class Field(typing.Generic[T]):
         if protected_ids:
             # records being computed: no business logic, no recomputation
             protected_records = records.__class__(records.env, tuple(protected_ids), records._prefetch_ids)
-            self.write(protected_records, value)
+            protected_records = self.filter_not_equal(protected_records, value)
+            if protected_records:
+                self.write(protected_records, value)
 
         if real_ids:
             # real records: full business logic
@@ -1517,6 +1521,10 @@ class Field(typing.Generic[T]):
                 else:
                     # discard recomputation of self on records
                     records.env.remove_to_compute(self, new_records)
+
+            new_records = self.filter_not_equal(new_records, value)
+            if not new_records:
+                return
 
             with records.env.protecting(records.pool.field_computed.get(self) or [self], new_records):
                 if records.pool.is_modifying_relations(self):

@@ -196,9 +196,6 @@ class BaseString(Field[str | typing.Literal[False]]):
             return
         cache = records.env.cache
         cache_value = self.convert_to_cache(value, records)
-        records = cache.get_records_different_from(records, self, cache_value)
-        if not records:
-            return
 
         # flush dirty None values
         dirty_records = records & cache.get_dirty_records(records, self)

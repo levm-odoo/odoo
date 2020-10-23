@@ -176,16 +176,13 @@ class Binary(Field):
             super().write(records, value)
             return
 
-        # update the cache, and discard the records that are not modified
         cache = records.env.cache
-        cache_value = self.convert_to_cache(value, records)
-        records = cache.get_records_different_from(records, self, cache_value)
-        if not records:
-            return
         if self.store:
             # determine records that are known to be not null
             not_null = cache.get_records_different_from(records, self, None)
 
+        # update the cache
+        cache_value = self.convert_to_cache(value, records)
         cache.update(records, self, itertools.repeat(cache_value))
 
         # retrieve the attachments that store the values, and adapt them
