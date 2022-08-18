@@ -1484,21 +1484,28 @@ class Field(typing.Generic[T]):
 
     def __set__(self, records, value):
         """ set the value of field ``self`` on ``records`` """
+        _protected_ids = records.env._protected.get(self, ())
         protected_ids = []
+        real_ids = []
         new_ids = []
-        other_ids = []
-        for record_id in records._ids:
-            if record_id in records.env._protected.get(self, ()):
-                protected_ids.append(record_id)
-            elif not record_id:
-                new_ids.append(record_id)
+        for id_ in records._ids:
+            if id_ in _protected_ids:
+                protected_ids.append(id_)
+            elif id_:
+                real_ids.append(id_)
             else:
-                other_ids.append(record_id)
+                new_ids.append(id_)
 
         if protected_ids:
             # records being computed: no business logic, no recomputation
             protected_records = records.__class__(records.env, tuple(protected_ids), records._prefetch_ids)
             self.write(protected_records, value)
+
+        if real_ids:
+            # real records: full business logic
+            records = records.__class__(records.env, tuple(real_ids), records._prefetch_ids)
+            write_value = self.convert_to_write(value, records)
+            records.write({self.name: write_value})
 
         if new_ids:
             # new records: no business logic
@@ -1512,13 +1519,8 @@ class Field(typing.Generic[T]):
             if self.inherited:
                 # special case: also assign parent records if they are new
                 parents = new_records[self.related.split('.')[0]]
-                parents.filtered(lambda r: not r.id)[self.name] = value
-
-        if other_ids:
-            # base case: full business logic
-            records = records.__class__(records.env, tuple(other_ids), records._prefetch_ids)
-            write_value = self.convert_to_write(value, records)
-            records.write({self.name: write_value})
+                new_parents = parents.browse(id_ for id_ in parents._ids if not id_)
+                new_parents[self.name] = value
 
     ############################################################################
     #
