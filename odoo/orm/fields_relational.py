@@ -316,9 +316,6 @@ class Many2one(_Relational[M]):
         return value.display_name
 
     def write(self, records, value):
-        # discard recomputation of self on records
-        records.env.remove_to_compute(self, records)
-
         # discard the records that are not modified
         cache = records.env.cache
         cache_value = self.convert_to_cache(value, records)
@@ -585,8 +582,6 @@ class _RelationalMulti(_Relational[M], typing.Generic[M]):
         self.write_batch(record_values, True)
 
     def write(self, records, value):
-        # discard recomputation of self on records
-        records.env.remove_to_compute(self, records)
         self.write_batch([(records, value)])
 
     def write_batch(self, records_commands_list, create=False):
