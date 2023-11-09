@@ -1,0 +1,387 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* l10n_kh
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-14 03:23+0000\n"
+"PO-Revision-Date: 2025-01-14 03:23+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_wt_003_kh_wt003_whtonrpi
+msgid "01 Payment of interest"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_wt_003_kh_wt003_whtorsr
+msgid ""
+"01 Performance of Service and Royalty for intangibles, interests in minerals"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_wt_003_kh_wt003_whtorinb
+msgid "02 Payment of interest to non-bank or saving institution taxpayers"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_wt_003_kh_wt003_whtonrpr
+msgid ""
+"02 Payment of royalty, rental/leasing, and income related to the use of "
+"property"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_wt_003_kh_wt003_whtoritfd
+msgid ""
+"03 Payment of interest to taxpayers who have fixed term deposit accounts"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_wt_003_kh_wt003_whtonrpmt
+msgid "03 Payment of management fee and technical services"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_wt_003_kh_wt003_whtonrpd
+msgid "04 Payment of dividend"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_wt_003_kh_wt003_whtoritnfd
+msgid "04 Payment of interest to taxpayers who have non-fixed term saving"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_wt_003_kh_wt003_whtorrl
+msgid ""
+"05 Payment of rental/lease of movable and immovable property - Legal Person"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_wt_003_kh_wt003_whtonrs
+msgid "05 Service"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_wt_003_kh_wt003_whtorrp
+msgid ""
+"06 Payment of rental/lease of movable and immovable property - Physical "
+"Person"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmpl
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatscmpl
+msgid "1. Local Purchase include VAT 10% "
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttptoi
+msgid "1. Prepayment of Tax on Income"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmsl
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatscmsl
+msgid "1. Sales Include VAT 10%"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_tatvat
+msgid "1. Value Added Tax"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmse
+msgid "2. Export 0%"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmpi
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatscmpi
+msgid "2. Import 10%"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvat
+msgid "2. Value Added Tax"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_tatvatsc
+msgid "2. Value Added Tax (State Charge)"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_tatptoi
+msgid "3. Prepayment of Tax on Income"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmpe
+msgid "3. Purchase Exclusive of VAT"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmsev
+msgid "3. Sales Exclude of VAT"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatsc
+msgid "3. Value Added Tax (State charge)"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmpnc
+msgid "4. Non Creditable Purchase"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_tatplt
+msgid "4. Public Lighting Tax"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_tatstcms
+msgid "5. Specific Tax on Certain Marchandises and Services"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_tatat
+msgid "6. Accomodation Tax"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_tatot
+msgid "7. Other Taxes"
+msgstr ""
+
+#. module: l10n_kh
+#: model:ir.model,name:l10n_kh.model_account_chart_template
+msgid "Account Chart Template"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.column,name:l10n_kh.l10n_kh_t7001_balance
+#: model:account.report.column,name:l10n_kh.l10n_kh_wt_003_balance
+msgid "Amount"
+msgstr ""
+
+#. module: l10n_kh
+#: model:ir.model.fields.selection,name:l10n_kh.selection__res_partner_bank__proxy_type__bakong_id_merchant
+msgid "Bakong Account ID (Corporate Merchant)"
+msgstr ""
+
+#. module: l10n_kh
+#: model:ir.model.fields.selection,name:l10n_kh.selection__res_partner_bank__proxy_type__bakong_id_solo
+msgid "Bakong Account ID (Solo Merchant)"
+msgstr ""
+
+#. module: l10n_kh
+#: model:ir.model,name:l10n_kh.model_res_partner_bank
+msgid "Bank Accounts"
+msgstr ""
+
+#. module: l10n_kh
+#. odoo-python
+#: code:addons/l10n_kh/models/res_bank.py:0
+msgid "Can't generate a KHQR code with a currency other than KHR or USD."
+msgstr ""
+
+#. module: l10n_kh
+#: model:ir.model,name:l10n_kh.model_res_company
+msgid "Companies"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_vatscccf
+msgid "Credit Carried Forward"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttptoicf
+msgid "Credit Forward"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatcf
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatsccf
+msgid "Credit forward"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttptoiclm
+msgid "Credit last month"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttptoicptoi
+msgid "Current month of Prepayment of tax on income"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report,name:l10n_kh.l10n_kh_t7001
+msgid "Form T7001"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report,name:l10n_kh.l10n_kh_wt_003
+msgid "Form WT 003"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_tat
+msgid "II. Total Amount of Taxes"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_tt
+msgid "III Total Transaction"
+msgstr ""
+
+#. module: l10n_kh
+#. odoo-python
+#: code:addons/l10n_kh/models/res_bank.py:0
+msgid ""
+"Invalid Bakong Account ID Format. Please enter a valid Bakong Account ID."
+msgstr ""
+
+#. module: l10n_kh
+#: model:ir.model.fields,field_description:l10n_kh.field_account_setup_bank_manual_config__merchant_id
+#: model:ir.model.fields,field_description:l10n_kh.field_res_partner_bank__merchant_id
+msgid "Merchant ID"
+msgstr ""
+
+#. module: l10n_kh
+#. odoo-python
+#: code:addons/l10n_kh/models/res_bank.py:0
+msgid "Merchant ID is missing."
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmp
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatscmp
+msgid "Monthly Purchases of Goods and Services"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatms
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatscms
+msgid "Monthly Sales of Goods and Services"
+msgstr ""
+
+#. module: l10n_kh
+#: model:ir.model.fields,field_description:l10n_kh.field_res_company__name_khmer
+msgid "Name in Khmer"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmpent
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmpncnt
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmsevnt
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmslnt
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatscmslnt
+msgid "Non-Taxable Person"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmseo
+msgid "Overseas Customer"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmpio
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatscmpio
+msgid "Overseas Suppliers"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttptoipp
+msgid "PPI to be paid"
+msgstr ""
+
+#. module: l10n_kh
+#: model:ir.model.fields,field_description:l10n_kh.field_account_setup_bank_manual_config__proxy_type
+#: model:ir.model.fields,field_description:l10n_kh.field_res_partner_bank__proxy_type
+msgid "Proxy Type"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.column,name:l10n_kh.l10n_kh_t7001_tax
+#: model:account.report.column,name:l10n_kh.l10n_kh_wt_003_tax
+msgid "Tax Amount"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmpet
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmplt
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmpnct
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmsevt
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatmslt
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatscmplt
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatscmslt
+msgid "Taxable Person"
+msgstr ""
+
+#. module: l10n_kh
+#. odoo-python
+#: code:addons/l10n_kh/models/res_bank.py:0
+msgid "The proxy type must Bakong Account ID"
+msgstr ""
+
+#. module: l10n_kh
+#. odoo-python
+#: code:addons/l10n_kh/models/res_bank.py:0
+msgid "The proxy type of KHQR must be a Bakong Account ID"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatscit
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvattit
+msgid "Total amount of input taxes"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatscot
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvattot
+msgid "Total amount of output taxes"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_vatscvsc
+msgid "VAT State Charge"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatscp
+msgid "VAT state charge"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_t7001_kh_t7001_ttvatp
+msgid "VAT to be paid"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_wt_003_kh_wt003_wht
+msgid "Withholding Tax"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_wt_003_kh_wt003_whtonr
+msgid "Withholding tax on non-resident"
+msgstr ""
+
+#. module: l10n_kh
+#: model:account.report.line,name:l10n_kh.l10n_kh_wt_003_kh_wt003_whtor
+msgid "Withholding tax on resident"
+msgstr ""

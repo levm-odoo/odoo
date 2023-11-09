@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo auto_sequence="1">
+    <record id="l10n_kh_wt_003" model="account.report">
+        <field name="name">Form WT 003</field>
+        <field name="root_report_id" ref="account.generic_tax_report"/>
+        <field name="country_id" ref="base.kh"/>
+        <field name="filter_multi_company">tax_units</field>
+        <field name="filter_fiscal_position" eval="1"/>
+        <field name="default_opening_date_filter">previous_tax_period</field>
+        <field name="only_tax_exigible" eval="True"/>
+        <field name="column_ids">
+            <record id="l10n_kh_wt_003_balance" model="account.report.column">
+                <field name="name">Amount</field>
+                <field name="expression_label">balance</field>
+            </record>
+            <record id="l10n_kh_wt_003_tax" model="account.report.column">
+                <field name="name">Tax Amount</field>
+                <field name="expression_label">tax</field>
+            </record>
+        </field>
+        <field name="line_ids">
+            <record id="l10n_kh_wt_003_kh_wt003_wht" model="account.report.line">
+                <field name="name">Withholding Tax</field>
+                <field name="code">KH_WT003_WHT</field>
+                <field name="hierarchy_level">0</field>
+                <field name="foldable" eval="False"/>
+                <field name="children_ids">
+                    <record id="l10n_kh_wt_003_kh_wt003_whtor" model="account.report.line">
+                        <field name="name">Withholding tax on resident</field>
+                        <field name="code">KH_WT003_WHTOR</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="foldable" eval="False"/>
+                        <field name="expression_ids">
+                            <record id="kh_wt003_whtor_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">KH_WT003_WHTORSR.balance + KH_WT003_WHTORINB.balance + KH_WT003_WHTORITFD.balance + KH_WT003_WHTORITNFD.balance + KH_WT003_WHTORRL.balance + KH_WT003_WHTORRP.balance</field>
+                            </record>
+                            <record id="kh_wt003_whtor_tax" model="account.report.expression">
+                                <field name="label">tax</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">KH_WT003_WHTORSR.tax + KH_WT003_WHTORINB.tax + KH_WT003_WHTORITFD.tax + KH_WT003_WHTORITNFD.tax + KH_WT003_WHTORRL.tax + KH_WT003_WHTORRP.tax</field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="l10n_kh_wt_003_kh_wt003_whtorsr" model="account.report.line">
+                                <field name="name">01 Performance of Service and Royalty for intangibles, interests in minerals</field>
+                                <field name="code">KH_WT003_WHTORSR</field>
+                                <field name="hierarchy_level">2</field>
+                                <field name="foldable" eval="False"/>
+                                <field name="expression_ids">
+                                    <record id="kh_wt003_whtorsr_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 R 01 B</field>
+                                    </record>
+                                    <record id="kh_wt003_whtorsr_tax" model="account.report.expression">
+                                        <field name="label">tax</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 R 01 D</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_kh_wt_003_kh_wt003_whtorinb" model="account.report.line">
+                                <field name="name">02 Payment of interest to non-bank or saving institution taxpayers</field>
+                                <field name="code">KH_WT003_WHTORINB</field>
+                                <field name="hierarchy_level">2</field>
+                                <field name="foldable" eval="False"/>
+                                <field name="expression_ids">
+                                    <record id="kh_wt003_whtorinb_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 R 02 B</field>
+                                    </record>
+                                    <record id="kh_wt003_whtorinb_tax" model="account.report.expression">
+                                        <field name="label">tax</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 R 02 D</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_kh_wt_003_kh_wt003_whtoritfd" model="account.report.line">
+                                <field name="name">03 Payment of interest to taxpayers who have fixed term deposit accounts</field>
+                                <field name="code">KH_WT003_WHTORITFD</field>
+                                <field name="hierarchy_level">2</field>
+                                <field name="foldable" eval="False"/>
+                                <field name="expression_ids">
+                                    <record id="kh_wt003_whtoritfd_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 R 03 B</field>
+                                    </record>
+                                    <record id="kh_wt003_whtoritfd_tax" model="account.report.expression">
+                                        <field name="label">tax</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 R 03 D</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_kh_wt_003_kh_wt003_whtoritnfd" model="account.report.line">
+                                <field name="name">04 Payment of interest to taxpayers who have non-fixed term saving</field>
+                                <field name="code">KH_WT003_WHTORITNFD</field>
+                                <field name="hierarchy_level">2</field>
+                                <field name="foldable" eval="False"/>
+                                <field name="expression_ids">
+                                    <record id="kh_wt003_whtoritnfd_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 R 04 B</field>
+                                    </record>
+                                    <record id="kh_wt003_whtoritnfd_tax" model="account.report.expression">
+                                        <field name="label">tax</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 R 04 D</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_kh_wt_003_kh_wt003_whtorrl" model="account.report.line">
+                                <field name="name">05 Payment of rental/lease of movable and immovable property - Legal Person</field>
+                                <field name="code">KH_WT003_WHTORRL</field>
+                                <field name="hierarchy_level">2</field>
+                                <field name="foldable" eval="False"/>
+                                <field name="expression_ids">
+                                    <record id="kh_wt003_whtorrl_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 R 05 B</field>
+                                    </record>
+                                    <record id="kh_wt003_whtorrl_tax" model="account.report.expression">
+                                        <field name="label">tax</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 R 05 D</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_kh_wt_003_kh_wt003_whtorrp" model="account.report.line">
+                                <field name="name">06 Payment of rental/lease of movable and immovable property - Physical Person</field>
+                                <field name="code">KH_WT003_WHTORRP</field>
+                                <field name="hierarchy_level">2</field>
+                                <field name="foldable" eval="False"/>
+                                <field name="expression_ids">
+                                    <record id="kh_wt003_whtorrp_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 R 06 B</field>
+                                    </record>
+                                    <record id="kh_wt003_whtorrp_tax" model="account.report.expression">
+                                        <field name="label">tax</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 R 06 D</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                    <record id="l10n_kh_wt_003_kh_wt003_whtonr" model="account.report.line">
+                        <field name="name">Withholding tax on non-resident</field>
+                        <field name="code">KH_WT003_WHTONR</field>
+                        <field name="hierarchy_level">1</field>
+                        <field name="foldable" eval="False"/>
+                        <field name="expression_ids">
+                            <record id="kh_wt003_whtonr_balance" model="account.report.expression">
+                                <field name="label">balance</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">KH_WT003_WHTONRPI.balance + KH_WT003_WHTONRPR.balance + KH_WT003_WHTONRPMT.balance + KH_WT003_WHTONRPD.balance + KH_WT003_WHTONRS.balance</field>
+                            </record>
+                            <record id="kh_wt003_whtonr_tax" model="account.report.expression">
+                                <field name="label">tax</field>
+                                <field name="engine">aggregation</field>
+                                <field name="formula">KH_WT003_WHTONRPI.tax + KH_WT003_WHTONRPR.tax + KH_WT003_WHTONRPMT.tax + KH_WT003_WHTONRPD.tax + KH_WT003_WHTONRS.tax</field>
+                            </record>
+                        </field>
+                        <field name="children_ids">
+                            <record id="l10n_kh_wt_003_kh_wt003_whtonrpi" model="account.report.line">
+                                <field name="name">01 Payment of interest</field>
+                                <field name="code">KH_WT003_WHTONRPI</field>
+                                <field name="hierarchy_level">2</field>
+                                <field name="foldable" eval="False"/>
+                                <field name="expression_ids">
+                                    <record id="kh_wt003_whtonrpi_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 NR 01 B</field>
+                                    </record>
+                                    <record id="kh_wt003_whtonrpi_tax" model="account.report.expression">
+                                        <field name="label">tax</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 NR 01 D</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_kh_wt_003_kh_wt003_whtonrpr" model="account.report.line">
+                                <field name="name">02 Payment of royalty, rental/leasing, and income related to the use of property</field>
+                                <field name="code">KH_WT003_WHTONRPR</field>
+                                <field name="hierarchy_level">2</field>
+                                <field name="foldable" eval="False"/>
+                                <field name="expression_ids">
+                                    <record id="kh_wt003_whtonrpr_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 NR 02 B</field>
+                                    </record>
+                                    <record id="kh_wt003_whtonrpr_tax" model="account.report.expression">
+                                        <field name="label">tax</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 NR 02 D</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_kh_wt_003_kh_wt003_whtonrpmt" model="account.report.line">
+                                <field name="name">03 Payment of management fee and technical services</field>
+                                <field name="code">KH_WT003_WHTONRPMT</field>
+                                <field name="hierarchy_level">2</field>
+                                <field name="foldable" eval="False"/>
+                                <field name="expression_ids">
+                                    <record id="kh_wt003_whtonrpmt_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 NR 03 B</field>
+                                    </record>
+                                    <record id="kh_wt003_whtonrpmt_tax" model="account.report.expression">
+                                        <field name="label">tax</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 NR 03 D</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_kh_wt_003_kh_wt003_whtonrpd" model="account.report.line">
+                                <field name="name">04 Payment of dividend</field>
+                                <field name="code">KH_WT003_WHTONRPD</field>
+                                <field name="hierarchy_level">2</field>
+                                <field name="foldable" eval="False"/>
+                                <field name="expression_ids">
+                                    <record id="kh_wt003_whtonrpd_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 NR 04 B</field>
+                                    </record>
+                                    <record id="kh_wt003_whtonrpd_tax" model="account.report.expression">
+                                        <field name="label">tax</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 NR 04 D</field>
+                                    </record>
+                                </field>
+                            </record>
+                            <record id="l10n_kh_wt_003_kh_wt003_whtonrs" model="account.report.line">
+                                <field name="name">05 Service</field>
+                                <field name="code">KH_WT003_WHTONRS</field>
+                                <field name="hierarchy_level">2</field>
+                                <field name="foldable" eval="False"/>
+                                <field name="expression_ids">
+                                    <record id="kh_wt003_whtonrs_balance" model="account.report.expression">
+                                        <field name="label">balance</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 NR 05 B</field>
+                                    </record>
+                                    <record id="kh_wt003_whtonrs_tax" model="account.report.expression">
+                                        <field name="label">tax</field>
+                                        <field name="engine">tax_tags</field>
+                                        <field name="formula">WT 003 NR 05 D</field>
+                                    </record>
+                                </field>
+                            </record>
+                        </field>
+                    </record>
+                </field>
+            </record>
+        </field>
+    </record>
+</odoo>
