@@ -212,6 +212,11 @@ class AccountJournal(models.Model):
         string='Loss Account',
         domain="[('deprecated', '=', False), \
                 ('account_type', '=', 'expense')]")
+    account_cash_rounding_id = fields.Many2one(
+        comodel_name='account.cash.rounding',
+        string='Cash Rounding Method',
+        help='Defines the smallest coinage of the currency that can be used to pay by cash.',
+    )
 
     # Bank journals fields
     company_partner_id = fields.Many2one('res.partner', related='company_id.partner_id', string='Account Holder', readonly=True, store=False)
@@ -468,6 +473,15 @@ class AccountJournal(models.Model):
         ):
             journal.alias_name = self._alias_prepare_alias_name(
                 False, journal.name, journal.code, journal.type, journal.company_id)
+
+    @api.onchange('account_cash_rounding_id')
+    def _onchange_account_cash_rounding_id(self):
+        for move in self:
+            if move.account_cash_rounding_id.strategy == 'add_invoice_line' and not move.account_cash_rounding_id.profit_account_id:
+                return {'warning': {
+                    'title': _("Warning for Cash Rounding Method: %s", move.account_cash_rounding_id.name),
+                    'message': _("You must specify the Profit Account (company dependent)")
+                }}
 
     @api.constrains('account_control_ids')
     def _constrains_account_control_ids(self):
