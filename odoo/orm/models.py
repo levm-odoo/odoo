@@ -4492,16 +4492,20 @@ class BaseModel(metaclass=MetaModel):
             vals.setdefault('write_uid', self.env.uid)
             vals.setdefault('write_date', self.env.cr.now())
 
-        field_values = []                           # [(field, value)]
-        determine_inverses = defaultdict(list)      # {inverse: fields}
-        fnames_modifying_relations = []
-        protected = set()
-        check_company = False
+        # determine field values {field: value}
+        field_values = {}
         for fname, value in vals.items():
             field = self._fields.get(fname)
             if not field:
-                raise ValueError("Invalid field %r on model %r" % (fname, self._name))
-            field_values.append((field, value))
+                raise ValueError(f"Invalid field {fname!r} on model {self._name!r}")
+            field_values[field] = value
+
+        # determine what to protect, what to update
+        determine_inverses = defaultdict(list)      # {inverse: fields}
+        fnames_modifying_relations = []
+        fields_to_protect = OrderedSet()
+        check_company = False
+        for field, value in field_values.items():
             if field.inverse:
                 if field.type in ('one2many', 'many2many'):
                     # The written value is a list of commands that must applied
@@ -4510,10 +4514,10 @@ class BaseModel(metaclass=MetaModel):
                     # will not be computed and default to an empty recordset. So
                     # make sure the field's value is in cache before writing, in
                     # order to avoid an inconsistent update.
-                    self[fname]
+                    self[field.name]
                 determine_inverses[field.inverse].append(field)
             if self.pool.is_modifying_relations(field):
-                fnames_modifying_relations.append(fname)
+                fnames_modifying_relations.append(field.name)
             if field.inverse or (field.compute and not field.readonly):
                 if field.store or field.type not in ('one2many', 'many2many'):
                     # Protect the field from being recomputed while being
@@ -4525,20 +4529,20 @@ class BaseModel(metaclass=MetaModel):
                     # will automatically invalidate the field from the cache,
                     # forcing its value to be recomputed once dependencies are
                     # up-to-date.
-                    protected.update(self.pool.field_computed.get(field, [field]))
-            if fname == 'company_id' or (field.relational and field.check_company):
+                    fields_to_protect.update(self.pool.field_computed.get(field, [field]))
+            if field.name == 'company_id' or (field.relational and field.check_company):
                 check_company = True
 
         # force the computation of fields that are computed with some assigned
         # fields, but are not assigned themselves
         to_compute = [field.name
-                      for field in protected
-                      if field.compute and field.name not in vals]
+                      for field in fields_to_protect
+                      if field.compute and field not in field_values]
         if to_compute:
             self._recompute_recordset(to_compute)
 
         # protect fields being written against recomputation
-        with env.protecting(protected, self):
+        with env.protecting(fields_to_protect, self):
             # Determine records depending on values. When modifying a relational
             # field, you have to recompute what depends on the field's values
             # before and after modification.  This is because the modification
@@ -4565,8 +4569,8 @@ class BaseModel(metaclass=MetaModel):
             # Monetary fields need their corresponding currency field in cache
             # for rounding values. X2many fields must be written last, because
             # they flush other fields when deleting lines.
-            for field, value in sorted(field_values, key=lambda item: item[0].write_sequence):
-                field.write(self, value)
+            for field in sorted(field_values, key=lambda f: f.write_sequence):
+                field.write(self, field_values[field])
 
             # determine records depending on new values
             #
@@ -4587,20 +4591,20 @@ class BaseModel(metaclass=MetaModel):
                 self.flush_model([self._parent_name])
 
             # validate non-inversed fields first
-            inverse_fields = [f.name for fs in determine_inverses.values() for f in fs]
-            real_recs._validate_fields(vals, inverse_fields)
+            inverse_fnames = [f.name for fs in determine_inverses.values() for f in fs]
+            real_recs._validate_fields(vals, inverse_fnames)
 
-            for fields in determine_inverses.values():
+            for fields_ in determine_inverses.values():
                 # write again on non-stored fields that have been invalidated from cache
-                for field in fields:
+                for field in fields_:
                     if not field.store and any(self.env.cache.get_missing_ids(real_recs, field)):
                         field.write(real_recs, vals[field.name])
 
                 # inverse records that are not being computed
                 try:
-                    fields[0].determine_inverse(real_recs)
+                    fields_[0].determine_inverse(real_recs)
                 except AccessError as e:
-                    if fields[0].inherited:
+                    if fields_[0].inherited:
                         description = self.env['ir.model']._get(self._name).name
                         raise AccessError(_(
                             "%(previous_message)s\n\nImplicitly accessed through '%(document_kind)s' (%(document_model)s).",
@@ -4611,7 +4615,7 @@ class BaseModel(metaclass=MetaModel):
                     raise
 
             # validate inversed fields
-            real_recs._validate_fields(inverse_fields)
+            real_recs._validate_fields(inverse_fnames)
 
         if check_company and self._check_company_auto:
             self._check_company()
