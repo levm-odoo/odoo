@@ -319,7 +319,7 @@ class PaymentPortal(portal.CustomerPortal):
                 provider_sudo.allow_tokenization
                 and payment_method_sudo.support_tokenization
                 # Token is only created if required by the flow or requested by the user
-                and (provider_sudo._is_tokenization_required(**kwargs) or tokenization_requested)
+                and ((provider_sudo._is_tokenization_required(**kwargs) or tokenization_requested) and payment_method_sudo.support_tokenization)
             )
         elif flow == 'token':  # Payment by token
             token_sudo = request.env['payment.token'].sudo().browse(token_id)
