@@ -4488,7 +4488,9 @@ class BaseModel(metaclass=MetaModel):
 
         # set magic fields
         vals = {key: val for key, val in vals.items() if key not in bad_names}
+        ignore_magic = ()
         if self._log_access:
+            ignore_magic = [fname for fname in ('write_uid', 'write_date') if fname not in vals]
             vals.setdefault('write_uid', self.env.uid)
             vals.setdefault('write_date', self.env.cr.now())
 
@@ -4556,7 +4558,8 @@ class BaseModel(metaclass=MetaModel):
             if not records:
                 continue
             fields_to_update.append(field)
-            ids_to_update.update(records._ids)
+            if field.name not in ignore_magic:
+                ids_to_update.update(records._ids)
             if field.inverse:
                 if field.type in ('one2many', 'many2many'):
                     # The written value is a list of commands that must applied

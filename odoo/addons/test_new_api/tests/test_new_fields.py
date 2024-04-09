@@ -4565,6 +4565,13 @@ class TestComputeQueries(TransactionCase):
         model = self.env['test_new_api.compute.readwrite']
         record = model.create({'foo': 'Foo', 'bar': 'Bar'})
 
+        # set record's write_date to yesterday, in order to check that
+        # write_date is not updated by some idempotent assignment
+        yesterday = fields.Datetime.add(record.write_date, days=-1)
+        for fname in ('create_date', 'write_date'):
+            self.env.cache.set(record, model._fields[fname], yesterday, dirty=True)
+        record.flush_recordset()
+
         # do not trigger recomputation when writing the same value
         with self.assertQueries([]):
             record.foo = 'Foo'

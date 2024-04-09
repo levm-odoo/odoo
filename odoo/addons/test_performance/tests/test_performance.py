@@ -328,12 +328,12 @@ class TestPerformance(SavepointCaseWithUserDemo):
         self.assertFalse(rec1.line_ids)
         self.assertEqual(rec2.line_ids, lines)
 
-        with self.assertQueryCount(2):
+        with self.assertQueryCount(1):
             self.env.invalidate_all()
             rec2.write({'line_ids': [Command.link(line.id) for line in lines[0]]})
         self.assertEqual(rec2.line_ids, lines)
 
-        with self.assertQueryCount(2):
+        with self.assertQueryCount(1):
             self.env.invalidate_all()
             rec2.write({'line_ids': [Command.link(line.id) for line in lines[1:]]})
         self.assertEqual(rec2.line_ids, lines)
@@ -344,7 +344,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
             rec2.write({'line_ids': [Command.clear()]})
         self.assertFalse(rec2.line_ids)
 
-        with self.assertQueryCount(2):
+        with self.assertQueryCount(1):
             self.env.invalidate_all()
             rec2.write({'line_ids': [Command.clear()]})
         self.assertFalse(rec2.line_ids)
@@ -365,7 +365,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
         self.assertFalse(rec1.line_ids)
         self.assertEqual(rec2.line_ids, lines)
 
-        with self.assertQueryCount(2):
+        with self.assertQueryCount(1):
             self.env.invalidate_all()
             rec2.write({'line_ids': [Command.set(lines.ids)]})
         self.assertEqual(rec2.line_ids, lines)
@@ -452,7 +452,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
             rec2.write({'tag_ids': [Command.link(tag.id) for tag in tags[1:]]})
         self.assertEqual(rec2.tag_ids, tags)
 
-        with self.assertQueryCount(2):
+        with self.assertQueryCount(1):
             self.env.invalidate_all()
             rec2.write({'tag_ids': [Command.link(tag.id) for tag in tags[1:]]})
         self.assertEqual(rec2.tag_ids, tags)
@@ -464,7 +464,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
         self.assertFalse(rec2.tag_ids)
         self.assertTrue(tags.exists())
 
-        with self.assertQueryCount(2):
+        with self.assertQueryCount(1):
             self.env.invalidate_all()
             rec2.write({'tag_ids': [Command.clear()]})
         self.assertFalse(rec2.tag_ids)
@@ -490,7 +490,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
             rec2.write({'tag_ids': [Command.set(tags.ids)]})
         self.assertEqual(rec2.tag_ids, tags)
 
-        with self.assertQueryCount(2):
+        with self.assertQueryCount(1):
             self.env.invalidate_all()
             rec2.write({'tag_ids': [Command.set(tags.ids)]})
         self.assertEqual(rec2.tag_ids, tags)
