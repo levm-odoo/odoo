@@ -14,12 +14,20 @@ class UtmMixin(models.AbstractModel):
     """ Mixin class for objects which can be tracked by marketing. """
     _description = 'UTM Mixin'
 
+    @api.model
+    def _selection_target_model(self):
+        return [(model.model, model.name) for model in self.env['ir.model'].sudo().search([])]
+
     campaign_id = fields.Many2one('utm.campaign', 'Campaign', index='btree_not_null',
                                   help="This is a name that helps you keep track of your different campaign efforts, e.g. Fall_Drive, Christmas_Special")
     source_id = fields.Many2one('utm.source', 'Source', index='btree_not_null',
                                 help="This is the source of the link, e.g. Search Engine, another domain, or name of email list")
     medium_id = fields.Many2one('utm.medium', 'Medium', index='btree_not_null',
                                 help="This is the method of delivery, e.g. Postcard, Email, or Banner Ad")
+    utm_reference = fields.Reference(string='UTM Reference',
+                                     selection='_selection_target_model',
+                                     index=True,  # will be used extensively for statistics (e.g: how many leads did this mailing generate)
+                                     help="This is the (optional) reference to the originating record (e.g: the social post, the mailing)")
 
     @api.model
     def default_get(self, fields):
@@ -36,10 +44,17 @@ class UtmMixin(models.AbstractModel):
                 if request:
                     # ir_http dispatch saves the url params in a cookie
                     value = request.cookies.get(cookie_name)
-                # if we receive a string for a many2one, we search/create the id
                 if field.type == 'many2one' and isinstance(value, str) and value:
+                    # if we receive a string for a many2one, we search/create the id
                     record = self._find_or_create_record(field.comodel_name, value)
                     value = record.id
+                elif field.type == 'reference' and isinstance(value, str) and value:
+                    # sanitize the value first, the ORM will crash if ill-formatted
+                    # we prefer to just void the field if so, as UTMs are optional
+                    # see 'fields_reference#convert_to_cache'
+                    res_model, res_id = value.split(',')
+                    if not res_model in self.env or not self.env[res_model].browse(int(res_id)).exists():
+                        value = False
                 if value:
                     values[field_name] = value
         return values
@@ -56,6 +71,7 @@ class UtmMixin(models.AbstractModel):
             ('utm_campaign', 'campaign_id', 'odoo_utm_campaign'),
             ('utm_source', 'source_id', 'odoo_utm_source'),
             ('utm_medium', 'medium_id', 'odoo_utm_medium'),
+            ('utm_reference', 'utm_reference', 'odoo_utm_reference'),
         ]
 
     def _tracking_models(self):

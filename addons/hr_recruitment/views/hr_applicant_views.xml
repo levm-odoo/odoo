@@ -163,6 +163,8 @@
                                 </div>
                             </group>
                             <group string="Sourcing">
+                                <field name="utm_reference" string="Reference" options="{'hide_model': True}"
+                                    invisible="not utm_reference" readonly="True"/>
                                 <field name="source_id"/>
                                 <field name="medium_id"/>
                             </group>
