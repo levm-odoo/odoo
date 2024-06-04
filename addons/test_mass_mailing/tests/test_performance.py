@@ -38,7 +38,6 @@ class TestMassMailPerformance(TestMassMailPerformanceBase):
     @mute_logger('odoo.addons.mail.models.mail_mail', 'odoo.models.unlink', 'odoo.tests')
     def test_send_mailing(self):
         mailing = self.env['mailing.mailing'].create({
-            'name': 'Test',
             'subject': 'Test',
             'body_html': '<p>Hello <a role="button" href="https://www.example.com/foo/bar?baz=qux">quux</a><a role="button" href="/unsubscribe_from_list">Unsubscribe</a></p>',
             'reply_to_mode': 'new',
@@ -81,7 +80,6 @@ class TestMassMailBlPerformance(TestMassMailPerformanceBase):
     @mute_logger('odoo.addons.mail.models.mail_mail', 'odoo.models.unlink', 'odoo.tests')
     def test_send_mailing_w_bl(self):
         mailing = self.env['mailing.mailing'].create({
-            'name': 'Test',
             'subject': 'Test',
             'body_html': '<p>Hello <a role="button" href="https://www.example.com/foo/bar?baz=qux">quux</a><a role="button" href="/unsubscribe_from_list">Unsubscribe</a></p>',
             'reply_to_mode': 'new',

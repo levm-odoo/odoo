@@ -27,7 +27,6 @@ class TestMailingTest(TestMassMailCommon):
             'mailing_domain': [('id', 'in', cls.test_records.ids)],
             'mailing_model_id': cls.env['ir.model']._get_id('mailing.test.blacklist'),
             'mailing_type': 'mail',
-            'name': 'TestButton',
             'preview': 'Preview {{ object.name }}',
             'subject': 'Subject {{ object.name }}',
         })

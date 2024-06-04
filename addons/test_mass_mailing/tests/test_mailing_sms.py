@@ -17,7 +17,6 @@ class TestMassSMSInternals(TestMassSMSCommon):
     @users('user_marketing')
     def test_mass_sms_domain(self):
         mailing = self.env['mailing.mailing'].create({
-            'name': 'Xmas Spam',
             'subject': 'Xmas Spam',
             'mailing_model_id': self.env['ir.model']._get('mail.test.sms').id,
             'mailing_type': 'sms',
@@ -25,7 +24,6 @@ class TestMassSMSInternals(TestMassSMSCommon):
         self.assertEqual(literal_eval(mailing.mailing_domain), [])
 
         mailing = self.env['mailing.mailing'].create({
-            'name': 'Xmas Spam',
             'subject': 'Xmas Spam',
             'mailing_model_id': self.env['ir.model']._get('mail.test.sms.bl').id,
             'mailing_type': 'sms',
@@ -36,7 +34,6 @@ class TestMassSMSInternals(TestMassSMSCommon):
     def test_mass_sms_internals(self):
         with self.with_user('user_marketing'):
             mailing = self.env['mailing.mailing'].create({
-                'name': 'Xmas Spam',
                 'subject': 'Xmas Spam',
                 'mailing_model_id': self.env['ir.model']._get('mail.test.sms').id,
                 'mailing_type': 'sms',
@@ -197,7 +194,6 @@ class TestMassSMSInternals(TestMassSMSCommon):
         """
         with self.with_user('user_marketing'):
             mailing = self.env['mailing.mailing'].create({
-                'name': 'Xmas Spam',
                 'subject': 'Xmas Spam',
                 'mailing_model_id': self.env['ir.model']._get('mail.test.sms').id,
                 'mailing_type': 'sms',
@@ -228,7 +224,6 @@ class TestMassSMSInternals(TestMassSMSCommon):
         """Test that a failed status returned by IAP is immediately applied to traces."""
         with self.with_user('user_marketing'):
             mailing = self.env['mailing.mailing'].create({
-                'name': 'Xmas Spam',
                 'subject': 'Xmas Spam',
                 'mailing_model_id': self.env['ir.model']._get('mail.test.sms').id,
                 'mailing_type': 'sms',
@@ -257,7 +252,6 @@ class TestMassSMSInternals(TestMassSMSCommon):
     @mute_logger('odoo.addons.mail.models.mail_render_mixin')
     def test_mass_sms_test_button(self):
         mailing = self.env['mailing.mailing'].create({
-            'name': 'TestButton',
             'subject': 'Subject {{ object.name }}',
             'preview': 'Preview {{ object.name }}',
             'state': 'draft',
