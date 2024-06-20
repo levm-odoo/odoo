@@ -11,8 +11,11 @@ class TestUTMConsistency(TestUTMCommon):
 
     @users('__system__')
     def test_utm_consistency(self):
-        """ You are not supposed to delete the 'utm_medium_email' record as it is hardcoded in
-        some functional flows, notably in HR and Mass Mailing. """
+        """ You are not supposed to delete records from the 'utm_mixin.SELF_REQUIRED_UTM_REF' list.
+        Indeed, those are essential to functional flows.
+        e.g: The source 'Mass Mailing' and the medium 'Email' are used within Mass Mailing, HR, ...
+        Deleting those records would prevent meaningful statistics and render UTM useless. """
 
-        with self.assertRaises(UserError):
-            self.env.ref('utm.utm_medium_email').unlink()
+        for xml_id in self.env['utm.mixin'].SELF_REQUIRED_UTM_REF:
+            with self.assertRaises(UserError):
+                self.env.ref(xml_id).unlink()
