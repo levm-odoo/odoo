@@ -1603,6 +1603,22 @@ export function isUnremovable(node) {
     );
 }
 
+// i made small change in this function to count node as removeable based on class name "allowForRange" even if it has class "oe_unremovable" for deleteRange command.
+// if you are working on this task, do something like that we dont have to create new mehtod and we can handle in above method itslef.
+
+// note: we are using this method in deleteRange only
+export function isUnremovableTemp(node) {
+    return (
+        (node.nodeType !== Node.COMMENT_NODE && node.nodeType !== Node.ELEMENT_NODE && node.nodeType !== Node.TEXT_NODE) ||
+        node.oid === 'root' ||
+        (node.nodeType === Node.ELEMENT_NODE &&
+            (node.classList.contains('o_editable') || node.getAttribute('t-set') || node.getAttribute('t-call'))) ||
+        (node.classList && (node.classList.contains('oe_unremovable') && !node.classList.contains('allowForRange'))) ||
+        (node.nodeName === 'SPAN' && node.parentElement && node.parentElement.getAttribute('data-oe-type') === 'monetary') ||
+        (node.ownerDocument && node.ownerDocument.defaultWindow && !ancestors(node).find(ancestor => ancestor.oid === 'root')) // Node is in DOM but not in editable.
+    );
+}
+
 export function containsUnbreakable(node) {
     if (!node) {
         return false;
