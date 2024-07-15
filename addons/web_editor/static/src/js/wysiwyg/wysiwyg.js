@@ -1664,6 +1664,12 @@ const Wysiwyg = Widget.extend({
                     const hookEl = oldColorpicker ? oldColorpicker.el : elem;
                     const selectedColor = this._getSelectedColor($, eventName);
                     const selection = this.odooEditor.document.getSelection();
+                    if (selection.rangeCount > 1 && selectedTds.length > 1) {
+                        // Firefox selection in table works with multiple ranges.
+                        // Hence, we need to correct selection before applying
+                        // color otherwise it will end up with wrong result.
+                        setSelection(selectedTds[0], 0, selectedTds[selectedTds.length - 1], 0);
+                    }
                     const range = selection.rangeCount && selection.getRangeAt(0);
                     const hadNonCollapsedSelection = range && !selection.isCollapsed;
                     // The color_leave event will revert the mutations with
