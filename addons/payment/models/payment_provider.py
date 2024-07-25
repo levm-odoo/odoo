@@ -521,7 +521,7 @@ class PaymentProvider(models.Model):
             )
 
         # Handle tokenization support requirements.
-        if force_tokenization or (self._is_tokenization_required(**kwargs) and self._hide_non_tokenize_provider(**kwargs)):
+        if force_tokenization or self._is_tokenization_required(**kwargs):
             unfiltered_providers = providers
             providers = providers.filtered('allow_tokenization')
             payment_utils.add_to_report(
@@ -724,14 +724,3 @@ class PaymentProvider(models.Model):
         self.ensure_one()
         return set()
 
-    def _hide_non_tokenize_provider(self, **kwargs):
-        """ Return whether to hide non tokenize provider or not.
-
-        For a module to show the non tokenize provider required based on the payment context, it must
-        override this method and return whether it is required.
-
-        :param dict kwargs: The payment context. This parameter is not used here.
-        :return: Whether to hide non tokenize payment providers.
-        :rtype: bool
-        """
-        return True
