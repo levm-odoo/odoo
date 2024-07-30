@@ -469,8 +469,8 @@ class TestCheckoutAddress(BaseUsersCommon, WebsiteSaleCommon):
         so = self._create_so(partner_id=user_partner.id)
         self.assertNotEqual(so.partner_shipping_id, shipping)
         self.assertNotEqual(so.partner_invoice_id, invoicing)
-        self.assertFalse(colleague._can_be_edited_by_current_customer(so, 'billing'))
-        self.assertFalse(colleague._can_be_edited_by_current_customer(so, 'delivery'))
+        self.assertFalse(colleague._can_be_edited_by_current_customer('billing', order_sudo=so))
+        self.assertFalse(colleague._can_be_edited_by_current_customer('delivery', order_sudo=so))
 
         env = api.Environment(self.env.cr, user.id, {})
         # change also website env for `sale_get_order` to not change order partner_id
@@ -505,7 +505,7 @@ class TestCheckoutAddress(BaseUsersCommon, WebsiteSaleCommon):
             self.assertEqual(so.partner_invoice_id, bad_invoicing)
             redirection = self.WebsiteSaleController._check_addresses(so)
             self.assertTrue(redirection is not None)
-            self.assertEqual(redirection.location, f'/shop/address?partner_id={bad_invoicing.id}&address_type=billing')
+            self.assertEqual(redirection.location, f'/portal/address?partner_id={bad_invoicing.id}&address_type=billing')
 
             # reset to valid one
             self.WebsiteSaleController.shop_update_address(
@@ -517,7 +517,7 @@ class TestCheckoutAddress(BaseUsersCommon, WebsiteSaleCommon):
             self.assertEqual(so.partner_shipping_id, bad_shipping)
             redirection = self.WebsiteSaleController._check_addresses(so)
             self.assertTrue(redirection is not None)
-            self.assertEqual(redirection.location, f'/shop/address?partner_id={bad_shipping.id}&address_type=delivery')
+            self.assertEqual(redirection.location, f'/portal/address?partner_id={bad_shipping.id}&address_type=delivery')
 
             # reset to valid one
             self.WebsiteSaleController.shop_update_address(

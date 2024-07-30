@@ -2186,10 +2186,10 @@
             <div t-if="not is_invoice or not order.website_id.is_public_user()" class="one_kanban col-md">
                 <!-- We do not allow public users to have multiple billing addresses -->
                 <t t-if="is_invoice">
-                    <t t-set="new_address_href" t-valuef="/shop/address?address_type=billing"/>
+                    <t t-set="new_address_href" t-valuef="/portal/address?address_type=billing"/>
                 </t>
                 <t t-else="">
-                    <t t-set="new_address_href" t-valuef="/shop/address?address_type=delivery"/>
+                    <t t-set="new_address_href" t-valuef="/portal/address?address_type=delivery"/>
                 </t>
                 <a role="button" t-att-href="new_address_href" class="o_wsale_add_address d-flex align-items-center justify-content-center h-100 px-4 border rounded mx-auto no-decoration">
                     <i class="fa fa-plus me-md-2"/><span class="d-none d-md-inline">Add address</span>
@@ -2206,8 +2206,8 @@
              t-att-data-partner-id="contact.id">
             <div class="card-body d-flex flex-column align-items-start">
                 <t t-esc="contact" t-options="dict(widget='contact', fields=['name', 'address'], no_marker=True)"/>
-                <t t-if="contact._can_be_edited_by_current_customer(website_sale_order, address_type)">
-                    <t t-set="new_address_href" t-value="'/shop/address?address_type=' + address_type"/>
+                <t t-if="contact._can_be_edited_by_current_customer(address_type, order_sudo=website_sale_order)">
+                    <t t-set="new_address_href" t-value="'/portal/address?address_type=' + address_type"/>
                     <a
                         t-att-href="new_address_href + '&amp;partner_id=' + str(contact.id)"
                         class="js_edit_address btn btn-link p-0 mt-auto"
@@ -2226,7 +2226,7 @@
         <t t-set="no_footer" t-value="1"/>
         <t t-call="website.layout">
             <div id="wrap">
-                <div class="oe_website_sale o_wsale_address_fill container py-2">
+                <div class="oe_website_sale o_portal_address_fill container py-2">
                     <div class="row">
                         <div class="col-12">
                             <t t-call="website_sale.wizard_checkout"/>
@@ -2248,7 +2248,7 @@
                                         <h4 class="alert-heading">Be aware!</h4>
                                         <p>
                                             You are editing your <b>billing and delivery</b> addresses at the same time!<br/>
-                                            If you want to modify your delivery address, create a <a href="/shop/address?address_type=delivery">new address</a>.
+                                            If you want to modify your delivery address, create a <a href="/portal/address?address_type=delivery">new address</a>.
                                         </p>
                                     </div>
                                 </t>
