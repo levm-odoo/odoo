@@ -40,3 +40,27 @@ registry.category("web_tour.tours").add('test_mrp_manual_consumption_02', {
         },
         ...stepUtils.saveForm(),
 ]});
+
+registry.category("web_tour.tours").add('test_mrp_manual_consumption_03', {
+    test: true,
+    steps: () => [
+        {
+            trigger: "button:has(input[name='Nuclear Workcenter'])",
+        },
+        {
+            extra_trigger: "button.active:has(input[name='Nuclear Workcenter'])",
+            trigger: "button:contains('Confirm')",
+        },
+        {
+            trigger: "button.btn-light:contains('Nuclear Workcenter')",
+        },
+        {
+            extra_trigger: ".o_control_panel_actions button.active:contains('Nuclear Workcenter')",
+            trigger: ".o_finished_product span:contains('Finish')",
+        },
+        {
+            extra_trigger: ".o_mrp_display_record.o_active",
+            trigger: ".o_mrp_record_line:not(.text-muted) span:contains('Component')",
+            run: () => {},
+        },
+]});
