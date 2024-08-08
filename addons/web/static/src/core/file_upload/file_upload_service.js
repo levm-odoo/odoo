@@ -2,6 +2,10 @@ import { _t } from "@web/core/l10n/translation";
 import { registry } from "../registry";
 
 import { EventBus, reactive } from "@odoo/owl";
+import { checkFileSize } from "@web/core/utils/files";
+import { humanNumber } from "@web/core/utils/numbers";
+import { UploadProgressManager } from "./upload_progress_service";
+import { fileProgressManager, fileProgressBar } from "./upload_utils";
 
 export const fileUploadService = {
     dependencies: ["notification"],
@@ -16,9 +20,13 @@ export const fileUploadService = {
     },
 
     start(env, { notificationService }) {
+        let fileId = 0;
         const uploads = reactive({});
         let nextId = 1;
         const bus = new EventBus();
+        registry.category("main_components").add("UploadProgressManager", {
+            Component: UploadProgressManager,
+        });
 
         /**
          * @param {string}                          route
@@ -36,6 +44,31 @@ export const fileUploadService = {
          * @returns {String||undefined}             upload.type
          */
         const upload = async (route, files, params = {}) => {
+            if (fileProgressManager.isCancelAllUpload()) {
+                return;
+            }
+            fileProgressBar.uploadInProgress = true;
+            const startTime = Date.now();
+            const sortedFiles = Array.from(files);
+            // Check if there are multiple files for remove/hide the cancel button
+            fileProgressBar.multipleFiles = sortedFiles.length > 1;
+            for (const file of sortedFiles) {
+                let fileSize = file.size;
+                if (!checkFileSize(fileSize, notificationService)) {
+                    return null;
+                }
+                fileSize = fileSize ? humanNumber(fileSize) + "B" : "";
+                const id = ++fileId;
+                file.progressToastId = id;
+                // Create a wrapped file object with metadata (copy of original file)
+                const fileDetails = {
+                    id,
+                    name: file.name,
+                    size: fileSize,
+                };
+                // Add the file to the progress bar only if it's valid
+                fileProgressManager.addFile(fileDetails);
+            }
             const xhr = this.createXhr();
             xhr.open("POST", route);
             const formData = new FormData();
@@ -58,8 +91,11 @@ export const fileUploadService = {
                 type: files.length === 1 ? files[0].type : undefined,
             });
             uploads[upload.id] = upload;
+            const filesToUpload = sortedFiles.length > 0 ? sortedFiles : [];
             // Progress listener
             xhr.upload.addEventListener("progress", async (ev) => {
+                const remainingTime = fileProgressManager.calculateTime(startTime, ev);
+                fileProgressManager.uploadInProgress(filesToUpload, remainingTime, ev);
                 upload.progress = ev.loaded / ev.total;
                 upload.loaded = ev.loaded;
                 upload.total = ev.total;
@@ -69,12 +105,17 @@ export const fileUploadService = {
             xhr.addEventListener("load", () => {
                 delete uploads[upload.id];
                 upload.state = "loaded";
+                fileProgressManager.fileUploadLoaded(filesToUpload);
+                fileProgressBar.uploadInProgress = false;
                 bus.trigger("FILE_UPLOAD_LOADED", { upload });
+                // Clear files when the upload completes
+                fileProgressManager.clearUploadedFiles();
             });
             // Error listener
             xhr.addEventListener("error", async () => {
                 delete uploads[upload.id];
                 upload.state = "error";
+                fileProgressManager.fileInError(filesToUpload);
                 // Disable this option if you need more explicit error handling.
                 if (
                     params.displayErrorNotification !== undefined &&
@@ -95,10 +136,11 @@ export const fileUploadService = {
             });
             xhr.send(formData);
             bus.trigger("FILE_UPLOAD_ADDED", { upload });
+            fileProgressBar.xhr = xhr;
             return upload;
         };
 
-        return { bus, upload, uploads };
+        return { bus, upload, uploads, fileProgressBar };
     },
 };
 
