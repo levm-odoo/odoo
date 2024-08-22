@@ -275,6 +275,12 @@ class CustomerPortal(Controller):
         )
         return request.render(template_to_render, address_form_values)
 
+    @route('/address/update_address', type='json', auth='public', website=True)
+    def portal_update_address(self, partner_id, mode='billing', **kw):
+        partner_id = int(partner_id)
+        ResPartner = request.env['res.partner'].sudo()
+        ResPartner._update_delivery_and_shipping_address(partner_id, mode)
+
     @route(['/archive/address/<int:partner_id>'], type='http', auth="user")
     def address_archive(self, partner_id):
         """ Archive an address associated with the logged-in user.

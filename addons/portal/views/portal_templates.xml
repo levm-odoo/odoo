@@ -143,7 +143,11 @@
     <template id="portal_breadcrumbs" name="Portal Breadcrumbs">
         <ol t-if="page_name != 'home'" class="o_portal_submenu breadcrumb mb-0 flex-grow-1 px-0">
             <li class="breadcrumb-item ms-1"><a href="/my/home" aria-label="Home" title="Home"><i class="fa fa-home"/></a></li>
-            <li t-if="page_name == 'my_details'" class="breadcrumb-item">Details</li>
+            <li t-if="page_name == 'my_addresses'" class="breadcrumb-item">Addresses</li>
+            <t t-if="page_name == 'my_details'">
+                <li class="breadcrumb-item"><a href="/my/addresses" aria-label="Addresses" title="Addresses">Addresses</a></li>
+                <li class="breadcrumb-item">Details</li>
+            </t>
         </ol>
     </template>
 
@@ -833,7 +837,6 @@
                     You cannot archive contacts linked to an active user.You first need to archive their associated user.Linked active users : test
                 </p>
             </div>
-            <h3>Addresses</h3>
             <h5 class="mt-4">Billing address</h5>
             <div id="address_checkout_billing" class="one_kanban all_billing_address row">
                 <t t-if="partner">
@@ -844,7 +847,7 @@
                             <t t-set="selected" t-value="len(partner) == 1 and partner.is_default_billing_address"/>
                         </t>
                     </div>
-                    <t t-foreach="partner.child_ids.filtered(lambda c: c.type == 'invoice')" t-as="billing_address">
+                    <t t-foreach="partner.child_ids.filtered(lambda c: c.type == 'invoice' or c.type == 'other')" t-as="billing_address">
                         <div class="col-lg-4 mb-3" style="min-height: 200px">
                             <t t-call="portal.address_card">
                                 <t t-set="is_invoice" t-value="True"/>
@@ -854,7 +857,7 @@
                         </div>
                     </t>
                     <div class="col-lg-4 mb-3" style="min-height: 200px">
-                        <a role="button" href="/portal/address?address_type=invoice&amp;portal_address=True" class="d-flex flex-column align-items-center justify-content-center h-100 p-4 mx-auto rounded text-decoration-none" style="border: 1px dashed">
+                        <a role="button" href="/portal/address?address_type=other&amp;portal_address=True" class="d-flex flex-column align-items-center justify-content-center h-100 p-4 mx-auto rounded text-decoration-none" style="border: 1px dashed">
                             <i class="fa fa-plus fa-2x mb-2"/>Add Address
                         </a>
                     </div>
@@ -870,7 +873,7 @@
                             <t t-set="selected" t-value="len(partner) == 1 and partner.is_default_shipping_address"/>
                         </t>
                     </div>
-                    <t t-foreach="partner.child_ids.filtered(lambda c: c.type == 'delivery')" t-as="shipping_address">
+                    <t t-foreach="partner.child_ids.filtered(lambda c: c.type == 'delivery' or  c.type == 'other')" t-as="shipping_address">
                         <div class="col-lg-4 mb-3" style="min-height: 200px">
                             <t t-call="portal.address_card">
                                 <t t-set="is_invoice" t-value="False"/>
@@ -880,7 +883,7 @@
                         </div>
                     </t>
                     <div class="col-lg-4 mb-3" style="min-height: 200px">
-                        <a role="button" href="/portal/address?address_type=delivery&amp;portal_address=True" class="d-flex flex-column align-items-center justify-content-center h-100 p-4 mx-auto rounded text-decoration-none" style="border: 1px dashed">
+                        <a role="button" href="/portal/address?address_type=other&amp;portal_address=True" class="d-flex flex-column align-items-center justify-content-center h-100 p-4 mx-auto rounded text-decoration-none" style="border: 1px dashed">
                             <i class="fa fa-plus fa-2x mb-2"/>Add Address
                         </a>
                     </div>
@@ -955,11 +958,14 @@
                     <div class="row">
                         <div class="oe_cart col-12 col-lg-8">
                             <div>
-                                <t t-if="address_type == 'invoice'">
+                                <t t-if="partner_sudo.type == 'invoice'">
                                     <h3 class="mb-3">Billing address</h3>
                                 </t>
-                                <t t-else="">
+                                <t t-elif="partner_sudo.type == 'delivery'">
                                     <h3 class="mb-3">Delivery address</h3>
+                                </t>
+                                <t t-else="">
+                                    <h3 class="mb-3">Add New Address</h3>
                                 </t>
                                 <div id="errors"/> <!-- for js -->
                                 <form
