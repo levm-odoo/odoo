@@ -74,13 +74,18 @@ export class DynamicPlaceholderPlugin extends Plugin {
      * @param {string} chain
      * @param {string} defaultValue
      */
-    onValidate(chain, defaultValue) {
+    async onValidate(chain, defaultValue) {
         if (!chain) {
             return;
         }
 
+        const { partner_id: partnerField, [chain]: chainField } = await this.services.field.loadFields(this.defaultResModel);
+
+        let dynamicPlaceholder = (partnerField && chainField?.type == 'datetime')
+            ? `format_datetime(object.${chain}, tz=object.partner_id.tz) + ' (' + (object.partner_id.tz or env.user.tz) + ')'` : `object.${chain}`;
+
         const t = document.createElement("T");
-        t.setAttribute("t-out", `object.${chain}`);
+        t.setAttribute("t-out", dynamicPlaceholder);
         if (defaultValue?.length) {
             t.innerText = defaultValue;
         }
