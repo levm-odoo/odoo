@@ -8,14 +8,16 @@ export class ReCaptcha {
      */
     constructor() {
         this._publicKey = session.recaptcha_public_key;
+        this._recaptchaEnabled = session.recaptcha_enabled;
     }
     /**
      * Loads the recaptcha libraries.
      *
-     * @returns {Promise|boolean} promise if libs are loading else false if the reCaptcha key is empty.
+     * @returns {Promise|boolean} promise if libs are loading else false if the
+     * reCaptcha is disabled or its key is empty.
      */
     loadLibs() {
-        if (this._publicKey) {
+        if (this._recaptchaEnabled && this._publicKey) {
             this._recaptchaReady = loadJS(`https://www.recaptcha.net/recaptcha/api.js?render=${encodeURIComponent(this._publicKey)}`)
                 .then(() => new Promise(resolve => window.grecaptcha.ready(() => resolve())));
             return this._recaptchaReady.then(() => !!document.querySelector('.grecaptcha-badge'));
@@ -31,9 +33,9 @@ export class ReCaptcha {
      * @returns {Promise|Object}
      */
     async getToken(action) {
-        if (!this._publicKey) {
+        if (!this._recaptchaEnabled || !this._publicKey) {
             return {
-                message: _t("No recaptcha site key set."),
+                message: _t("reCAPTCHA disabled or no site key has been configured. Please check your settings."),
             };
         }
         await this._recaptchaReady;

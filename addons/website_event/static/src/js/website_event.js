@@ -90,13 +90,15 @@ var EventRegistrationForm = publicWidget.Widget.extend({
         };
         modalEl.querySelector(".js_goto_event").addEventListener("click", _onClick);
         modalEl.querySelector(".btn-close").addEventListener("click", _onClick);
-        modalEl.querySelector("form").addEventListener("submit", (ev) => {
-            const tokenInput = document.createElement("input");
-            tokenInput.setAttribute("name", "recaptcha_token_response");
-            tokenInput.setAttribute("type", "hidden");
-            tokenInput.setAttribute("value", recaptchaToken.token);
-            ev.currentTarget.appendChild(tokenInput);
-        });
+        if (recaptchaToken.token) {
+            modalEl.querySelector("form").addEventListener("submit", (ev) => {
+                const tokenInput = document.createElement("input");
+                tokenInput.setAttribute("name", "recaptcha_token_response");
+                tokenInput.setAttribute("type", "hidden");
+                tokenInput.setAttribute("value", recaptchaToken.token);
+                ev.currentTarget.appendChild(tokenInput);
+            });
+        }
         const formModal = Modal.getOrCreateInstance(modalEl, {
             backdrop: "static",
             keyboard: false,

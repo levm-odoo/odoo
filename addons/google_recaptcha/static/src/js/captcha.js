@@ -28,10 +28,14 @@ publicWidget.registry.reCaptcha = publicWidget.Widget.extend({
             event.preventDefault();
             const action = this.el.dataset.captcha || "generic";
             const tokenCaptcha = await this._recaptcha.getToken(action);
-            this.$el.append(
-                `<input name="recaptcha_token_response" type="hidden" value="${tokenCaptcha.token}"/>`,
-            );
-            this.$el.submit();
+            if (tokenCaptcha.token) {
+                // Do not send an 'undefined' value when reCAPTCHA is disabled
+                // or not configured.
+                this.$el.append(
+                    `<input name="recaptcha_token_response" type="hidden" value="${tokenCaptcha.token}"/>`
+                );
+            }
+            this.el.submit();
         }
     },
 });
