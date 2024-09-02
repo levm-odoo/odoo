@@ -280,7 +280,7 @@ class ResUsers(models.Model):
                 settings=settings._res_users_settings_format(),
             )
         elif guest := self.env["mail.guest"]._get_guest_from_context():
-            store.add_global_values(store_self=Store.One(guest, ["name", "write_date"]))
+            store.add_global_values(store_self=Store.One(guest.sudo(), ["name", "write_date"]))
 
     def _init_messaging(self, store: Store):
         self.ensure_one()

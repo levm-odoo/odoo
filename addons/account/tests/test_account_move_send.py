@@ -1020,6 +1020,7 @@ class TestAccountMoveSend(TestAccountMoveSendCommon):
         wizard_2.action_send_and_print()
 
         invoices = invoice_1_1 + invoice_1_2 + invoice_2_1 + invoice_2_2
+        invoices = invoices.sudo()
         self.assertFalse(invoices.invoice_pdf_report_id)
         self.assertEqual(invoices.mapped(lambda inv: bool(inv.sending_data)), [True] * len(invoices))
         self.env.ref('account.ir_cron_account_move_send').method_direct_trigger()

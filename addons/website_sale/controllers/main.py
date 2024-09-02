@@ -869,7 +869,7 @@ class WebsiteSale(payment_portal.PaymentPortal):
         )
         # If the line is a combo product line, and it already has combo items, we need to update
         # the combo item quantities as well.
-        line = request.env['sale.order.line'].browse(values['line_id'])
+        line = request.env['sale.order.line'].sudo().browse(values['line_id'])
         if line.product_type == 'combo' and line.linked_line_ids:
             for linked_line_id in line.linked_line_ids:
                 if values['quantity'] != linked_line_id.product_uom_qty:

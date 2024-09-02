@@ -536,7 +536,7 @@ class HrLeaveType(models.Model):
                         'icon': leave_type.sudo().icon_id.url,
                         'allows_negative': leave_type.allows_negative,
                         'max_allowed_negative': leave_type.max_allowed_negative,
-                        'employee_company': employee.company_id.id,
+                        'employee_company': employee.sudo().company_id.id,
                     },
                     leave_type.requires_allocation,
                     leave_type.id)
@@ -591,19 +591,18 @@ class HrLeaveType(models.Model):
                                                                             target_date
                                                                         )
                 if closest_expiration_date:
+                    employee_sudo = employee.sudo()
                     closest_allocation_expire = format_date(self.env, closest_expiration_date)
-                    calendar = employee.resource_calendar_id\
-                                or self.env.company.resource_calendar_id
+                    calendar = employee_sudo.resource_calendar_id or self.env.company.resource_calendar_id
                     # closest_allocation_duration corresponds to the time remaining before the allocation expires
                     calendar_attendance = calendar._work_intervals_batch(
                         datetime.combine(target_date, time.min).replace(tzinfo=pytz.UTC),
                         datetime.combine(closest_expiration_date, time.max).replace(tzinfo=pytz.UTC),
-                        resources=employee.resource_id
+                        resources=employee_sudo.resource_id,
                     )
-                    closest_allocation_dict =\
-                        self.env['resource.calendar']._get_attendance_intervals_days_data(
-                            calendar_attendance[employee.resource_id.id])
-                    if leave_type.request_unit in ['hour']:
+                    closest_allocation_dict = self.env['resource.calendar']._get_attendance_intervals_days_data(
+                            calendar_attendance[employee_sudo.resource_id.id])
+                    if leave_type.request_unit == 'hour':
                         closest_allocation_duration = closest_allocation_dict['hours']
                     else:
                         closest_allocation_duration = closest_allocation_dict['days']

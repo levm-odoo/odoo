@@ -396,11 +396,10 @@ class DiscussChannel(models.Model):
 
     def _subscribe_users_automatically_get_members(self):
         """ Return new members per channel ID """
-        return dict(
-            (channel.id,
-             ((channel.group_ids.users.partner_id.filtered(lambda p: p.active) - channel.channel_partner_ids).ids))
-                for channel in self
-            )
+        return {
+            channel.id: (channel.group_ids.sudo().users.partner_id.filtered(lambda p: p.active) - channel.channel_partner_ids).ids
+            for channel in self
+        }
 
     def action_unfollow(self):
         self._action_unfollow(self.env.user.partner_id)
@@ -921,7 +920,7 @@ class DiscussChannel(models.Model):
             ],
             load=False,
         )[0]
-        data["authorizedGroupFullName"] = self.group_public_id.full_name
+        data["authorizedGroupFullName"] = self.group_public_id.sudo().full_name
         data["group_based_subscription"] = bool(self.group_ids)
         return data
 
@@ -995,7 +994,7 @@ class DiscussChannel(models.Model):
             {"message_needaction_counter_bus_id": bus_last_id},
             "name",
             Store.One("parent_channel_id"),
-            Store.Many("rtc_session_ids", mode="ADD", extra=True, rename="rtcSessions"),
+            Store.Many("rtc_session_ids", mode="ADD", extra=True, rename="rtcSessions", sudo=True),
                 # sudo: discuss.channel.rtc.session - reading sessions of accessible channel is acceptable
             Store.One(
                 "rtcInvitingSession",

@@ -186,7 +186,7 @@ class StockPicking(models.Model):
         return res
 
     def _should_show_transfers(self):
-        if len(self.batch_id) == 1 and len(self) == (len(self.batch_id.picking_ids) - len(self.env.context.get('pickings_to_detach', []))):
+        if len(self.batch_id) == 1 and len(self) == (len(self.sudo().batch_id.picking_ids) - len(self.env.context.get('pickings_to_detach', []))):
             return False
         return super()._should_show_transfers()
 

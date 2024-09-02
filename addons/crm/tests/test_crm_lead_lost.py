@@ -59,7 +59,7 @@ class TestLeadConvert(crm_common.TestCrmCommon):
         self.assertEqual(len(lead.message_ids), 3, 'Should have logged a tracking message for lost lead with reason')
         update_message = lead.message_ids[0]
         self.assertEqual(update_message.subtype_id, self.env.ref('crm.mt_lead_lost'))
-        self.assertEqual(len(update_message.tracking_value_ids), 2, 'Tracking: active, lost reason')
+        self.assertEqual(len(update_message.sudo().tracking_value_ids), 2, 'Tracking: active, lost reason')
         self.assertTracking(
             update_message,
             [('active', 'boolean', True, False),
@@ -123,6 +123,7 @@ class TestLeadConvert(crm_common.TestCrmCommon):
         with self.assertRaises(AccessError):
             # wizard needs to be here due to cache clearing in assertRaises
             # (ORM does not load m2m records unavailable to the user from database)
+            # XXX lead_ids is a m2m, so no access error is raised because you cannot read the record
             lost_wizard = self.env['crm.lead.lost'].create({
                 'lead_ids': lead.ids,
                 'lost_reason_id': lost_reason.id

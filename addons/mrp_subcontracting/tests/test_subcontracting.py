@@ -1642,6 +1642,7 @@ class TestSubcontractingPortal(TransactionCase):
         })
         action = picking_receipt.with_user(self.portal_user).with_context({'is_subcontracting_portal': 1}).move_ids.action_show_details()
         mo = self.env['mrp.production'].with_user(self.portal_user).browse(action['res_id'])
+        # XXX Form created with a portal user?
         mo_form = Form(mo.with_context(action['context']), view=action['view_id'])
         # Registering components for the first manufactured product
         mo_form.qty_producing = 1

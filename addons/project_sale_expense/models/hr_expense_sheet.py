@@ -11,7 +11,7 @@ class HrExpenseSheet(models.Model):
             Otherwise, we create a AA for the project of the SO and set the distribution to it.
         """
         for expense in self.expense_line_ids:
-            project = expense.sale_order_id.project_id
+            project = expense.sudo().sale_order_id.project_id.sudo(self.env.su)
             if not project or expense.analytic_distribution:
                 continue
             if not project.account_id:

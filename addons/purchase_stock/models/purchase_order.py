@@ -138,7 +138,8 @@ class PurchaseOrder(models.Model):
 
             pickings_to_cancel_ids.update(order.picking_ids.filtered(lambda r: r.state != 'cancel').ids)
 
-        order_lines = self.env['purchase.order.line'].browse(order_lines_ids)
+        order_lines = self.env['purchase.order.line'].browse(order_lines_ids).sudo()
+        StockMove = order_lines.env['stock.move']
 
         moves_to_cancel_ids = OrderedSet()
         moves_to_recompute_ids = OrderedSet()
@@ -159,16 +160,16 @@ class PurchaseOrder(models.Model):
                 order_line.group_id.purchase_line_ids = [Command.unlink(order_line.id)]
 
         if moves_to_cancel_ids:
-            moves_to_cancel = self.env['stock.move'].browse(moves_to_cancel_ids)
+            moves_to_cancel = StockMove.browse(moves_to_cancel_ids)
             moves_to_cancel._action_cancel()
 
         if moves_to_recompute_ids:
-            moves_to_recompute = self.env['stock.move'].browse(moves_to_recompute_ids)
+            moves_to_recompute = StockMove.browse(moves_to_recompute_ids)
             moves_to_recompute.write({'procure_method': 'make_to_stock'})
             moves_to_recompute._recompute_state()
 
         if pickings_to_cancel_ids:
-            pikings_to_cancel = self.env['stock.picking'].browse(pickings_to_cancel_ids)
+            pikings_to_cancel = StockMove.env['stock.picking'].browse(pickings_to_cancel_ids)
             pikings_to_cancel.action_cancel()
 
         if order_lines:
@@ -281,7 +282,7 @@ class PurchaseOrder(models.Model):
         for order in self.filtered(lambda po: po.state in ('purchase', 'done')):
             if any(product.type == 'consu' for product in order.order_line.product_id):
                 order = order.with_company(order.company_id)
-                pickings = order.picking_ids.filtered(lambda x: x.state not in ('done', 'cancel'))
+                pickings = order.picking_ids.sudo().filtered(lambda x: x.state not in ('done', 'cancel'))
                 if not pickings:
                     res = order._prepare_picking()
                     picking = StockPicking.with_user(SUPERUSER_ID).create(res)

@@ -305,7 +305,7 @@ class ResUsers(models.Model):
     @api.depends_context('company')
     def _compute_company_employee(self):
         employee_per_user = {
-            employee.user_id: employee
+            employee.sudo().user_id: employee
             for employee in self.env['hr.employee'].search([('user_id', 'in', self.ids), ('company_id', '=', self.env.company.id)])
         }
         for user in self:

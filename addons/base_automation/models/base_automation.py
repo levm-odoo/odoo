@@ -473,7 +473,7 @@ class BaseAutomation(models.Model):
         self.ensure_one()
         if not self.filter_domain or not self.model_id:
             return self.env['ir.model.fields']
-        model = self.model_id.model
+        model = self.model_id.sudo().model
         fields = self.env["ir.model.fields"]
         # wondering why we use a regex instead of safe_eval?
         # because this method is called on a compute method hence could be triggered
@@ -611,7 +611,7 @@ class BaseAutomation(models.Model):
             :returns: dict -- evaluation context given to safe_eval
         """
         self.ensure_one()
-        model = self.env[self.model_name]
+        model = self.env[self.sudo().model_name]
         eval_context = {
             'datetime': safe_eval.datetime,
             'dateutil': safe_eval.dateutil,
