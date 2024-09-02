@@ -3,6 +3,9 @@ import { Plugin } from "../plugin";
 import { CTYPES } from "../utils/content_types";
 import { getState, isFakeLineBreak, prepareUpdate } from "../utils/dom_state";
 import { DIRECTIONS, leftPos, rightPos } from "../utils/position";
+import { closestBlock, isBlock } from "../utils/blocks";
+import { closestElement } from "../utils/dom_traversal";
+import { nextLeaf } from "../utils/dom_info";
 
 /**
  * @typedef { Object } LineBreakShared
@@ -17,11 +20,17 @@ export class LineBreakPlugin extends Plugin {
     static shared = ["insertLineBreak", "insertLineBreakNode", "insertLineBreakElement"];
     resources = {
         beforeinput_handlers: this.onBeforeInput.bind(this),
+        legit_zwnbsp_predicates: [
+            (node) =>
+                !node.nextSibling &&
+                !isBlock(closestElement(node)) &&
+                nextLeaf(node, closestBlock(node)),
+        ],
     };
 
     insertLineBreak() {
         this.dispatchTo("before_line_break_handlers");
-        let selection = this.dependencies.selection.getEditableSelection();
+        let selection = this.dependencies.selection.getSelectionData().deepEditableSelection;
         if (!selection.isCollapsed) {
             // @todo @phoenix collapseIfZWS is not tested
             // this.shared.collapseIfZWS();
@@ -66,6 +75,12 @@ export class LineBreakPlugin extends Plugin {
         const brEls = [brEl];
         if (targetOffset >= targetNode.childNodes.length) {
             targetNode.appendChild(brEl);
+            if (
+                !isBlock(closestElement(targetNode)) &&
+                nextLeaf(targetNode, closestBlock(targetNode))
+            ) {
+                targetNode.appendChild(this.document.createTextNode("\uFEFF"));
+            }
         } else {
             targetNode.insertBefore(brEl, targetNode.childNodes[targetOffset]);
         }

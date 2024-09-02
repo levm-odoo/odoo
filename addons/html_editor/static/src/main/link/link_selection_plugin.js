@@ -66,6 +66,7 @@ export class LinkSelectionPlugin extends Plugin {
         normalize_handlers: (el) => this.normalize(el || this.editable),
 
         system_classes: ["o_link_in_selection"],
+        legit_zwnbsp_predicates: [isLegitZwnbsp],
         intangible_char_for_keyboard_navigation_predicates: (ev, char, lastSkipped) =>
             // Skip first FEFF, but not the second one (unless shift is pressed).
             char === "\uFEFF" && (ev.shiftKey || lastSkipped !== "\uFEFF"),
@@ -91,7 +92,10 @@ export class LinkSelectionPlugin extends Plugin {
      * @param {Element} root
      */
     updateFEFFs(root) {
-        this.removeFEFFs(root, { exclude: isLegitZwnbsp });
+        this.removeFEFFs(root, {
+            exclude: (node) =>
+                this.getResource("legit_zwnbsp_predicates").some((predicate) => predicate(node)),
+        });
 
         for (const link of selectElements(root, "a")) {
             if (this.isLinkEligibleForZwnbsp(link)) {

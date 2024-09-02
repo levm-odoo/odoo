@@ -70,21 +70,19 @@ export class FormatPlugin extends Plugin {
             },
             {
                 id: "formatFontSize",
-                run: ({ size }) => {
-                    return this.formatSelection("fontSize", {
+                run: ({ size }) =>
+                    this.formatSelection("fontSize", {
                         applyStyle: true,
                         formatProps: { size },
-                    });
-                },
+                    }),
             },
             {
                 id: "formatFontSizeClassName",
-                run: ({ className }) => {
-                    return this.formatSelection("setFontSizeClassName", {
+                run: ({ className }) =>
+                    this.formatSelection("setFontSizeClassName", {
                         applyStyle: true,
                         formatProps: { className },
-                    });
-                },
+                    }),
             },
             {
                 id: "removeFormat",
@@ -403,6 +401,7 @@ export class FormatPlugin extends Plugin {
 
     cleanElement(element, { preserveSelection }) {
         delete element.dataset.oeZwsEmptyInline;
+        delete element.dataset.oeInlineLineBreak;
         if (!allWhitespaceRegex.test(element.textContent)) {
             // The element has some meaningful text. Remove the ZWS in it.
             this.cleanZWS(element, { preserveSelection });
@@ -549,9 +548,9 @@ function removeFormat(node, formatSpec) {
     }
 
     if (formatSpec.isTag && formatSpec.isTag(node)) {
-        const attributesNames = node.getAttributeNames().filter((name) => {
-            return name !== "data-oe-zws-empty-inline";
-        });
+        const attributesNames = node
+            .getAttributeNames()
+            .filter((name) => name !== "data-oe-zws-empty-inline");
         if (attributesNames.length) {
             // Change tag name
             const newNode = document.createElement("span");

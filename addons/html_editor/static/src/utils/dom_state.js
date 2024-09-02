@@ -321,6 +321,25 @@ const priorityRestoreStateRules = [
         },
         { brVisibility: false, extraBRRemovalCondition: (brNode) => isFakeLineBreak(brNode) },
     ],
+    [
+        // Replace a space by &nbsp; when element last child is \uFEFF character.
+        {
+            direction: DIRECTIONS.LEFT,
+            cType1: CTYPES.CONTENT,
+            cType2: CTYPES.CONTENT,
+        },
+        {
+            lineBreak: (el) => {
+                if (
+                    el.nodeType === Node.ELEMENT_NODE &&
+                    !isBlock(el) &&
+                    el.lastChild?.textContent.includes("\uFEFF")
+                ) {
+                    return true;
+                }
+            },
+        },
+    ],
 ];
 function restoreStateRuleHashCode(direction, cType1, cType2) {
     return `${direction}-${cType1}-${cType2}`;
@@ -521,9 +540,15 @@ export function enforceWhitespace(el, offset, direction, rule) {
         }
     }
 
+    const prevSibling = el.childNodes[offset]?.previousSibling;
+    let lineBreakRule = false;
     if (rule.spaceVisibility === undefined) {
-        return;
+        if (rule.lineBreak === undefined || !(prevSibling && rule.lineBreak(prevSibling))) {
+            return;
+        }
+        lineBreakRule = true;
     }
+
     if (!rule.spaceVisibility) {
         for (const node of invisibleSpaceTextNodes) {
             // Empty and not remove to not mess with offset-based positions in
@@ -546,7 +571,7 @@ export function enforceWhitespace(el, offset, direction, rule) {
     }
     const spaceNode = foundVisibleSpaceTextNode || invisibleSpaceTextNodes[0];
     if (spaceNode) {
-        let spaceVisibility = rule.spaceVisibility;
+        let spaceVisibility = rule.spaceVisibility || lineBreakRule;
         // In case we are asked to replace the space by a &nbsp;, disobey and
         // do the opposite if that space is currently not visible
         // TODO I'd like this to not be needed, it feels wrong...
