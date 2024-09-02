@@ -63,15 +63,15 @@ publicWidget.registry.websiteSaleCheckout = publicWidget.Widget.extend({
         const oldCard = document.querySelector(
             `.${rowAddrClass} .card.border.border-primary`
         );
-        oldCard.classList.add(cardClass);
-        oldCard.classList.remove('bg-primary', 'border', 'border-primary');
+        oldCard?.classList.add(cardClass);
+        oldCard?.classList.remove('bg-primary', 'border', 'border-primary');
 
         const newCard = ev.currentTarget.closest('div.one_kanban').querySelector('.card');
-        newCard.classList.remove(cardClass);
-        newCard.classList.add('bg-primary', 'border', 'border-primary');
+        newCard?.classList.remove(cardClass);
+        newCard?.classList.add('bg-primary', 'border', 'border-primary');
         const addressType = newCard.dataset.addressType;
         await rpc(
-            '/shop/update_address',
+            '/address/update_address',
             {
                 address_type: addressType,
                 partner_id: newCard.dataset.partnerId,

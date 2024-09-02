@@ -2393,7 +2393,7 @@
                                         <div class="w-100"/>
                                         <div id="div_country" class="col-lg-6 mb-2">
                                             <label class="col-form-label" for="o_country_id">Country</label>
-                                            <select id="o_country_id" name="country_id" class="form-select">
+                                            <select id="o_country_id" name="country_id" class="form-select" t-att-disabled="not has_invoice">
                                                 <option value="">Country...</option>
                                                 <t t-foreach="countries" t-as="c">
                                                     <option t-att-value="c.id" t-att-selected="c.id == country.id" t-att-code="c.code">
@@ -2405,7 +2405,7 @@
                                         <div id="div_state" class="col-lg-6 mb-2"
                                              t-att-style="not country_states and 'display: none'">
                                             <label class="col-form-label" for="o_state_id">State / Province</label>
-                                            <select id="o_state_id" name="state_id" class="form-select">
+                                            <select id="o_state_id" name="state_id" class="form-select" t-att-disabled="not has_invoice">
                                                 <option value="">State / Province...</option>
                                                 <t t-foreach="country_states" t-as="s">
                                                     <option t-att-value="s.id" t-att-selected="s.id == state_id">

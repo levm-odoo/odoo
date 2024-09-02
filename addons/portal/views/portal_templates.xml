@@ -450,94 +450,6 @@
         </div>
     </template>
 
-    <template id="portal_my_details_fields">
-        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-        <div t-if="error_message" class="alert alert-danger" role="alert">
-            <div class="col-lg-12">
-                <t t-foreach="error_message" t-as="err"><t t-esc="err"/><br /></t>
-            </div>
-        </div>
-        <div t-if="not partner_can_edit_vat" class="col-12 d-none d-xl-block">
-            <small class="form-text text-muted">
-                Company name, VAT Number and country can not be changed once document(s) have been issued for your account.
-                <br/>Please contact us directly for that operation.
-            </small>
-        </div>
-        <div t-attf-class="mb-3 #{error.get('name') and 'o_has_error' or ''} col-xl-6">
-            <label class="col-form-label" for="name">Name</label>
-            <input type="text" name="name" t-attf-class="form-control #{error.get('name') and 'is-invalid' or ''}" t-att-value="name or partner.name" />
-        </div>
-        <div t-attf-class="mb-3 #{error.get('email') and 'o_has_error' or ''} col-xl-6">
-            <label class="col-form-label" for="email">Email</label>
-            <input type="email" name="email" t-attf-class="form-control #{error.get('email') and 'is-invalid' or ''}" t-att-value="email or partner.email" />
-        </div>
-
-        <div class="clearfix" />
-        <div t-attf-class="mb-1 #{error.get('company_name') and 'o_has_error' or ''} col-xl-6">
-            <label class="col-form-label label-optional" for="company_name">Company Name</label>
-            <!-- The <input> use "disabled" attribute to avoid sending an unauthorized value on form submit.
-                 The user might not have rights to change company_name but should still be able to see it.
-            -->
-            <input type="text" name="company_name" t-attf-class="form-control #{error.get('company_name') and 'is-invalid' or ''}" t-att-value="company_name or partner.commercial_company_name" t-att-disabled="None if partner_can_edit_vat else '1'" />
-            <small t-if="not partner_can_edit_vat" class="form-text text-muted d-block d-xl-none">
-                Changing company name is not allowed once document(s) have been issued for your account. Please contact us directly for this operation.
-            </small>
-        </div>
-        <div t-attf-class="mb-1 #{error.get('vat') and 'o_has_error' or ''} col-xl-6">
-            <label class="col-form-label label-optional" for="vat">VAT Number</label>
-            <!-- The <input> use "disabled" attribute to avoid sending an unauthorized value on form submit.
-                 The user might not have rights to change company_name but should still be able to see it.
-            -->
-            <input type="text" name="vat" t-attf-class="form-control #{error.get('vat') and 'is-invalid' or ''}" t-att-value="vat or partner.vat" t-att-disabled="None if partner_can_edit_vat else '1'" />
-            <small t-if="not partner_can_edit_vat" class="form-text text-muted d-block d-xl-none">Changing VAT number is not allowed once document(s) have been issued for your account. Please contact us directly for this operation.</small>
-        </div>
-        <div t-attf-class="mb-3 #{error.get('phone') and 'o_has_error' or ''} col-xl-6">
-            <label class="col-form-label" for="phone">Phone</label>
-            <input type="tel" name="phone" t-attf-class="form-control #{error.get('phone') and 'is-invalid' or ''}" t-att-value="phone or partner.phone" />
-        </div>
-
-        <div class="clearfix" />
-        <div t-attf-class="mb-3 #{error.get('street') and 'o_has_error' or ''} col-xl-6">
-            <label class="col-form-label" for="street">Street</label>
-            <input type="text" name="street" t-attf-class="form-control #{error.get('street') and 'is-invalid' or ''}" t-att-value="street or partner.street"/>
-        </div>
-        <div t-attf-class="mb-3 #{error.get('city') and 'o_has_error' or ''} col-xl-6">
-            <label class="col-form-label" for="city">City</label>
-            <input type="text" name="city" t-attf-class="form-control #{error.get('city') and 'is-invalid' or ''}" t-att-value="city or partner.city" />
-        </div>
-        <div t-attf-class="mb-3 #{error.get('street2') and 'o_has_error' or ''} col-xl-6">
-            <label class="col-form-label" for="street2">Street 2</label>
-            <input type="text" name="street2" t-attf-class="form-control #{error.get('street2') and 'is-invalid' or ''}" t-att-value="street2 or partner.street2"/>
-        </div>
-        <div t-attf-class="mb-3 #{error.get('state_id') and 'o_has_error' or ''} col-xl-6">
-            <label class="col-form-label label-optional" for="state_id">State / Province</label>
-            <select name="state_id" t-attf-class="form-select #{error.get('state_id') and 'is-invalid' or ''}">
-                <option value="">select...</option>
-                <t t-foreach="states or []" t-as="state">
-                    <option t-att-value="state.id" class="d-none" t-att-data-country_id="state.country_id.id" t-att-selected="state.id == int(state_id) if state_id else state.id == partner.state_id.id">
-                        <t t-esc="state.name" />
-                    </option>
-                </t>
-            </select>
-        </div>
-        <div t-attf-class="mb-3 #{error.get('zip') and 'o_has_error' or ''} col-xl-6">
-            <label class="col-form-label label-optional" for="zipcode">Zip / Postal Code</label>
-            <input type="text" name="zipcode" t-attf-class="form-control #{error.get('zip') and 'is-invalid' or ''}" t-att-value="zipcode or partner.zip" />
-        </div>
-        <div t-attf-class="mb-3 #{error.get('country_id') and 'o_has_error' or ''} col-xl-6">
-            <label class="col-form-label" for="country_id">Country</label>
-            <select name="country_id" t-attf-class="form-select #{error.get('country_id') and 'is-invalid' or ''}" t-att-disabled="None if partner_can_edit_vat else '1'">
-                <option value="">Country...</option>
-                <t t-foreach="countries or []" t-as="country">
-                    <option t-att-value="country.id" t-att-selected="country.id == int(country_id) if country_id else country.id == partner.country_id.id">
-                        <t t-esc="country.name" />
-                    </option>
-                </t>
-            </select>
-            <small t-if="not partner_can_edit_vat" class="form-text text-muted d-block d-xl-none">Changing the country is not allowed once document(s) have been issued for your account. Please contact us directly for this operation.</small>
-        </div>
-    </template>
-
     <template id="portal_my_security">
         <t t-call="portal.portal_layout"><div class="o_portal_security_body w-md-75 w-lg-50 pb-5">
             <t t-set="additional_title">Security</t>
@@ -901,11 +813,6 @@
             <div class="card-body d-flex flex-column justify-content-between">
                 <div>
                     <div class="d-flex align-items-start">
-                        <span class="fw-bold me-2">
-                            <i t-if="partner.type == 'invoice'" class="fa fa-fw fa-file-text-o text-primary" role="img"/>
-                            <i t-if="partner.type == 'delivery'" class="fa fa-truck fa-fw text-primary" role="img"/>
-                            <i t-if="partner.type == 'contact'" class="fa fa-address-card-o fa-fw text-primary" role="img"/>
-                        </span>
                         <span class="fw-bold">
                             <t t-out="partner.name"/>
                         </span>
@@ -914,10 +821,11 @@
                         <span t-if="partner.street" t-out="partner.street" class="d-block small"/>
                         <span t-if="partner.zip" t-out="partner.zip + ' ' + partner.city" class="d-block small"/>
                         <span t-if="partner.state_id" t-out="partner.state_id.name + ', ' + partner.country_id.name" class="d-block small"/>
+                        <span t-if="not partner.state_id" t-out="partner.country_id.name" class="d-block small"/>
                     </div>
                 </div>
                 <div class="mt-3">
-                    <a t-attf-href="/portal/address?address_type={{mode}}&amp;partner_id={{partner.id}}&amp;portal_address=True"
+                    <a t-attf-href="/portal/address?address_type={{partner.type}}&amp;partner_id={{partner.id}}&amp;portal_address=True"
                         class="btn btn-link p-0"
                         role="button"
                         title="Edit this address"
@@ -965,7 +873,7 @@
                                     <h3 class="mb-3">Delivery address</h3>
                                 </t>
                                 <t t-else="">
-                                    <h3 class="mb-3">Add New Address</h3>
+                                    <h3 class="mb-3">Address</h3>
                                 </t>
                                 <div id="errors"/> <!-- for js -->
                                 <form
@@ -1025,7 +933,7 @@
                                                         type="text"
                                                         name="company_name"
                                                         t-att-value="partner_sudo.commercial_company_name"
-                                                        t-att-readonly="'1' if vat_warning else None"
+                                                        t-att-disabled="'1' if vat_warning or not has_invoice else None"
                                                         class="form-control"
                                                     />
                                                     <small t-if="vat_warning" class="form-text text-muted d-block d-lg-none">
@@ -1041,7 +949,7 @@
                                                         id="o_vat"
                                                         name="vat"
                                                         t-att-value="partner_sudo.vat"
-                                                        t-att-readonly="'1' if vat_warning else None"
+                                                        t-att-disabled="'1' if vat_warning or not has_invoice else None"
                                                         class="form-control"
                                                     />
                                                     <small t-if="vat_warning" class="form-text text-muted d-block d-lg-none">
@@ -1083,7 +991,7 @@
                                         <div class="w-100"/>
                                         <div id="div_country" class="col-lg-6 mb-2">
                                             <label class="col-form-label" for="o_country_id">Country</label>
-                                            <select id="o_country_id" name="country_id" class="form-select">
+                                            <select id="o_country_id" name="country_id" class="form-select" t-att-disabled="not has_invoice">
                                                 <option value="">Country...</option>
                                                 <t t-foreach="countries" t-as="c">
                                                     <option t-att-value="c.id" t-att-selected="c.id == int(country_id) if country_id else c.id == partner_sudo.country_id.id" t-att-code="c.code">
@@ -1095,7 +1003,7 @@
                                         <div id="div_state" class="col-lg-6 mb-2"
                                                 t-att-style="not country_states and 'display: none'">
                                             <label class="col-form-label" for="o_state_id">State / Province</label>
-                                            <select id="o_state_id" name="state_id" class="form-select">
+                                            <select id="o_state_id" name="state_id" class="form-select" t-att-disabled="not has_invoice">
                                                 <option value="">State / Province...</option>
                                                 <t t-foreach="country_states" t-as="s">
                                                     <option t-att-value="s.id" t-att-selected="s.id == (int(state_id) if state_id else partner_sudo.state_id.id)">

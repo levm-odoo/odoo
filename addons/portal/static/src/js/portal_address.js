@@ -8,6 +8,7 @@ publicWidget.registry.websiteSaleAddress = publicWidget.Widget.extend({
     selector: '.o_portal_address_fill',
     events: {
         'change select[name="country_id"]': '_onChangeCountry',
+        'click #save_address_portal': '_onSaveAddressPortal',
     },
 
     /**
@@ -150,6 +151,57 @@ publicWidget.registry.websiteSaleAddress = publicWidget.Widget.extend({
         this._getInputLabel(name)?.classList.toggle('label-optional', !required);
     },
 
+    /**
+     * Disable the button, submit the form and add a spinner while the submission is ongoing
+     *
+     * @private
+     * @override
+     * @param {Event} ev
+     */
+    async _onSaveAddressPortal(ev) {
+        if (!this.addressForm.reportValidity()) {
+            return
+        }
+
+        const submitButton = ev.currentTarget;
+        if (!ev.isDefaultPrevented() && !submitButton.disabled) {
+            ev.preventDefault();
+
+            submitButton.disabled = true;
+            const spinner = document.createElement('span');
+            spinner.classList.add('fa', 'fa-cog', 'fa-spin');
+            submitButton.appendChild(spinner);
+            const result = await this.http.post(
+                '/portal/address/submit',
+                new FormData(this.addressForm),
+            )
+            if (result.successUrl) {
+                window.location = '/' + result.successUrl;
+            } else {
+                // Highlight missing/invalid form values
+                document.querySelectorAll('.is-invalid').forEach(element => {
+                    if (!result.invalid_fields.includes(element.name)) {
+                        element.classList.remove('is-invalid');
+                    }
+                })
+                result.invalid_fields.forEach(
+                    fieldName => this.addressForm[fieldName].classList.add('is-invalid')
+                );
+                const newErrors = result.messages.map(message => {
+                    const errorHeader = document.createElement('h5');
+                    errorHeader.classList.add('text-danger');
+                    errorHeader.appendChild(document.createTextNode(message));
+                    return errorHeader;
+                });
+
+                this.errorsDiv.replaceChildren(...newErrors);
+
+                // Re-enable button and remove spinner
+                submitButton.disabled = false;
+                spinner.remove();
+            }
+        }
+    },
 });
 
 export default publicWidget.registry.websiteSaleAddress;

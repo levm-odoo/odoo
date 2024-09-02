@@ -32,7 +32,7 @@ publicWidget.registry.portalAddress = publicWidget.Widget.extend({
         this._toggleCardButtons(card, false);
 
         await rpc('/address/update_address', {
-            mode: setDefaultButton.dataset.mode,
+            address_type: setDefaultButton.dataset.mode,
             partner_id: setDefaultButton.dataset.partnerId,
         });
 

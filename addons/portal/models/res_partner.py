@@ -10,7 +10,7 @@ class ResPartner(models.Model):
     is_default_billing_address = fields.Boolean(default=False, store=True)
     is_default_shipping_address = fields.Boolean(default=False, store=True)
 
-    def _update_delivery_and_shipping_address(self, partner_id, address_type):
+    def _update_delivery_and_shipping_address(self, partner_id, address_type, **kw):
         partner_sudo = self.browse(partner_id)
 
         address_type = 'invoice' if address_type == 'invoice' or address_type == 'billing' else 'delivery'
@@ -41,10 +41,13 @@ class ResPartner(models.Model):
         self.ensure_one()
         return not self.parent_id
 
+    def can_edit_info(self):
+        """ Overide this method to allow user to change address information. """
+        return True
+
     def _can_be_edited_by_current_customer(self, address_type, **kwargs):
         self.ensure_one()
         commercial_partner_id = self.env.user.partner_id.commercial_partner_id.id
-
         children_partner_ids = self.env['res.partner']._search([
             ('id', 'child_of', commercial_partner_id),
             ('type', 'in', ('invoice', 'delivery', 'other')),
