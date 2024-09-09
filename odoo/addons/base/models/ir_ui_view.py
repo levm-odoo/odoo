@@ -662,13 +662,13 @@ actual arch.
         """
         if self.inherit_id and self.mode != 'primary':
             return self.inherit_id._check_view_access()
-        if self.groups_id & self.env.user.groups_id:
+        if set(self.group_ids.ids) & set(self.env.user._get_group_ids()):
             return True
         if self.groups_id:
             error = _(
                 "View '%(name)s' accessible only to groups %(groups)s ",
                 name=self.key,
-                groups=", ".join([g.name for g in self.groups_id]
+                groups=", ".join([g.name for g in self.group_ids]
             ))
         else:
             error = _("View '%(name)s' is private", name=self.key)
@@ -1018,7 +1018,6 @@ actual arch.
                 node.getparent().remove(node)
 
         # check the create and write access
-        base_model = tree.get('model_access_rights')
         for node in tree.xpath('//*[@model_access_rights]'):
             model = self.env[node.attrib.pop('model_access_rights')]
             if node.tag == 'field':
@@ -1027,7 +1026,6 @@ actual arch.
                 node.set('can_create', str(bool(can_create)))
                 node.set('can_write', str(bool(can_write)))
             else:
-                is_base_model = base_model == model._name
                 for action, operation in (('create', 'create'), ('delete', 'unlink'), ('edit', 'write')):
                     if not node.get(action) and not model.has_access(operation):
                         node.set(action, 'False')

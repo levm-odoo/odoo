@@ -2313,11 +2313,11 @@ class TestViews(ViewCase):
         )
         self.assertInvalid(
             arch % ('', '<field name="inherit_id"/>', 'inherit_id', 'inherit_id'),
-            """Unknown field "res.groups.inherit_id" in domain of <field name="groups_id"> ([('inherit_id', '=', inherit_id)])""",
+            """Unknown field "res.groups.inherit_id" in domain of <field name="group_ids"> ([('inherit_id', '=', inherit_id)])""",
         )
         self.assertInvalid(
             arch % ('', '<field name="inherit_id" select="multi"/>', 'view_access', 'inherit_id'),
-            """Field “inherit_id” used in domain of <field name="groups_id"> ([('view_access', '=', inherit_id)]) is present in view but is in select multi.""",
+            """Field “inherit_id” used in domain of <field name="group_ids"> ([('view_access', '=', inherit_id)]) is present in view but is in select multi.""",
         )
 
         arch = """
@@ -3129,7 +3129,7 @@ class TestViews(ViewCase):
             """<form position="inside">
                 <field name="groups_id" domain="[('invalid_field', '=', 'dummy')]"/>
             </form>""",
-            """Unknown field "res.groups.invalid_field" in domain of <field name="groups_id"> ([('invalid_field', '=', 'dummy')]))""",
+            """Unknown field "res.groups.invalid_field" in domain of <field name="group_ids"> ([('invalid_field', '=', 'dummy')]))""",
             inherit_id=view0.id,
         )
         view1 = self.assertValid(
@@ -3219,7 +3219,7 @@ class TestViews(ViewCase):
         self.assertEqual(
             len(field_groups_id.xpath(".//*[@class='canary']")),
             0,
-            "The view test_views_test_view_ref should not be in the views of the many2many field groups_id"
+            "The view test_views_test_view_ref should not be in the views of the many2many field all_group_ids"
         )
 
     def test_forbidden_owl_directives_in_form(self):
@@ -4979,6 +4979,14 @@ class ViewModifiers(ViewCase):
 
     @mute_logger('odoo.addons.base.models.ir_ui_view')
     def test_17_attrs_groups_validation(self):
+        test_group = self.env['res.groups'].create({'name': 'test_group'})
+        self.env['ir.model.data'].create({
+            'module': 'base',
+            'name': 'test_group',
+            'model': 'res.groups',
+            'res_id': test_group.id,
+        })
+
         def validate(arch, add_field_with_groups=False, parent=False, model='ir.ui.view'):
             parent = 'parent.' if parent else ''
             view = self.assertValid(arch % {'attrs': f"""decoration-info="{parent}name == 'foo'" """}, model=model)
@@ -5043,14 +5051,14 @@ class ViewModifiers(ViewCase):
         # add missing field with needed groups
         validate("""
             <form string="View">
-                <field name="inherit_id" groups="base.group_allow_export" %(attrs)s/>
+                <field name="inherit_id" groups="base.test_group" %(attrs)s/>
             </form>
-        """, add_field_with_groups="'base.group_allow_export'")
+        """, add_field_with_groups="'base.test_group'")
 
         # add missing field because the existing field group does not match
         validate("""
             <form string="View">
-                <field name="name" groups="base.group_allow_export"/>
+                <field name="name" groups="base.test_group"/>
                 <field name="inherit_id" %(attrs)s/>
             </form>
         """, add_field_with_groups='')
@@ -5058,7 +5066,7 @@ class ViewModifiers(ViewCase):
         # Add missing field because the field name has defined groups.
         validate("""
             <form string="View">
-                <field name="name" groups="base.group_allow_export"/>
+                <field name="name" groups="base.test_group"/>
                 <field name="inherit_children_ids">
                     <list editable="bottom">
                         <field name="inherit_id" %(attrs)s/>
@@ -5070,10 +5078,10 @@ class ViewModifiers(ViewCase):
         # Don't need to add field if the dependent field is in the same groups
         validate("""
             <form string="View">
-                <field name="name" groups="base.group_allow_export"/>
+                <field name="name" groups="base.test_group"/>
                 <field name="inherit_children_ids">
                     <list editable="bottom">
-                        <field name="inherit_id" groups="base.group_allow_export" %(attrs)s/>
+                        <field name="inherit_id" groups="base.test_group" %(attrs)s/>
                     </list>
                 </field>
             </form>
@@ -5084,7 +5092,7 @@ class ViewModifiers(ViewCase):
                 <field name="name"/>
                 <field name="inherit_children_ids">
                     <list editable="bottom">
-                        <field name="inherit_id" groups="base.group_allow_export" %(attrs)s/>
+                        <field name="inherit_id" groups="base.test_group" %(attrs)s/>
                     </list>
                 </field>
             </form>
@@ -5093,22 +5101,22 @@ class ViewModifiers(ViewCase):
         validate("""
             <form string="View">
                 <field name="name"/>
-                <field name="inherit_id" %(attrs)s groups="base.group_allow_export"/>
+                <field name="inherit_id" %(attrs)s groups="base.test_group"/>
             </form>
         """, add_field_with_groups=False)
 
         validate("""
             <form string="View">
-                <field name="name" groups="base.group_allow_export"/>
-                <field name="inherit_id" groups="base.group_allow_export" %(attrs)s/>
+                <field name="name" groups="base.test_group"/>
+                <field name="inherit_id" groups="base.test_group" %(attrs)s/>
             </form>
         """, add_field_with_groups=False)
 
         validate("""
             <form string="View">
                 <field name="name" groups="base.group_portal"/>
-                <field name="name" groups="base.group_allow_export"/>
-                <field name="inherit_id" groups="base.group_allow_export" %(attrs)s/>
+                <field name="name" groups="base.test_group"/>
+                <field name="inherit_id" groups="base.test_group" %(attrs)s/>
             </form>
         """, add_field_with_groups=False)
 
@@ -5116,8 +5124,8 @@ class ViewModifiers(ViewCase):
         # other field is valid.
         validate("""
             <form string="View">
-                <field name="name" groups="base.group_allow_export"/>
-                <field name="inherit_id" groups="base.group_allow_export" %(attrs)s/>
+                <field name="name" groups="base.test_group"/>
+                <field name="inherit_id" groups="base.test_group" %(attrs)s/>
                 <field name="inherit_id" groups="base.group_multi_company" %(attrs)s/>
             </form>
         """, add_field_with_groups="'base.group_multi_company'")
@@ -5125,34 +5133,34 @@ class ViewModifiers(ViewCase):
         # All situations have the field name, not need to add one as invisible.
         validate("""
             <form string="View">
-                <field name="name" groups="base.group_allow_export"/>
+                <field name="name" groups="base.test_group"/>
                 <field name="name" groups="base.group_portal"/>
-                <field name="inherit_id" groups="base.group_allow_export" %(attrs)s/>
+                <field name="inherit_id" groups="base.test_group" %(attrs)s/>
                 <field name="inherit_id" groups="base.group_portal" %(attrs)s/>
             </form>
         """, add_field_with_groups=False)
 
         validate("""
             <form string="View">
-                <field name="name" groups="base.group_portal,base.group_allow_export"/>
-                <field name="inherit_id" groups="base.group_allow_export" %(attrs)s/>
+                <field name="name" groups="base.group_portal,base.test_group"/>
+                <field name="inherit_id" groups="base.test_group" %(attrs)s/>
             </form>
         """, add_field_with_groups=False)
 
         # add the missing field to have 'name' when inherit_id is present in the view.
         validate("""
             <form string="View">
-                <field name="name" groups="base.group_allow_export"/>
-                <field name="inherit_id" groups="base.group_multi_company,base.group_allow_export" %(attrs)s/>
+                <field name="name" groups="base.test_group"/>
+                <field name="inherit_id" groups="base.group_multi_company,base.test_group" %(attrs)s/>
             </form>
-        """, add_field_with_groups="'base.group_multi_company' | 'base.group_allow_export'")
+        """, add_field_with_groups="'base.group_multi_company' | 'base.test_group'")
 
         # Should not add the field because when 'inherit_id' is present, 'name' is present
         validate("""
             <form string="View">
-                <field name="name" groups="base.group_allow_export"/>
+                <field name="name" groups="base.test_group"/>
                 <div groups="base.group_multi_company,base.group_system">
-                    <field name="inherit_id" groups="base.group_allow_export" %(attrs)s/>
+                    <field name="inherit_id" groups="base.test_group" %(attrs)s/>
                 </div>
             </form>
         """, add_field_with_groups=False)
@@ -5181,14 +5189,14 @@ class ViewModifiers(ViewCase):
         # add missing field with the same group of the needed
         validate("""
             <form string="View">
-                <field name="name" groups="base.group_allow_export"/>
+                <field name="name" groups="base.test_group"/>
                 <field name="inherit_id" groups="base.group_multi_company" %(attrs)s/>
             </form>
         """, add_field_with_groups="'base.group_multi_company'")
 
         validate("""
             <form string="View">
-                <field name="name" groups="base.group_allow_export"/>
+                <field name="name" groups="base.test_group"/>
                 <field name="inherit_children_ids">
                     <list editable="bottom">
                         <field name="inherit_id" groups="base.group_multi_company" %(attrs)s/>
@@ -5199,7 +5207,7 @@ class ViewModifiers(ViewCase):
 
         validate("""
             <form string="View">
-                <group groups="base.group_allow_export">
+                <group groups="base.test_group">
                     <field name="name"/>
                 </group>
                 <field name="inherit_id" %(attrs)s/>
@@ -5208,7 +5216,7 @@ class ViewModifiers(ViewCase):
 
         validate("""
             <form string="View">
-                <group groups="base.group_allow_export">
+                <group groups="base.test_group">
                     <field name="name"/>
                     <field name="inherit_id" %(attrs)s/>
                 </group>
@@ -5217,7 +5225,7 @@ class ViewModifiers(ViewCase):
 
         validate("""
             <form string="View">
-                <group groups="base.group_allow_export">
+                <group groups="base.test_group">
                     <field name="name"/>
                     <field name="inherit_id" %(attrs)s groups="base.group_multi_currency,base.group_multi_company"/>
                 </group>
@@ -5226,10 +5234,10 @@ class ViewModifiers(ViewCase):
 
         validate("""
             <form string="View">
-                <group groups="base.group_allow_export">
+                <group groups="base.test_group">
                     <field name="name"/>
                 </group>
-                <group groups="base.group_allow_export">
+                <group groups="base.test_group">
                     <field name="inherit_id" %(attrs)s/>
                 </group>
             </form>
@@ -5241,7 +5249,7 @@ class ViewModifiers(ViewCase):
                 <group groups="base.group_erp_manager">
                     <field name="name"/>
                 </group>
-                <group groups="base.group_allow_export">
+                <group groups="base.test_group">
                     <field name="inherit_id" %(attrs)s/>
                 </group>
             </form>
@@ -5249,7 +5257,7 @@ class ViewModifiers(ViewCase):
 
         validate("""
             <form string="View">
-                <group groups="base.group_allow_export">
+                <group groups="base.test_group">
                     <field name="name"/>
                 </group>
                 <group groups="base.group_multi_company">
@@ -5260,8 +5268,8 @@ class ViewModifiers(ViewCase):
 
         validate("""
             <form string="View">
-                <field name="name" groups="base.group_allow_export"/>
-                <field name="inherit_children_ids" groups="base.group_allow_export">
+                <field name="name" groups="base.test_group"/>
+                <field name="inherit_children_ids" groups="base.test_group">
                     <list editable="bottom">
                         <field name="inherit_id" %(attrs)s/>
                     </list>
@@ -5272,7 +5280,7 @@ class ViewModifiers(ViewCase):
         validate("""
             <form string="View">
                 <field name="name" groups="base.group_erp_manager"/>
-                <field name="inherit_children_ids" groups="base.group_allow_export">
+                <field name="inherit_children_ids" groups="base.test_group">
                     <list editable="bottom">
                         <field name="inherit_id" %(attrs)s/>
                     </list>
@@ -5282,7 +5290,7 @@ class ViewModifiers(ViewCase):
 
         validate("""
             <form string="View">
-                <field name="name" groups="base.group_allow_export"/>
+                <field name="name" groups="base.test_group"/>
                 <field name="inherit_children_ids" groups="base.group_multi_company">
                     <list editable="bottom">
                         <field name="inherit_id" %(attrs)s/>
@@ -5293,7 +5301,7 @@ class ViewModifiers(ViewCase):
 
         validate("""
             <form string="View">
-                <field name="name" groups="!base.group_allow_export"/>
+                <field name="name" groups="!base.test_group"/>
                 <field name="inherit_id" %(attrs)s/>
             </form>
         """, add_field_with_groups='')
@@ -5301,30 +5309,30 @@ class ViewModifiers(ViewCase):
         validate("""
             <form string="View">
                 <field name="name"/>
-                <field name="inherit_id" groups="!base.group_allow_export" %(attrs)s/>
+                <field name="inherit_id" groups="!base.test_group" %(attrs)s/>
             </form>
         """, add_field_with_groups=False)
 
         validate("""
             <form string="View">
-                <field name="name" groups="!base.group_allow_export"/>
-                <field name="name" groups="base.group_allow_export"/>
-                <field name="inherit_id" groups="base.group_allow_export" %(attrs)s/>
+                <field name="name" groups="!base.test_group"/>
+                <field name="name" groups="base.test_group"/>
+                <field name="inherit_id" groups="base.test_group" %(attrs)s/>
             </form>
         """, add_field_with_groups=False)
 
         validate("""
             <form string="View">
-                <field name="name" groups="!base.group_allow_export"/>
-                <field name="name" groups="base.group_allow_export"/>
-                <field name="inherit_id" groups="!base.group_allow_export" %(attrs)s/>
+                <field name="name" groups="!base.test_group"/>
+                <field name="name" groups="base.test_group"/>
+                <field name="inherit_id" groups="!base.test_group" %(attrs)s/>
             </form>
         """, add_field_with_groups=False)
 
         validate("""
             <form string="View">
-                <field name="name" groups="!base.group_allow_export"/>
-                <field name="name" groups="base.group_allow_export"/>
+                <field name="name" groups="!base.test_group"/>
+                <field name="name" groups="base.test_group"/>
                 <field name="inherit_id" groups="base.group_portal" %(attrs)s/>
             </form>
         """, add_field_with_groups=False)
@@ -5333,7 +5341,7 @@ class ViewModifiers(ViewCase):
         # negative group
         validate("""
             <form string="View">
-                <field name="name" groups="!base.group_multi_company,!base.group_allow_export"/>
+                <field name="name" groups="!base.group_multi_company,!base.test_group"/>
                 <field name="inherit_id" groups="!base.group_multi_company" %(attrs)s/>
             </form>
         """, add_field_with_groups="~'base.group_multi_company'")
@@ -5342,7 +5350,7 @@ class ViewModifiers(ViewCase):
         validate("""
             <form string="View">
                 <field name="name" groups="!base.group_multi_company"/>
-                <field name="inherit_id" groups="!base.group_multi_company,!base.group_allow_export" %(attrs)s/>
+                <field name="inherit_id" groups="!base.group_multi_company,!base.test_group" %(attrs)s/>
             </form>
         """, add_field_with_groups=False)
 
@@ -5359,7 +5367,7 @@ class ViewModifiers(ViewCase):
         # # don't need to add field, the negative group is a subset of the mandatory group
         validate("""
             <form string="View">
-                <field name="name" groups="!base.group_allow_export"/>
+                <field name="name" groups="!base.test_group"/>
                 <field name="inherit_id" groups="!base.group_user" %(attrs)s/>
             </form>
         """, add_field_with_groups=False)
@@ -5369,7 +5377,7 @@ class ViewModifiers(ViewCase):
         validate("""
             <form string="View">
                 <group groups="base.group_multi_company">
-                    <field name="name" groups="!base.group_allow_export"/>
+                    <field name="name" groups="!base.test_group"/>
                 </group>
                 <group groups="base.group_multi_company">
                     <field name="inherit_id" %(attrs)s/>
@@ -5386,7 +5394,7 @@ class ViewModifiers(ViewCase):
             </form>
         """, add_field_with_groups="~'base.group_multi_company'")
 
-        # don't need to add field (because we can see all time: !base.group_allow_export <> base.group_allow_export).
+        # don't need to add field (because we can see all time: !base.test_group <> base.test_group).
         validate("""
             <form string="View">
                 <field name="name" groups="!base.group_multi_company"/>
@@ -5401,24 +5409,24 @@ class ViewModifiers(ViewCase):
             </form>
         """, add_field_with_groups=False)
 
-        # No missing combination because '!base.group_allow_export' | 'base.group_allow_export' => *
+        # No missing combination because '!base.test_group' | 'base.test_group' => *
         validate("""
             <form string="View">
-                <field name="name" groups="!base.group_allow_export"/>
-                <field name="name" groups="base.group_allow_export"/>
+                <field name="name" groups="!base.test_group"/>
+                <field name="name" groups="base.test_group"/>
                 <field name="inherit_id" %(attrs)s groups="base.group_multi_company"/>
             </form>
         """, add_field_with_groups=False)
 
-        # No missing combination because '!base.group_allow_export' | 'base.group_allow_export' => *
+        # No missing combination because '!base.test_group' | 'base.test_group' => *
         validate("""
             <form string="View">
                 <field name="name" groups="base.group_multi_company"/>
-                <field name="name" groups="!base.group_allow_export"/>
-                <field name="name" groups="base.group_allow_export"/>
+                <field name="name" groups="!base.test_group"/>
+                <field name="name" groups="base.test_group"/>
                 <field name="inherit_id" %(attrs)s groups="base.group_multi_company"/>
-                <field name="inherit_id" %(attrs)s groups="base.group_allow_export"/>
-                <field name="inherit_id" %(attrs)s groups="!base.group_allow_export"/>
+                <field name="inherit_id" %(attrs)s groups="base.test_group"/>
+                <field name="inherit_id" %(attrs)s groups="!base.test_group"/>
                 <field name="inherit_id" %(attrs)s groups="base.group_public"/>
             </form>
         """, add_field_with_groups=False)
