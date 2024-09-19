@@ -6051,7 +6051,7 @@ class AccountMove(models.Model):
                     'attachment_ids': [Command.link(attachment.id) for attachment in attachments],
                 }
                 invoice.attachment_ids |= attachments
-                invoice.message_ids = [Command.set(sub_new_message.id)]
+                invoice.message_ids = [Command.set(sub_new_message.ids)]
                 super(AccountMove, invoice)._message_post_after_hook(sub_new_message, sub_message_values)
 
         return res
