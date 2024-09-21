@@ -763,6 +763,8 @@ class MailMail(models.Model):
                         else:
                             raise
                 if res:  # mail has been sent at least once, no major exception occurred
+                    # field 'message_id' is inherited and doesn't change
+                    mail.mail_message_id.check_access('write')
                     mail.write({'state': 'sent', 'message_id': res, 'failure_type': False, 'failure_reason': False})
                     if not modules.module.current_test:
                         _logger.info('Mail with ID %r and Message-Id %r successfully sent', mail.id, mail.message_id)
