@@ -186,10 +186,11 @@ class ChatbotCase(chatbot_common.ChatbotCase):
             )
             transfer_message_data["mail.thread"][0]["display_name"] = "Testing Bot"
             joined_message_data = Store(messages[1]).get_result()
+            partner_employee = self.partner_employee
             joined_message_data["mail.message"][0].update(
                 {
-                    "author": {"id": self.partner_employee.id, "type": "partner"},
-                    "body": "<div class=\"o_mail_notification\">joined the channel</div>",
+                    "author": {"id": partner_employee.id, "type": "partner"},
+                    "body": f'<div class="o_mail_notification">{partner_employee.name} joined the channel</div>',
                     # thread not renamed yet at this step
                     "default_subject": "Testing Bot",
                     "record_name": "Testing Bot",
@@ -197,10 +198,11 @@ class ChatbotCase(chatbot_common.ChatbotCase):
             )
             joined_message_data["mail.thread"][0]["display_name"] = "Testing Bot"
             left_message_data = Store(messages[0]).get_result()
+            chatbot_operator_partner = self.chatbot_script.operator_partner_id
             left_message_data["mail.message"][0].update(
                 {
-                    "author": {"id": self.chatbot_script.operator_partner_id.id, "type": "partner"},
-                    "body": '<div class="o_mail_notification">left the channel</div>',
+                    "author": {"id": chatbot_operator_partner.id, "type": "partner"},
+                    "body": f'<div class="o_mail_notification">{chatbot_operator_partner.name} left the channel</div>',
                     # thread not renamed yet at this step
                     "default_subject": "Testing Bot",
                     "record_name": "Testing Bot",
