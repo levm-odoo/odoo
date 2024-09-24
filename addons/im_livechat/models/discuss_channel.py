@@ -244,3 +244,13 @@ class DiscussChannel(models.Model):
 
     def _types_allowing_seen_infos(self):
         return super()._types_allowing_seen_infos() + ["livechat"]
+    
+    # -------------------------------------------------------------------------
+    # OVERRIDES
+    # -------------------------------------------------------------------------
+
+    def _get_user_names(self, member=None, author=None):
+        if not member.channel_id.channel_type == 'livechat':
+            return super()._get_user_names(member, author)
+        else:
+            return (member.partner_id.user_livechat_username or member.partner_id.name, author.name)
