@@ -6,6 +6,7 @@ from werkzeug.exceptions import NotFound
 
 from odoo import http
 from odoo.http import request
+from odoo.osv import expression
 from odoo.tools import frozendict
 from odoo.addons.mail.models.discuss.mail_guest import add_guest_to_context
 from odoo.addons.mail.tools.discuss import Store
@@ -23,14 +24,28 @@ class ThreadController(http.Controller):
             ).get_result()
         return Store(thread, as_thread=True, request_list=request_list).get_result()
 
-    @http.route("/mail/thread/messages", methods=["POST"], type="jsonrpc", auth="user")
-    def mail_thread_messages(self, thread_model, thread_id, fetch_params=None):
-        domain = [
-            ("res_id", "=", int(thread_id)),
-            ("model", "=", thread_model),
+    def _get_fetch_domain(self, thread, **kwargs):
+        domain =  [
+            ("res_id", "=", thread.id),
+            ("model", "=", thread._name),
             ("message_type", "!=", "user_notification"),
         ]
-        res = request.env["mail.message"]._message_fetch(domain, **(fetch_params or {}))
+        if not thread.sudo(False).has_access("read"):
+            domain = expression.AND(
+                [
+                    domain,
+                    [("subtype_id", "=", request.env.ref("mail.mt_comment").id)],
+                ]
+            )
+        return domain
+
+    @http.route("/mail/thread/messages", methods=["POST"], type="jsonrpc", auth="public")
+    def mail_thread_messages(self, thread_model, thread_id, fetch_params=None, **kwargs):
+        thread = request.env[thread_model]._get_thread_with_access(thread_id, **kwargs)
+        if not thread:
+            raise NotFound()
+        domain = self._get_fetch_domain(thread, **kwargs)
+        res = thread.env["mail.message"]._message_fetch(domain, **(fetch_params or {}))
         messages = res.pop("messages")
         if not request.env.user._is_public():
             messages.set_message_done()
@@ -76,7 +91,12 @@ class ThreadController(http.Controller):
         ]
         return sorted(
             subtypes_list,
-            key=lambda it: (it["parent_model"] or "", it["res_model"] or "", it["internal"], it["sequence"]),
+            key=lambda it: (
+                it["parent_model"] or "",
+                it["res_model"] or "",
+                it["internal"],
+                it["sequence"],
+            ),
         )
 
     def _prepare_post_data(self, post_data, thread, **kwargs):
@@ -108,25 +128,30 @@ class ThreadController(http.Controller):
     @add_guest_to_context
     def mail_message_post(self, thread_model, thread_id, post_data, context=None, **kwargs):
         guest = request.env["mail.guest"]._get_guest_from_context()
-        guest.env["ir.attachment"].browse(post_data.get("attachment_ids", []))._check_attachments_access(
-            kwargs.get("attachment_tokens")
-        )
+        guest.env["ir.attachment"].browse(
+            post_data.get("attachment_ids", [])
+        )._check_attachments_access(kwargs.get("attachment_tokens"))
         if context:
             request.update_context(**context)
-        canned_response_ids = tuple(cid for cid in kwargs.get('canned_response_ids', []) if isinstance(cid, int))
+        canned_response_ids = tuple(
+            cid for cid in kwargs.get("canned_response_ids", []) if isinstance(cid, int)
+        )
         if canned_response_ids:
             # Avoid serialization errors since last used update is not
             # essential and should not block message post.
-            request.env.cr.execute("""
+            request.env.cr.execute(
+                """
                 UPDATE mail_canned_response SET last_used=%(last_used)s
                 WHERE id IN (
                     SELECT id from mail_canned_response WHERE id IN %(ids)s
                     FOR NO KEY UPDATE SKIP LOCKED
                 )
-            """, {
-                'last_used': datetime.now(),
-                'ids': canned_response_ids,
-            })
+            """,
+                {
+                    "last_used": datetime.now(),
+                    "ids": canned_response_ids,
+                },
+            )
         thread = request.env[thread_model]._get_thread_with_access(
             thread_id, mode=request.env[thread_model]._mail_post_access, **kwargs
         )
@@ -137,19 +162,23 @@ class ThreadController(http.Controller):
                 thread.env.context, mail_create_nosubscribe=True, mail_post_autofollow=False
             )
         post_data = {
-                key: value
-                for key, value in post_data.items()
-                if key in thread._get_allowed_message_post_params()
-            }
+            key: value
+            for key, value in post_data.items()
+            if key in thread._get_allowed_message_post_params()
+        }
         # sudo: mail.thread - users can post on accessible threads
         message = thread.sudo().message_post(**self._prepare_post_data(post_data, thread, **kwargs))
         return Store(message, for_current_user=True).get_result()
 
     @http.route("/mail/message/update_content", methods=["POST"], type="jsonrpc", auth="public")
     @add_guest_to_context
-    def mail_message_update_content(self, message_id, body, attachment_ids, attachment_tokens=None, partner_ids=None, **kwargs):
+    def mail_message_update_content(
+        self, message_id, body, attachment_ids, attachment_tokens=None, partner_ids=None, **kwargs
+    ):
         guest = request.env["mail.guest"]._get_guest_from_context()
-        guest.env["ir.attachment"].browse(attachment_ids)._check_attachments_access(attachment_tokens)
+        guest.env["ir.attachment"].browse(attachment_ids)._check_attachments_access(
+            attachment_tokens
+        )
         message = request.env["mail.message"]._get_with_access(message_id, "create", **kwargs)
         if not message or not self._is_message_editable(message, **kwargs):
             raise NotFound()
