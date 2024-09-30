@@ -119,4 +119,35 @@ PaymentForm.include({
         } : transactionRouteParams;
     },
 
+    /**
+     * Check some of the constraints on submit:
+     * 1. Value must be greater than minimum value.
+     * 2. Radio must be check, if you select custom amount.
+     * 3. Custom input should have some value.
+     *
+     * @override method from payment.payment_form
+     * @private
+     * @param {Event} ev
+     */
+    async _submitForm(ev) {
+        ev.stopPropagation();
+        ev.preventDefault();
+
+        const donationAmountInputEl = this.el.querySelector("#other_amount_value");
+        const otherAmountRadioEl = this.el.querySelector("#other_amount");
+        const isOtherAmountChecked = otherAmountRadioEl ? otherAmountRadioEl.checked : true;
+        if (
+            donationAmountInputEl &&
+            isOtherAmountChecked &&
+            (
+                donationAmountInputEl.value === "" ||
+                parseFloat(donationAmountInputEl.value) <= 0
+            )
+        ) {
+            return donationAmountInputEl.focus();
+        }
+
+        await this._super(...arguments);
+    },
+
 });
