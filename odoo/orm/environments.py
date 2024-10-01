@@ -9,6 +9,8 @@ __all__ = [
     'Transaction',
 ]
 
+import odoo._framework
+
 import logging
 import typing
 from collections import defaultdict

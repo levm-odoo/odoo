@@ -16,3 +16,4 @@ You may now define relational fields.
 We export the needed features in various packages and developers should not
 import directly from here.
 """
+import odoo._framework  # noqa: F401

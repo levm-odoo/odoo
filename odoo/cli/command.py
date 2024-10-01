@@ -4,6 +4,7 @@ import logging
 import sys
 from pathlib import Path
 
+import odoo._framework
 import odoo.cli
 from odoo.modules import get_module_path, get_modules, initialize_sys_path
 

@@ -128,6 +128,8 @@ endpoint
   The @route(...) decorated controller method.
 """
 
+import odoo._framework
+
 import base64
 import collections
 import collections.abc

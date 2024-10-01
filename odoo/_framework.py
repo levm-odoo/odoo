@@ -4,17 +4,6 @@
 
 """ OpenERP core library."""
 
-# ----------------------------------------------------------
-# odoo must be a namespace package for odoo.addons to become one too
-# https://packaging.python.org/guides/packaging-namespace-packages/
-# ----------------------------------------------------------
-import pkgutil
-import os.path
-__path__ = [
-    os.path.abspath(path)
-    for path in pkgutil.extend_path(__path__, __name__)
-]
-
 import sys
 MIN_PY_VERSION = (3, 10)
 MAX_PY_VERSION = (3, 12)
@@ -25,6 +14,12 @@ assert sys.version_info > MIN_PY_VERSION, f"Outdated python version detected, Od
 # ----------------------------------------------------------
 # The hard-coded super-user id (a.k.a. administrator, or root user).
 SUPERUSER_ID = 1
+
+# XXX hack to expose variables at `odoo` level
+import odoo
+odoo.SUPERUSER_ID = SUPERUSER_ID
+odoo.MIN_PY_VERSION = MIN_PY_VERSION
+odoo.MAX_PY_VERSION = MAX_PY_VERSION
 
 
 def registry(database_name=None):
@@ -70,5 +65,6 @@ from . import tools
 from . import models
 from . import fields
 from . import api
-from odoo.tools.translate import _, _lt
-from odoo.fields import Command
+
+odoo._ = tools.translate._
+odoo.Command = fields.Command
