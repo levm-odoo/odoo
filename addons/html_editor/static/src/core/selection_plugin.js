@@ -1,9 +1,11 @@
-import { closestBlock } from "@html_editor/utils/blocks";
+import { closestBlock, isBlock } from "@html_editor/utils/blocks";
 import {
     getDeepestPosition,
+    isIconElement,
     isMediaElement,
     isProtected,
     isProtecting,
+    isTextNode,
     isUnprotecting,
     previousLeaf,
 } from "@html_editor/utils/dom_info";
@@ -23,6 +25,7 @@ import {
     normalizeDeepCursorPosition,
     normalizeFakeBR,
 } from "../utils/selection";
+import { isZWS } from "../utils/dom_info";
 
 /**
  * @typedef { Object } EditorSelection
@@ -169,7 +172,9 @@ export class SelectionPlugin extends Plugin {
                 "shift+arrowright",
                 "arrowleft",
                 "shift+arrowleft",
+                "arrowup",
                 "shift+arrowup",
+                "arrowdown",
                 "shift+arrowdown",
             ];
             if (handled.includes(getActiveHotkey(ev))) {
@@ -789,6 +794,69 @@ export class SelectionPlugin extends Plugin {
                 shouldSkip =
                     hasSelectionChanged &&
                     shouldSkipCallbacks.some((cb) => cb(ev, adjacentCharacter, lastSkippedChar));
+            }
+        } else if (["ArrowUp", "ArrowDown"].includes(ev.key)) {
+            const { anchorNode, anchorOffset } = this.getSelectionData().deepEditableSelection;
+            const block = closestBlock(anchorNode);
+            const isArrowUp = ev.key === "ArrowUp";
+            const currentNode = anchorNode === block ? block.childNodes[anchorOffset] : anchorNode;
+            const findLineBreak = (element = currentNode) => {
+                let node = element;
+                if (isArrowUp && node.nodeName === "BR") {
+                    node = node.previousSibling;
+                }
+                while (node && node.nodeName !== "BR") {
+                    node = isArrowUp ? node.previousSibling : node.nextSibling;
+                }
+                return node;
+            };
+            const getNodePosition = (node) => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    const range = document.createRange();
+                    range.selectNode(node);
+                    const rect = range.getBoundingClientRect();
+                    return { left: rect.left, top: rect.top };
+                }
+                const rect = node.getBoundingClientRect();
+                return { left: rect.left, top: rect.top };
+            };
+            const currentNodePosition = getNodePosition(currentNode);
+            const lineBreakNode = findLineBreak();
+            let cursorNodePosition;
+            if (lineBreakNode && ((!isArrowUp && lineBreakNode.nextSibling) || isArrowUp)) {
+                cursorNodePosition = getNodePosition(
+                    isArrowUp ? lineBreakNode : lineBreakNode.nextSibling
+                );
+            } else {
+                const siblingBlock = isArrowUp ? block.previousElementSibling : block.nextElementSibling;
+                const siblingNode = isArrowUp
+                    ? siblingBlock?.lastChild
+                    : siblingBlock?.firstChild;
+                if (siblingNode) {
+                    cursorNodePosition = getNodePosition(siblingNode);
+                } else if (siblingBlock) {
+                    ev.preventDefault();
+                    this.setSelection({ anchorNode: siblingBlock, anchorOffset: 0 });
+                }
+            }
+            if (currentNodePosition && cursorNodePosition) {
+                const x = currentNodePosition.left;
+                const y = cursorNodePosition.top;
+                const range = this.document.caretPositionFromPoint(x, y);
+                const { offsetNode, offset } = range;
+                const targetIcon = isZWS(offsetNode) && isIconElement(offsetNode.parentElement)
+                    ? offsetNode.parentElement
+                    : null;
+                if (range.offsetNode && (isIconElement(currentNode) || targetIcon || (isArrowUp && currentNode.nodeName === "BR"))) {
+                    ev.preventDefault();
+                    if (targetIcon) {
+                        const targetNode = isArrowUp ? targetIcon : targetIcon.previousSibling;
+                        const anchorOffset = targetNode ? (isTextNode(targetNode) ? targetNode.textContent.length : 1) : 0;
+                        this.setSelection({ anchorNode: targetNode || targetIcon.parentElement, anchorOffset });
+                    } else {
+                        this.setSelection({ anchorNode: offsetNode, anchorOffset: offset });
+                    }
+                }
             }
         }
 
