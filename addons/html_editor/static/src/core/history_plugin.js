@@ -134,6 +134,9 @@ export class HistoryPlugin extends Plugin {
             this.enableObserver();
             this.reset(this.config.content);
         },
+
+        /** Handlers */
+        selectionchange_handlers: this._fixSelectionInEmptyDiv.bind(this),
     };
 
     setup() {
@@ -1151,6 +1154,25 @@ export class HistoryPlugin extends Plugin {
                 node.setAttribute("contenteditable", true);
             }
             this._onKeyupResetContenteditableNodes = [];
+        }
+    }
+
+    _fixSelectionInEmptyDiv() {
+        const selection = this.dependencies.selection.getEditableSelection();
+        if (
+            selection.isCollapsed &&
+            selection.anchorNode &&
+            selection.anchorNode.nodeName === "DIV" &&
+            selection.anchorNode.innerHTML.trim() === "" &&
+            selection.anchorNode.classList.contains("oe_structure")
+        ) {
+            this.disableObserver();
+            const p = this.document.createElement("p");
+            const br = this.document.createElement("br");
+            p.appendChild(br);
+            selection.anchorNode.appendChild(p);
+            this.dependencies.selection.setSelection({ anchorNode: p, anchorOffset: 0 });
+            this.enableObserver();
         }
     }
 }
