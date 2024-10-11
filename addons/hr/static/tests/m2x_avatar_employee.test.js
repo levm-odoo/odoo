@@ -307,9 +307,6 @@ test("many2one with hr group widget in form view", async () => {
     onRpc("web_read", (args) => {
         expect.step(`web_read ${args.model} ${args.args[0]}`);
     });
-    onRpc("read", (args) => {
-        expect.step(`read ${args.model} ${args.args[0]}`);
-    });
     await mountView({
         type: "form",
         resId: avatarId_1,
@@ -325,8 +322,8 @@ test("many2one with hr group widget in form view", async () => {
     await contains(".o_field_many2many_avatar_employee .o_tag .o_m2m_avatar:eq(1)").click();
     expect.verifySteps([
         `web_read m2x.avatar.employee ${avatarId_1}`,
-        `read hr.employee ${employeeId_1}`,
-        `read hr.employee ${employeeId_2}`,
+        `web_read hr.employee ${employeeId_1}`,
+        `web_read hr.employee ${employeeId_2}`,
     ]);
 });
 
