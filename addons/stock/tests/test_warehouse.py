@@ -38,7 +38,7 @@ class TestWarehouse(TestStockCommon):
         self.assertEqual(len(move_ids), 2)
         move_out_id = move_ids[-1]
         self.assertEqual(move_out_id.product_qty, 15.0)
-        self.assertEqual(move_out_id.location_id, self.warehouse_1.lot_stock_id)
+        self.assertEqual(move_out_id.location_id, self.warehouse_1.view_location_id)
         self.assertEqual(move_out_id.location_dest_id, self.product_1.property_stock_inventory)  # Inventory loss
         self.assertEqual(move_out_id.state, 'done')
 

@@ -906,7 +906,7 @@ class TestPacking(TestPackingCommon):
 
     def test_remove_package(self):
         """
-        In the overshipping scenario, if I remove the package after adding it, we should not remove the associated 
+        In the overshipping scenario, if I remove the package after adding it, we should not remove the associated
         stock move.
         """
         self.warehouse.delivery_steps = 'ship_only'
@@ -1714,7 +1714,7 @@ class TestPacking(TestPackingCommon):
         })
         (pack_1 | pack_2).location_id = self.shelf1
         moves = self.env['stock.move'].search([
-            ('location_id', '=', self.stock_location.id),
+            ('location_id', '=', self.stock_location.location_id.id),
             ('location_dest_id', '=', self.shelf1.id),
             ('reference', '=', 'Package manually relocated'),
         ])

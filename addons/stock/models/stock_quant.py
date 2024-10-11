@@ -1004,22 +1004,15 @@ class StockQuant(models.Model):
             ).lot_stock_id
 
     def _apply_inventory(self):
-        move_vals = []
-        for quant in self:
-            # Create and validate a move so that the quant matches its `inventory_quantity`.
-            if float_compare(quant.inventory_diff_quantity, 0, precision_rounding=quant.product_uom_id.rounding) > 0:
-                move_vals.append(
-                    quant._get_inventory_move_values(quant.inventory_diff_quantity,
-                                                     quant.product_id.with_company(quant.company_id).property_stock_inventory,
-                                                     quant.location_id, package_dest_id=quant.package_id))
-            else:
-                move_vals.append(
-                    quant._get_inventory_move_values(-quant.inventory_diff_quantity,
-                                                     quant.location_id,
-                                                     quant.product_id.with_company(quant.company_id).property_stock_inventory,
-                                                     package_id=quant.package_id))
-        moves = self.env['stock.move'].with_context(inventory_mode=False).create(move_vals)
-        moves._action_done()
+        # Create and validate a move so that the quant matches its `inventory_quantity`.
+        self.env['stock.move'].with_context(inventory_mode=False).create([
+            quants._get_inventory_move_values(direction < 0)
+            for (product, warehouse, direction), quants in self.grouped(lambda quant: (
+                    quant.product_id,
+                    quant.warehouse_id,
+                    float_compare(quant.inventory_diff_quantity, 0, precision_rounding=quant.product_uom_id.rounding)
+            )).items()
+        ])._action_done()
         self.location_id.write({'last_inventory_date': fields.Date.today()})
         date_by_location = {loc: loc._get_next_inventory_date() for loc in self.mapped('location_id')}
         for quant in self:
@@ -1204,7 +1197,7 @@ class StockQuant(models.Model):
                   'location_id', 'package_id']
         return fields
 
-    def _get_inventory_move_values(self, qty, location_id, location_dest_id, package_id=False, package_dest_id=False):
+    def _get_inventory_move_values(self, negative=False, use_quant_qty=False, dest_loc=False, dest_pkg=False):
         """ Called when user manually set a new quantity (via `inventory_quantity`)
         just before creating the corresponding stock move.
 
@@ -1214,10 +1207,27 @@ class StockQuant(models.Model):
         :param package_dest_id: `stock.quant.package`
         :return: dict with all values needed to create a new `stock.move` with its move line.
         """
-        self.ensure_one()
+        inventory_loc = dest_loc or self.product_id.with_company(self.company_id).property_stock_inventory
+        wh_loc = self.warehouse_id.view_location_id or self.location_id
+
+        move_lines = [(0, 0, {
+                'product_id': quant.product_id.id,
+                'product_uom_id': quant.product_uom_id.id,
+                'quantity': quant.quantity if use_quant_qty else (quant.inventory_diff_quantity * (-1 if negative else 1)),
+                'location_id': quant.location_id.id if negative else inventory_loc.id,
+                'location_dest_id': inventory_loc.id if negative else quant.location_id.id,
+                'company_id': quant.company_id.id or self.env.company.id,
+                'lot_id': quant.lot_id.id,
+                'package_id': quant.package_id.id if negative and quant.package_id else False,
+                'result_package_id': quant.package_id.id if not negative and quant.package_id else dest_pkg.id if dest_pkg else False,
+                'owner_id': quant.owner_id.id,
+            }) for quant in self]
+
+        total_qty = sum(line[2]['quantity'] for line in move_lines)
+
         if self.env.context.get('inventory_name'):
             name = self.env.context.get('inventory_name')
-        elif fields.Float.is_zero(qty, precision_rounding=self.product_uom_id.rounding):
+        elif fields.Float.is_zero(total_qty, precision_rounding=self.product_uom_id.rounding):
             name = _('Product Quantity Confirmed')
         else:
             name = _('Product Quantity Updated')
@@ -1228,26 +1238,15 @@ class StockQuant(models.Model):
             'name': name,
             'product_id': self.product_id.id,
             'product_uom': self.product_uom_id.id,
-            'product_uom_qty': qty,
+            'product_uom_qty': total_qty,
             'company_id': self.company_id.id or self.env.company.id,
             'state': 'confirmed',
-            'location_id': location_id.id,
-            'location_dest_id': location_dest_id.id,
+            'location_id': wh_loc.id if negative else inventory_loc.id,
+            'location_dest_id': inventory_loc.id if negative else wh_loc.id,
             'restrict_partner_id':  self.owner_id.id,
             'is_inventory': True,
             'picked': True,
-            'move_line_ids': [(0, 0, {
-                'product_id': self.product_id.id,
-                'product_uom_id': self.product_uom_id.id,
-                'quantity': qty,
-                'location_id': location_id.id,
-                'location_dest_id': location_dest_id.id,
-                'company_id': self.company_id.id or self.env.company.id,
-                'lot_id': self.lot_id.id,
-                'package_id': package_id.id if package_id else False,
-                'result_package_id': package_dest_id.id if package_dest_id else False,
-                'owner_id': self.owner_id.id,
-            })]
+            'move_line_ids': move_lines,
         }
 
     def _set_view_context(self):
@@ -1510,11 +1509,8 @@ class StockQuant(models.Model):
             if not unpack and not package_dest_id:
                 result_package_id = quant.package_id
             move_vals.append(quant.with_context(inventory_name=message)._get_inventory_move_values(
-                quant.quantity,
-                quant.location_id,
-                location_dest_id or quant.location_id,
-                quant.package_id,
-                result_package_id))
+                True, True, location_dest_id or quant.location_id, result_package_id)
+            )
         moves = self.env['stock.move'].create(move_vals)
         moves._action_done()
 
