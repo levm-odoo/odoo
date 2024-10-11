@@ -316,7 +316,6 @@
             'website/static/src/snippets/s_card/options.xml',
             'website/static/src/snippets/s_card/options.js',
             'website/static/src/snippets/s_faq_horizontal/options.js',
-            'website/static/src/snippets/s_carousel_intro/options.js',
             'website/static/src/snippets/s_countdown/options.js',
             'website/static/src/snippets/s_countdown/options.xml',
             'website/static/src/snippets/s_masonry_block/options.js',
