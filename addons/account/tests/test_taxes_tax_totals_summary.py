@@ -2214,7 +2214,11 @@ class TestTaxesTaxTotalsSummary(TestTaxCommon):
                             for price_unit, taxes in line_values
                         ]),
                     )
-                    self.assert_tax_total(document, expected_tax_amount)
+                    self.assert_tax_totals_summary(
+                        document=document,
+                        expected_values={'tax_amount_currency': expected_tax_amount},
+                        soft_checking=True,
+                    )
                     invoice = self.convert_document_to_invoice(document)
                     self.assertRecordValues(invoice, [{'amount_tax': expected_tax_amount}])
 

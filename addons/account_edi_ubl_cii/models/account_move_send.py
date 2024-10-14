@@ -26,7 +26,7 @@ class AccountMoveSend(models.AbstractModel):
             return alerts
 
         ubl_formats = set(self.env['res.partner']._get_ubl_cii_formats())
-        if ubl_moves := moves.filtered(lambda m: moves_data[m]['invoice_edi_format'] and moves_data[m]['invoice_edi_format'] in ubl_formats):
+        if ubl_moves := moves.filtered(lambda m: moves_data[m]['invoice_edi_format'] in ubl_formats):
             not_configured_company_partners = ubl_moves.company_id.partner_id.filtered(
                 lambda partner: not (partner.peppol_eas and partner.peppol_endpoint)
             )
