@@ -49,10 +49,15 @@ export class AddToCartNotification extends Component {
      */
     getFormattedPrice(line) {
         const linkedLines = this.getLinkedLines(line.id);
-        const price = linkedLines.length
-            ? linkedLines.reduce((price, linkedLine) => price + linkedLine.line_price_total, 0)
-            : line.line_price_total;
-        return formatCurrency(price, this.props.currency_id);
+        let totalLinePrice = line.line_price_total;
+        if (linkedLines.length) {
+            totalLinePrice += linkedLines.reduce(
+                (sum, linkedLine) => sum + linkedLine.line_price_total,0
+            );
+        }
+        const pricePerUnit = totalLinePrice / line.quantity;
+        const totalPrice = pricePerUnit * (this.props.add_qty || line.quantity);
+        return formatCurrency(totalPrice, this.props.currency_id);
     }
 
     /**
@@ -65,6 +70,6 @@ export class AddToCartNotification extends Component {
      * @return {String} - The product summary.
      */
     getProductSummary(line) {
-        return line.quantity + " x " + line.name;
+        return (this.props.add_qty || line.quantity) + " x " + line.name;
     }
 }

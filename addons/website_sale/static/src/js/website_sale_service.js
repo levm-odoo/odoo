@@ -457,7 +457,7 @@ export class WebsiteSaleService {
         )) {
             this._updateCartIcon(data.cart_quantity);
         };
-        this._showCartNotification(data.notification_info);
+        this._showCartNotification(data.notification_info, {add_qty: quantity});
         this._trackProducts(data.tracking_info);
         return data.quantity;
     }

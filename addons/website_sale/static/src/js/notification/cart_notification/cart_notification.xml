@@ -19,7 +19,9 @@
                 <AddToCartNotification
                     t-elif="this.props.lines.length"
                     lines="this.props.lines"
-                    currency_id="this.props.currency_id"/>
+                    currency_id="this.props.currency_id"
+                    add_qty="this.props.add_qty"
+                />
             </div>
         </div>
     </t>
