@@ -205,6 +205,7 @@ class TestTaxCommonSale(TestTaxCommon):
         super().setUpClass()
         cls.foreign_currency_pricelist = cls.env['product.pricelist'].create({
             'name': "TestTaxCommonSale",
+            'currency_id': cls.foreign_currency.id,
             'company_id': cls.env.company.id,
         })
 
@@ -224,7 +225,7 @@ class TestTaxCommonSale(TestTaxCommon):
                     'price_unit': base_line['price_unit'],
                     'discount': base_line['discount'],
                     'product_uom_qty': base_line['quantity'],
-                    'tax_id': [Command.set(base_line['tax_ids'].ids)],
+                    'tax_ids': [Command.set(base_line['tax_ids'].ids)],
                 })
                 for i, base_line in enumerate(document['lines'])
             ],

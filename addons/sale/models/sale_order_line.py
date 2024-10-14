@@ -162,6 +162,7 @@ class SaleOrderLine(models.Model):
         store=True, readonly=False, precompute=True,
         context={'active_test': False},
         check_company=True)
+    extra_tax_data = fields.Json()
 
     # Tech field caching pricelist rule used for price & discount computation
     pricelist_item_id = fields.Many2one(
@@ -1339,6 +1340,7 @@ class SaleOrderLine(models.Model):
             'tax_ids': [Command.set(self.tax_ids.ids)],
             'sale_line_ids': [Command.link(self.id)],
             'is_downpayment': self.is_downpayment,
+            'extra_tax_data': self.extra_tax_data,
         }
         self._set_analytic_distribution(res, **optional_values)
         downpayment_lines = self.invoice_lines.filtered('is_downpayment')

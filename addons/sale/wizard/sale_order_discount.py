@@ -25,7 +25,7 @@ class SaleOrderDiscount(models.TransientModel):
         ],
         default='sol_discount',
     )
-    tax_ids = fields.Many2many(
+    tax_ids = fields.Many2many(  # TODO: REMOVE
         string="Taxes",
         help="Taxes to add on the discount line.",
         comodel_name='account.tax',
@@ -58,21 +58,19 @@ class SaleOrderDiscount(models.TransientModel):
             values['categ_id'] = services_category.id
         return values
 
-    def _prepare_discount_line_values(self, product, amount, taxes, description=None):
+    def _prepare_global_discount_so_lines(self, base_lines):
         self.ensure_one()
-
-        vals = {
-            'order_id': self.sale_order_id.id,
-            'product_id': product.id,
-            'sequence': 999,
-            'price_unit': -amount,
-            'tax_ids': [Command.set(taxes.ids)],
-        }
-        if description:
-            # If not given, name will fallback on the standard SOL logic (cf. _compute_name)
-            vals['name'] = description
-
-        return vals
+        return [
+            {
+                'product_id': base_line['product_id'].id,
+                'price_unit': base_line['price_unit'],
+                'product_uom_qty': base_line['quantity'],
+                'tax_ids': [Command.set(base_line['tax_ids'].ids)],
+                'extra_tax_data': self.env['account.tax']._export_base_line_extra_tax_data(base_line),
+                'sequence': 999,
+            }
+            for base_line in base_lines
+        ]
 
     def _get_discount_product(self):
         """Return product.product used for discount line"""
@@ -98,64 +96,47 @@ class SaleOrderDiscount(models.TransientModel):
         return discount_product
 
     def _create_discount_lines(self):
-        """Create SOline(s) according to wizard configuration"""
         self.ensure_one()
         discount_product = self._get_discount_product()
 
-        if self.discount_type == 'amount':
-            vals_list = [
-                self._prepare_discount_line_values(
-                    product=discount_product,
-                    amount=self.discount_amount,
-                    taxes=self.tax_ids,
-                )
-            ]
-        else: # so_discount
-            total_price_per_tax_groups = defaultdict(float)
-            for line in self.sale_order_id.order_line:
-                if not line.product_uom_qty or not line.price_unit:
-                    continue
+        if self.discount_type == 'so_discount':
+            amount_type = 'percent'
+            amount = self.discount_percentage * 100.0
+            so_line_description = _("Discount %(percent)s%%", percent=amount)
+        else:  # self.discount_type == 'amount':
+            amount_type = 'fixed'
+            amount = self.discount_amount
+            so_line_description = _("Discount")
 
-                total_price_per_tax_groups[line.tax_ids] += (line.price_unit * line.product_uom_qty)
+        order = self.sale_order_id
+        AccountTax = self.env['account.tax']
+        order_lines = order.order_line.filtered(lambda x: not x.display_type)
+        base_lines = [
+            line._prepare_base_line_for_taxes_computation(
+                product_id=discount_product,
+                name=so_line_description,
+            )
+            for line in order_lines
+        ]
+        AccountTax._add_tax_details_in_base_lines(base_lines, order.company_id)
+        AccountTax._round_base_lines_tax_details(base_lines, order.company_id)
 
-            if not total_price_per_tax_groups:
-                # No valid lines on which the discount can be applied
-                return
-            elif len(total_price_per_tax_groups) == 1:
-                # No taxes, or all lines have the exact same taxes
-                taxes = next(iter(total_price_per_tax_groups.keys()))
-                subtotal = total_price_per_tax_groups[taxes]
-                vals_list = [{
-                    **self._prepare_discount_line_values(
-                        product=discount_product,
-                        amount=subtotal * self.discount_percentage,
-                        taxes=taxes,
-                        description=_(
-                            "Discount %(percent)s%%",
-                            percent=self.discount_percentage*100
-                        ),
-                    ),
-                }]
-            else:
-                vals_list = [
-                    self._prepare_discount_line_values(
-                        product=discount_product,
-                        amount=subtotal * self.discount_percentage,
-                        taxes=taxes,
-                        description=_(
-                            "Discount %(percent)s%%"
-                            "- On products with the following taxes %(taxes)s",
-                            percent=self.discount_percentage*100,
-                            taxes=", ".join(taxes.mapped('name'))
-                        ),
-                    ) for taxes, subtotal in total_price_per_tax_groups.items()
-                ]
-        return self.env['sale.order.line'].create(vals_list)
+        down_payment_so_lines_values_list = AccountTax._prepare_global_discount_lines(
+            base_lines=base_lines,
+            company=self.company_id,
+            amount_type=amount_type,
+            amount=amount,
+            computation_key=f'global_discount,{self.id}',
+        )
+        order.order_line = [
+            Command.create(values)
+            for values in self._prepare_global_discount_so_lines(down_payment_so_lines_values_list)
+        ]
 
     def action_apply_discount(self):
         self.ensure_one()
         self = self.with_company(self.company_id)
         if self.discount_type == 'sol_discount':
-            self.sale_order_id.order_line.write({'discount': self.discount_percentage*100})
+            self.sale_order_id.order_line.write({'discount': self.discount_percentage * 100})
         else:
             self._create_discount_lines()
