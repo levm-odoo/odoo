@@ -2342,6 +2342,7 @@ class SnippetsMenu extends Component {
             [this.options.snippets, {}],
             { context }
         );
+        debugger
         cacheSnippetTemplate[this.options.snippets] = this._defLoadSnippets;
         if (this.invalidateSnippetCache) {
             this.invalidateSnippetCache = false;
@@ -2375,6 +2376,7 @@ class SnippetsMenu extends Component {
     getSnippetsByCategories() {
         const categories = new Map();
         let snippets = Array.from(this.snippets.values());
+        debugger
         let strMatches = null;
         let hasCustomStructureSnippet = false;
 
