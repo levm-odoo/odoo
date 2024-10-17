@@ -121,7 +121,7 @@ class TestPurchaseRequisition(TestPurchaseRequisitionCommon):
         # create an empty blanket order
         line1 = (0, 0, {
             'product_id': product2.id,
-            'product_uom_id': product2.uom_po_id.id,
+            'product_uom_id': product2.uom_id.id,
             'price_unit': 41,
             'product_qty': 10,
         })
@@ -155,7 +155,7 @@ class TestPurchaseRequisition(TestPurchaseRequisitionCommon):
             line.product_id = self.product_09
             line.product_qty = 5.0
             line.price_unit = unit_price
-            line.product_uom_id = self.env.ref('uom.product_uom_dozen')
+            line.product_uom_id = self.env.ref('uom.product_uom_pack_6')
         with po_form.order_line.new() as line:
             line.display_type = "line_section"
             line.name = "Products"
@@ -298,7 +298,7 @@ class TestPurchaseRequisition(TestPurchaseRequisitionCommon):
         with po_form.order_line.new() as line:
             line.product_id = self.product_09
             line.product_qty = 1
-            line.product_uom_id = self.env.ref('uom.product_uom_dozen')
+            line.product_uom_id = self.env.ref('uom.product_uom_pack_6')
         po_1 = po_form.save()
         self.assertEqual(po_1.order_line[0].price_unit, 120)
 
@@ -321,7 +321,7 @@ class TestPurchaseRequisition(TestPurchaseRequisitionCommon):
         # create an empty blanket order
         line1 = (0, 0, {
             'product_id': self.product_13.id,
-            'product_uom_id': self.product_13.uom_po_id.id,
+            'product_uom_id': self.product_13.uom_id.id,
             'price_unit': 41,
             'product_qty': 10,
         })

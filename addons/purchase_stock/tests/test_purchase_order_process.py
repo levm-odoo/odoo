@@ -41,10 +41,11 @@ class TestPurchaseOrderProcess(PurchaseTestCommon):
             'is_storable': True,
         })
 
-        packaging = self.env['product.packaging'].create({
+        packaging = self.env['uom.uom'].create({
             'name': 'box',
-            'product_id': product.id,
+            'factor_reference_uom': 1.0,
         })
+        product.uom_ids = packaging
 
         po = self.env['purchase.order'].create({
             'partner_id': self.env['res.partner'].create({'name': 'My Partner'}).id,
@@ -52,12 +53,11 @@ class TestPurchaseOrderProcess(PurchaseTestCommon):
                 (0, 0, {
                     'product_id': product.id,
                     'product_qty': 1.0,
-                    'product_uom_id': product.uom_id.id,
-                    'product_packaging_id': packaging.id,
+                    'product_uom_id': packaging.id,
                 })],
         })
         po.button_confirm()
-        self.assertEqual(po.order_line.move_ids.product_packaging_id, packaging)
+        self.assertEqual(po.order_line.move_ids.packaging_uom_id, packaging)
 
     def test_02_vendor_delay_report_partially_cancelled_purchase_order(self):
         """ Test vendor delay reports for partially cancelled purchase order"""

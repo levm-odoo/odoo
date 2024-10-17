@@ -30,7 +30,7 @@ class SaleOrderLine(models.Model):
         compute='_compute_customer_lead', store=True, readonly=False, precompute=True,
         inverse='_inverse_customer_lead')
 
-    @api.depends('route_id', 'order_id.warehouse_id', 'product_packaging_id', 'product_id')
+    @api.depends('route_id', 'order_id.warehouse_id', 'product_id')
     def _compute_warehouse_id(self):
         for line in self:
             line.warehouse_id = line.order_id.warehouse_id
@@ -219,10 +219,10 @@ class SaleOrderLine(models.Model):
         if 'product_uom_qty' in values:
             lines = self.filtered(lambda r: r.state == 'sale' and not r.is_expense)
 
-        if 'product_packaging_id' in values:
+        if 'product_uom_id' in values and values['product_uom_id'] != self.product_id.uom_id.id:
             self.move_ids.filtered(
                 lambda m: m.state not in ['cancel', 'done']
-            ).product_packaging_id = values['product_packaging_id']
+            ).packaging_uom_id = values['product_uom_id']
 
         previous_product_uom_qty = {line.id: line.product_uom_qty for line in lines}
         res = super(SaleOrderLine, self).write(values)
@@ -270,9 +270,10 @@ class SaleOrderLine(models.Model):
             'location_final_id': self._get_location_final(),
             'product_description_variants': self.with_context(lang=self.order_id.partner_id.lang)._get_sale_order_line_multiline_description_variants(),
             'company_id': self.order_id.company_id,
-            'product_packaging_id': self.product_packaging_id,
+            'packaging_uom_id': self.product_uom_id if self.product_uom_id != self.product_id.uom_id else False,
             'sequence': self.sequence,
             'never_product_template_attribute_value_ids': self.product_no_variant_attribute_value_ids,
+            'uom_id': self.product_uom_id,
         })
         return values
 
