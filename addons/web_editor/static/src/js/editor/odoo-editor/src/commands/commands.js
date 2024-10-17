@@ -520,6 +520,7 @@ export const editorCommands = {
             const element = closestElement(node);
             element.style.removeProperty('color');
             element.style.removeProperty('background');
+            element.style.removeProperty('-webkit-text-fill-color');
         }
         textAlignStyles.forEach((textAlign, block) => {
             block.style.setProperty('text-align', textAlign);
@@ -706,11 +707,22 @@ export const editorCommands = {
             return selectedNodes.flatMap(node => {
                 let font = closestElement(node, 'font') || closestElement(node, 'span');
                 const children = font && descendants(font);
-                if (font && (font.nodeName === 'FONT' || (font.nodeName === 'SPAN' && font.style[mode]))) {
+                const closestGradient = closestElement(node, '[style*="background-image"]');
+                const isGradient = font && isColorGradient(font.style["background-image"]);
+                const isTextGradient = isGradient && font.classList.contains("text-gradient")
+                if (
+                    font &&
+                    (font.nodeName === "FONT" || (font.nodeName === "SPAN" && font.style[mode])) &&
+                    (isColorGradient(color) || !isGradient)
+                ) {
                     // Partially selected <font>: split it.
                     const selectedChildren = children.filter(child => selectedNodes.includes(child));
                     if (selectedChildren.length) {
-                        font = splitAroundUntil(selectedChildren, font);
+                        const splitnode = closestGradient && isColorGradient(color) ? closestGradient : font;
+                        font = splitAroundUntil(selectedChildren, splitnode);
+                        if (font.style["-webkit-text-fill-color"] && mode === "color") {
+                            font.style["-webkit-text-fill-color"] = color;
+                        }
                     } else {
                         font = [];
                     }
@@ -745,6 +757,9 @@ export const editorCommands = {
                         // No <font> found: insert a new one.
                         font = document.createElement('font');
                         node.after(font);
+                        if (isTextGradient && mode === "color") {
+                            font.setAttribute("style", `-webkit-text-fill-color:${color}`);
+                        }
                     }
                     if (node.textContent) {
                         font.appendChild(node);
