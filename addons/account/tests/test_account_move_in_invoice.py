@@ -304,15 +304,15 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
             'amount_total': 230.0,
         })
 
-        uom_dozen = self.env.ref('uom.product_uom_dozen')
+        uom_pack_of_6 = self.env.ref('uom.product_uom_pack_6')
         with Form(invoice) as move_form:
             with move_form.invoice_line_ids.edit(0) as line_form:
-                line_form.product_uom_id = uom_dozen
+                line_form.product_uom_id = uom_pack_of_6
 
         self.assertInvoiceValues(invoice, [
             {
                 'product_id': product.id,
-                'product_uom_id': uom_dozen.id,
+                'product_uom_id': uom_pack_of_6.id,
                 'price_unit': 2400.0,
                 'price_subtotal': 2400.0,
                 'price_total': 2760.0,
@@ -449,15 +449,15 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
             'amount_total': 240.0,
         })
 
-        uom_dozen = self.env.ref('uom.product_uom_dozen')
+        uom_pack_of_6 = self.env.ref('uom.product_uom_pack_6')
         with Form(invoice) as move_form:
             with move_form.invoice_line_ids.edit(0) as line_form:
-                line_form.product_uom_id = uom_dozen
+                line_form.product_uom_id = uom_pack_of_6
 
         self.assertInvoiceValues(invoice, [
             {
                 'product_id': product.id,
-                'product_uom_id': uom_dozen.id,
+                'product_uom_id': uom_pack_of_6.id,
                 'price_unit': 2880.0,
                 'price_subtotal': 2400.0,
                 'price_total': 2880.0,
@@ -2696,14 +2696,17 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
         product = self.env['product.product'].create({
             'name': 'product',
             'uom_id': uom_gram.id,
-            'uom_po_id': uom_kgm.id,
             'standard_price': 110.0,
+            'seller_ids': [Command.create({
+                'partner_id': self.partner_a.id,
+                'product_uom_id': uom_kgm.id,
+            })]
         })
         # customer invoice should have sale uom
         invoice = self.init_invoice(move_type='out_invoice', products=[product])
         invoice_uom = invoice.invoice_line_ids[0].product_uom_id
         self.assertEqual(invoice_uom, uom_gram)
-        # vendor bill should have purchase uom
+        # vendor bill should have seller uom
         bill = self.init_invoice(move_type='in_invoice', products=[product])
         bill_uom = bill.invoice_line_ids[0].product_uom_id
         self.assertEqual(bill_uom, uom_kgm)

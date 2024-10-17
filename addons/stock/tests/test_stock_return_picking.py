@@ -24,7 +24,7 @@ class TestReturnPicking(TestStockCommon):
             'name': self.UnitA.name,
             'product_id': self.UnitA.id,
             'product_uom_qty': 1,
-            'product_uom': self.uom_dozen.id,
+            'product_uom': self.uom_pack_of_6.id,
             'picking_id': picking_out.id,
             'location_id': self.stock_location,
             'location_dest_id': self.customer_location})
@@ -43,7 +43,7 @@ class TestReturnPicking(TestStockCommon):
         self.assertEqual(return_line.uom_id.id, self.uom_unit.id, 'Return line should have exact same uom as product uom')
         self.assertEqual(return_line.quantity, 0, 'Return line should have 0 quantity')
         return_line.quantity = 2
-        # Check return line of uom_dozen move
+        # Check return line of uom_pack_of_6 move
         return_line = ReturnPickingLineObj.search([('move_id', '=', move_2.id), ('wizard_id.picking_id', '=', picking_out.id)], limit=1)
         self.assertEqual(return_line.product_id.id, self.UnitA.id, 'Return line should have exact same product as outgoing move')
         self.assertEqual(return_line.uom_id.id, self.uom_unit.id, 'Return line should have exact same uom as product uom')

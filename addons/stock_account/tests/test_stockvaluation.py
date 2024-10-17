@@ -4008,7 +4008,7 @@ class TestStockValuation(TestStockValuationBase):
         the one set on the product form and ensure that when the qty done is changed
         and the picking is already validated, an svl is created in the uom set in the product.
         """
-        uom_dozen = self.env.ref('uom.product_uom_dozen')
+        uom_pack_of_6 = self.env.ref('uom.product_uom_pack_6')
         receipt = self.env['stock.picking'].create({
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
@@ -4023,7 +4023,7 @@ class TestStockValuation(TestStockValuationBase):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': self.product1.id,
-            'product_uom': uom_dozen.id,
+            'product_uom': uom_pack_of_6.id,
             'product_uom_qty': 1.0,
             'price_unit': 10,
         })
@@ -4247,7 +4247,7 @@ class TestStockValuation(TestStockValuationBase):
         """Test that when the UoM of the stock.move.line is different from the stock.move,
         the quantity update after done (unlocked) use the correct UoM"""
         unit_uom = self.env.ref('uom.product_uom_unit')
-        dozen_uom = self.env.ref('uom.product_uom_dozen')
+        pack_of_6_uom = self.env.ref('uom.product_uom_pack_6')
         move = self.env['stock.move'].create({
             'name': '12 Units of Product1',
             'product_id': self.product1.id,
@@ -4265,7 +4265,7 @@ class TestStockValuation(TestStockValuationBase):
         move.move_line_ids = [
             Command.update(
                 move.move_line_ids[0].id,
-                {'quantity': 1, 'product_uom_id': dozen_uom.id}
+                {'quantity': 1, 'product_uom_id': pack_of_6_uom.id}
             )
         ]
         move.picked = True

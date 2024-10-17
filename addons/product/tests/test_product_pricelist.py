@@ -254,8 +254,10 @@ class TestProductPricelist(ProductCommon):
         ProductPricelist = self.env['product.pricelist']
         spam = self.env['product.product'].create({
             'name': '1 tonne of spam',
-            'uom_id': self.uom_ton.id,
-            'uom_po_id': self.uom_ton.id,
+            'uom_id': self.env['uom.uom'].create({
+                'name': 'Test-Ton',
+                'factor_reference_uom': 1000,
+            }).id,
             'list_price': 100,
             'type': 'consu'
         })
@@ -266,7 +268,7 @@ class TestProductPricelist(ProductCommon):
         )
         self.assertEqual(
             ProductPricelist._get_product_price(self.monitor, quantity=1.0, currency=self.new_currency),
-            self.monitor.list_price*10,
+            self.monitor.list_price * 10,
             msg="without pricelist but with a currency different than the product one, the price "
                 "should be the same as the list price converted with the currency rate",
         )
