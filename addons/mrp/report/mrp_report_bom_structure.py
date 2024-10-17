@@ -29,7 +29,7 @@ class ReportMrpReport_Bom_Structure(models.AbstractModel):
         components_qty_to_produce = defaultdict(lambda: 0)
         components_qty_available = {}
         for comp in bom_data.get('components', []):
-            if not comp['product'].is_storable or float_is_zero(comp['base_bom_line_qty'], precision_rounding=comp['uom'].rounding):
+            if not comp['product'].is_storable or float_is_zero(comp['base_bom_line_qty'], precision_digits=self.env['decimal.precision'].precision_get('Product Unit of Measure')):
                 continue
             components_qty_to_produce[comp['product_id']] += comp['base_bom_line_qty']
             components_qty_available[comp['product_id']] = comp['free_to_manufacture_qty']
@@ -158,14 +158,16 @@ class ReportMrpReport_Bom_Structure(models.AbstractModel):
         closest_forecasted = defaultdict(OrderedDict)
         remaining_products = []
         product_quantities_info = defaultdict(OrderedDict)
+        precision_digits = self.env['decimal.precision'].precision_get('Product Unit of Measure')
         for line in lines:
             product = line.product_id
             quantities_info = self._get_quantities_info(product, line.product_uom_id, product_info, parent_bom, parent_product)
             stock_loc = quantities_info['stock_loc']
             product_info[product.id]['consumptions'][stock_loc] += line_quantities.get(line.id, 0.0)
             product_quantities_info[product.id][line.id] = product_info[product.id]['consumptions'][stock_loc]
-            if (not product.is_storable or
-                    float_compare(product_info[product.id]['consumptions'][stock_loc], quantities_info['free_qty'], precision_rounding=product.uom_id.rounding) <= 0):
+            if (
+                not product.is_storable or
+                float_compare(product_info[product.id]['consumptions'][stock_loc], quantities_info['free_qty'], precision_digits=precision_digits) <= 0):
                 # Use date.min as a sentinel value for _get_stock_availability
                 closest_forecasted[product.id][line.id] = date.min
             elif stock_loc != 'in_stock':
@@ -473,7 +475,7 @@ class ReportMrpReport_Bom_Structure(models.AbstractModel):
         operations_planning = {}
         if bom_report_line['availability_state'] in ['unavailable', 'estimated'] and bom.operation_ids:
             qty_to_produce = bom.product_uom_id._compute_quantity(max(0, qty - (product.virtual_available if level > 1 else 0)), bom.product_tmpl_id.uom_id)
-            if not float_is_zero(qty_to_produce, precision_rounding=(product or bom.product_tmpl_id).uom_id.rounding):
+            if not float_is_zero(qty_to_produce, precision_digits=self.env['decimal.precision'].precision_get('Product Unit of Measure')):
                 max_component_delay = 0
                 for component in bom_report_line['components']:
                     line_delay = component.get('availability_delay', 0)
@@ -713,8 +715,9 @@ class ReportMrpReport_Bom_Structure(models.AbstractModel):
 
         stock_loc = quantities_info['stock_loc']
         product_info[product.id]['consumptions'][stock_loc] += quantity
+        precision_digits = self.env['decimal.precision'].precision_get('Product Unit of Measure')
         # Check if product is already in stock with enough quantity
-        if product and float_compare(product_info[product.id]['consumptions'][stock_loc], quantities_info['free_qty'], precision_rounding=product.uom_id.rounding) <= 0:
+        if product and float_compare(product_info[product.id]['consumptions'][stock_loc], quantities_info['free_qty'], precision_digits=precision_digits) <= 0:
             return ('available', 0)
 
         # No need to check forecast if the product isn't located in our stock

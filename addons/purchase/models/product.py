@@ -31,8 +31,9 @@ class ProductTemplate(models.Model):
                 product.purchase_method = default_purchase_method
 
     def _compute_purchased_product_qty(self):
+        precision_digits = self.env['decimal.precision'].precision_get('Product Unit of Measure')
         for template in self:
-            template.purchased_product_qty = float_round(sum([p.purchased_product_qty for p in template.product_variant_ids]), precision_rounding=template.uom_id.rounding)
+            template.purchased_product_qty = float_round(sum(p.purchased_product_qty for p in template.product_variant_ids), precision_digits=precision_digits)
 
     def _get_backend_root_menu_ids(self):
         return super()._get_backend_root_menu_ids() + [self.env.ref('purchase.menu_purchase_root').id]
@@ -74,11 +75,12 @@ class ProductProduct(models.Model):
         ]
         order_lines = self.env['purchase.order.line']._read_group(domain, ['product_id'], ['product_uom_qty:sum'])
         purchased_data = {product.id: qty for product, qty in order_lines}
+        precision_digits = self.env['decimal.precision'].precision_get('Product Unit of Measure')
         for product in self:
             if not product.id:
                 product.purchased_product_qty = 0.0
                 continue
-            product.purchased_product_qty = float_round(purchased_data.get(product.id, 0), precision_rounding=product.uom_id.rounding)
+            product.purchased_product_qty = float_round(purchased_data.get(product.id, 0), precision_digits=precision_digits)
 
     @api.depends_context('order_id')
     def _compute_is_in_purchase_order(self):
@@ -120,9 +122,3 @@ class ProductSupplierinfo(models.Model):
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
         self.currency_id = self.partner_id.property_purchase_currency_id.id or self.env.company.currency_id.id
-
-
-class ProductPackaging(models.Model):
-    _inherit = 'product.packaging'
-
-    purchase = fields.Boolean("Purchase", default=True, help="If true, the packaging can be used for purchase orders")

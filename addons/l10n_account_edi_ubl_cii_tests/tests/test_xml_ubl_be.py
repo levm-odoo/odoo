@@ -114,7 +114,7 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
                 {
                     'product_id': self.product_a.id,
                     'quantity': 2.0,
-                    'product_uom_id': self.env.ref('uom.product_uom_dozen').id,
+                    'product_uom_id': self.env.ref('uom.product_uom_pack_6').id,
                     'price_unit': 990.0,
                     'discount': 10.0,
                     'tax_ids': [(6, 0, self.tax_21.ids)],
@@ -172,7 +172,7 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
                 {
                     'product_id': self.product_a.id,
                     'quantity': 2.0,
-                    'product_uom_id': self.env.ref('uom.product_uom_dozen').id,
+                    'product_uom_id': self.env.ref('uom.product_uom_pack_6').id,
                     'price_unit': 990.0,
                     'discount': 10.0,
                     'tax_ids': [(6, 0, self.tax_21.ids)],
@@ -852,7 +852,7 @@ class TestUBLBE(TestUBLCommon, TestAccountMoveSendCommon):
             date='2017-01-01',
             invoice_line_ids=[{
                 'product_id': self.product_a.id,
-                'product_uom_id': self.env.ref('uom.product_uom_dozen').id,
+                'product_uom_id': self.env.ref('uom.product_uom_pack_6').id,
                 'price_unit': 275.0,
                 'quantity': 5,
                 'discount': 20.0,

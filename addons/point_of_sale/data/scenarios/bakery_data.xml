@@ -20,7 +20,6 @@
 			<field name="type">consu</field>
 			<field name="weight">0.01</field>
 			<field name="uom_id" ref="uom.product_uom_unit"/>
-			<field name="uom_po_id" ref="uom.product_uom_unit"/>
 			<field name="image_1920" type="base64" file="point_of_sale/static/img/product_wholemeal_loaf.png"/>
 			<field name="available_in_pos" eval="True"/>
 			<field name="categ_id" ref="point_of_sale.product_category_food"/>
@@ -34,7 +33,6 @@
 			<field name="type">consu</field>
 			<field name="weight">1.00</field>
 			<field name="uom_id" ref="uom.product_uom_unit"/>
-			<field name="uom_po_id" ref="uom.product_uom_unit"/>
 			<field name="image_1920" type="base64" file="point_of_sale/static/img/product_flour.png"/>
 			<field name="available_in_pos" eval="True"/>
 			<field name="to_weight" eval="True"/>
@@ -49,7 +47,6 @@
 			<field name="type">consu</field>
 			<field name="weight">0.01</field>
 			<field name="uom_id" ref="uom.product_uom_unit"/>
-			<field name="uom_po_id" ref="uom.product_uom_unit"/>
 			<field name="image_1920" type="base64" file="point_of_sale/static/img/product_tiger_white_loaf.png"/>
 			<field name="available_in_pos" eval="True"/>
 			<field name="categ_id" ref="point_of_sale.product_category_food"/>
@@ -63,7 +60,6 @@
 			<field name="type">consu</field>
 			<field name="weight">0.01</field>
 			<field name="uom_id" ref="uom.product_uom_unit"/>
-			<field name="uom_po_id" ref="uom.product_uom_unit"/>
 			<field name="image_1920" type="base64" file="point_of_sale/static/img/product_butter_croissant.png"/>
 			<field name="available_in_pos" eval="True"/>
 			<field name="categ_id" ref="point_of_sale.product_category_food"/>
@@ -77,7 +73,6 @@
 			<field name="type">consu</field>
 			<field name="weight">0.01</field>
 			<field name="uom_id" ref="uom.product_uom_unit"/>
-			<field name="uom_po_id" ref="uom.product_uom_unit"/>
 			<field name="image_1920" type="base64" file="point_of_sale/static/img/product_apple_pie.png"/>
 			<field name="available_in_pos" eval="True"/>
 			<field name="categ_id" ref="point_of_sale.product_category_food"/>
@@ -91,7 +86,6 @@
 			<field name="type">consu</field>
 			<field name="weight">0.01</field>
 			<field name="uom_id" ref="uom.product_uom_unit"/>
-			<field name="uom_po_id" ref="uom.product_uom_unit"/>
 			<field name="image_1920" type="base64" file="point_of_sale/static/img/product_cherry_pie.png"/>
 			<field name="available_in_pos" eval="True"/>
 			<field name="categ_id" ref="point_of_sale.product_category_food"/>
@@ -105,7 +99,6 @@
 			<field name="type">consu</field>
 			<field name="weight">0.01</field>
 			<field name="uom_id" ref="uom.product_uom_unit"/>
-			<field name="uom_po_id" ref="uom.product_uom_unit"/>
 			<field name="image_1920" type="base64" file="point_of_sale/static/img/product_sourdough_loaf.png"/>
 			<field name="available_in_pos" eval="True"/>
 			<field name="categ_id" ref="point_of_sale.product_category_food"/>
@@ -119,7 +112,6 @@
 			<field name="type">consu</field>
 			<field name="weight">0.01</field>
 			<field name="uom_id" ref="uom.product_uom_unit"/>
-			<field name="uom_po_id" ref="uom.product_uom_unit"/>
 			<field name="image_1920" type="base64" file="point_of_sale/static/img/product_multigrain_bread.png"/>
 			<field name="available_in_pos" eval="True"/>
 			<field name="categ_id" ref="point_of_sale.product_category_food"/>
@@ -133,7 +125,6 @@
 			<field name="type">consu</field>
 			<field name="weight">0.01</field>
 			<field name="uom_id" ref="uom.product_uom_unit"/>
-			<field name="uom_po_id" ref="uom.product_uom_unit"/>
 			<field name="image_1920" type="base64" file="point_of_sale/static/img/product_rye_bread.png"/>
 			<field name="available_in_pos" eval="True"/>
 			<field name="categ_id" ref="point_of_sale.product_category_food"/>
@@ -147,7 +138,6 @@
 			<field name="type">consu</field>
 			<field name="weight">0.01</field>
 			<field name="uom_id" ref="uom.product_uom_unit"/>
-			<field name="uom_po_id" ref="uom.product_uom_unit"/>
 			<field name="image_1920" type="base64" file="point_of_sale/static/img/product_cinnamon_roll.png"/>
 			<field name="available_in_pos" eval="True"/>
 			<field name="categ_id" ref="point_of_sale.product_category_food"/>
@@ -161,7 +151,6 @@
 			<field name="type">consu</field>
 			<field name="weight">0.01</field>
 			<field name="uom_id" ref="uom.product_uom_unit"/>
-			<field name="uom_po_id" ref="uom.product_uom_unit"/>
 			<field name="image_1920" type="base64" file="point_of_sale/static/img/product_pain_au_chocolat.png"/>
 			<field name="available_in_pos" eval="True"/>
 			<field name="categ_id" ref="point_of_sale.product_category_food"/>
@@ -175,7 +164,6 @@
 			<field name="type">consu</field>
 			<field name="weight">0.01</field>
 			<field name="uom_id" ref="uom.product_uom_unit"/>
-			<field name="uom_po_id" ref="uom.product_uom_unit"/>
 			<field name="image_1920" type="base64" file="point_of_sale/static/img/product_blueberry_muffin.png"/>
 			<field name="available_in_pos" eval="True"/>
 			<field name="categ_id" ref="point_of_sale.product_category_food"/>
@@ -189,7 +177,6 @@
 			<field name="type">consu</field>
 			<field name="weight">0.01</field>
 			<field name="uom_id" ref="uom.product_uom_unit"/>
-			<field name="uom_po_id" ref="uom.product_uom_unit"/>
 			<field name="image_1920" type="base64" file="point_of_sale/static/img/product_pain_au_chocolat.png"/>
 			<field name="available_in_pos" eval="True"/>
 			<field name="categ_id" ref="point_of_sale.product_category_food"/>
@@ -203,7 +190,6 @@
 			<field name="type">consu</field>
 			<field name="weight">0.01</field>
 			<field name="uom_id" ref="uom.product_uom_unit"/>
-			<field name="uom_po_id" ref="uom.product_uom_unit"/>
 			<field name="image_1920" type="base64" file="point_of_sale/static/img/product_cheese_croissant.png"/>
 			<field name="available_in_pos" eval="True"/>
 			<field name="categ_id" ref="point_of_sale.product_category_food"/>
@@ -217,7 +203,6 @@
 			<field name="type">consu</field>
 			<field name="weight">0.01</field>
 			<field name="uom_id" ref="uom.product_uom_unit"/>
-			<field name="uom_po_id" ref="uom.product_uom_unit"/>
 			<field name="image_1920" type="base64" file="point_of_sale/static/img/product_pecan_pie.png"/>
 			<field name="available_in_pos" eval="True"/>
 			<field name="categ_id" ref="point_of_sale.product_category_food"/>

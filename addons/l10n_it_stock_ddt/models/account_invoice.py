@@ -45,6 +45,7 @@ class AccountMove(models.Model):
             return {}
         line_count = 0
         invoice_line_pickings = {}
+        rounding = self.env['decimal.precision'].precision_get('Product Unit of Measure')
         for line in self.invoice_line_ids.filtered(lambda l: l.display_type not in ('line_note', 'line_section')):
             line_count += 1
             done_moves_related = line.sale_line_ids.mapped('move_ids').filtered(
@@ -59,14 +60,13 @@ class AccountMove(models.Model):
                 inv = total_invs.pop(0)
                 # Match all moves and related invoice lines FIFO looking for when the matched invoice_line matches line
                 for move in done_moves_related.sorted(lambda m: (m.date, m.id)):
-                    rounding = move.product_uom.rounding
                     move_qty = move.product_qty
-                    while (float_compare(move_qty, 0, precision_rounding=rounding) > 0):
-                        if float_compare(inv[0], move_qty, precision_rounding=rounding) > 0:
+                    while (float_compare(move_qty, 0, precision_digits=rounding) > 0):
+                        if float_compare(inv[0], move_qty, precision_digits=rounding) > 0:
                             inv = (inv[0] - move_qty, inv[1])
                             invoice_line = inv[1]
                             move_qty = 0
-                        if float_compare(inv[0], move_qty, precision_rounding=rounding) <= 0:
+                        if float_compare(inv[0], move_qty, precision_digits=rounding) <= 0:
                             move_qty -= inv[0]
                             invoice_line = inv[1]
                             if total_invs:

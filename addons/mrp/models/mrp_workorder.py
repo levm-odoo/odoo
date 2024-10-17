@@ -37,7 +37,7 @@ class MrpWorkorder(models.Model):
         string='Workcenter Status', related='workcenter_id.working_state') # technical: used in views only
     product_id = fields.Many2one(related='production_id.product_id')
     product_tracking = fields.Selection(related="product_id.tracking")
-    product_uom_id = fields.Many2one('uom.uom', 'Unit of Measure', required=True, readonly=True)
+    product_uom_id = fields.Many2one('uom.uom', 'Unit', required=True, readonly=True)
     production_id = fields.Many2one('mrp.production', 'Manufacturing Order', required=True, check_company=True, readonly=True, index='btree')
     production_availability = fields.Selection(
         string='Stock Availability', readonly=True,
@@ -152,11 +152,12 @@ class MrpWorkorder(models.Model):
 
     @api.depends('production_availability', 'blocked_by_workorder_ids.state', 'qty_ready')
     def _compute_state(self):
+        precision_digits = self.env['decimal.precision'].precision_get('Product Unit of Measure')
         for workorder in self:
             if workorder.state not in ('pending', 'waiting', 'ready'):
                 continue
             blocked = any(w.state not in ('done', 'cancel') for w in workorder.blocked_by_workorder_ids)
-            has_qty_ready = float_compare(workorder.qty_ready, 0, precision_rounding=workorder.product_uom_id.rounding) > 0
+            has_qty_ready = float_compare(workorder.qty_ready, 0, precision_digits=precision_digits) > 0
             if blocked and not has_qty_ready:
                 workorder.state = 'pending'
             elif workorder.production_availability == 'assigned' or (has_qty_ready and workorder.blocked_by_workorder_ids):
@@ -312,8 +313,8 @@ class MrpWorkorder(models.Model):
     def _compute_is_produced(self):
         self.is_produced = False
         for order in self.filtered(lambda p: p.production_id and p.production_id.product_uom_id):
-            rounding = order.production_id.product_uom_id.rounding
-            order.is_produced = float_compare(order.qty_produced, order.qty_production, precision_rounding=rounding) >= 0
+            rounding = self.env['decimal.precision'].precision_get('Product Unit of Measure')
+            order.is_produced = float_compare(order.qty_produced, order.qty_production, precision_digits=rounding) >= 0
 
     @api.depends('operation_id', 'workcenter_id', 'qty_producing', 'qty_production')
     def _compute_duration_expected(self):
@@ -459,7 +460,7 @@ class MrpWorkorder(models.Model):
         if 'qty_produced' in values:
             if any(w.state in ['done', 'cancel'] for w in self):
                 raise UserError(_('You cannot change the quantity produced of a work order that is in done or cancel state.'))
-            elif float_compare(values['qty_produced'], 0, precision_rounding=self.product_uom_id.rounding) < 0:
+            elif float_compare(values['qty_produced'], 0, precision_digits=self.env['decimal.precision'].precision_get('Product Unit of Measure')) < 0:
                 raise UserError(_('The quantity produced must be positive.'))
             elif values['qty_produced'] not in (0, 1) and any(wo.product_tracking == 'serial' for wo in self):
                 raise UserError(_('You cannot produce more than 1 unit of a serial product at a time.'))
@@ -503,10 +504,11 @@ class MrpWorkorder(models.Model):
                         })
 
         res = super().write(values)
-        if 'qty_produced' in values and float_compare(values.get('qty_produced', 0), 0, precision_rounding=self.production_id.product_uom_id.rounding) > 0:
+        precision_digits = self.env['decimal.precision'].precision_get('Product Unit of Measure')
+        if 'qty_produced' in values and float_compare(values.get('qty_produced', 0), 0, precision_digits=precision_digits) > 0:
             for production in self.production_id:
                 min_wo_qty = min(production.workorder_ids.mapped('qty_produced'))
-                if float_compare(min_wo_qty, 0, precision_rounding=self.production_id.product_uom_id.rounding) > 0:
+                if float_compare(min_wo_qty, 0, precision_digits=precision_digits) > 0:
                     production.workorder_ids.filtered(lambda w: w.state != 'done').qty_producing = min_wo_qty
             self._set_qty_producing()
 
@@ -663,17 +665,18 @@ class MrpWorkorder(models.Model):
 
     def button_finish(self):
         date_finished = fields.Datetime.now()
+        precision_digits = self.env['decimal.precision'].precision_get('Product Unit of Measure')
         for workorder in self:
             if workorder.state in ('done', 'cancel'):
                 continue
             moves = (self.move_raw_ids + self.production_id.move_byproduct_ids.filtered(lambda m: m.operation_id == self.operation_id))
             for move in moves:
                 if not move.picked:
-                    if float_is_zero(workorder.production_id.qty_producing, precision_rounding=workorder.production_id.product_uom_id.rounding):
+                    if float_is_zero(workorder.production_id.qty_producing, precision_digits=precision_digits):
                         qty_available = workorder.production_id.product_qty
                     else:
                         qty_available = workorder.production_id.qty_producing
-                    new_qty = float_round(qty_available * move.unit_factor, precision_rounding=move.product_uom.rounding)
+                    new_qty = float_round(qty_available * move.unit_factor, precision_digits=precision_digits)
                     move._set_quantity_done(new_qty)
             moves.picked = True
             workorder.end_all()
@@ -766,9 +769,10 @@ class MrpWorkorder(models.Model):
 
     @api.depends('qty_production', 'qty_reported_from_previous_wo', 'qty_produced', 'production_id.product_uom_id')
     def _compute_qty_remaining(self):
+        precision_digits = self.env['decimal.precision'].precision_get('Product Unit of Measure')
         for wo in self:
             if wo.production_id.product_uom_id:
-                wo.qty_remaining = max(float_round(wo.qty_production - wo.qty_reported_from_previous_wo - wo.qty_produced, precision_rounding=wo.production_id.product_uom_id.rounding), 0)
+                wo.qty_remaining = max(float_round(wo.qty_production - wo.qty_reported_from_previous_wo - wo.qty_produced, precision_digits=precision_digits), 0)
             else:
                 wo.qty_remaining = 0
 
@@ -892,8 +896,8 @@ class MrpWorkorder(models.Model):
                     'location_dest_id': putaway_location.id,
                 })
         else:
-            rounding = production_move.product_uom.rounding
-            production_move.quantity = float_round(self.qty_producing, precision_rounding=rounding)
+            precision_digits = self.env['decimal.precision'].precision_get('Product Unit of Measure')
+            production_move.quantity = float_round(self.qty_producing, precision_digits=precision_digits)
 
     def _should_start_timer(self):
         return True

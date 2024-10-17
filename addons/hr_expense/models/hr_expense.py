@@ -59,16 +59,9 @@ class HrExpense(models.Model):
     product_description = fields.Html(compute='_compute_product_description')
     product_uom_id = fields.Many2one(
         comodel_name='uom.uom',
-        string="Unit of Measure",
+        string="Unit",
         compute='_compute_uom_id', precompute=True, store=True,
-        domain="[('category_id', '=', product_uom_category_id)]",
         copy=True,
-    )
-    product_uom_category_id = fields.Many2one(
-        comodel_name='uom.category',
-        string="UoM Category",
-        related='product_id.uom_id.category_id',
-        readonly=True,
     )
     product_has_cost = fields.Boolean(compute='_compute_from_product')  # Whether the product has a cost (standard_price) or not
     product_has_tax = fields.Boolean(string="Whether tax is defined on a selected product", compute='_compute_from_product')
@@ -748,7 +741,7 @@ class HrExpense(models.Model):
         expenses_with_amount = self.filtered(lambda expense: not (
             expense.currency_id.is_zero(expense.total_amount_currency)
             or expense.company_currency_id.is_zero(expense.total_amount)
-            or (expense.product_id and not float_round(expense.quantity, precision_rounding=expense.product_uom_id.rounding))
+            or (expense.product_id and not float_round(expense.quantity, precision_digits=self.env['decimal.precision'].precision_get('Product Unit of Measure')))
         ))
 
         if any(expense.state != 'draft' or expense.sheet_id for expense in expenses_with_amount):

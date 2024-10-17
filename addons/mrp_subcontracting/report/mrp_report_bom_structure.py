@@ -9,7 +9,7 @@ class ReportMrpReport_Bom_Structure(models.AbstractModel):
     _inherit = 'report.mrp.report_bom_structure'
 
     def _get_subcontracting_line(self, bom, seller, level, bom_quantity):
-        ratio_uom_seller = seller.product_uom_id.ratio / bom.product_uom_id.ratio
+        ratio_uom_seller = seller.product_uom_id.factor / bom.product_uom_id.factor
         price = seller.currency_id._convert(seller.price, self.env.company.currency_id, (bom.company_id or self.env.company), fields.Date.today())
         return {
             'name': seller.partner_id.display_name,
@@ -87,13 +87,14 @@ class ReportMrpReport_Bom_Structure(models.AbstractModel):
             # we only return necessary info and calculate the lead time late when we have component's data
             if supplier:
                 qty_supplier_uom = product.uom_id._compute_quantity(quantity, supplier.product_uom_id)
+                precision_digits = self.env['decimal.precision'].precision_get('Product Unit of Measure')
                 return {
                     'route_type': 'subcontract',
                     'route_name': subcontract_rules[0].route_id.display_name,
                     'route_detail': supplier.display_name,
                     'lead_time': rules_delay,
                     'supplier': supplier,
-                    'route_alert': float_compare(qty_supplier_uom, supplier.min_qty, precision_rounding=product.uom_id.rounding) < 0,
+                    'route_alert': float_compare(qty_supplier_uom, supplier.min_qty, precision_digits=precision_digits) < 0,
                     'qty_checked': quantity,
                     'bom': bom,
                 }

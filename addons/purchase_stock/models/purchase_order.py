@@ -93,11 +93,12 @@ class PurchaseOrder(models.Model):
             for order in self:
                 pre_order_line_qty = {order_line: order_line.product_qty for order_line in order.mapped('order_line')}
         res = super(PurchaseOrder, self).write(vals)
+        precision_digits = self.env['decimal.precision'].precision_get('Product Unit of Measure')
         if vals.get('order_line') and self.state == 'purchase':
             for order in self:
                 to_log = {}
                 for order_line in order.order_line:
-                    if pre_order_line_qty.get(order_line, False) and float_compare(pre_order_line_qty[order_line], order_line.product_qty, precision_rounding=order_line.product_uom_id.rounding) > 0:
+                    if pre_order_line_qty.get(order_line, False) and float_compare(pre_order_line_qty[order_line], order_line.product_qty, precision_digits=precision_digits) > 0:
                         to_log[order_line] = (order_line.product_qty, pre_order_line_qty[order_line])
                 if to_log:
                     order._log_decrease_ordered_quantity(to_log)

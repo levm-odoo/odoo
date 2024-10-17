@@ -59,7 +59,7 @@ VariantMixin._onChangeCombinationStock = function (ev, $parent, combination) {
         } else {
             const decimals = Math.max(
                 0,
-                Math.ceil(-Math.log10(combination.uom_rounding))
+                combination.uom_rounding
             );
             return formatFloat(qty, {digits: [false, decimals]});
         }

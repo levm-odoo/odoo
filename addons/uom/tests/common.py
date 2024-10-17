@@ -14,7 +14,7 @@ class UomCommon(BaseCommon):
         cls.uom_kgm = cls.quick_ref('uom.product_uom_kgm')
         cls.uom_ton = cls.quick_ref('uom.product_uom_ton')
         cls.uom_unit = cls.quick_ref('uom.product_uom_unit')
-        cls.uom_dozen = cls.quick_ref('uom.product_uom_dozen')
+        cls.uom_pack_of_6 = cls.quick_ref('uom.product_uom_pack_6')
         cls.uom_hour = cls.quick_ref('uom.product_uom_hour')
 
         cls.group_uom = cls.quick_ref('uom.group_uom')
