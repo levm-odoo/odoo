@@ -124,7 +124,7 @@ class TestSaleMrpKitBom(TransactionCase):
                 'product_id': self.component_a.id,
                 'product_qty': 1.0,
                 'bom_id': self.bom.id,
-                'product_uom_id': self.env.ref('uom.product_uom_dozen').id,
+                'product_uom_id': self.env.ref('uom.product_uom_pack_6').id,
         })
         self.env['mrp.bom.line'].create({
                 'product_id': self.component_b.id,
@@ -536,7 +536,7 @@ class TestSaleMrpKitBom(TransactionCase):
         kit_prod = self._create_product('kit_prod', 'product', 0.00)
         sub_kit = self._create_product('sub_kit', 'product', 0.00)
         component = self._create_product('component', 'product', 0.00)
-        component.uom_id = self.env.ref('uom.product_uom_dozen')
+        component.uom_id = self.env.ref('uom.product_uom_pack_6')
         self.env['stock.quant']._update_available_quantity(component, warehouse.lot_stock_id, 30)
         # 6 kit_prod == 5 component
         self.env['mrp.bom'].create([{  # 2 kit_prod == 5 sub_kit

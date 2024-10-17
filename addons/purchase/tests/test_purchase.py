@@ -252,18 +252,17 @@ class TestPurchase(AccountTestInvoicingCommon):
         according to the product_qty. Also check product_qty or product_packaging
         are correctly calculated when one of them changed.
         """
-        # Required for `product_packaging_qty` to be visible in the view
-        self.env.user.groups_id += self.env.ref('product.group_stock_packaging')
-        packaging_single = self.env['product.packaging'].create({
+        # Required for `packaging_uom_qty` to be visible in the view
+        self.env.user.groups_id += self.env.ref('uom.group_uom')
+        packaging_single = self.env['uom.uom'].create({
             'name': "I'm a packaging",
-            'product_id': self.product_a.id,
-            'qty': 1.0,
+            'factor_reference_uom': 1.0,
         })
-        packaging_dozen = self.env['product.packaging'].create({
+        packaging_pack_of_6 = self.env['uom.uom'].create({
             'name': "I'm also a packaging",
-            'product_id': self.product_a.id,
-            'qty': 12.0,
+            'factor_reference_uom': 6.0,
         })
+        self.product_a.uom_ids = packaging_single | packaging_pack_of_6
 
         po = self.env['purchase.order'].create({
             'partner_id': self.partner_a.id,
@@ -272,80 +271,72 @@ class TestPurchase(AccountTestInvoicingCommon):
         with po_form.order_line.new() as line:
             line.product_id = self.product_a
             line.product_qty = 1.0
+            line.product_uom_id = packaging_single
         po_form.save()
-        self.assertEqual(po.order_line.product_packaging_id, packaging_single)
-        self.assertEqual(po.order_line.product_packaging_qty, 1.0)
+        self.assertEqual(po.order_line.packaging_uom_qty, 1.0)
         with po_form.order_line.edit(0) as line:
-            line.product_packaging_qty = 2.0
+            line.packaging_uom_qty = 2.0
         po_form.save()
         self.assertEqual(po.order_line.product_qty, 2.0)
 
-
         with po_form.order_line.edit(0) as line:
             line.product_qty = 24.0
+            line.product_uom_id = packaging_pack_of_6
         po_form.save()
-        self.assertEqual(po.order_line.product_packaging_id, packaging_dozen)
-        self.assertEqual(po.order_line.product_packaging_qty, 2.0)
+        self.assertEqual(po.order_line.packaging_uom_qty, 4.0)
         with po_form.order_line.edit(0) as line:
-            line.product_packaging_qty = 1.0
+            line.packaging_uom_qty = 1.0
         po_form.save()
-        self.assertEqual(po.order_line.product_qty, 12)
+        self.assertEqual(po.order_line.product_qty, 6)
 
-        # Do the same test but without form, to check the `product_packaging_id` and `product_packaging_qty` are set
+        # Do the same test but without form, to check the `product_packaging_qty` is set
         # without manual call to compute
         po = self.env['purchase.order'].create({
             'partner_id': self.partner_a.id,
             'order_line': [
-                Command.create({'product_id': self.product_a.id, 'product_qty': 1.0}),
+                Command.create({'product_id': self.product_a.id, 'product_qty': 1.0, 'product_uom_id': packaging_single}),
             ]
         })
-        self.assertEqual(po.order_line.product_packaging_id, packaging_single)
-        self.assertEqual(po.order_line.product_packaging_qty, 1.0)
-        po.order_line.product_packaging_qty = 2.0
+        self.assertEqual(po.order_line.packaging_uom_qty, 1.0)
+        po.order_line.packaging_uom_qty = 2.0
         self.assertEqual(po.order_line.product_qty, 2.0)
 
         po.order_line.product_qty = 24.0
-        self.assertEqual(po.order_line.product_packaging_id, packaging_dozen)
-        self.assertEqual(po.order_line.product_packaging_qty, 2.0)
-        po.order_line.product_packaging_qty = 1.0
+        po.order_line.product_uom_id = packaging_pack_of_6
+        self.assertEqual(po.order_line.packaging_uom_qty, 2.0)
+        po.order_line.packaging_uom_qty = 1.0
         self.assertEqual(po.order_line.product_qty, 12)
 
     def test_compute_packaging_01(self):
         """Create a PO and use packaging in a multicompany environment.
-        Ensure any suggested packaging matches the PO's.
         """
         company1 = self.company_data['company']
         company2 = self.company_data_2['company']
-        generic_single_pack = self.env['product.packaging'].create({
+        generic_single_pack = self.env['uom.uom'].create({
             'name': "single pack",
-            'product_id': self.product_a.id,
-            'qty': 1.0,
-            'company_id': False,
+            'factor_reference_uom': 1.0,
         })
-        company2_pack_of_10 = self.env['product.packaging'].create({
+        company2_pack_of_10 = self.env['uom.uom'].create({
             'name': "pack of 10 by Company 2",
-            'product_id': self.product_a.id,
-            'qty': 10.0,
-            'company_id': company2.id,
+            'factor_reference_uom': 10.0,
         })
+        self.product_a.uom_ids = generic_single_pack | company2_pack_of_10
 
         po1 = self.env['purchase.order'].with_company(company1).create({
             'partner_id': self.partner_a.id,
             'order_line': [
-                Command.create({'product_id': self.product_a.id, 'product_qty': 10.0}),
+                Command.create({'product_id': self.product_a.id, 'product_qty': 10.0, 'product_uom_id': generic_single_pack}),
             ]
         })
-        self.assertEqual(po1.order_line.product_packaging_id, generic_single_pack)
-        self.assertEqual(po1.order_line.product_packaging_qty, 10.0)
+        self.assertEqual(po1.order_line.packaging_uom_qty, 10.0)
 
         # verify that with the right company, we can get the other packaging
         po2 = self.env['purchase.order'].with_company(company2).create({
             'partner_id': self.partner_a.id,
             'order_line': [
-                Command.create({'product_id': self.product_a.id, 'product_qty': 10.0}),
+                Command.create({'product_id': self.product_a.id, 'product_qty': 10.0, 'product_uom_id': company2_pack_of_10}),
             ]
         })
-        self.assertEqual(po2.order_line.product_packaging_id, company2_pack_of_10)
         self.assertEqual(po2.order_line.product_packaging_qty, 1.0)
 
     def test_with_different_uom(self):
@@ -353,20 +344,20 @@ class TestPurchase(AccountTestInvoicingCommon):
         # Required for `product_uom_id` to be visibile in the view
         self.env.user.groups_id += self.env.ref('uom.group_uom')
         uom_units = self.env.ref('uom.product_uom_unit')
-        uom_dozens = self.env.ref('uom.product_uom_dozen')
+        uom_pack_of_6 = self.env.ref('uom.product_uom_pack_6')
         uom_pairs = self.env['uom.uom'].create({
             'name': 'Pairs',
-            'category_id': uom_units.category_id.id,
-            'uom_type': 'bigger',
-            'factor_inv': 2,
-            'rounding': 1,
+            'factor_reference_uom': 2,
         })
         product_data = {
             'name': 'SuperProduct',
             'type': 'consu',
             'uom_id': uom_units.id,
-            'uom_po_id': uom_pairs.id,
-            'standard_price': 100
+            'standard_price': 100,
+            'seller_ids': [Command.create({
+                'partner_id': self.partner_a.id,
+                'product_uom_id': uom_pairs.id,
+            })]
         }
         product_01 = self.env['product.product'].create(product_data)
         product_02 = self.env['product.product'].create(product_data)
@@ -377,7 +368,7 @@ class TestPurchase(AccountTestInvoicingCommon):
             po_line.product_id = product_01
         with po_form.order_line.new() as po_line:
             po_line.product_id = product_02
-            po_line.product_uom_id = uom_dozens
+            po_line.product_uom_id = uom_pack_of_6
         po = po_form.save()
 
         self.assertEqual(po.order_line[0].price_unit, 200)
@@ -519,7 +510,7 @@ class TestPurchase(AccountTestInvoicingCommon):
             'partner_id': self.partner_a.id,
             'order_line': [Command.create({
                 'product_id': product.id,
-                'product_uom_id': product.uom_po_id.id,
+                'product_uom_id': product.uom_id.id,
             })],
         })
         po_line = purchase_order.order_line

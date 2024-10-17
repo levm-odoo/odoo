@@ -35,7 +35,7 @@ class TestBomPriceCommon(common.TransactionCase):
 
         # Unit of Measure.
         cls.unit = cls.env.ref("uom.product_uom_unit")
-        cls.dozen = cls.env.ref("uom.product_uom_dozen")
+        cls.pack_of_6 = cls.env.ref("uom.product_uom_pack_6")
 
         # Bills Of Materials.
         # -------------------------------------------------------------------------------
@@ -87,7 +87,7 @@ class TestBomPriceCommon(common.TransactionCase):
         bom_form2.product_id = cls.table_head
         bom_form2.product_tmpl_id = cls.table_head.product_tmpl_id
         bom_form2.product_qty = 1.0
-        bom_form2.product_uom_id = cls.dozen
+        bom_form2.product_uom_id = cls.pack_of_6
         bom_form2.type = 'phantom'
         with bom_form2.bom_line_ids.new() as line:
             line.product_id = cls.plywood_sheet
@@ -198,13 +198,13 @@ class TestBomPrice(TestBomPriceCommon):
         # --------------------------------------------------------------------------
         # Table Head Operation Cost (1 Dozen)
         # --------------------------------------------------------------------------
-        # Operation cost calculate for 1 dozens
+        # Operation cost calculate for 1 pack_of_6
         # Cutting        (15 + 15 + (20 * 1 * 100/80) / 60) * 100 =   91.67
         # Drilling       (15 + 15 + (25 * 1 * 100/80) / 60) * 100 =  102.08
         # Fitting        (15 + 15 + (30 * 1 * 100/80) / 60) * 100 =  112.50
         # Table Capacity (3 operations * (2 + 1)      / 60) * 100 =   15.00
         # ----------------------------------------
-        # Operation Cost 1 dozen (306.25 + 15 = 321.25 per dozen) and 25.52 for 1 Unit
+        # Operation Cost 1 pack_of_6 (306.25 + 15 = 321.25 per pack_of_6) and 25.52 for 1 Unit
         # --------------------------------------------------------------------------
 
 
@@ -233,7 +233,7 @@ class TestBomPrice(TestBomPriceCommon):
                 }),
                 (0, 0, {
                     'product_id': scrap_wood.id,
-                    'product_uom_id': self.dozen.id,
+                    'product_uom_id': self.pack_of_6.id,
                     'product_qty': 1,
                     'bom_id': self.bom_1.id,
                     'cost_share': 50,
