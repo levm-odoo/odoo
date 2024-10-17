@@ -101,6 +101,7 @@
         <field name="arch" type="xml">
             <search string="Product Lots Filter">
                 <field name="name" string="Lot/Serial Number" filter_domain="['|', ('name', 'ilike', self),('ref', 'ilike', self)]"/>
+                <field name="last_delivery_partner_id" string="Customer"/>
                 <field name="product_id"/>
                 <field name="lot_properties"/>
                 <field name="create_date"/>
