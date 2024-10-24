@@ -27,6 +27,16 @@
             </div>
         </section>
     </template>
+
+    <!-- Solo dynamic snippet -->
+    <template id="website.s_solo_dynamic_snippet_template" inherit_id="website.s_dynamic_snippet_template" primary="True">
+        <xpath expr="//section" position="replace" mode="inner">
+                <div class="dynamic_snippet_template">
+                    <t t-out="0"/>
+                </div>
+        </xpath>
+    </template>
+
     <template id="s_dynamic_snippet" name="Dynamic Snippet">
         <t t-call="website.s_dynamic_snippet_template">
             <t t-set="snippet_name" t-value="'s_dynamic_snippet'"/>
