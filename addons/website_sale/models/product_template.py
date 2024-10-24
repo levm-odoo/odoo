@@ -119,7 +119,6 @@ class ProductTemplate(models.Model):
 
     #=== COMPUTE METHODS ===#
 
-
     @api.depends('is_published')
     def _compute_publish_date(self):
         """Set `publish_date` to the moment of (re-)publishing."""
