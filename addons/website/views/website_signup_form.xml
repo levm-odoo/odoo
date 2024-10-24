@@ -1,0 +1,111 @@
+<odoo>
+    <template id="website.website_signup_form" name="SignUp Form">
+
+        <div data-name="Field" class="s_website_form_field mb-3 col-12 s_website_form_dnone">
+            <div class="row s_col_no_resize s_col_no_bgcolor">
+                <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px">
+                    <span class="s_website_form_label_content"></span>
+                </label>
+                <div class="col-sm">
+                    <input type="hidden" class="form-control s_website_form_input" name="email_to" value="info@yourcompany.example.com"/>
+                </div>
+            </div>
+        </div>
+
+        <div data-name="Field" class="s_website_form_field s_website_form_custom mb-3 col-12 s_website_form_model_required field-login" data-type="char">
+            <label class="s_website_form_label o_not_editable" style="width: 200px" for="login">
+                <span class="s_website_form_label_content">Your Email</span>
+                <span class="s_website_form_mark"> *</span>
+            </label>
+            <input class="form-control s_website_form_input" type="text" name="login" data-fill-with="login" t-att-value="login" autofocus="autofocus" id="login" autocapitalize="off" required="1" t-att-readonly="'readonly' if only_passwords else None"/>
+        </div>
+
+        <div data-name="Field" class="s_website_form_field s_website_form_custom mb-3 col-12 s_website_form_model_required field-login" data-type="char">
+            <label class="s_website_form_label o_not_editable" style="width: 200px" for="name">
+                <span class="s_website_form_label_content">Your Name</span>
+                <span class="s_website_form_mark"> *</span>
+            </label>
+            <input class="form-control s_website_form_input" type="text" name="name" data-fill-with="name" t-att-value="name" autofocus="autofocus" id="name" autocapitalize="off" required="1" t-att-readonly="'readonly' if only_passwords else None"/>
+        </div>
+
+        <div data-name="Field" class="s_website_form_field s_website_form_custom mb-3 col-12 s_website_form_model_required field-login" data-type="char">
+            <label class="s_website_form_label o_not_editable" style="width: 200px" for="password">
+                <span class="s_website_form_label_content">Password</span>
+                <span class="s_website_form_mark"> *</span>
+            </label>
+            <input class="form-control s_website_form_input" type="password" name="password" data-fill-with="password" t-att-value="password" autofocus="autofocus" id="password" autocapitalize="off" required="1" t-att-readonly="'readonly' if only_passwords else None"/>
+        </div>
+
+        <div data-name="Field" class="s_website_form_field s_website_form_custom mb-3 col-12 s_website_form_model_required field-login" data-type="char">
+            <label class="s_website_form_label o_not_editable" style="width: 200px" for="confirm_password">
+                <span class="s_website_form_label_content">Confirm Password</span>
+                <span class="s_website_form_mark"> *</span>
+            </label>
+            <input class="form-control s_website_form_input" type="password" name="confirm_password" data-fill-with="confirm_password" t-att-value="confirm_password" autofocus="autofocus" id="confirm_password" autocapitalize="off" required="1" t-att-readonly="'readonly' if only_passwords else None"/>
+        </div>
+    </template>
+
+    <!-- <template id="website_signup" inherit_id="auth_signup.signup">
+        <xpath expr="//t[@t-call='auth_signup.fields']" position="replace">
+            <t t-call="website.website_signup_form"/>
+        </xpath>
+        <xpath expr="//section" position="attributes">
+            <attribute name="class" add="s_website_form o_signup oe_unremovable"></attribute>
+            <attribute name="data-vcss" add="001"></attribute>
+            <attribute name="data-snippet" add="s_website_form"></attribute>
+            <attribute name="data-name" add="Form"></attribute>
+            <attribute name="t-att-data-oe-model" add="'res.users'"></attribute>
+            <attribute name="contentEditable" add="'False'"></attribute>
+        </xpath>
+        <xpath expr="//form" position="attributes">
+            <attribute name="action" add="/website/signup/form/"></attribute>
+            <attribute name="data-model_name" add="res.users"></attribute>
+            <attribute name="enctype" add="multipart/form-data"></attribute> 
+            <attribute name="data-success-mode" add="redirect"></attribute> 
+            <attribute name="data-mark" add="*"></attribute>
+            <attribute name="data-success-page" add="/my"></attribute>
+        </xpath>
+        <xpath expr="//button" position="before">
+            <span id="s_website_form_result"/>
+        </xpath>
+        <xpath expr="//button" position="attributes">
+            <attribute name="class" separator=" " add="s_website_form_send"></attribute>
+        </xpath>
+    </template> -->
+
+    <template id="website_signup" inherit_id="auth_signup.signup">
+        <xpath expr="//section" position="replace">
+            <section class="s_website_form o_signup oe_unremovable" data-vcss="001" data-snippet="s_website_form" data-name="Form"
+                    t-att-data-oe-model="'res.users'"
+                    t-att-data-oe-field="'arch'"
+                    t-att-data-oe-type="'html'">
+                <form class="oe_signup_form" action="/website/signup/form/" data-model_name="res.users" enctype="multipart/form-data" data-success-mode="redirect" data-mark="*" data-success-page="/my">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                    <t t-call="website.website_signup_form">
+                        <t t-set="only_passwords" t-value="bool(token and not invalid_token)"/>
+                    </t>
+
+                    <p class="alert alert-danger" t-if="error" role="alert">
+                        <t t-esc="error"/>
+                    </p>
+                    <input type="hidden" name="redirect" t-att-value="redirect"/>
+                    <input type="hidden" name="token" t-att-value="token"/>
+                    <div class="text-center oe_login_buttons d-grid pt-3">
+                        <span id="s_website_form_result"/>
+                        <button type="submit" class="btn btn-primary s_website_form_send"> Sign up</button>
+                        <a t-attf-href="/web/login?{{ keep_query() }}" class="btn btn-link btn-sm" role="button">Already have an account?</a>
+                        <div class="o_login_auth"/>
+                    </div>
+                </form>
+            </section>
+        </xpath>
+    </template>
+
+    <template id="website_signup_form_options" inherit_id="website.snippet_options">
+        <xpath expr="//div[@data-js='AddFieldForm']" position="attributes">
+            <attribute name="data-exclude" add=".o_signup" />
+        </xpath>
+    </template> 
+
+</odoo>
