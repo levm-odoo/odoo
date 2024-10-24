@@ -131,6 +131,8 @@ export class ListPlugin extends Plugin {
         color_apply_overrides: this.applyColorToListItem.bind(this),
         format_selection_overrides: this.applyFormatToListItem.bind(this),
         set_tag_overrides: this.handleListStylePosition.bind(this),
+
+        allowed_to_move_elements_selectors: "ol, ul",
     };
 
     setup() {

@@ -1,0 +1,12 @@
+[data-embedded="toggle"] {
+    [data-embedded-editable] > * {
+        margin: 0;
+    }
+    [data-embedded-editable="content"] > * {
+        margin-left: 6px !important;
+        margin-top: .5rem; // Equivalent to mt-2
+    }
+    button:has(i.fa-caret-down, i.fa-caret-right){
+        cursor: pointer !important;
+    }
+}
