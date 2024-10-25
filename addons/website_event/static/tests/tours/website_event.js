@@ -18,7 +18,7 @@ function websiteCreateEventTourSteps() {
             tooltipPosition: "bottom",
             run: "click",
         }, {
-            trigger: ".modal-dialog div[name='name'] input",
+            trigger: '.modal-dialog .o_field_widget[name="name"] .o_input',
             content: "Create a name for your new event and click Continue. e.g: Technical Training",
             run: "edit Technical Training",
             tooltipPosition: "left",
