@@ -2,8 +2,16 @@
 <templates xml:space="preserve">
     <t t-name="website.s_dynamic_snippet.grid">
 
-        <!-- Default Layout -->
-        <t t-if="!isSnippetSolo">
+        <t t-if="isSnippetSolo">
+        <!-- Dynamic solo snippet -->
+            <div t-attf-class="s_dynamic_snippet_row #{extraClasses}">
+                <t t-foreach="data" t-as="data_entry" t-key="data_entry_index">
+                    <t t-out="data_entry"/>
+                </t>
+            </div>
+        </t>
+        <t t-else="">
+            <!-- Default Layout -->
             <t t-if="!columnClasses">
                 <t t-set="colClass" t-value="'d-flex flex-grow-0 flex-shrink-0 col-' + Math.trunc(12 / chunkSize).toString()"/>
                 <t t-set="rowIndexGenerator" t-value="Array.from(Array(Math.ceil(data.length/chunkSize)).keys())"/>
@@ -31,14 +39,6 @@
                     </t>
                 </div>
             </t>
-        </t>
-        <!-- If Dynamic solo snippet -->
-        <t t-else="">
-            <div t-attf-class="s_dynamic_snippet_row #{extraClasses}">
-                <t t-foreach="data" t-as="data_entry" t-key="data_entry_index">
-                    <t t-out="data_entry"/>
-                </t>
-            </div>
         </t>
     </t>
 </templates>
