@@ -114,6 +114,41 @@
         </div>
     </div>
 </template>
+<!-- Mono Full layout -->
+<template id="dynamic_filter_template_blog_post_full" name="Solo Full">
+    <section t-foreach="records" t-as="data" class="s_blog_posts_post_full" data-is-snippet-solo="true">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <t t-set="record" t-value="data['_record']"/>
+                    <div t-if="is_sample" class="h5 o_ribbon_right bg-primary text-uppercase">Sample</div>
+                    <a class="text-decoration-none text-reset" t-att-href="data['call_to_action_url']" t-att-title="'Read ' + data['name']">
+                        <h2 class="display-3-fs text-truncate" t-field="record.name"/>
+                        <p class="lead h3-fs" t-field="record.teaser"/>
+                    </a>
+                    <div class="row mt-5">
+                        <div class="mb-4 mb-md-0 col-md-4 col-lg-3 col-xl-2">
+                            <p class="fw-bold">Written by</p>
+                            <div class="s_blog_posts_post_author d-inline-flex">
+                                <img class="o_avatar me-2 rounded-pill" t-attf-src="data:image/png;base64,{{record.author_avatar}}"/>
+                                <span t-field="record.author_id.name"/>
+                            </div>
+                        </div>
+                        <div class="mb-4 mb-md-0 col-md-4 col-lg-3 col-xl-2">
+                            <p class="fw-bold">Published on</p>
+                            <span class="s_blog_posts_post_date" t-field="record.post_date" t-options='{"format": "MMM d, yyyy"}' />
+                        </div>
+                        <div class="col-md-4 col-lg-3 col-xl-2">
+                            <p class="fw-bold">Category</p>
+                            <a class="fw-bold" t-field="record.blog_id.name" t-att-href="'/blog/%s' % record.blog_id.id" />
+                            <a t-if="is_sample" class="fw-bold" href="#">Sample</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</template>
 
 <!-- Blog Post Author (optional) -->
 <template id="website_blog.s_dynamic_snippet_template_author" name="Blog Post Author">
