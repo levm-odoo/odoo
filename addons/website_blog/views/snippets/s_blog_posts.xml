@@ -229,6 +229,17 @@
         </div>
     </section>
 </template>
+<!-- Solo CTA Badge Layout -->
+<template id="dynamic_filter_template_blog_post_cta_badge" name="Solo Badge">
+    <section t-foreach="records" t-as="data" class="s_blog_posts_post_cta_badge" data-is-snippet-solo="true">
+        <t t-set="record" t-value="data['_record']"/>
+        <div class="container" style="text-align: center;">
+            <span class="s_cta_badge d-inline-block my-3 border rounded py-2 px-3 o_cc o_cc1 o_animable" style="border-radius: 32px !important;">
+                <span class="badge me-2 text-bg-primary">NEW</span><strong t-field="record.name"/><a class="ms-4" href="#">Read Now</a>
+            </span>
+        </div>
+    </section>
+</template>
 
 <!-- Blog Post Author (optional) -->
 <template id="website_blog.s_dynamic_snippet_template_author" name="Blog Post Author">
