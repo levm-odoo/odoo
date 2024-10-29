@@ -188,6 +188,47 @@
         </div>
     </section>
 </template>
+<!-- Solo Circle Layout -->
+<template id="dynamic_filter_template_blog_post_circle" name="Solo Circle">
+    <section t-foreach="records" t-as="data" class="s_blog_posts_post_circle" data-is-snippet-solo="true">
+        <t t-set="record" t-value="data['_record']"/>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-4 col-xl-3 offset-xl-2 mb-3 mb-sm-0">
+                    <t t-call="website.record_cover">
+                        <t t-set="_record" t-value="record"/>
+                        <!-- To check how to remove the h-100 class instead of using h-auto -->
+                        <t t-set="additionnal_classes" t-value="'h-auto rounded-circle overflow-hidden ratio ratio-1x1'"/>
+                    </t>
+                </div>
+                <div class="col-sm-8 col-xl-5">
+                    <div t-if="is_sample" class="h5 o_ribbon_right bg-primary text-uppercase">Sample</div>
+                    <h2 t-field="record.name"/>
+                    <p class="lead" t-field="record.subtitle"/>
+                    <a class="btn btn-primary" t-att-href="data['call_to_action_url']" t-att-title="'Read ' + data['name']">Read Now <i class="fa fa-long-arrow-right" role="presentation"/></a>
+                    <div class="row mt-5">
+                        <div class="mb-4 mb-md-0 col-sm-4">
+                            <p class="fw-bold">Written by</p>
+                            <div class="s_blog_posts_post_author d-inline-flex">
+                                <img class="o_avatar me-2 rounded-pill" t-attf-src="data:image/png;base64,{{record.author_avatar}}"/>
+                                <span t-field="record.author_id.name"/>
+                            </div>
+                        </div>
+                        <div class="mb-4 mb-md-0 col-sm-4">
+                            <p class="fw-bold">Published on</p>
+                            <span class="s_blog_posts_post_date" t-field="record.post_date" t-options='{"format": "MMM d, yyyy"}' />
+                        </div>
+                        <div class="col-sm-4">
+                            <p class="fw-bold">Category</p>
+                            <a class="fw-bold" t-field="record.blog_id.name" t-att-href="'/blog/%s' % record.blog_id.id" />
+                            <a t-if="is_sample" class="fw-bold" href="#">Sample</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</template>
 
 <!-- Blog Post Author (optional) -->
 <template id="website_blog.s_dynamic_snippet_template_author" name="Blog Post Author">
