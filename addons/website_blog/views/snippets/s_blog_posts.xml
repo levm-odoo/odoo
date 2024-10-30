@@ -114,7 +114,7 @@
         </div>
     </div>
 </template>
-<!-- Mono Full layout -->
+<!-- Mono full layout -->
 <template id="dynamic_filter_template_blog_post_full" name="Solo Full">
     <section t-foreach="records" t-as="data" class="s_blog_posts_post_full" data-is-snippet-solo="true">
         <div class="container">
@@ -149,7 +149,7 @@
         </div>
     </section>
 </template>
-<!-- Solo Aside Layout -->
+<!-- Solo aside Layout -->
 <template id="dynamic_filter_template_blog_post_aside" name="Solo Aside">
     <section t-foreach="records" t-as="data" class="s_blog_posts_post_aside o_cc o_cc5" data-is-snippet-solo="true">
         <t t-set="record" t-value="data['_record']"/>
@@ -188,7 +188,7 @@
         </div>
     </section>
 </template>
-<!-- Solo Circle Layout -->
+<!-- Solo circle Layout -->
 <template id="dynamic_filter_template_blog_post_circle" name="Solo Circle">
     <section t-foreach="records" t-as="data" class="s_blog_posts_post_circle" data-is-snippet-solo="true">
         <t t-set="record" t-value="data['_record']"/>
@@ -229,7 +229,7 @@
         </div>
     </section>
 </template>
-<!-- Solo CTA Badge Layout -->
+<!-- Solo CTA badge layout -->
 <template id="dynamic_filter_template_blog_post_cta_badge" name="Solo Badge">
     <section t-foreach="records" t-as="data" class="s_blog_posts_post_cta_badge" data-is-snippet-solo="true">
         <t t-set="record" t-value="data['_record']"/>

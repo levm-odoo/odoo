@@ -47,4 +47,14 @@
             }
         }
     }
+
+    &.s_event_event_offset, &.s_event_event_entry {
+        .o_record_cover_container {
+            height: 560px !important;
+
+            @include media-breakpoint-up(md) {
+                height: 400px !important;
+            }
+        }
+    }
 }
