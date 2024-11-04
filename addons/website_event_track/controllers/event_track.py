@@ -15,7 +15,7 @@ import operator
 import pytz
 
 from odoo import exceptions, http, fields, tools, _
-from odoo.http import request
+from odoo.http import content_disposition, request
 from odoo.osv import expression
 from odoo.tools import is_html_empty, plaintext2html
 from odoo.tools.misc import babel_locale_parse
@@ -392,7 +392,7 @@ class EventTrackController(http.Controller):
         }
 
     @http.route("/event/track/toggle_reminder", type="jsonrpc", auth="public", website=True)
-    def track_reminder_toggle(self, track_id, set_reminder_on):
+    def track_reminder_toggle(self, track_id, set_reminder_on, save=True):
         """ Set a reminder a track for current visitor. Track visitor is created or updated
         if it already exists. Exception made if un-favoriting and no track_visitor
         record found (should not happen unless manually done).
@@ -402,6 +402,10 @@ class EventTrackController(http.Controller):
           If the track is a Key Track (wishlisted_by_default):
             if set_reminder_on = False, blacklist the track_partner
             otherwise, un-blacklist the track_partner
+
+        :param boolean save:
+          If True, the event_track_partner is modified. This parameter allow to test
+          if toggle return errors without doing persistent changes.
         """
         track = self._fetch_track(track_id, allow_sudo=True)
         force_create = set_reminder_on or track.wishlisted_by_default
@@ -410,11 +414,13 @@ class EventTrackController(http.Controller):
         if not track.wishlisted_by_default:
             if not event_track_partner or event_track_partner.is_wishlisted == set_reminder_on:  # ignore if new state = old state
                 return {'error': 'ignored'}
-            event_track_partner.is_wishlisted = set_reminder_on
+            if save:
+                event_track_partner.is_wishlisted = set_reminder_on
         else:
             if not event_track_partner or event_track_partner.is_blacklisted != set_reminder_on:  # ignore if new state = old state
                 return {'error': 'ignored'}
-            event_track_partner.is_blacklisted = not set_reminder_on
+            if save:
+                event_track_partner.is_blacklisted = not set_reminder_on
 
         result = {'reminderOn': set_reminder_on}
 
@@ -532,3 +538,34 @@ class EventTrackController(http.Controller):
             utc.localize(dt, is_dst=False).astimezone(timezone(tz_name))
             for dt in datetimes
         ]
+
+    @http.route('/event/send_email_reminder', type="jsonrpc", auth="public", website=True)
+    def send_email_reminder(self, track_id, email_to):
+        request.session['website_event_track.email_reminder'] = email_to
+        track = request.env['event.track'].sudo().browse(track_id)
+
+        agenda_urls = track._get_event_track_resource_urls()
+        context = {
+            'google_url': agenda_urls.get('google_url'),
+            'iCal_url': agenda_urls.get('iCal_url'),
+            'yahoo_url': agenda_urls.get('yahoo_url'),
+            'lang': request.cookies.get('frontend_lang') if request.env.user._is_public() else request.context.get('lang', request.env.user.lang)
+        }
+        template = self.env.ref("website_event_track.email_reminder").sudo().with_context(context)
+        template.send_mail(track.id, email_values={"email_to": email_to})
+
+    @http.route(['''/event/<model("event.event"):event>/track/<model("event.track"):track>/ics'''], type='http', auth="public")
+    def event_track_ics_file(self, event, track, **kwargs):
+        lang = request.context.get('lang', request.env.user.lang)
+        if request.env.user._is_public():
+            lang = request.cookies.get('frontend_lang')
+        track = track.with_context(lang=lang)
+        files = track._get_ics_file()
+        if not track.id in files:
+            return NotFound()
+        content = files[track.id]
+        return request.make_response(content, [
+            ('Content-Type', 'application/octet-stream'),
+            ('Content-Length', len(content)),
+            ('Content-Disposition', content_disposition(f'{event.name}-{track.name}.ics'))
+        ])
