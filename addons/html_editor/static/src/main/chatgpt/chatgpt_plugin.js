@@ -7,10 +7,12 @@ import { ChatGPTTranslateDialog } from "./chatgpt_translate_dialog";
 import { LanguageSelector } from "./language_selector";
 import { withSequence } from "@html_editor/utils/resource";
 import { user } from "@web/core/user";
+import { allowsParagraphRelatedElements } from "@html_editor/utils/dom_info";
+import { closestBlock } from "@html_editor/utils/blocks";
 
 export class ChatGPTPlugin extends Plugin {
     static id = "chatgpt";
-    static dependencies = ["selection", "history", "dom", "sanitize", "dialog"];
+    static dependencies = ["selection", "history", "dom", "sanitize", "dialog", "delete"];
     resources = {
         user_commands: [
             {
@@ -63,6 +65,21 @@ export class ChatGPTPlugin extends Plugin {
         const selection = this.dependencies.selection.getEditableSelection();
         const dialogParams = {
             insert: (content) => {
+                if ([...(content.children || [])].filter(child => child.nodeName === 'P').length > 1) {
+                    // If several paragraphs are to be inserted into an element
+                    // which doesn't accept paragraph elements, replace the
+                    // original element with a paragraph so as not to leave an
+                    // empty block before the insertion.
+                    let selection = this.dependencies.selection.getEditableSelection();
+                    if (!selection.isCollapsed) {
+                        this.dependencies.delete.deleteSelection(selection);
+                        selection = this.dependencies.selection.getEditableSelection();
+                    }
+                    const startBlock = closestBlock(selection.anchorNode);
+                    if (!allowsParagraphRelatedElements(startBlock)) {
+                        this.dependencies.dom.setTag({ tagName: "P" });
+                    }
+                }
                 const insertedNodes = this.dependencies.dom.insert(content);
                 this.dependencies.history.addStep();
                 // Add a frame around the inserted content to highlight it for 2
