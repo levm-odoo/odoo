@@ -789,7 +789,7 @@ class DomainCondition(Domain):
             if not field.search:
                 _logger.error("Non-stored field %s cannot be searched.", field, stack_info=_logger.isEnabledFor(logging.DEBUG))
                 return _TRUE_DOMAIN
-            computed_domain = field.determine_domain(model, self.operator, self.value)
+            computed_domain = field.search(model, self.operator, self.value)
             return Domain(computed_domain)._optimize(model)
 
         # optimizations based on operator

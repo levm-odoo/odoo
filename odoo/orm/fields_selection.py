@@ -63,7 +63,10 @@ class Selection(Field[str | typing.Literal[False]]):
 
     def setup_nonrelated(self, model):
         super().setup_nonrelated(model)
-        assert self.selection is not None, "Field %s without selection" % self
+        selection = self.selection
+        assert selection is not None, "Field %s without selection" % self
+        if isinstance(selection, str) or callable(selection):
+            self.selection = determine(selection, model)
 
     def setup_related(self, model):
         super().setup_related(model)
@@ -192,8 +195,8 @@ class Selection(Field[str | typing.Literal[False]]):
             translated according to context language
         """
         selection = self.selection
-        if isinstance(selection, str) or callable(selection):
-            return determine(selection, env[self.model_name])
+        if callable(selection):
+            return selection(env[self.model_name])
 
         # translate selection labels
         if env.lang:
@@ -208,8 +211,8 @@ class Selection(Field[str | typing.Literal[False]]):
     def get_values(self, env):
         """Return a list of the possible values."""
         selection = self.selection
-        if isinstance(selection, str) or callable(selection):
-            selection = determine(selection, env[self.model_name].with_context(lang=None))
+        if callable(selection):
+            selection = selection(env[self.model_name].with_context(lang=None))
         return [value for value, _ in selection]
 
     def convert_to_column(self, value, record, values=None, validate=True):

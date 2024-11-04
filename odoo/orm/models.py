@@ -4600,7 +4600,7 @@ class BaseModel(metaclass=MetaModel):
 
                 # inverse records that are not being computed
                 try:
-                    fields[0].determine_inverse(real_recs)
+                    fields[0].inverse(real_recs)
                 except AccessError as e:
                     if fields[0].inherited:
                         description = self.env['ir.model']._get(self._name).name
@@ -4823,7 +4823,7 @@ class BaseModel(metaclass=MetaModel):
                     for record, vals in batch:
                         record._update_cache(vals)
                     batch_recs = self.concat(*(record for record, vals in batch))
-                    next(iter(fields)).determine_inverse(batch_recs)
+                    next(iter(fields)).inverse(batch_recs)
 
         # check Python constraints for non-stored inversed fields
         for data in data_list:
@@ -5055,7 +5055,7 @@ class BaseModel(metaclass=MetaModel):
         return records
 
     def _compute_field_value(self, field):
-        determine(field.compute, self)
+        field.compute(self)
 
         if field.store and any(self._ids):
             # check constraints of the fields that have been computed

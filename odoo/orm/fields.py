@@ -52,27 +52,28 @@ def resolve_mro(model, name, predicate):
     return result
 
 
-def determine(needle, records, *args):
-    """ Simple helper for calling a method given as a string or a function.
+def determine(needle, model: BaseModel):
+    """ Get a function from a string or a function while checking against a model.
 
     :param needle: callable or name of method to call on ``records``
-    :param BaseModel records: recordset to call ``needle`` on or with
-    :params args: additional arguments to pass to the determinant
-    :returns: the determined value if the determinant is a method name or callable
-    :raise TypeError: if ``records`` is not a recordset, or ``needle`` is not
-                      a callable or valid method name
+    :param BaseModel model: model to check for the function in case of a str needle
+    :returns: the function
+    :raise TypeError: ``needle`` is not a callable or valid method name
     """
-    if not isinstance(records, _models.BaseModel):
-        raise TypeError("Determination requires a subject recordset")
+    assert isinstance(model, _models.BaseModel), "Determination requires a subject recordset"
     if isinstance(needle, str):
-        needle = getattr(records, needle)
-        if needle.__name__.find('__'):
-            return needle(*args)
-    elif callable(needle):
-        if needle.__name__.find('__'):
-            return needle(records, *args)
+        method = getattr(model, needle)
 
-    raise TypeError("Determination requires a callable or method name")
+        def _resolve_determine(records, *args):
+            assert isinstance(records, _models.BaseModel)
+            return getattr(records, needle)(*args)
+
+        if not method.__name__.startswith('__'):
+            return _resolve_determine
+    elif callable(needle):
+        if not needle.__name__.startswith('__'):
+            return needle
+    raise TypeError(f"Determination requires a callable or method name, got {needle}")
 
 
 class MetaField(type):
@@ -505,6 +506,13 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
 
             if not isinstance(self.readonly, bool):
                 warnings.warn(f'Property {self}.readonly should be a boolean ({self.readonly}).', stacklevel=1)
+
+            if self.inverse:
+                self.inverse = determine(self.inverse, model)
+            if self.compute:
+                self.compute = determine(self.compute, model)
+            if self.search and not isinstance(self.search, bool):
+                self.search = determine(self.search, model)
 
             self._setup_done = True
 
@@ -1597,14 +1605,6 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
                 if field.store:
                     env.add_to_compute(field, records)
             raise
-
-    def determine_inverse(self, records):
-        """ Given the value of ``self`` on ``records``, inverse the computation. """
-        determine(self.inverse, records)
-
-    def determine_domain(self, records, operator, value):
-        """ Return a domain representing a condition on ``self``. """
-        return determine(self.search, records, operator, value)
 
 
 def apply_required(model, field_name):
