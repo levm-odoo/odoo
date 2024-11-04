@@ -5812,6 +5812,9 @@ class AccountMove(models.Model):
         disabled = container['records'].env.context.get(key, default) == target
         previous_values = {}
         previous_envs = set(self.env.transaction.envs)
+        assert self.env.transaction.default_env in previous_envs
+        # TODO stop updating context on Environment which should be read-only
+        # use teh default_env instead
         if not disabled:  # it wasn't disabled yet, disable it now
             for env in self.env.transaction.envs:
                 previous_values[env] = env.context.get(key, EMPTY)
