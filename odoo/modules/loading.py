@@ -176,6 +176,8 @@ def load_module_graph(cr, graph, status=None, perform_checks=True,
             module_log_level = logging.INFO
         _logger.log(module_log_level, 'Loading module %s (%d/%d)', module_name, index, module_count)
 
+        migrations.migrate_module(package, 'force')
+
         new_install = package.state == 'to install'
         if needs_update:
             if not new_install:

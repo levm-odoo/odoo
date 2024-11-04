@@ -64,6 +64,7 @@ class MigrationManager(object):
         self.migrations = defaultdict(dict)
         self._get_files()
 
+
     def _get_files(self):
         def _get_upgrade_path(pkg):
             for path in odoo.upgrade.__path__:
@@ -89,7 +90,6 @@ class MigrationManager(object):
                 'module': get_scripts(get_resource_path(pkg.name, 'migrations')),
                 'module_upgrades': get_scripts(get_resource_path(pkg.name, 'upgrades')),
             }
-
             scripts = defaultdict(list)
             for p in _get_upgrade_path(pkg.name):
                 for v, s in get_scripts(p).items():
@@ -97,15 +97,16 @@ class MigrationManager(object):
             self.migrations[pkg.name]["upgrade"] = scripts
 
     def migrate_module(self, pkg, stage):
-        assert stage in ('pre', 'post', 'end')
+        assert stage in ('pre', 'post', 'end', 'force')
         stageformat = {
             'pre': '[>%s]',
             'post': '[%s>]',
             'end': '[$%s]',
+            'force': '[!%s!]',
         }
         state = pkg.state if stage in ('pre', 'post') else getattr(pkg, 'load_state', None)
 
-        if not (hasattr(pkg, 'update') or state == 'to upgrade') or state == 'to install':
+        if stage != 'force' and (not (hasattr(pkg, 'update') or state == 'to upgrade') or state == 'to install'):
             return
 
         def convert_version(version):
@@ -163,30 +164,35 @@ class MigrationManager(object):
 
             return parsed_installed_version < parse_version(full_version) <= current_version
 
+        strfmt = {'addon': pkg.name, 'stage': stage}
+
+        def run_migration(version, stage):
+            strfmt['version'] =  stageformat[stage] % version
+            for pyfile in _get_migration_files(pkg, version, stage):
+                name, ext = os.path.splitext(os.path.basename(pyfile))
+                if ext.lower() != '.py':
+                    continue
+                mod = None
+                try:
+                    mod = load_script(pyfile, name)
+                    _logger.info('module %(addon)s: Running migration %(version)s %(name)s' % dict(strfmt, name=mod.__name__))
+                    migrate = mod.migrate
+                except ImportError:
+                    _logger.exception('module %(addon)s: Unable to load %(stage)s-migration file %(file)s' % dict(strfmt, file=pyfile))
+                    raise
+                except AttributeError:
+                    _logger.error('module %(addon)s: Each %(stage)s-migration file must have a "migrate(cr, installed_version)" function' % strfmt)
+                else:
+                    migrate(self.cr, installed_version)
+                finally:
+                    if mod:
+                        del mod
+
+        if stage == 'force':
+            return run_migration(installed_version, stage)
+
         versions = _get_migration_versions(pkg, stage)
         for version in versions:
             if compare(version):
-                strfmt = {'addon': pkg.name,
-                          'stage': stage,
-                          'version': stageformat[stage] % version,
-                          }
+                run_migration(version, stage)
 
-                for pyfile in _get_migration_files(pkg, version, stage):
-                    name, ext = os.path.splitext(os.path.basename(pyfile))
-                    if ext.lower() != '.py':
-                        continue
-                    mod = None
-                    try:
-                        mod = load_script(pyfile, name)
-                        _logger.info('module %(addon)s: Running migration %(version)s %(name)s' % dict(strfmt, name=mod.__name__))
-                        migrate = mod.migrate
-                    except ImportError:
-                        _logger.exception('module %(addon)s: Unable to load %(stage)s-migration file %(file)s' % dict(strfmt, file=pyfile))
-                        raise
-                    except AttributeError:
-                        _logger.error('module %(addon)s: Each %(stage)s-migration file must have a "migrate(cr, installed_version)" function' % strfmt)
-                    else:
-                        migrate(self.cr, installed_version)
-                    finally:
-                        if mod:
-                            del mod
