@@ -2280,6 +2280,9 @@ const ListUserValueWidget = UserValueWidget.extend({
             if (typeof value === 'object') {
                 const recordData = value;
                 const { id, display_name } = recordData;
+                // // This ensures that the values will always be user specific
+                recordData.notToggleable = true;
+                recordData.undeletable = false;
                 delete recordData.id;
                 delete recordData.display_name;
                 this._addItemToTable(id, display_name, recordData);
