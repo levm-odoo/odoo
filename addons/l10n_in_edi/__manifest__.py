@@ -5,10 +5,7 @@
     "version": "1.03.00",
     'countries': ['in'],
     "category": "Accounting/Localizations/EDI",
-    "depends": [
-        "account_edi",
-        "l10n_in",
-    ],
+    "depends": ["l10n_in"],
     "description": """
 Indian - E-invoicing
 ====================
@@ -23,7 +20,6 @@ Step 4: Repeat steps 1,2,3 for all GSTIN you have in odoo. If you have a multi-c
 For the creation of API username and password please ref this document: <https://service.odoo.co.in/einvoice_create_api_user>
     """,
     "data": [
-        "data/account_edi_data.xml",
         "views/res_config_settings_views.xml",
         "views/edi_pdf_report.xml",
         "views/account_move_views.xml",

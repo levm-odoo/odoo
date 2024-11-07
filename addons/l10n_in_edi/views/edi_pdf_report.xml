@@ -17,7 +17,7 @@
                     <span t-esc="l10n_in_einvoice_json['Irn']"/>
                 </div>
                 <div class="col-3 mt-1">
-                    <img t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' %('QR', l10n_in_einvoice_json['SignedQRCode'], 500, 500)" style="max-height: 155px"/>
+                    <img t-att-src="'/report/barcode/?barcode_type=QR&amp;value=%s&amp;width=500&amp;height=500' % (l10n_in_einvoice_json['SignedQRCode'])" style="max-height: 155px"/>
                 </div>
             </div>
         </xpath>

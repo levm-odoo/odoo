@@ -29,16 +29,15 @@ class ResCompany(models.Model):
 
     def _l10n_in_edi_authenticate(self):
         params = {"password": self.sudo().l10n_in_edi_password}
-        response = self.env['account.edi.format']._l10n_in_edi_connect_to_server(
-            self,
+        response = self.env['account.move'].with_company(self)._l10n_in_edi_connect_to_server(
             url_path="/iap/l10n_in_edi/1/authenticate",
             params=params
         )
         # validity data-time in Indian standard time(UTC+05:30) convert IST to UTC
-        if "data" in response:
+        if data := response.get("data"):
             tz = pytz.timezone("Asia/Kolkata")
-            local_time = tz.localize(fields.Datetime.to_datetime(response["data"]["TokenExpiry"]))
+            local_time = tz.localize(fields.Datetime.to_datetime(data["TokenExpiry"]))
             utc_time = local_time.astimezone(pytz.utc)
             self.sudo().l10n_in_edi_token_validity = fields.Datetime.to_string(utc_time)
-            self.sudo().l10n_in_edi_token = response["data"]["AuthToken"]
+            self.sudo().l10n_in_edi_token = data["AuthToken"]
         return response
