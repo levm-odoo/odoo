@@ -170,3 +170,40 @@ class TestPDFQuoteBuilder(HttpCaseWithUserDemo, SaleCommon):
             login='admin',
         )
         # Assert documents are selected
+
+    def test_quotation_document_is_added_iff_default(self):
+        self.assertFalse(self._create_so().get_selected_quotation_documents())
+
+        self.header.add_by_default = True
+
+        self.assertEqual(
+            self._create_so().get_selected_quotation_documents(),
+            self.header,
+        )
+
+    def test_default_quotation_document_is_added_iff_available(self):
+        # header is default but only for quote_tmpl
+        so_tmpl = self.env['sale.order.template'].create({'name': 'Awesome Template'})
+        self.header.write({
+            'add_by_default': True,
+            'quotation_template_ids': [Command.link(so_tmpl.id)],
+        })
+
+        so_without_tmpl = self._create_so()
+        so_with_tmpl = self._create_so(sale_order_template_id=so_tmpl.id)
+
+        self.assertFalse(so_without_tmpl.get_selected_quotation_documents())
+        self.assertEqual(so_with_tmpl.get_selected_quotation_documents(), self.header)
+
+    def test_quotation_document_is_removed_if_unavailable(self):
+        so_tmpl = self.env['sale.order.template'].create({'name': "Awesome Template"})
+        self.header.write({
+            'add_by_default': True,
+            'quotation_template_ids': [Command.link(so_tmpl.id)],
+        })
+        so = self._create_so(sale_order_template_id=so_tmpl.id)
+        self.assertEqual(so.get_selected_quotation_documents(), self.header)
+
+        so.sale_order_template_id = False
+
+        self.assertFalse(so.get_selected_quotation_documents())

@@ -30,8 +30,9 @@ class IrActionsReport(models.Model):
             if order.state == 'sale':
                 continue
             initial_stream = result[order.id]['stream']
+
             if initial_stream:
-                quotation_documents = order.quotation_document_ids
+                quotation_documents = order.get_selected_quotation_documents()
                 headers = quotation_documents.filtered(lambda doc: doc.document_type == 'header')
                 footers = quotation_documents - headers
                 has_product_document = any(line.product_document_ids for line in order.order_line)
