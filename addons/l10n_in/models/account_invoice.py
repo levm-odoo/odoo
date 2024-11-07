@@ -8,6 +8,14 @@ from odoo.exceptions import ValidationError, RedirectWarning, UserError
 from odoo.tools.float_utils import json_float_round
 from odoo.tools.image import image_data_uri
 
+EDI_CANCEL_REASON = {
+    # Same for both e-way bill and IRN
+    '1': "Duplicate",
+    '2': "Data Entry Mistake",
+    '3': "Order Cancelled",
+    '4': "Others",
+}
+
 
 class AccountMove(models.Model):
     _inherit = "account.move"
@@ -121,7 +129,7 @@ class AccountMove(models.Model):
 
     @api.onchange('name')
     def _onchange_name_warning(self):
-        if self.country_code == 'IN' and self.journal_id.type == 'sale' and self.name and (len(self.name) > 16 or not re.match(r'^[a-zA-Z0-9-\/]+$', self.name)):
+        if self.country_code == 'IN' and self.l10n_in_journal_type == 'sale' and self.name and (len(self.name) > 16 or not re.match(r'^[a-zA-Z0-9-\/]+$', self.name)):
             return {'warning': {
                 'title' : _("Invalid sequence as per GST rule 46(b)"),
                 'message': _(
@@ -133,40 +141,45 @@ class AccountMove(models.Model):
 
     @api.depends('invoice_line_ids.l10n_in_hsn_code', 'company_id.l10n_in_hsn_code_digit')
     def _compute_l10n_in_warning(self):
-
-        def build_warning(record, action_name, message, views, domain=False):
-            return {
-                'message': message,
-                'action_text': self.env._("View %s", action_name),
-                'action': record._get_records_action(name=self.env._("Check %s", action_name), target='current', views=views, domain=domain or [])
-            }
-
         indian_invoice = self.filtered(lambda m: m.country_code == 'IN' and m.move_type != 'entry')
+        line_filter_func = lambda line: line.display_type == 'product' and line.tax_ids and line._origin
         for move in indian_invoice:
-            filtered_lines = move.invoice_line_ids.filtered(lambda line: line.display_type == 'product' and line.tax_ids and line._origin)
-            if move.company_id.l10n_in_hsn_code_digit and filtered_lines:
+            if (
+                (company_hsn_digit := move.company_id.l10n_in_hsn_code_digit)
+                and (filtered_lines := move.invoice_line_ids.filtered(line_filter_func))
+            ):
                 lines = self.env['account.move.line']
                 for line in filtered_lines:
-                    if (line.l10n_in_hsn_code and (not re.match(r'^\d{4}$|^\d{6}$|^\d{8}$', line.l10n_in_hsn_code) or len(line.l10n_in_hsn_code) < int(move.company_id.l10n_in_hsn_code_digit))) or not line.l10n_in_hsn_code:
+                    if (
+                        not line.l10n_in_hsn_code
+                        or (
+                            not re.match(r'^\d{4}$|^\d{6}$|^\d{8}$', line.l10n_in_hsn_code)
+                            or len(line.l10n_in_hsn_code) < int(company_hsn_digit)
+                        )
+                    ):
                         lines |= line._origin
-
+                if not lines:
+                    move.l10n_in_warning = {}
+                    continue
                 digit_suffixes = {
                     '4': _("4 digits, 6 digits or 8 digits"),
                     '6': _("6 digits or 8 digits"),
                     '8': _("8 digits")
                 }
-                msg = _("Ensure that the HSN/SAC Code consists either %s in invoice lines",
-                    digit_suffixes.get(move.company_id.l10n_in_hsn_code_digit, _("Invalid HSN/SAC Code digit"))
-                )
                 move.l10n_in_warning = {
-                    'invalid_hsn_code_length': build_warning(
-                        message=msg,
-                        action_name=_("Journal Items(s)"),
-                        record=lines,
-                        views=[(self.env.ref("l10n_in.view_move_line_tree_hsn_l10n_in").id, "list")],
-                        domain=[('id', 'in', lines.ids)]
-                    )
-                } if lines else {}
+                    'l10n_in_invalid_hsn_code_length': {
+                        'message': _(
+                            "Ensure that the HSN/SAC Code consists either %s in invoice lines",
+                            digit_suffixes[company_hsn_digit]
+                        ),
+                        'action_text': _("View Journal Items"),
+                        'action': lines._get_records_action(
+                            name=_("Journal Items"),
+                            views=[(self.env['ir.model.data']._xmlid_to_res_id("l10n_in.view_move_line_tree_hsn_l10n_in"), "list")],
+                            domain=[('id', 'in', lines.ids)]
+                        )
+                    }
+                }
             else:
                 move.l10n_in_warning = {}
         (self - indian_invoice).l10n_in_warning = {}
@@ -256,25 +269,26 @@ class AccountMove(models.Model):
         def l10n_in_grouping_key_generator(base_line, tax_data):
             invl = base_line['record']
             tax = tax_data['tax']
-            tags = tax.invoice_repartition_line_ids.tag_ids
+            tag_ids = tax.invoice_repartition_line_ids.tag_ids.ids
             line_code = "other"
+            xmlid_to_res_id = self.env['ir.model.data']._xmlid_to_res_id
             if not invl.currency_id.is_zero(tax_data['tax_amount_currency']):
-                if self.env.ref("l10n_in.tax_tag_cess") in tags:
+                if xmlid_to_res_id("l10n_in.tax_tag_cess") in tag_ids:
                     if tax.amount_type != "percent":
                         line_code = "cess_non_advol"
                     else:
                         line_code = "cess"
-                elif self.env.ref("l10n_in.tax_tag_state_cess") in tags:
+                elif xmlid_to_res_id("l10n_in.tax_tag_state_cess") in tag_ids:
                     if tax.amount_type != "percent":
                         line_code = "state_cess_non_advol"
                     else:
                         line_code = "state_cess"
                 else:
                     for gst in ["cgst", "sgst", "igst"]:
-                        if self.env.ref(f"l10n_in.tax_tag_{gst}") in tags:
+                        if xmlid_to_res_id(f"l10n_in.tax_tag_{gst}") in tag_ids:
                             line_code = gst
                         # need to separate rc tax value so it's not pass to other values
-                        if self.env.ref(f"l10n_in.tax_tag_{gst}_rc") in tags:
+                        elif xmlid_to_res_id(f"l10n_in.tax_tag_{gst}_rc") in tag_ids:
                             line_code = gst + '_rc'
             return {
                 "tax": tax,

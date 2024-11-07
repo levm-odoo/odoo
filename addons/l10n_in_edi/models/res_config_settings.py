@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import models, fields, _
-from odoo.exceptions import UserError, RedirectWarning
+from odoo import _, fields, models
+from odoo.exceptions import UserError
 
 
 class ResConfigSettings(models.TransientModel):
@@ -14,14 +13,14 @@ class ResConfigSettings(models.TransientModel):
     def l10n_in_edi_test(self):
         self._l10n_in_check_gst_number()
         self.company_id._l10n_in_edi_authenticate()
-        if not self.company_id.sudo()._l10n_in_edi_token_is_valid():
+        if not self.company_id._l10n_in_edi_token_is_valid():
             raise UserError(_("Incorrect username or password, or the GST number on company does not match."))
         return {
-              'type': 'ir.actions.client',
-              'tag': 'display_notification',
-              'params': {
-                  'type': 'info',
-                  'sticky': False,
-                  'message': _("API credentials validated successfully"),
-              }
-          }
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'type': 'info',
+                'sticky': False,
+                'message': _("API credentials validated successfully"),
+            }
+        }

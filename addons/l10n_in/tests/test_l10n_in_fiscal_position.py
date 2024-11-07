@@ -50,13 +50,13 @@ class TestFiscal(L10nInTestInvoicingCommon):
 
     def test_l10n_in_auto_apply_fiscal_invoices(self):
         self._assert_in_intra_state_fiscal_with_company(self.default_company)
-
         # Intra State
         self._assert_invoice_fiscal_position(
             fiscal_position_ref='fiscal_position_in_intra_state',
             partner=self.partner_a,
             taxes=self.sgst_sale_18,
         )
+
         # Inter State
         self._assert_invoice_fiscal_position(
             fiscal_position_ref='fiscal_position_in_inter_state',

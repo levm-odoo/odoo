@@ -11,7 +11,7 @@ import psycopg2.errors
 from datetime import datetime
 from itertools import starmap
 
-from odoo import _, api, fields, models
+from odoo import _, api, fields, models, SUPERUSER_ID
 from odoo.exceptions import UserError
 from odoo.addons.l10n_in_ewaybill.tools.ewaybill_api import EWayBillApi, EWayBillError
 
@@ -415,9 +415,8 @@ class L10nInEwaybill(models.Model):
         if warnings := response.get('odoo_warning'):
             for warning in warnings:
                 if warning.get('message_post'):
-                    odoobot = self.env.ref('base.partner_root')
                     self.message_post(
-                        author_id=odoobot.id,
+                        author_id=SUPERUSER_ID,
                         body=warning.get('message')
                     )
                 else:
@@ -446,7 +445,7 @@ class L10nInEwaybill(models.Model):
             'company_id': self.company_id.id
         })
         self.message_post(
-            author_id=self.env.ref('base.partner_root').id,
+            author_id=SUPERUSER_ID,
             attachment_ids=attachment.ids
         )
 
