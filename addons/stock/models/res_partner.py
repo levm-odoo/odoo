@@ -23,7 +23,10 @@ class ResPartner(models.Model):
     def action_view_stock_serial(self):
         action = self.env["ir.actions.act_window"]._for_xml_id("stock.action_production_lot_form")
         action.update({
-            'domain': [('last_delivery_partner_id', '=', self.id)],
-            'context': {'default_last_delivery_partner_id': self.id}
+            'domain': [('partner_ids', '=', self.id)],
+            'context': {
+                'default_partner_ids': self.id,
+                'show_transfer_info': False
+            }
         })
         return action
