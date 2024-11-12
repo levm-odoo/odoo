@@ -145,6 +145,9 @@ class MailComposeMessage(models.TransientModel):
         compute="_compute_subtype_id", readonly=False, store=True)
     subtype_is_log = fields.Boolean('Is a log', compute='_compute_subtype_is_log')
     mail_activity_type_id = fields.Many2one('mail.activity.type', 'Mail Activity Type', ondelete='set null')
+    # We use these fields in view & JS
+    in_reply_mode = fields.Boolean('Is a reply comment', default=False)
+    in_forward_mode = fields.Boolean('Is a forward comment', default=False)
     # destination
     reply_to = fields.Char(
         'Reply To', compute='_compute_reply_to', readonly=False, store=True, compute_sudo=False,
@@ -685,6 +688,7 @@ class MailComposeMessage(models.TransientModel):
         # some actions might be triggered on message post based on some context keys
         cleaned_ctx = clean_context(self.env.context)
         for wizard in self:
+            cleaned_ctx.update(notify_recipient_only=wizard.in_reply_mode or wizard.in_forward_mode)
             res_id = wizard._evaluate_res_ids()[0]
             post_values = self._prepare_mail_values([res_id])[res_id]
             if not post_values['scheduled_date']:
@@ -701,6 +705,8 @@ class MailComposeMessage(models.TransientModel):
                 'send_context': cleaned_ctx,
                 'subject': post_values.pop('subject'),
                 'notification_parameters': json.dumps(post_values),  # last to not include popped post_values
+                'in_reply_mode': wizard.in_reply_mode,
+                'in_forward_mode': wizard.in_forward_mode,
             })
 
         self.env['mail.scheduled.message'].create(create_values)
@@ -754,7 +760,10 @@ class MailComposeMessage(models.TransientModel):
             ActiveModel = ActiveModel.with_context(
                 mail_post_autofollow_author_skip=True,
             )
-
+        if self.in_reply_mode or self.in_forward_mode:
+            ActiveModel = ActiveModel.with_context(
+                notify_recipient_only=True,
+            )
         messages = self.env['mail.message']
         for res_id, post_values in post_values_all.items():
             if ActiveModel._name == 'mail.thread':

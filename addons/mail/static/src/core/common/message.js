@@ -496,6 +496,141 @@ export class Message extends Component {
         this.state.showTranslation =
             !this.state.showTranslation && Boolean(message.translationValue);
     }
+
+    async fetchAuthorFromSuggestedRecipients(suggestedRecipients) {
+        if (this.message.author) {
+            return this.message.author;
+        }
+        // auto-create partners of sender from suggested partners
+        const authorCheck = suggestedRecipients.find((recipient) =>
+            recipient.email.includes(this.message.email_from)
+        );
+        const author = authorCheck?.persona;
+        if (!author) {
+            const partners = await rpc("/mail/partner/from_email", {
+                emails: [authorCheck.email],
+                additional_values: { [authorCheck.email]: authorCheck.create_values || {} },
+            });
+            if (partners.length) {
+                const partnerData = partners[0];
+                const persona = this.store.Persona.insert({ ...partnerData, type: "partner" });
+                return persona;
+            }
+        }
+        return author || authorCheck;
+    }
+
+    async onClickReplyMessage() {
+        const recipients = this.message.notification_ids.map((data) => data.persona.id);
+        const author = await this.fetchAuthorFromSuggestedRecipients(
+            this.message.thread.suggestedRecipients
+        );
+        recipients.push(author.id);
+        const authorEmail = author.email
+            ? `${this.escape("<")}<a href="mailto:${encodeURIComponent(author.email)}"
+                target="_blank">${this.escape(author.email)}</a>${this.escape(">")}`
+            : "";
+        const datetime = this.message.date.toFormat("ccc, MMM d, yyyy 'at' hh:mm a");
+        const default_body = markup(
+            `<br/>
+            <div class="o_mail_reply_content">
+                <div class="d-none">
+                    <span>On ${datetime} ${this.escape(author.name)} ${authorEmail} wrote </span>\
+                    <blockquote>${getNonEditableMentions(this.message.body)}</blockquote>
+                </div>
+            </div>`
+        );
+        const params = {
+            context: {
+                default_partner_ids: recipients,
+                default_in_reply_mode: true,
+                default_body,
+            },
+            name: _t("Reply All"),
+        };
+        this.openFullComposer(params);
+    }
+
+    async onClickFowardMessage() {
+        const author = await this.fetchAuthorFromSuggestedRecipients(
+            this.message.thread.suggestedRecipients
+        );
+        const datetime = this.message.date.toFormat("ccc, MMM d, yyyy 'at' hh:mm a");
+        const authorEmail = author?.email
+            ? `${this.escape("<")}<a href="mailto:${encodeURIComponent(author.email)}"
+                target="_blank">${this.escape(author.email)}</a>${this.escape(">")}`
+            : "";
+        const default_body = markup(
+            `<br/><br/><span>---------- Forwarded message ----------</span> <br/>\
+            <span>Date: ${this.escape(datetime)}</span><br/>\
+            ${author ? `<span>From: ${this.escape(author.name)} ${authorEmail}</span><br/>` : ``}
+            <span>Subject: ${this.escape(this.message.subject || this.message.default_subject)}</span><br/>
+            ${getNonEditableMentions(this.message.body)}`
+        );
+
+        const attachmentIds = this.message.attachment_ids.map((attachment) => attachment.id);
+        const newAttachmentIds = await this.env.services.orm.call(
+            "ir.attachment",
+            "copy",
+            [attachmentIds],
+            {
+                default: { res_model: "mail.compose.message", res_id: 0 },
+            }
+        );
+
+        const params = {
+            context: {
+                default_composition_mode: "comment",
+                default_in_forward_mode: true,
+                default_attachment_ids: newAttachmentIds,
+                default_body,
+            },
+            name: _t("Forward message"),
+        };
+        this.openFullComposer(params);
+    }
+
+    openFullComposer(params) {
+        const { name, context } = params;
+        const actionContext = {
+            ...context,
+            default_subject: this.message.subject || this.message.default_subject,
+            default_model: this.props.thread.model,
+            default_subtype_xmlid: "mail.mt_comment",
+            default_res_ids: [this.props.thread.id],
+        };
+        const action = {
+            name: name,
+            type: "ir.actions.act_window",
+            res_model: "mail.compose.message",
+            view_mode: "form",
+            views: [[false, "form"]],
+            target: "new",
+            context: actionContext,
+        };
+        this.env.services.action.doAction(action, {
+            onClose: () => {
+                this.props.thread.fetchNewMessages();
+            },
+        });
+    }
+}
+
+function getNonEditableMentions(body) {
+    const domParser = new DOMParser();
+    const parsedBody = domParser.parseFromString(body || "", "text/html");
+    for (const block of parsedBody.body.querySelectorAll(".o_mail_reply_hide")) {
+        block.classList.remove("o_mail_reply_hide");
+    }
+    // for mentioned partner
+    for (const mention of parsedBody.body.querySelectorAll(".o_mail_redirect")) {
+        mention.setAttribute("contenteditable", false);
+    }
+    // for mentioned channel
+    for (const mention of parsedBody.body.querySelectorAll(".o_channel_redirect")) {
+        mention.setAttribute("contenteditable", false);
+    }
+    return parsedBody.body.innerHTML;
 }
 
 discussComponentRegistry.add("Message", Message);

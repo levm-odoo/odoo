@@ -57,6 +57,8 @@ class MailScheduledMessage(models.Model):
 
     # context used when posting the message to trigger some actions (eg. change so state when sending quotation)
     send_context = fields.Json('Sending Context')
+    in_reply_mode = fields.Boolean('Is a reply comment', default=False)
+    in_forward_mode = fields.Boolean('Is a forward comment', default=False)
 
     @api.constrains('model')
     def _check_model(self):

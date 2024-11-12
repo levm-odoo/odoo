@@ -8,11 +8,13 @@
                 <form string="Scheduled Message">
                     <sheet>
                         <group>
+                            <field name="in_forward_mode" invisible="1"/>
+                            <field name="in_reply_mode" invisible="1"/>
                             <label for="partner_ids" string="To" invisible="is_note"/>
                             <div invisible="is_note">
                                 <field name="model" invisible="1"/>
                                 <field name="res_id" invisible="1"/>
-                                <widget name="mail_composer_recipient_list" thread_model_field="model" thread_id_field="res_id"/>
+                                <widget invisible="in_forward_mode or in_reply_mode" name="mail_composer_recipient_list" thread_model_field="model" thread_id_field="res_id"/>
                                 <field name="partner_ids" widget="many2many_tags_email"
                                     placeholder="Add contacts to notify..."
                                     options="{'no_quick_create': True}"
