@@ -2,8 +2,8 @@
 <templates xml:space="preserve">
 
     <t t-name="web.KanbanView">
-        <div t-att-class="className" t-ref="root">
-            <Layout className="model.useSampleModel ? 'o_view_sample_data' : ''" display="props.display">
+        <div t-attf-class="{{ className }} {{ selectedRecords.length > 0 ? 'o_kanban_selection_enabled' : '' }}" t-ref="root">
+            <Layout className="model.useSampleModel ? 'o_view_sample_data' : ''" display="display">
                 <t t-set-slot="control-panel-create-button">
                     <t t-if="canCreate and props.showButtons">
                         <button type="button" class="btn btn-primary o-kanban-button-new" accesskey="c" t-on-click="() => this.createRecord()" data-bounce-button="">
@@ -30,14 +30,30 @@
                         />
                     </t>
                 </t>
+                <t t-set-slot="control-panel-selection-actions">
+                    <div t-if="hasSelectedRecords" class="o_selection_container d-flex gap-1 w-100 w-md-auto">
+                       <SelectionBox
+                            selection="this.selectedRecords"
+                            isDomainSelected="this.isDomainSelected"
+                            selectDomain.bind="this.selectDomain"
+                            isPageSelected="this.isPageSelected"
+                            isRecordCountTrustable="model.root.isRecordCountTrustable"
+                        />
+                        <t t-if="!env.isSmall">
+                            <t t-if="props.info.actionMenus">
+                                <ActionMenus t-props="this.actionMenuProps"/>
+                            </t>
+                        </t>
+                    </div>
+                </t>
                 <t t-set-slot="control-panel-additional-actions">
-                    <CogMenu/>
+                    <CogMenu t-if="!hasSelectedRecords"/>
                 </t>
                 <t t-set-slot="layout-actions">
                     <SearchBar toggler="searchBarToggler"/>
                 </t>
                 <t t-set-slot="control-panel-navigation-additional">
-                    <t t-component="searchBarToggler.component" t-props="searchBarToggler.props"/>
+                    <t t-if="!hasSelectedRecords" t-component="searchBarToggler.component" t-props="searchBarToggler.props"/>
                 </t>
                 <t t-component="props.Renderer"
                     list="model.root"

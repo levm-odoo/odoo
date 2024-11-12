@@ -1,6 +1,9 @@
 import { _t } from "@web/core/l10n/translation";
 import { ColorList } from "@web/core/colorlist/colorlist";
 import { evaluateBooleanExpr } from "@web/core/py_js/py";
+import { browser } from "@web/core/browser/browser";
+import { hasTouch } from "@web/core/browser/feature_detection";
+import { CheckBox } from "@web/core/checkbox/checkbox";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { registry } from "@web/core/registry";
@@ -155,6 +158,7 @@ export function isHtmlEmpty(innerHTML = "") {
 
 export class KanbanRecord extends Component {
     static components = {
+        CheckBox,
         Dropdown,
         DropdownItem,
         KanbanDropdownMenuWrapper,
@@ -168,6 +172,7 @@ export class KanbanRecord extends Component {
         deleteRecord: () => {},
         archiveRecord: () => {},
         openRecord: () => {},
+        toggleSelection: () => {},
     };
     static props = [
         "archInfo",
@@ -182,8 +187,11 @@ export class KanbanRecord extends Component {
         "openRecord?",
         "readonly?",
         "record",
+        "selection?",
         "progressBarState?",
+        "toggleSelection?",
     ];
+    static LONG_TOUCH_THRESHOLD = 400;
     static KANBAN_CARD_ATTRIBUTE = KANBAN_CARD_ATTRIBUTE;
     static KANBAN_MENU_ATTRIBUTE = KANBAN_MENU_ATTRIBUTE;
     static menuTemplate = "web.KanbanRecordMenu";
@@ -210,6 +218,10 @@ export class KanbanRecord extends Component {
             Object.assign(this.dataState.record, getFormattedRecord(record))
         );
         this.rootRef = useRef("root");
+        this.hasTouch = hasTouch();
+
+        this.longTouchTimer = null;
+        this.touchStartMs = 0;
     }
 
     get record() {
@@ -264,6 +276,9 @@ export class KanbanRecord extends Component {
         if (!this.props.groupByField) {
             classes.push("flex-grow-1 flex-md-shrink-1 flex-shrink-0");
         }
+        if (this.props.record.selected) {
+            classes.push("o_record_selected");
+        }
         classes.push(archInfo.cardClassName);
         return classes.join(" ");
     }
@@ -273,6 +288,11 @@ export class KanbanRecord extends Component {
      */
     onGlobalClick(ev, newWindow) {
         if (ev.target.closest(CANCEL_GLOBAL_CLICK)) {
+            return;
+        }
+        if (this.props.selection?.length || ev.altKey) {
+            this.rootRef.el.focus();
+            this.props.toggleSelection(this.props.record, ev.shiftKey);
             return;
         }
         const { archInfo, forceGlobalClick, openRecord, record } = this.props;
@@ -296,6 +316,35 @@ export class KanbanRecord extends Component {
         } else if (forceGlobalClick || this.props.archInfo.canOpenRecords) {
             openRecord(record, { newWindow });
         }
+    }
+
+    resetLongTouchTimer() {
+        if (this.longTouchTimer) {
+            browser.clearTimeout(this.longTouchTimer);
+            this.longTouchTimer = null;
+        }
+    }
+
+    onTouchStart(ev) {
+        if (this.props.selection.length) {
+            ev.stopPropagation(); // This is done in order to prevent the tooltip from showing up
+        }
+        this.touchStartMs = Date.now();
+        if (this.longTouchTimer === null) {
+            this.longTouchTimer = browser.setTimeout(() => {
+                this.props.toggleSelection(this.props.record);
+                this.resetLongTouchTimer();
+            }, this.constructor.LONG_TOUCH_THRESHOLD);
+        }
+    }
+    onTouchEnd() {
+        const elapsedTime = Date.now() - this.touchStartMs;
+        if (elapsedTime < this.constructor.LONG_TOUCH_THRESHOLD) {
+            this.resetLongTouchTimer();
+        }
+    }
+    onTouchMove() {
+        this.resetLongTouchTimer();
     }
 
     /**

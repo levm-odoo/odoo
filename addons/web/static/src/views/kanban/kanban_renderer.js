@@ -83,6 +83,7 @@ export class KanbanRenderer extends Component {
             validateColumnQuickCreateExamples(this.exampleData);
         }
         this.ghostColumns = this.generateGhostColumns();
+        this.lastCheckedRecord = null;
 
         // Sortable
         let dataRecordId;
@@ -437,6 +438,28 @@ export class KanbanRenderer extends Component {
             this.state.processedIds = this.state.processedIds.filter(
                 (processedId) => processedId !== id
             );
+        }
+    }
+
+    toggleSelection(record, isRange = false) {
+        if (isRange) {
+            this.toggleRangeSelection(record);
+        } else {
+            record.toggleSelection();
+        }
+        this.lastCheckedRecord = record;
+    }
+
+    toggleRangeSelection(record) {
+        const { records } = this.props.list;
+
+        // we must found the currently focused card and select each item between this one and the ev.target card
+        const recordIndex = records.findIndex((e) => e.id === record.id);
+        const lastCheckedRecordIndex = records.findIndex((e) => e.id === this.lastCheckedRecord.id);
+        const start = Math.min(recordIndex, lastCheckedRecordIndex);
+        const end = Math.max(recordIndex, lastCheckedRecordIndex);
+        for (let i = start; i <= end; i++) {
+            records[i].toggleSelection(!record.selected);
         }
     }
 

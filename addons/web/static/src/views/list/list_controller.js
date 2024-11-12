@@ -28,6 +28,7 @@ import { useSearchBarToggler } from "@web/search/search_bar/search_bar_toggler";
 import { session } from "@web/session";
 import { ListCogMenu } from "./list_cog_menu";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
+import { SelectionBox } from "@web/views/view_components/selection_box";
 
 import {
     Component,
@@ -53,6 +54,7 @@ export class ListController extends Component {
         SearchBar,
         CogMenu: ListCogMenu,
         DropdownItem,
+        SelectionBox,
     };
     static props = {
         ...standardViewProps,
@@ -422,19 +424,29 @@ export class ListController extends Component {
         };
     }
 
-    async onSelectDomain() {
-        await this.model.root.selectDomain(true);
-        if (this.props.onSelectionChanged) {
-            const resIds = await this.model.root.getResIds(true);
-            this.props.onSelectionChanged(resIds);
-        }
+    get hasSelectedRecords() {
+        return this.selectedRecords.length || this.isDomainSelected;
     }
 
-    onUnselectAll() {
-        this.model.root.selection.forEach((record) => {
-            record.toggleSelection(false);
-        });
-        this.model.root.selectDomain(false);
+    get selectedRecords() {
+        return this.model.root.selection;
+    }
+
+    get isDomainSelected() {
+        return this.model.root.isDomainSelected;
+    }
+
+    get isPageSelected() {
+        const root = this.model.root;
+        const nbTotal = root.isGrouped ? root.recordCount : root.count;
+        return (
+            root.selection.length === root.records.length &&
+            (!root.isRecordCountTrustable || nbTotal > this.selectedRecords.length)
+        );
+    }
+
+    async selectDomain(value) {
+        await this.model.root.selectDomain(value);
     }
 
     evalViewModifier(modifier) {
@@ -443,28 +455,6 @@ export class ListController extends Component {
 
     get className() {
         return this.props.className;
-    }
-
-    get hasSelectedRecords() {
-        return this.nbSelected || this.isDomainSelected;
-    }
-
-    get nbSelected() {
-        return this.model.root.selection.length;
-    }
-
-    get isPageSelected() {
-        const root = this.model.root;
-        return root.selection.length === root.records.length;
-    }
-
-    get isDomainSelected() {
-        return this.model.root.isDomainSelected;
-    }
-
-    get nbTotal() {
-        const list = this.model.root;
-        return list.isGrouped ? list.recordCount : list.count;
     }
 
     get defaultExportList() {

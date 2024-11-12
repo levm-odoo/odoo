@@ -4,9 +4,11 @@ import {
 } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
+import { omit } from "@web/core/utils/objects";
 import { CogMenu } from "@web/search/cog_menu/cog_menu";
 import { evaluateBooleanExpr } from "@web/core/py_js/py";
 import { useSetupAction } from "@web/search/action_hook";
+import { ActionMenus, STATIC_ACTIONS_GROUP_NUMBER } from "@web/search/action_menus/action_menus";
 import { Layout } from "@web/search/layout";
 import { usePager } from "@web/search/pager_hook";
 import { SearchBar } from "@web/search/search_bar/search_bar";
@@ -19,8 +21,9 @@ import { useViewButtons } from "@web/views/view_button/view_button_hook";
 import { addFieldDependencies, extractFieldsFromArchInfo } from "@web/model/relational_model/utils";
 import { KanbanRenderer } from "./kanban_renderer";
 import { useProgressBar } from "./progress_bar_hook";
+import { SelectionBox } from "@web/views/view_components/selection_box";
 
-import { Component, reactive, useRef, useState } from "@odoo/owl";
+import { Component, reactive, useEffect, useRef, useState } from "@odoo/owl";
 
 const QUICK_CREATE_FIELD_TYPES = ["char", "boolean", "many2one", "selection", "many2many"];
 
@@ -28,7 +31,15 @@ const QUICK_CREATE_FIELD_TYPES = ["char", "boolean", "many2one", "selection", "m
 
 export class KanbanController extends Component {
     static template = `web.KanbanView`;
-    static components = { Layout, KanbanRenderer, MultiRecordViewButton, SearchBar, CogMenu };
+    static components = {
+        ActionMenus,
+        Layout,
+        KanbanRenderer,
+        MultiRecordViewButton,
+        SearchBar,
+        CogMenu,
+        SelectionBox,
+    };
     static props = {
         ...standardViewProps,
         editable: { type: Boolean, optional: true },
@@ -169,6 +180,106 @@ export class KanbanController extends Component {
             }
         });
         this.searchBarToggler = useSearchBarToggler();
+        const handleAltKeyDown = (ev) => {
+            if (ev.key === "Alt") {
+                this.rootRef.el.classList.add("o_kanban_selection_available");
+            }
+        };
+        const handleAltKeyUp = () => {
+            this.rootRef.el.classList.remove("o_kanban_selection_available");
+        };
+        useEffect(
+            () => {
+                if (this.props.onSelectionChanged) {
+                    const resIds = this.model.root.selection.map((record) => record.resId);
+                    this.props.onSelectionChanged(resIds);
+                }
+                window.addEventListener("keydown", handleAltKeyDown);
+                window.addEventListener("keyup", handleAltKeyUp);
+                window.addEventListener("blur", handleAltKeyUp);
+                return () => {
+                    window.removeEventListener("keydown", handleAltKeyDown);
+                    window.removeEventListener("keyup", handleAltKeyUp);
+                    window.removeEventListener("blur", handleAltKeyUp);
+                };
+            },
+            () => [this.model.root.selection.length]
+        );
+        this.archiveEnabled =
+            "active" in this.props.fields
+                ? !this.props.fields.active.readonly
+                : "x_active" in this.props.fields
+                ? !this.props.fields.x_active.readonly
+                : false;
+    }
+
+    get display() {
+        const { controlPanel } = this.props.display;
+        if (!controlPanel) {
+            return this.props.display;
+        }
+        return {
+            ...this.props.display,
+            controlPanel: {
+                ...controlPanel,
+                layoutActions: !this.hasSelectedRecords,
+            },
+        };
+    }
+
+    get actionMenuItems() {
+        const { actionMenus } = this.props.info;
+        const staticActionItems = Object.entries(this.getStaticActionMenuItems())
+            .filter(([key, item]) => item.isAvailable === undefined || item.isAvailable())
+            .sort(([k1, item1], [k2, item2]) => (item1.sequence || 0) - (item2.sequence || 0))
+            .map(([key, item]) =>
+                Object.assign(
+                    { key, groupNumber: STATIC_ACTIONS_GROUP_NUMBER },
+                    omit(item, "isAvailable")
+                )
+            );
+
+        return {
+            action: [...staticActionItems, ...(actionMenus?.action || [])],
+            print: actionMenus?.print,
+        };
+    }
+
+    get actionMenuProps() {
+        return {
+            getActiveIds: () => this.model.root.selection.map((r) => r.resId),
+            context: this.props.context,
+            domain: this.props.domain,
+            items: this.actionMenuItems,
+            isDomainSelected: this.model.root.isDomainSelected,
+            resModel: this.model.root.resModel,
+            onActionExecuted: () => this.model.load(),
+        };
+    }
+
+    get hasSelectedRecords() {
+        return this.selectedRecords.length || this.isDomainSelected;
+    }
+
+    get selectedRecords() {
+        return this.model.root.selection;
+    }
+
+    get isDomainSelected() {
+        return this.model.root.isDomainSelected;
+    }
+
+    get isPageSelected() {
+        const root = this.model.root;
+        const nbTotal = root.isGrouped ? root.recordCount : root.count;
+        return (
+            root.selection.length === root.records.length &&
+            (!root.isRecordCountTrustable || nbTotal > this.selectedRecords.length)
+        );
+    }
+
+    async selectDomain(value) {
+        await this.model.root.selectDomain(value);
     }
 
     get modelParams() {
@@ -231,6 +342,38 @@ export class KanbanController extends Component {
             return classList.join(" ");
         }
         return this.props.className;
+    }
+
+    get archiveDialogProps() {
+        return {
+            body: _t("Are you sure that you want to archive all the selected records?"),
+            confirmLabel: _t("Archive"),
+            confirm: () => {
+                this.model.root.archive(true);
+            },
+            cancel: () => {},
+        };
+    }
+
+    getStaticActionMenuItems() {
+        return {
+            archive: {
+                isAvailable: () => this.archiveEnabled,
+                sequence: 20,
+                icon: "oi oi-archive",
+                description: _t("Archive"),
+                callback: () => {
+                    this.dialogService.add(ConfirmationDialog, this.archiveDialogProps);
+                },
+            },
+            unarchive: {
+                isAvailable: () => this.archiveEnabled,
+                sequence: 30,
+                icon: "oi oi-unarchive",
+                description: _t("Unarchive"),
+                callback: () => this.model.root.unarchive(true),
+            },
+        };
     }
 
     async deleteRecord(record) {

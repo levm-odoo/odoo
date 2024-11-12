@@ -369,6 +369,30 @@
     }
 }
 
+.o_kanban_selection_available:not(.o_kanban_selection_enabled) .o_kanban_record {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+    > * {
+        filter: brightness(0.9);
+    }
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.5) !important;
+        > * {
+            filter: brightness(0.5);
+        }
+        &::before {
+            position: absolute;
+            z-index: 999;
+            inset: 50% auto auto 50%;
+            transform: translate(-50%, -50%);
+            display: block;
+            content: "Click to select";
+            background: white;
+            padding: 5px;
+            border-radius: 4px;
+        }
+    }
+}
+
 .o_kanban_mobile .o_kanban_renderer .o_kanban_record {
     div.label {
         @include o-text-overflow;
