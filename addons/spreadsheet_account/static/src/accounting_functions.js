@@ -183,6 +183,73 @@ const ODOO_PARTNER_BALANCE_ARGS = () => {
     return [partner_arg].concat(residual_args);
 }
 
+const ODOO_BALANCE_TAG_ARGS = () => [
+    arg(
+        "account_tag (string, optional)",
+        _t("The tag of the accounts. If none provided, all receivable and payable accounts will be used.")
+    ),
+    arg(
+        "date_from (string, date, optional)",
+        _t(`The date from which we gather lines. Supported formats are "21/12/2022", "Q1/2022", "12/2022", and "2022".`)
+    ),
+    arg(
+        "date_to (string, date, optional)",
+        _t(`The date to which we gather lines. Supported formats are "21/12/2022", "Q1/2022", "12/2022", and "2022".`)
+    ),
+    arg("offset (number, default=0)", _t("Year offset applied to date_range.")),
+    arg("company_id (number, optional)", _t("The company to target (Advanced).")),
+    arg(
+        "include_unposted (boolean, default=FALSE)",
+        _t("Set to TRUE to include unposted entries.")
+    ),
+];
+
+functionRegistry.add("ODOO.BALANCE.TAG", {
+    description: _t("Get the total balance for the account(s) with the specified tag(s) and period."),
+    args: ODOO_BALANCE_TAG_ARGS(),
+    category: "Odoo",
+    returns: ["NUMBER"],
+    compute: function (
+        accountTags,
+        dateFrom,
+        dateTo,
+        offset = { value: 0 },
+        companyId = { value: null },
+        includeUnposted = { value: false }
+    ) {
+        const _accountTags = toString(accountTags)
+            .split(",")
+            .map((name) => name.trim())
+            .sort();
+        const _offset = toNumber(offset, this.locale);
+        const _dateFrom = parseAccountingDate(dateFrom, this.locale);
+        if ( !dateTo?.value ) {
+            dateTo = deepCopy(dateFrom)
+        }
+        const _dateTo = parseAccountingDate(dateTo, this.locale);
+        const _companyId = companyId?.value;
+        const _includeUnposted = toBoolean(includeUnposted);
+        const value =
+            this.getters.getAccountTagDebit(
+                _accountTags,
+                _dateFrom,
+                _dateTo,
+                _offset,
+                _companyId,
+                _includeUnposted
+            ) -
+            this.getters.getAccountTagCredit(
+                _accountTags,
+                _dateFrom,
+                _dateTo,
+                _offset,
+                _companyId,
+                _includeUnposted
+            );
+        return { value, format: this.getters.getCompanyCurrencyFormat(_companyId) || "#,##0.00" };
+    },
+});
+
 functionRegistry.add("ODOO.CREDIT", {
     description: _t("Get the total credit for the specified account(s) and period."),
     args: ODOO_FIN_ARGS(),
