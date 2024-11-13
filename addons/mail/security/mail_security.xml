@@ -29,12 +29,12 @@
                                     ("parent_channel_id", "=", False),
                                     "|",
                                         ("group_public_id", "=", False),
-                                        ("group_public_id", "in", user.groups_id.ids),
+                                        ("group_public_id", "in", user.all_group_ids.ids),
                                 "&amp;",
                                     ("parent_channel_id", "!=", False),
                                     "|",
                                         ("parent_channel_id.group_public_id", "=", False),
-                                        ("parent_channel_id.group_public_id", "in", user.groups_id.ids),
+                                        ("parent_channel_id.group_public_id", "in", user.all_group_ids.ids),
                 ]
             </field>
         </record>
@@ -66,12 +66,12 @@
                                 ("channel_id.parent_channel_id", "=", False),
                                 "|",
                                     ("channel_id.group_public_id", "=", False),
-                                    ("channel_id.group_public_id", "in", user.groups_id.ids),
+                                    ("channel_id.group_public_id", "in", user.all_group_ids.ids),
                             "&amp;",
                                 ("channel_id.parent_channel_id", "!=", False),
                                 "|",
                                     ("channel_id.parent_channel_id.group_public_id", "=", False),
-                                    ("channel_id.parent_channel_id.group_public_id", "in", user.groups_id.ids),
+                                    ("channel_id.parent_channel_id.group_public_id", "in", user.all_group_ids.ids),
                 ]
             </field>
             <!--
@@ -115,12 +115,12 @@
                                     ("channel_id.parent_channel_id", "=", False),
                                     "|",
                                         ("channel_id.group_public_id", "=", False),
-                                        ("channel_id.group_public_id", "in", user.groups_id.ids),
+                                        ("channel_id.group_public_id", "in", user.all_group_ids.ids),
                                 "&amp;",
                                     ("channel_id.parent_channel_id", "!=", False),
                                     "|",
                                         ("channel_id.parent_channel_id.group_public_id", "=", False),
-                                        ("channel_id.parent_channel_id.group_public_id", "in", user.groups_id.ids),
+                                        ("channel_id.parent_channel_id.group_public_id", "in", user.all_group_ids.ids),
                 ]
             </field>
             <field name="perm_create" eval="False"/>
@@ -144,7 +144,7 @@
                     ('channel_id.channel_type', '=', 'channel'),
                     '|',
                         ('channel_id.group_public_id', '=', False),
-                        ('channel_id.group_public_id', 'in', user.groups_id.ids)
+                        ('channel_id.group_public_id', 'in', user.all_group_ids.ids)
                 ]
             </field>
             <!--
@@ -166,7 +166,7 @@
                     ('channel_id.channel_type', '=', 'channel'),
                     '|',
                         ('channel_id.group_public_id', '=', False),
-                        ('channel_id.group_public_id', 'in', user.groups_id.ids)
+                        ('channel_id.group_public_id', 'in', user.all_group_ids.ids)
                 ]
             </field>
             <field name="perm_read" eval="False"/>
@@ -324,7 +324,7 @@
             <field name="name">Canned response: User read: own or in groups</field>
             <field name="model_id" ref="model_mail_canned_response"/>
             <field name="groups" eval="[Command.link(ref('base.group_user'))]"/>
-            <field name="domain_force">['|', ('create_uid', '=', user.id), ('group_ids', 'in', user.groups_id.ids)]</field>
+            <field name="domain_force">['|', ('create_uid', '=', user.id), ('group_ids', 'in', user.all_group_ids.ids)]</field>
             <field name="perm_write" eval="False"/>
             <field name="perm_create" eval="False"/>
             <field name="perm_unlink" eval="False"/>

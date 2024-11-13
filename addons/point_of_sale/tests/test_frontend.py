@@ -34,7 +34,7 @@ class TestPointOfSaleHttpCommon(AccountTestInvoicingHttpCommon):
         super().setUpClass()
 
         env = cls.env
-        cls.env.user.groups_id += env.ref('point_of_sale.group_pos_manager')
+        cls.env.user.group_ids += env.ref('point_of_sale.group_pos_manager')
         journal_obj = env['account.journal']
         account_obj = env['account.account']
         main_company = cls._get_main_company()
@@ -55,7 +55,7 @@ class TestPointOfSaleHttpCommon(AccountTestInvoicingHttpCommon):
             'name': 'A simple PoS man!',
             'login': 'pos_user',
             'password': 'pos_user',
-            'groups_id': [
+            'group_ids': [
                 (4, cls.env.ref('base.group_user').id),
                 (4, cls.env.ref('point_of_sale.group_pos_user').id),
                 (4, cls.env.ref('stock.group_stock_user').id),
@@ -66,7 +66,7 @@ class TestPointOfSaleHttpCommon(AccountTestInvoicingHttpCommon):
             'name': 'A powerful PoS man!',
             'login': 'pos_admin',
             'password': 'pos_admin',
-            'groups_id': [
+            'group_ids': [
                 (4, cls.env.ref('point_of_sale.group_pos_manager').id),
             ],
             'tz': 'America/New_York',
@@ -582,7 +582,7 @@ class TestUi(TestPointOfSaleHttpCommon):
             _logger.warning("This test relies on demo data. To be rewritten independently of demo data for accurate and reliable results.")
             return
         self.pos_user.write({
-            'groups_id': [
+            'group_ids': [
                 (4, self.env.ref('account.group_account_invoice').id),
             ]
         })
@@ -603,7 +603,7 @@ class TestUi(TestPointOfSaleHttpCommon):
         fabrics_line = configurable_product.attribute_line_ids[2]
         fabrics_line.product_template_value_ids[1].ptav_active = False
         self.pos_user.write({
-            'groups_id': [
+            'group_ids': [
                 (4, self.env.ref('stock.group_stock_manager').id),
             ]
         })
@@ -615,7 +615,7 @@ class TestUi(TestPointOfSaleHttpCommon):
             _logger.warning("This test relies on demo data. To be rewritten independently of demo data for accurate and reliable results.")
             return
         self.pos_user.write({
-            'groups_id': [
+            'group_ids': [
                 (4, self.env.ref('account.group_account_invoice').id),
             ]
         })
@@ -627,7 +627,7 @@ class TestUi(TestPointOfSaleHttpCommon):
         '''
         self.product_a.available_in_pos = True
         self.pos_admin.write({
-            'groups_id': [Command.link(self.env.ref('base.group_system').id)],
+            'group_ids': [Command.link(self.env.ref('base.group_system').id)],
         })
         self.assertFalse(self.product_a.is_storable)
         self.main_pos_config.with_user(self.pos_admin).open_ui()
@@ -1063,7 +1063,7 @@ class TestUi(TestPointOfSaleHttpCommon):
         self.start_tour("/pos/ui?config_id=%d" % self.main_pos_config.id, 'ShowTaxExcludedTour', login="pos_user")
 
     def test_chrome_without_cash_move_permission(self):
-        self.env.user.write({'groups_id': [
+        self.env.user.write({'group_ids': [
             Command.set(
                 [
                     self.env.ref('base.group_user').id,
@@ -1271,7 +1271,7 @@ class TestUi(TestPointOfSaleHttpCommon):
 
     def test_multi_product_options(self):
         self.pos_user.write({
-            'groups_id': [
+            'group_ids': [
                 (4, self.env.ref('stock.group_stock_manager').id),
             ]
         })

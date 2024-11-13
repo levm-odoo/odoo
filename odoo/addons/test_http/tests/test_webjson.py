@@ -42,7 +42,7 @@ class TestHttpWebJson_1(TestHttpBase):
         # enable explicitely and make sure demo has permissions
         cls.env['ir.config_parameter'].set_param('web.json.enabled', True)
         cls.user_demo.write({
-            'groups_id': [Command.link(cls.env.ref('base.group_allow_export').id)],
+            'group_ids': [Command.link(cls.env.ref('base.group_allow_export').id)],
         })
 
         cls.milky_way = cls.env.ref('test_http.milky_way')
@@ -104,7 +104,7 @@ class TestHttpWebJson_1(TestHttpBase):
 
         # remove export permssion
         group_export = self.env.ref('base.group_allow_export')
-        self.user_demo.write({'groups_id': [Command.unlink(group_export.id)]})
+        self.user_demo.write({'group_ids': [Command.unlink(group_export.id)]})
 
         # check that demo has no access to /json
         with self.assertLogs('odoo.http', 'WARNING') as capture:
