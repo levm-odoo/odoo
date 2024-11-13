@@ -42,34 +42,32 @@ class AccountMove(models.Model):
             if record.state == 'draft':
                 gst_treatment = record.partner_id.l10n_in_gst_treatment
                 if not gst_treatment:
+                    partner_country_code = record.partner_id.country_id.code
                     gst_treatment = 'unregistered'
-                    if record.partner_id.country_id.code == 'IN' and record.partner_id.vat:
+                    if partner_country_code == 'IN' and record.partner_id.vat:
                         gst_treatment = 'regular'
-                    elif record.partner_id.country_id and record.partner_id.country_id.code != 'IN':
+                    elif record.partner_id.country_id and partner_country_code != 'IN':
                         gst_treatment = 'overseas'
                 record.l10n_in_gst_treatment = gst_treatment
         (self - indian_invoice).l10n_in_gst_treatment = False
 
     @api.depends('partner_id', 'partner_shipping_id', 'company_id')
     def _compute_l10n_in_state_id(self):
-        for move in self:
-            if move.country_code == 'IN' and move.is_sale_document(include_receipts=True):
+        other_country = self.env.ref('l10n_in.state_in_oc', raise_if_not_found=False)
+        indian_moves = self.filtered(lambda move: move.country_code == 'IN')
+        self.l10n_in_state_id = False
+        for move in indian_moves:
+            if move.is_sale_document(include_receipts=True):
                 partner_state = (
                     move.partner_id.commercial_partner_id == move.partner_shipping_id.commercial_partner_id
                     and move.partner_shipping_id.state_id
                     or move.partner_id.state_id
                 )
-                if not partner_state:
-                    partner_state = move.partner_id.commercial_partner_id.state_id or move.company_id.state_id
+                partner_state = partner_state or move.partner_id.commercial_partner_id.state_id or move.company_id.state_id
                 country_code = partner_state.country_id.code or move.country_code
-                if country_code == 'IN':
-                    move.l10n_in_state_id = partner_state
-                else:
-                    move.l10n_in_state_id = self.env.ref('l10n_in.state_in_oc', raise_if_not_found=False)
-            elif move.country_code == 'IN' and move.journal_id.type == 'purchase':
+                move.l10n_in_state_id = partner_state if country_code == 'IN' else other_country
+            elif move.journal_id.type == 'purchase':
                 move.l10n_in_state_id = move.company_id.state_id
-            else:
-                move.l10n_in_state_id = False
 
     @api.depends('l10n_in_state_id')
     def _compute_fiscal_position_id(self):
