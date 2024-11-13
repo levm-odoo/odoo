@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api, fields, models, _
+from odoo.addons.l10n_in.models.account_invoice import GST_TREATMENT_SELECTION
 
 TEST_GST_NUMBER = "36AABCT1332L011"
 
@@ -9,16 +10,7 @@ TEST_GST_NUMBER = "36AABCT1332L011"
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
-    l10n_in_gst_treatment = fields.Selection([
-            ('regular', 'Registered Business - Regular'),
-            ('composition', 'Registered Business - Composition'),
-            ('unregistered', 'Unregistered Business'),
-            ('consumer', 'Consumer'),
-            ('overseas', 'Overseas'),
-            ('special_economic_zone', 'Special Economic Zone'),
-            ('deemed_export', 'Deemed Export'),
-            ('uin_holders', 'UIN Holders'),
-        ], string="GST Treatment")
+    l10n_in_gst_treatment = fields.Selection(GST_TREATMENT_SELECTION, string="GST Treatment")
 
     l10n_in_pan = fields.Char(
         string="PAN",
