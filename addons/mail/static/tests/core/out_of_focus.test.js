@@ -6,6 +6,7 @@ import {
     start,
     startServer,
 } from "@mail/../tests/mail_test_helpers";
+import { rpcWithEnv } from "@mail/utils/common/misc";
 import { describe, test } from "@odoo/hoot";
 import {
     asyncStep,
@@ -56,4 +57,50 @@ test("Spaces in notifications are not encoded", async () => {
         })
     );
     await contains(".o_notification:has(.o_notification_bar.bg-info)", { text: "Hello world!" });
+});
+
+test("show attachment names in notifications for messages with only attachments when the user is not focused", async () => {
+    mockService("presence", { isOdooFocused: () => false });
+    const pyEnv = await startServer();
+    const ginnyW = pyEnv["res.users"].create({ name: "ginnyW" });
+    const bobPartnerId = pyEnv["res.partner"].create({ name: "ginnyW", user_ids: [ginnyW] });
+    const channelId = pyEnv["discuss.channel"].create({
+        channel_type: "chat",
+        channel_member_ids: [
+            Command.create({ partner_id: serverState.partnerId }),
+            Command.create({ partner_id: bobPartnerId }),
+        ],
+    });
+    const attachment = pyEnv["ir.attachment"].create([
+        {
+            mimetype: "application/pdf",
+            name: "TomMarvoloRiddle0.pdf",
+            res_model: "mail.compose.message",
+        },
+        {
+            mimetype: "application/pdf",
+            name: "TomMarvoloRiddle1.pdf",
+            res_model: "mail.compose.message",
+        },
+    ]);
+
+    const env = await start();
+    await openDiscuss();
+    const rpc = rpcWithEnv(env);
+    await withUser(ginnyW, () =>
+        rpc("/mail/message/post", {
+            post_data: {
+                attachment_ids: [...attachment],
+                body: "",
+                email_add_signature: true,
+                message_type: "comment",
+                subtype_xmlid: "mail.mt_comment",
+            },
+            thread_id: channelId,
+            thread_model: "discuss.channel",
+        })
+    );
+    await contains(".o_notification:has(.o_notification_bar.bg-info)", {
+        text: "TomMarvoloRiddle0.pdf and 1 other attachment(s).",
+    });
 });

@@ -1,8 +1,8 @@
 import { htmlToTextContentInline } from "@mail/utils/common/format";
-
 import { browser } from "@web/core/browser/browser";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
+import { attachmentMessagePreview } from "@mail/utils/common/misc";
 
 const PREVIEW_MSG_MAX_SIZE = 350; // optimal for native English speakers
 
@@ -49,10 +49,11 @@ export class OutOfFocusService {
                 notificationTitle = author.name;
             }
         }
-        const notificationContent = htmlToTextContentInline(message.body).substring(
-            0,
-            PREVIEW_MSG_MAX_SIZE
-        );
+        const messageBodyText =
+            message.isBodyEmpty && !message.isEmpty && message.attachment_ids.length > 0
+                ? attachmentMessagePreview(message).text
+                : htmlToTextContentInline(message.body);
+        const notificationContent = messageBodyText.substring(0, PREVIEW_MSG_MAX_SIZE);
         this.sendNotification({
             message: notificationContent,
             sound: message.thread?.model === "discuss.channel",

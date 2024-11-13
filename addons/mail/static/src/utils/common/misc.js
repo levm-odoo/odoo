@@ -1,5 +1,6 @@
 import { reactive } from "@odoo/owl";
 import { rpc } from "@web/core/network/rpc";
+import { _t } from "@web/core/l10n/translation";
 
 export function assignDefined(obj, data, keys = Object.keys(data)) {
     for (const key of keys) {
@@ -190,4 +191,46 @@ export function convertToEmbedURL(url) {
         return { url: gdriveURL.toString(), provider: "google-drive" };
     }
     return { url: null, provider: null };
+}
+
+/**
+ * Compute the preview of the message containing attachments that should shown for the thread.
+ *
+ * @param {object} messages
+ * @param {object} thread
+ * @returns {string}
+ */
+
+export function attachmentMessagePreview(messages = undefined, thread = undefined) {
+    let message;
+    if (thread) {
+        message =
+            thread.isChatChannel ||
+            (thread.channel_type === "channel" && thread.needactionMessages.length === 0)
+                ? thread.newestPersistentNotEmptyOfAllMessagethreadPreviewMessage
+                : thread.needactionMessages.at(-1);
+    } else {
+        message = messages;
+    }
+    if (!message) {
+        return;
+    }
+    if (!message.isBodyEmpty || message.subtype_description) {
+        return { text: message.inlineBody || message.subtype_description };
+    }
+    const { attachment_ids: attachments } = message;
+    if (!attachments || attachments.length === 0) {
+        return { text: "" };
+    }
+    const [firstAttachment] = attachments;
+    const { isImage, isVideo, mimetype, name, voice } = firstAttachment;
+    const icon =
+        (isImage && "fa-picture-o") ||
+        (mimetype === "audio/mpeg" && (voice ? "fa-microphone" : "fa-headphones")) ||
+        (isVideo && "fa-video-camera") ||
+        "fa-file";
+    const text = mimetype === "audio/mpeg" && voice ? _t("Voice Message") : name || "";
+    const attachmentCountText =
+        attachments.length > 1 ? _t(" and %s other attachment(s).", attachments.length - 1) : "";
+    return { icon, text: text + attachmentCountText };
 }
