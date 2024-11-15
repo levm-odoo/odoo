@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_move_form_inherit_l10n_es_edi_verifactu" model="ir.ui.view">
+            <field name="name">account.move.form.inherit.l10n_es_edi_verifactu</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='button_cancel']" position="after">
+                    <field name="l10n_es_edi_verifactu_show_cancel_button" invisible="1"/>
+                    <button name="l10n_es_edi_verifactu_button_cancel"
+                            string="Request Veri*Factu Cancellation"
+                            type="object"
+                            groups="account.group_account_invoice"
+                            invisible="not l10n_es_edi_verifactu_show_cancel_button"/>
+                </xpath>
+                <xpath expr="//group[@id='other_tab_group']/group[last()]" position='after'>
+                    <group id="verifactu_group" string="Veri*Factu">
+                        <field name="l10n_es_edi_verifactu_state"/>
+                        <label for="l10n_es_edi_verifactu_document_ids" string="Veri*Factu Documents:" colspan="2"/>
+                        <field name="l10n_es_edi_verifactu_document_ids" string="Documents" readonly="True" nolabel="1" colspan="2">
+                            <tree string="Veri*Factu Documents">
+                                <field name="create_date"/>
+                                <field name="id"/>
+                                <field name="document_type"/>
+                                <field name="state"/>
+                                <button type="object" name="unlink" class="fa fa-fw" icon="fa-trash" title="Delete"
+                                        confirm="This operation is irreversible. Do you really want to delete the document?"/>
+                            </tree>
+                        </field>
+                        <!-- TODO: clean up -->
+                        <field name="l10n_es_edi_verifactu_attachment_id"/>
+                        <field name="l10n_es_edi_verifactu_qr_code" groups="base.group_no_one"/>
+                        <!-- TODO: remove -->
+                        <button name="l10n_es_edi_verifactu_button_query_records"
+                                string="Query Veri*Factu Records"
+                                type="object"
+                                groups="account.group_account_invoice"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
