@@ -1040,14 +1040,15 @@ export class PivotModel extends Model {
      */
     _getMeasurements(group, config) {
         const { metaData } = config;
-        return metaData.activeMeasures.reduce((measurements, measureName) => {
+        return this._getMeasureSpecs(config).reduce((measurements, measureName) => {
             var measurement = group[measureName];
+            const fieldName = measureName.split(':')[0]
             if (measurement instanceof Array) {
                 // case field is many2one and used as measure and groupBy simultaneously
                 measurement = 1;
             }
             if (
-                metaData.measures[measureName].type === "boolean" &&
+                metaData.measures[fieldName].type === "boolean" &&
                 measurement instanceof Boolean
             ) {
                 measurement = measurement ? 1 : 0;
@@ -1055,7 +1056,7 @@ export class PivotModel extends Model {
             if (metaData.origins.length > 1 && !measurement) {
                 measurement = 0;
             }
-            measurements[measureName] = measurement;
+            measurements[fieldName] = measurement;
             return measurements;
         }, {});
     }
@@ -1204,7 +1205,9 @@ export class PivotModel extends Model {
         const { resModel, groupDomain, measureSpecs, kwargs, mapping } = params;
         const key = JSON.stringify(groupBy);
         if (!mapping[key]) {
-            mapping[key] = this.orm.readGroup(resModel, groupDomain, measureSpecs, groupBy, kwargs);
+            mapping[key] = this.orm.webReadGroup(resModel, groupDomain, groupBy, measureSpecs, kwargs).then(
+                (res) => res.groups
+            );
         }
         return mapping[key];
     }
@@ -1468,7 +1471,6 @@ export class PivotModel extends Model {
             root = this._findGroup(data.colGroupTree, groupColValues).root;
             groupColLabels = root.labels;
         }
-
         groupSubdivisions.forEach((groupSubdivision) => {
             groupSubdivision.subGroups.forEach((subGroup) => {
                 const rowValues = groupRowValues.concat(
@@ -1627,8 +1629,11 @@ export class PivotModel extends Model {
                 };
                 const groupDomain = this._getGroupDomain(subGroup, config);
                 const measureSpecs = this._getMeasureSpecs(config);
+                if (!measureSpecs.includes('__count')) {
+                    measureSpecs.push('__count')
+                }
                 const resModel = config.metaData.resModel;
-                const kwargs = { lazy: false, context: this.searchParams.context };
+                const kwargs = { context: this.searchParams.context };
                 const mapping = {};
                 divisors.forEach((divisor) => {
                     acc.push(

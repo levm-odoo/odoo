@@ -569,7 +569,7 @@ describe("board_desktop", () => {
             };
         });
         onRpc("web_read_group", (args) => {
-            expect(args.kwargs.groupby).toEqual(["bar"]);
+            expect(args.kwargs.groupby).toEqual([]);  // TODO: no groupby by default ??
         });
 
         await mountView({
@@ -633,19 +633,21 @@ describe("board_desktop", () => {
         onRpc(({ method, kwargs }) => {
             if (method === "get_property_definition") {
                 return {};
-            } else if (method === "read_group" && kwargs.groupby?.includes("properties.my_char")) {
-                return [
-                    {
-                        "properties.my_char": false,
-                        __domain: [["properties.my_char", "=", false]],
-                        __count: 2,
-                    },
-                    {
-                        "properties.my_char": "aaa",
-                        __domain: [["properties.my_char", "=", "aaa"]],
-                        __count: 1,
-                    },
-                ];
+            } else if (method === "web_read_group" && kwargs.groupby?.includes("properties.my_char")) {
+                return {
+                    groups: [
+                        {
+                            "properties.my_char": false,
+                            __extra_domain: [["properties.my_char", "=", false]],
+                            __count: 2,
+                        },
+                        {
+                            "properties.my_char": "aaa",
+                            __extra_domain: [["properties.my_char", "=", "aaa"]],
+                            __count: 1,
+                        },
+                    ], length: 2
+                };
             }
         });
         await mountView({

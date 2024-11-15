@@ -432,11 +432,11 @@ class AccountBankStatementLine(models.Model):
         return res
 
     @api.model
-    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
-        # Add latest running_balance in the read_group
-        result = super(AccountBankStatementLine, self).read_group(
-            domain, fields, groupby, offset=offset,
-            limit=limit, orderby=orderby, lazy=lazy)
+    def web_formatted_read_group(self, domain, groupby=(), aggregates=(), having=(), offset=0, limit=None, order=None) -> list[dict]:
+        # Add latest running_balance in the web_formatted_read_group
+        result = super().web_formatted_read_group(
+            domain, groupby, aggregates, having=having,
+            offset=offset, limit=limit, order=order)
         show_running_balance = False
         # We loop over the content of groupby because the groupby date is in the form of "date:granularity"
         for el in groupby:
@@ -445,7 +445,7 @@ class AccountBankStatementLine(models.Model):
                 break
         if show_running_balance:
             for group_line in result:
-                group_line['running_balance'] = self.search(group_line.get('__domain'), limit=1).running_balance or 0.0
+                group_line['running_balance'] = self.search(group_line['__extra_domain'] + domain, limit=1).running_balance or 0.0
         return result
 
     # -------------------------------------------------------------------------
