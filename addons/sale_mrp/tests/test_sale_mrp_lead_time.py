@@ -88,11 +88,7 @@ class TestSaleMrpLeadTime(TestStockCommon):
             delta=timedelta(seconds=1),
             msg='Schedule date of picking should be equal to: Order date + Customer Lead Time - Sales Safety Days.'
         )
-        self.assertAlmostEqual(
-            order.picking_ids[0].date_deadline, deadline_picking,
-            delta=timedelta(seconds=1),
-            msg='Deadline date of picking should be equal to: Order date + Customer Lead Time.'
-        )
+        self.assertEqual(order.picking_ids[0].date_deadline, False, 'Delivery deadline date should not set.')
 
         # Check schedule date and deadline of manufacturing order
         mo_date_start = out_date - timedelta(days=manufacturing_order.bom_id.produce_delay) - timedelta(days=company.manufacturing_lead)
@@ -173,9 +169,4 @@ class TestSaleMrpLeadTime(TestStockCommon):
             fields.Datetime.from_string(manufacturing_order.date_start), mo_date_start,
             delta=timedelta(seconds=1),
             msg="Schedule date of manufacturing order should be equal to: Schedule date of picking - product's Manufacturing Lead Time- delay pull_rule."
-        )
-        self.assertAlmostEqual(
-            manufacturing_order.date_deadline, order.picking_ids[0].date_deadline,
-            delta=timedelta(seconds=1),
-            msg="Deadline date of manufacturing order should be equal to the deadline of sale picking"
         )

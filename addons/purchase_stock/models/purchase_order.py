@@ -7,6 +7,7 @@ from odoo.tools.float_utils import float_compare
 from odoo.exceptions import UserError
 from odoo.tools import format_list
 from odoo.tools.misc import OrderedSet
+from dateutil.relativedelta import relativedelta
 
 
 class PurchaseOrder(models.Model):
@@ -255,6 +256,40 @@ class PurchaseOrder(models.Model):
         if not company_warehouse:
             self.env['stock.warehouse']._warehouse_redirect_warning()
         return picking_type[:1]
+
+    @api.model
+    def retrieve_dashboard(self):
+        """ This function returns the values to populate the custom dashboard in
+            the purchase order views.
+        """
+        self.browse().check_access('read')
+        result = super(PurchaseOrder, self).retrieve_dashboard()
+
+        po = self.env['purchase.order']
+        result['all_late_orders'] = po.search_count([('state', '=', 'purchase'), ('effective_date', '=', False), ('date_planned', '<', fields.Datetime.now())])
+        result['my_late_orders'] = po.search_count([('state', '=', 'purchase'), ('effective_date', '=', False), ('date_planned', '<', fields.Datetime.now()), ('user_id', '=', self.env.uid)])
+        result['all_on_time_delivery'] = self._compute_on_time_delivery()
+        result['my_on_time_delivery'] = self._compute_on_time_delivery(user_specific=True)
+        result['default_days_to_purchase'] = self.env.company.days_to_purchase
+
+        return result
+
+    def _compute_on_time_delivery(self, user_specific=False):
+        """
+        This method calculates (OTD- On Time Delivery) the percentage of purchase orders
+        approved in the last three months where the effective date is less than or
+        equal to the planned date.
+        """
+        three_month_ago = fields.Datetime.to_string(fields.Datetime.now() - relativedelta(months=3))
+        domain = [('date_approve', '>=', three_month_ago)]
+
+        if user_specific:
+            domain.append(('user_id', '=', self.env.uid))
+
+        total_purchase_orders = self.env['purchase.order'].search(domain)
+        total_otd_purchase_orders = total_purchase_orders.filtered(lambda po: po.effective_date and po.date_planned and po.effective_date <= po.date_planned)
+        avg_on_time_delivery = (round((len(total_otd_purchase_orders) / len(total_purchase_orders) * 100), 2) if len(total_purchase_orders) >= 1 else 0)
+        return avg_on_time_delivery
 
     def _prepare_picking(self):
         if not self.group_id:

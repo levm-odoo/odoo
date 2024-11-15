@@ -37,6 +37,7 @@ class TestPurchase(AccountTestInvoicingCommon):
         po = po.save()
 
         # Check that the same date is planned on both PO lines.
+        po.button_confirm()
         self.assertNotEqual(po.order_line[0].date_planned, False)
         self.assertAlmostEqual(po.order_line[0].date_planned, po.order_line[1].date_planned, delta=timedelta(seconds=10))
         self.assertAlmostEqual(po.order_line[0].date_planned, po.date_planned, delta=timedelta(seconds=10))
@@ -75,6 +76,7 @@ class TestPurchase(AccountTestInvoicingCommon):
                 'price_unit': 1,
             })],
         })
+        po.button_confirm()
         with Form(po) as po_form:
             po_form.date_planned = fields.Datetime.now() + timedelta(days=1)
         self.assertEqual(po.order_line.date_planned, po.date_planned)

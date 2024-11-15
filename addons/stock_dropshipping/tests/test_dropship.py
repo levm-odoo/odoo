@@ -276,6 +276,7 @@ class TestDropship(common.TransactionCase):
 
         purchase = self.env['purchase.order'].search([('partner_id', '=', self.supplier_2.id)])
         self.assertTrue(purchase, "an RFQ should have been created by the scheduler")
+        purchase.button_confirm()
         self.assertTrue((purchase.date_planned - purchase.date_order).days == 5, "The second supplier has a delay of 5 days")
         self.assertTrue(purchase.amount_untaxed == 10, "the suppliers sells the item for 10$")
 
@@ -291,5 +292,6 @@ class TestDropship(common.TransactionCase):
 
         purchase = self.env['purchase.order'].search([('partner_id', '=', self.supplier.id)])
         self.assertTrue(purchase, "an RFQ should have been created by the scheduler")
+        purchase.button_confirm()
         self.assertTrue((purchase.date_planned - purchase.date_order).days == 10, "The first supplier has a delay of 10 days")
         self.assertTrue(purchase.amount_untaxed == 8, "The price should be 4 * 2")

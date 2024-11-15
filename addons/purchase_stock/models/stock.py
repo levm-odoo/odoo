@@ -24,9 +24,21 @@ class StockPicking(models.Model):
             else:
                 picking.days_to_arrive = False
 
+    @api.depends('purchase_id.date_planned')
+    def _compute_scheduled_date(self):
+        super()._compute_scheduled_date()
+        for picking in self:
+            if picking.purchase_id:
+                picking.scheduled_date = picking.purchase_id.date_planned
+
     def _compute_date_order(self):
         for picking in self:
             picking.delay_pass = picking.purchase_id.date_order if picking.purchase_id else fields.Datetime.now()
+
+    def _compute_date_deadline(self):
+        for picking in self:
+            if picking.purchase_id:
+                picking.date_deadline = False
 
     @api.model
     def _search_days_to_arrive(self, operator, value):

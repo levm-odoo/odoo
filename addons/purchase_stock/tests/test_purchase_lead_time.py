@@ -41,7 +41,7 @@ class TestPurchaseLeadTime(PurchaseTestCommon):
 
         # Check scheduled and deadline date of In Type shipment
         self.assertEqual(purchase.picking_ids.scheduled_date, schedule_date, 'Schedule date of In type shipment should be equal to: schedule date of purchase order.')
-        self.assertEqual(purchase.picking_ids.date_deadline, schedule_date, 'Deadline date of should be equal to: schedule date of purchase order.')
+        self.assertEqual(purchase.picking_ids.date_deadline, False, 'Delivery deadline date should not set.')
 
     def test_01_product_level_delay(self):
         """ To check schedule dates of multiple purchase order line of the same purchase order,
@@ -88,11 +88,7 @@ class TestPurchaseLeadTime(PurchaseTestCommon):
                          'Schedule date of In type shipment should be same as schedule date of purchase order.')
 
         # Check deadline of pickings
-        self.assertEqual(fields.Date.to_date(purchase2.picking_ids.date_deadline), fields.Date.to_date(purchase1.date_planned), "Deadline of pickings should be equals to the receipt date of purchase")
-        purchase_form = Form(purchase2)
-        purchase_form.date_planned = purchase2.date_planned + timedelta(days=2)
-        purchase_form.save()
-        self.assertEqual(purchase2.picking_ids.date_deadline, purchase2.date_planned, "Deadline of pickings should be propagate")
+        self.assertEqual(purchase2.picking_ids.date_deadline, False, "Deadline of pickings should not set.")
 
     def test_merge_po_line(self):
         """Change that merging po line for same procurement is done."""
@@ -318,4 +314,5 @@ class TestPurchaseLeadTime(PurchaseTestCommon):
 
         today = datetime.combine(fields.Datetime.now(), time(12))
         self.assertEqual(purchase_order.date_order, today)
+        purchase_order.button_confirm()
         self.assertEqual(purchase_order.date_planned, today + timedelta(days=7))

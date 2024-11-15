@@ -430,9 +430,12 @@ class TestCreatePicking(common.TestProductCommon):
 
         return delivery_order, purchase_order
 
-    def test_05_propagate_deadline(self):
-        """ In order to check deadline date of the delivery order is changed and the planned date not."""
-
+    def test_05_propagate_deadline_and_scheduled_date(self):
+        """
+        Ensure that the deadline date is never set for pickings created from a purchase order,
+        and the scheduled date of the delivery order is updated whenever the planned date (Expected date) of
+        the purchase order or purchase order line changes.
+        """
         # Create Delivery Order and with propagate date and minimum delta
         delivery_order, purchase_order = self.create_delivery_order()
 
@@ -441,16 +444,20 @@ class TestCreatePicking(common.TestProductCommon):
 
         purchase_order_line = purchase_order.order_line
 
-        # change scheduled date of po line.
+        # check that deadline of delivery order is not set.
+        self.assertEqual(delivery_order.date_deadline, False,'Delivery deadline date should not set.')
+        # change Expected date of po line.
         purchase_order_line.write({'date_planned': purchase_order_line.date_planned + timedelta(days=5)})
-
         # Now check scheduled date and deadline of delivery order.
-        self.assertNotEqual(
-            purchase_order_line.date_planned, delivery_order.scheduled_date,
-            'Scheduled delivery order date should not changed.')
-        self.assertEqual(
-            purchase_order_line.date_planned, delivery_order.date_deadline,
-            'Delivery deadline date should be changed.')
+        self.assertEqual(purchase_order_line.date_planned, delivery_order.scheduled_date + timedelta(days=5),'Scheduled delivery order date should changed.')
+        self.assertEqual(delivery_order.date_deadline, False,'Delivery deadline date should not set.')
+
+        purchase_order.button_confirm()
+        # now change Expected date of po.
+        purchase_order.write({'date_planned': purchase_order.date_planned - timedelta(days=3)})
+        # Now check scheduled date and deadline of delivery order.
+        self.assertEqual(purchase_order.date_planned, delivery_order.scheduled_date + timedelta(days=2),'Scheduled delivery order date should changed.')
+        self.assertEqual(delivery_order.date_deadline, False,'Delivery deadline date should not set.')
 
     def test_07_differed_schedule_date(self):
         # Required for `reception_steps` to be visible in the view

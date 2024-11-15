@@ -278,18 +278,10 @@ class TestPurchaseOldRules(PurchaseTestCommon):
         incoming_shipment1 = self.env['stock.picking'].search([('move_ids.product_id', 'in', (self.product_1.id, self.product_2.id)), ('picking_type_id', '=', warehouse.qc_type_id.id), ('location_id', '=', warehouse.wh_input_stock_loc_id.id), ('location_dest_id', '=', warehouse.wh_qc_stock_loc_id.id)])
         incoming_shipment1_date = order_date + timedelta(days=self.product_1.seller_ids.delay)
         self.assertEqual(incoming_shipment1.scheduled_date, incoming_shipment1_date, 'Schedule date of Internal Type shipment for input stock location should be equal to: schedule date of purchase order + push rule delay.')
-        self.assertEqual(incoming_shipment1.date_deadline, incoming_shipment1_date)
+        self.assertEqual(incoming_shipment1.date_deadline, False)
         old_deadline1 = incoming_shipment1.date_deadline
 
         incoming_shipment2 = self.env['stock.picking'].search([('picking_type_id', '=', warehouse.store_type_id.id), ('location_id', '=', warehouse.wh_qc_stock_loc_id.id), ('location_dest_id', '=', warehouse.lot_stock_id.id)])
         incoming_shipment2_date = schedule_date - timedelta(days=incoming_shipment2.move_ids[0].rule_id.delay)
         self.assertEqual(incoming_shipment2.scheduled_date, incoming_shipment2_date, 'Schedule date of Internal Type shipment for quality control stock location should be equal to: schedule date of Internal type shipment for input stock location + push rule delay..')
-        self.assertEqual(incoming_shipment2.date_deadline, incoming_shipment2_date)
-        old_deadline2 = incoming_shipment2.date_deadline
-
-        # Modify the date_planned of the purchase -> propagate the deadline
-        purchase_form = Form(purchase)
-        purchase_form.date_planned = purchase.date_planned + timedelta(days=1)
-        purchase_form.save()
-        self.assertEqual(incoming_shipment2.date_deadline, old_deadline2 + timedelta(days=1), 'Deadline should be propagate')
-        self.assertEqual(incoming_shipment1.date_deadline, old_deadline1 + timedelta(days=1), 'Deadline should be propagate')
+        self.assertEqual(incoming_shipment2.date_deadline, False)
