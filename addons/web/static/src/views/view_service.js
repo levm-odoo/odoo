@@ -41,12 +41,15 @@ import { UPDATE_METHODS } from "@web/core/orm_service";
  */
 
 export const viewService = {
-    dependencies: ["orm"],
+    dependencies: ["disk_cache", "orm"],
     start(env, { orm }) {
-        let cache = {};
+        const diskCache = env.services.diskCache;
+        let ramCache = {};
+        diskCache.defineTable("views");
 
         function clearCache() {
-            cache = {};
+            ramCache = {};
+            diskCache.clear("views");
             const processedArchs = registry.category("__processed_archs__");
             processedArchs.content = {};
             processedArchs.trigger("UPDATE");
@@ -57,7 +60,7 @@ export const viewService = {
             const { model, method } = ev.detail.data.params;
             if (["ir.ui.view", "ir.filters"].includes(model)) {
                 if (UPDATE_METHODS.includes(method)) {
-                    clearCache();
+                    clearCache(); // no longer enough
                 }
             }
         });
@@ -102,39 +105,46 @@ export const viewService = {
             );
 
             const key = JSON.stringify([resModel, views, filteredContext, loadViewsOptions]);
-            if (!cache[key]) {
-                cache[key] = orm
-                    .call(resModel, "get_views", [], {
-                        context: filteredContext,
-                        views,
-                        options: loadViewsOptions,
-                    })
-                    .then((result) => {
-                        const { models, views } = result;
-                        const viewDescriptions = {
-                            fields: models[resModel].fields,
-                            relatedModels: models,
-                            views: {},
-                        };
-                        for (const viewType in views) {
-                            const { arch, toolbar, id, filters, custom_view_id } = views[viewType];
-                            const viewDescription = { arch, id, custom_view_id };
-                            if (toolbar) {
-                                viewDescription.actionMenus = toolbar;
+            if (!ramCache[key]) {
+                const fromPersistentCache = await diskCache.read("views", key);
+                if (fromPersistentCache) {
+                    ramCache[key] = Promise.resolve(fromPersistentCache);
+                } else {
+                    ramCache[key] = orm
+                        .call(resModel, "get_views", [], {
+                            context: filteredContext,
+                            views,
+                            options: loadViewsOptions,
+                        })
+                        .then((result) => {
+                            const { models, views } = result;
+                            const viewDescriptions = {
+                                fields: models[resModel].fields,
+                                relatedModels: models,
+                                views: {},
+                            };
+                            for (const viewType in views) {
+                                const { arch, toolbar, id, filters, custom_view_id } =
+                                    views[viewType];
+                                const viewDescription = { arch, id, custom_view_id };
+                                if (toolbar) {
+                                    viewDescription.actionMenus = toolbar;
+                                }
+                                if (filters) {
+                                    viewDescription.irFilters = filters;
+                                }
+                                viewDescriptions.views[viewType] = viewDescription;
                             }
-                            if (filters) {
-                                viewDescription.irFilters = filters;
-                            }
-                            viewDescriptions.views[viewType] = viewDescription;
-                        }
-                        return viewDescriptions;
-                    })
-                    .catch((error) => {
-                        delete cache[key];
-                        return Promise.reject(error);
-                    });
+                            diskCache.insert("views", viewDescriptions, key);
+                            return viewDescriptions;
+                        })
+                        .catch((error) => {
+                            delete ramCache[key];
+                            return Promise.reject(error);
+                        });
+                }
             }
-            return cache[key];
+            return ramCache[key];
         }
         return { loadViews };
     },

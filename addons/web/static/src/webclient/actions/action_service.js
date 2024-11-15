@@ -132,19 +132,27 @@ export function makeActionManager(env, router = _router) {
     let id = 0;
     let controllerStack = [];
     let dialogCloseProm;
-    let actionCache = {};
+
     let dialog = null;
     let nextDialog = null;
 
     router.hideKeyFromUrl("globalState");
 
+    // Cache management (RAM + disk)
+    const diskCache = env.services.disk_cache;
+    let ramCache = {};
+    diskCache.defineTable("actions");
+    function clearCaches() {
+        ramCache = {};
+        diskCache.clear("actions");
+    }
     env.bus.addEventListener("CLEAR-CACHES", () => {
-        actionCache = {};
+        clearCaches();
     });
     rpcBus.addEventListener("RPC:RESPONSE", (ev) => {
         const { model, method } = ev.detail.data.params;
         if (model === "ir.actions.act_window" && UPDATE_METHODS.includes(method)) {
-            actionCache = {};
+            clearCaches();
         }
     });
 
@@ -338,13 +346,21 @@ export function makeActionManager(env, router = _router) {
             const ctx = makeContext([user.context, context]);
             delete ctx.params;
             const key = `${JSON.stringify(actionRequest)},${JSON.stringify(ctx)}`;
-            let action = await actionCache[key];
+            let action = await ramCache[key];
             if (!action) {
-                actionCache[key] = rpc("/web/action/load", {
-                    action_id: actionRequest,
-                    context: ctx,
-                });
-                action = await actionCache[key];
+                const fromPersistentCache = await diskCache.read("actions", key);
+                if (fromPersistentCache) {
+                    ramCache[key] = Promise.resolve(fromPersistentCache);
+                } else {
+                    ramCache[key] = rpc("/web/action/load", {
+                        action_id: actionRequest,
+                        context: ctx,
+                    }).then((result) => {
+                        diskCache.insert("actions", result, key);
+                        return result;
+                    });
+                }
+                action = await ramCache[key];
                 if (action.help) {
                     action.help = markup(action.help);
                 }
@@ -1714,7 +1730,7 @@ export function makeActionManager(env, router = _router) {
 }
 
 export const actionService = {
-    dependencies: ["dialog", "effect", "localization", "notification", "title", "ui"],
+    dependencies: ["disk_cache", "dialog", "effect", "localization", "notification", "title", "ui"],
     start(env) {
         return makeActionManager(env);
     },
