@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <record id="base.module_category_inventory_product" model="ir.module.category">
+        <field name="description">Helps you manage your product and it's operations.</field>
+        <field name="sequence">12</field>
+    </record>
+
+    <record id="group_product_manager" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="users" eval="[Command.link(ref('base.user_root')), Command.link(ref('base.user_admin'))]"/>
+        <field name="category_id" ref="base.module_category_inventory_product"/>
+    </record>
+
     <record id="group_product_pricelist" model="res.groups">
         <field name="name">Basic Pricelists</field>
         <field name="category_id" ref="base.module_category_hidden"/>
@@ -14,12 +25,6 @@
     <record id="group_product_variant" model="res.groups">
         <field name="name">Manage Product Variants</field>
         <field name="category_id" ref="base.module_category_hidden"/>
-    </record>
-
-    <record id="group_product_manager" model="res.groups">
-        <field name="name">Product Creation</field>
-        <field name="users" eval="[Command.link(ref('base.user_root')), Command.link(ref('base.user_admin'))]"/>
-        <field name="category_id" ref="base.module_category_usability"/>
     </record>
 
     <record id="base.default_user" model="res.users">

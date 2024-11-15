@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+
+    <t t-name="purchase.PurchaseFileUploader" t-inherit="account.DocumentFileUploader" t-inherit-mode="primary">
+        <xpath expr="//t[@t-slot='toggler']" position="replace">
+            <t t-if="props.togglerTemplate" t-call="{{ props.togglerTemplate }}"/>
+            <t t-else="" t-slot="toggler"/>
+         </xpath>
+    </t>
+
+    <t t-name="purchase.PurchaseViewUploadButton">
+        <AccountFileUploader>
+            <t t-set-slot="toggler">
+                <button type="button" class="btn btn-secondary o_button_upload_bill" data-hotkey="b">
+                    Upload
+                </button>
+            </t>
+        </AccountFileUploader>
+    </t>
+
+    <t t-name="purchase.PurchaseUploadLink">
+        <t t-if="['purchase', 'done'].includes(props.record.data.state)">
+            <a t-att-class="props.btnClass" href="#" t-out="props.linkText"/>
+        </t>
+    </t>
+
+</templates>

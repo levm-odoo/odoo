@@ -35,6 +35,7 @@ class TestPurchase(AccountTestInvoicingCommon):
             po_line.product_qty = 10
             po_line.price_unit = 200
         po = po.save()
+        po.button_confirm()
 
         # Check that the same date is planned on both PO lines.
         self.assertNotEqual(po.order_line[0].date_planned, False)
@@ -77,6 +78,8 @@ class TestPurchase(AccountTestInvoicingCommon):
         })
         with Form(po) as po_form:
             po_form.date_planned = fields.Datetime.now() + timedelta(days=1)
+
+        po.button_confirm()
         self.assertEqual(po.order_line.date_planned, po.date_planned)
 
         with Form(po) as po_form:
@@ -839,6 +842,7 @@ class TestPurchase(AccountTestInvoicingCommon):
             po_line.product_id = self.product_a
             po_line.product_qty = 10
         po = po_form.save()
+        po.button_confirm()
         self.assertEqual(po.order_line.price_unit, 5)
         self.assertEqual(po.order_line.name, '[Vendor A] product_a')
         self.assertEqual(po.order_line.product_qty, 10)
@@ -861,7 +865,6 @@ class TestPurchase(AccountTestInvoicingCommon):
         po_1 = Form(PurchaseOrder)
         po_1.partner_id = self.partner_a
         po_1.partner_ref = "azure"
-        po_1.origin = "s0003"
         po_1.user_id = user_1
         po_1.payment_term_id = payment_term_id_1
         with po_1.order_line.new() as po_line:
@@ -874,7 +877,6 @@ class TestPurchase(AccountTestInvoicingCommon):
         po_2 = Form(PurchaseOrder)
         po_2.partner_id = self.partner_a
         po_2.partner_ref = "wood corner"
-        po_2.origin = "s0004"
         po_2.user_id = user_2
         po_2.payment_term_id = payment_term_id_2
 
@@ -898,7 +900,6 @@ class TestPurchase(AccountTestInvoicingCommon):
         self.assertTrue(po_2.state == 'cancel')
         self.assertEqual(po_1.order_line[0].product_qty, 6)
         self.assertEqual(po_1.partner_ref, "azure, wood corner")
-        self.assertEqual(po_1.origin, "s0003, s0004")
         self.assertEqual(po_1.user_id, user_1)
         self.assertEqual(po_1.payment_term_id, payment_term_id_1)
         self.assertEqual(po_1.incoterm_id, incoterm_id_1)
