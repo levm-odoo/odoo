@@ -1001,3 +1001,7 @@ a.no-decoration {
 body.modal-open:has(.js_sale.o_wsale_product_page) {
     overflow: hidden;
 }
+
+.oe_website_sale_tx_status .alert p {
+    margin: 0;
+}
