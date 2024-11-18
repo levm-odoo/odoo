@@ -65,7 +65,7 @@ from odoo.tools.translate import _, LazyTranslate
 from . import domains
 from . import decorators as api
 from .commands import Command
-from .domains import Domain, COLLECTION_TYPES, NEGATIVE_CONDITION_OPERATORS
+from .domains import Domain, NEGATIVE_CONDITION_OPERATORS
 from .fields import Field, determine
 from .fields_misc import Id
 from .fields_temporal import Datetime
@@ -5331,7 +5331,7 @@ class BaseModel(metaclass=MetaModel):
         ):
             domain &= Domain(self._active_name, '=', True)
 
-        domain = domain._optimize(self)
+        domain = domain._optimize_for_sql(self)
         if domain.is_false():
             return self.browse()._as_query()
         query = Query(self.env, self._table, self._table_sql)
@@ -5363,7 +5363,7 @@ class BaseModel(metaclass=MetaModel):
         domain = self.env['ir.rule']._compute_domain(self._name, mode)
         if domain:
             model = self.sudo()
-            domain = domain._optimize(model)
+            domain = domain._optimize_for_sql(model)
             query.add_where(domain._to_sql(model, query.table, query))
 
     def _order_to_sql(self, order: str, query: Query, alias: (str | None) = None,
@@ -5594,7 +5594,7 @@ class BaseModel(metaclass=MetaModel):
             sec_domain = Domain.TRUE
         else:
             sec_domain = self.env['ir.rule']._compute_domain(self._name, 'read')
-            sec_domain = sec_domain._optimize(self.sudo())
+            sec_domain = sec_domain._optimize_for_sql(self.sudo())
 
         # build the query
         if sec_domain.is_false() or (not limit and limit is not None and limit is not False):
