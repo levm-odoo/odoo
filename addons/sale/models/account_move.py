@@ -92,6 +92,7 @@ class AccountMove(models.Model):
         # OVERRIDE
         # Auto-reconcile the invoice with payments coming from transactions.
         # It's useful when you have a "paid" sale order (using a payment transaction) and you invoice it later.
+
         posted = super()._post(soft)
 
         for invoice in posted.filtered(lambda move: move.is_invoice()):
