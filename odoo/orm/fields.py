@@ -5,15 +5,18 @@ from __future__ import annotations
 
 import itertools
 import logging
+import operator as pyoperator
+import re
 import typing
 import warnings
+from collections.abc import Set as AbstractSet
 from operator import attrgetter
 
 from psycopg2.extras import Json as PsycopgJson
 
 from odoo import SUPERUSER_ID
 from odoo.exceptions import AccessError, MissingError
-from odoo.tools import Query, SQL, lazy_property, sql
+from odoo.tools import SQL, Query, lazy_property, sql
 from odoo.tools.constants import PREFETCH_MAX
 from odoo.tools.misc import SENTINEL, Sentinel
 
@@ -21,7 +24,10 @@ from .domains import NEGATIVE_CONDITION_OPERATORS, Domain
 from .utils import COLLECTION_TYPES, SQL_OPERATORS, expand_ids
 
 if typing.TYPE_CHECKING:
+    from collections.abc import Callable
+
     from .models import BaseModel
+    M = typing.TypeVar("M", bound=BaseModel)
 T = typing.TypeVar("T")
 
 IR_MODELS = (
@@ -32,6 +38,7 @@ IR_MODELS = (
 COMPANY_DEPENDENT_FIELDS = (
     'char', 'float', 'boolean', 'integer', 'text', 'many2one', 'date', 'datetime', 'selection', 'html'
 )
+PYTON_INEQUALITY_OPERATOR = {'<': pyoperator.lt, '>': pyoperator.gt, '<=': pyoperator.le, '>=': pyoperator.ge}
 
 _logger = logging.getLogger('odoo.fields')
 
@@ -1304,6 +1311,111 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
         ):
             return SQL('(%s IS NOT NULL AND %s)', SQL.identifier(alias, self.name), sql_expr)
         return sql_expr
+
+    ############################################################################
+    #
+    # Filtering of records
+    #
+
+    def expression_getter(self, field_expr: str) -> Callable[[BaseModel], typing.Any]:
+        if field_expr == self.name:
+            return self.__get__
+        property_function = self.expression_property_function(field_expr)
+        return lambda record: property_function(self.__get__(record))
+
+    def expression_property_function(self, field_expr: str) -> Callable[[T], typing.Any]:
+        if field_expr == self.name:
+            return lambda x: x
+        raise ValueError(f"Expression not supported on {self}: {field_expr!r}")
+
+    def filter_function(self, records: M, getter: Callable[[M], T], operator: str, value) -> Callable[[M], M]:
+        assert operator not in NEGATIVE_CONDITION_OPERATORS
+        # assert not isinstance(value, (SQL, Query))
+
+        # -------------------------------------------------
+        # operator: in (equality)
+
+        if operator == 'in':
+            assert isinstance(value, COLLECTION_TYPES) and value, \
+                f"filter_function() 'in' operator expects a collection, not a {type(value)}"
+            if not isinstance(value, AbstractSet):
+                value = set(value)
+            if False in value:
+                # XXX falsy value
+                if len(value) == 1:
+                    return lambda rec: not getter(rec)
+                return lambda rec: (val := getter(rec)) in value or not val
+            return lambda rec: getter(rec) in value
+
+        # -------------------------------------------------
+        # operator: like
+
+        if operator.endswith('like'):
+            if operator.endswith('ilike'):
+                # ilike uses unaccent and lower-case comparison
+                # we may get something which is not a string
+                def unaccent(x):
+                    return self.pool.unaccent_python(str(x).lower()) if x else ''
+            else:
+                def unaccent(x):
+                    return str(x) if x else ''
+
+            # build a regex that matches the SQL-like expression
+            # note that '\' is used for escaping in SQL
+            def build_like_regex(value: str, exact: bool):
+                yield '^' if exact else '.*'
+                escaped = False
+                for char in value:
+                    if escaped:
+                        escaped = False
+                        yield re.escape(char)
+                    elif char == '\\':
+                        escaped = True
+                    elif char == '%':
+                        yield '.*'
+                    elif char == '_':
+                        yield '.'
+                    else:
+                        yield re.escape(char)
+                if exact:
+                    yield '$'
+                # no need to match r'.*' in else because we only use .match()
+
+            like_regex = re.compile("".join(build_like_regex(unaccent(value), operator.startswith("="))))
+            return lambda rec: like_regex.match(unaccent(getter(rec)))
+
+        # -------------------------------------------------
+        # operator: inequality
+
+        if pyop := PYTON_INEQUALITY_OPERATOR.get(operator):
+            can_be_null = False
+            if isinstance(value, SQL):
+                # here for dynamic field comparison
+                # TODO can we remove SQL support from here?
+                sql_value = value
+            else:
+                if (null_value := self.falsy_value) is not None:
+                    value = value or null_value
+                    can_be_null = (
+                        ('=' in operator and null_value == value)
+                        or (operator[0] == '<' and null_value < value)
+                        or (operator[0] == '>' and null_value > value)
+                    )
+
+            def check_inequality(rec):
+                # XXX better handling of falsy value
+                data = getter(rec)
+                try:
+                    if data is False or data is None:
+                        return can_be_null
+                    return pyop(data, value)
+                except Exception:
+                    # ignoring error, type mismatch
+                    return False
+            return check_inequality
+
+        # -------------------------------------------------
+        raise NotImplementedError(f"Invalid simple operator {operator!r}")
 
     ############################################################################
     #

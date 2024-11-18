@@ -131,6 +131,21 @@ class _Relational(Field[M], typing.Generic[M]):
                 return f"({field_to_check} and {company_domain} or {no_company_domain}) + ({domain or []})"
         return domain
 
+    def filter_function(self, records, getter, operator, value):
+        corecords = getter(records)
+        if operator == 'any':
+            assert isinstance(value, Domain)
+            corecords = corecords.filtered(value)
+        elif operator == 'in' and value == {False}:
+            # shortcut for empty relationship
+            return lambda rec: not any(getter(rec))
+        elif isinstance(value, str) or (isinstance(value, COLLECTION_TYPES) and any(isinstance(v, str) for v in value)):
+            corecords = corecords.filtered(Domain('display_name', operator, value))
+        else:
+            corecords = corecords.filtered(Domain('id', operator, value))
+        ids = set(corecords._ids)
+        return lambda rec: any(id_ in ids for val in getter(rec) for id_ in val._ids)
+
 
 class Many2one(_Relational[M]):
     """ The value of such a field is a recordset of size 0 (no

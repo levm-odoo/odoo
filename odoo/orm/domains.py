@@ -60,13 +60,16 @@ import warnings
 from datetime import date, datetime, time, timedelta
 
 from odoo.tools import SQL, OrderedSet, Query, classproperty, partition, str2bool
+
 from .identifiers import NewId
-from .utils import COLLECTION_TYPES
+from .utils import COLLECTION_TYPES, parse_field_expr
 
 if typing.TYPE_CHECKING:
     from collections.abc import Callable, Collection, Iterable
     from odoo.fields import Field
     from odoo.models import BaseModel
+
+    M = typing.TypeVar('M', bound=BaseModel)
 
 
 _logger = logging.getLogger('odoo.domains')
@@ -360,6 +363,13 @@ class Domain:
         # just execute the optimization code that goes through all the fields
         self._optimize(model, OptimizationLevel.TO_SQL)
 
+    def filter_records(self, records: M) -> M:
+        """Filter a recordset using this domain.
+
+        The implentation keeps the prefetch of the given records.
+        """
+        raise NotImplementedError
+
     def _optimize(self, model: BaseModel, level: OptimizationLevel) -> Domain:
         """Perform optimizations of the node given a model to resolve the fields
 
@@ -425,6 +435,9 @@ class DomainBool(Domain):
     def __iter__(self):
         yield _TRUE_LEAF if self.__value else _FALSE_LEAF
 
+    def filter_records(self, records: M) -> M:
+        return records if self.__value else records.browse()
+
     def _to_sql(self, model: BaseModel, alias: str, query: Query) -> SQL:
         return SQL("TRUE") if self.__value else SQL("FALSE")
 
@@ -489,6 +502,9 @@ class DomainNot(Domain):
 
     def __hash__(self):
         return ~hash(self.child)
+
+    def filter_records(self, records: M) -> M:
+        return (records - self.child.filter_records(records)).with_prefetch(records._prefetch_ids)
 
     def _to_sql(self, model: BaseModel, alias: str, query: Query) -> SQL:
         condition = self.child._to_sql(model, alias, query)
@@ -651,6 +667,13 @@ class DomainAnd(DomainNary):
             return DomainAnd([other, *self.children])
         return NotImplemented
 
+    def filter_records(self, records: M) -> M:
+        for child in self.children:
+            if not records:
+                break
+            records = child.filter_records(records)
+        return records
+
 
 class DomainOr(DomainNary):
     """Domain: OR with multiple children"""
@@ -676,6 +699,18 @@ class DomainOr(DomainNary):
         if isinstance(other, Domain) and not isinstance(other, DomainBool):
             return DomainOr([other, *self.children])
         return NotImplemented
+
+    def filter_records(self, records: M) -> M:
+        if not records:
+            return records
+        to_check = records
+        for child in self.children:
+            if matched := child.filter_records(to_check):
+                to_check = (to_check - matched).with_prefetch(records._prefetch_ids)
+                if not to_check:
+                    # all records already matched
+                    return records
+        return (records - to_check).with_prefetch(records._prefetch_ids)
 
 
 class DomainCondition(Domain):
@@ -791,11 +826,7 @@ class DomainCondition(Domain):
 
     def __get_field(self, model: BaseModel) -> tuple[Field, str]:
         """Get the field or raise an exception"""
-        field_name = self.field_expr
-        if '.' in field_name:
-            field_name, property_name = field_name.split('.', 1)
-        else:
-            property_name = ''
+        field_name, property_name = parse_field_expr(self.field_expr)
         try:
             field = model._fields[field_name]
         except KeyError:
@@ -883,6 +914,42 @@ class DomainCondition(Domain):
 
         self._opt_level = level
         return self
+
+    def filter_records(self, records: M) -> M:
+        if self._opt_level < OptimizationLevel.BASIC:
+            return self._optimize(records, OptimizationLevel.BASIC).filter_records(records)
+        operator = self.operator
+        if operator not in STANDARD_CONDITION_OPERATORS:
+            # basic optimization was done before calling this, we may resort to SQL
+            return self._optimize(records, OptimizationLevel.TO_SQL).filter_records(records)
+        value = self.value
+        positive_operator = NEGATIVE_CONDITION_OPERATORS.get(operator, operator)
+        if isinstance(value, SQL):
+            # transform into an Query value
+            if positive_operator == operator:
+                condition = self
+                operator = 'any'
+            else:
+                condition = ~self
+                operator = 'not any'
+            positive_operator = 'any'
+            value = records.with_context(active_test=False)._search(DomainCondition('id', 'in', OrderedSet(records.ids)) & condition)
+            assert isinstance(value, Query)
+        if isinstance(value, Query):
+            if positive_operator not in ('in', 'any'):
+                self._raise("Cannot filter using Query without the 'any' or 'in' operator")
+            ids = set(value.get_result_ids())
+            if positive_operator == operator:
+                return records.filtered(lambda rec: rec.id in ids)
+            else:
+                return records.filtered(lambda rec: rec.id not in ids)
+
+        field = self._field()
+        if field.model_name != records._name:
+            field, _property_name = self.__get_field(records)
+        func = field.filter_function(records, field.expression_getter(self.field_expr), positive_operator, value)
+        final_func = func if positive_operator == operator else lambda rec: not func(rec)
+        return records.filtered(final_func)
 
     def _to_sql(self, model: BaseModel, alias: str, query: Query) -> SQL:
         return model._condition_to_sql(alias, self.field_expr, self.operator, self.value, query)
