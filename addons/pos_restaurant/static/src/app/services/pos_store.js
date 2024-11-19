@@ -1,7 +1,5 @@
 import { patch } from "@web/core/utils/patch";
 import { PosStore } from "@point_of_sale/app/services/pos_store";
-import { PaymentScreen } from "@point_of_sale/app/screens/payment_screen/payment_screen";
-import { FloorScreen } from "@pos_restaurant/app/floor_screen/floor_screen";
 import { ConnectionLostError } from "@web/core/network/rpc";
 import { _t } from "@web/core/l10n/translation";
 
@@ -25,6 +23,17 @@ patch(PosStore.prototype, {
         this.isEditMode = false;
         this.tableSyncing = false;
         await super.setup(...arguments);
+        this.mobilePanes = {
+            ...this.mobilePanes,
+            FloorScreen: "right",
+        };
+    },
+    onClickBackButton() {
+        if (this.mainScreen.component.name === "FloorScreen") {
+            this.switchPane("FloorScreen");
+        } else {
+            super.onClickBackButton();
+        }
     },
     get firstScreen() {
         const screen = super.firstScreen;
@@ -126,11 +135,12 @@ patch(PosStore.prototype, {
     },
     shouldResetIdleTimer() {
         const stayPaymentScreen =
-            this.mainScreen.component === PaymentScreen && this.get_order().payment_ids.length > 0;
+            this.mainScreen.component.name === "PaymentScreen" &&
+            this.get_order().payment_ids.length > 0;
         return (
             this.config.module_pos_restaurant &&
             !stayPaymentScreen &&
-            this.mainScreen.component !== FloorScreen
+            this.mainScreen.component.name !== "FloorScreen"
         );
     },
     showScreen(screenName) {

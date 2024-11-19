@@ -77,6 +77,7 @@ patch(ControlButtons.prototype, {
     editFloatingOrderName(order) {
         this.dialog.add(TextInputPopup, {
             title: _t("Edit Order Name"),
+            size: "sm",
             placeholder: _t("18:45 John 4P"),
             startingValue: order.floating_order_name || "",
             getPayload: async (newName) => {

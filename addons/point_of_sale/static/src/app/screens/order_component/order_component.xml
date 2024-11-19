@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="point_of_sale.OrderComponent">
+        <div t-att-class="{'flex-grow-1 w-100 mw-100': ui.isSmall, 'd-none': ui.isSmall and pos.mobileSide !== 'left'}"
+            class="leftpane h-100 d-flex flex-column p-2">
+            <t t-component="this.props.topComponent" t-props="this.props.topProps" />
+            <div class="pads">
+                <div t-attf-class="control-buttons d-flex justify-content-between gap-2 w-100 py-2">
+                    <ControlButtons t-if="!ui.isSmall and this.props.showControlButtons" onClickMore.bind="() => this.pos.displayAllControlPopup()"/>
+                </div>
+                <div class="subpads d-flex flex-column gap-2">
+                    <Numpad class="'d-grid m-n1'" buttons="this.props.getNumpadButtons()" onClick.bind="this.props.onNumpadClick"/>
+                    <ActionpadWidget t-props="this.props.getActionProps()"/>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

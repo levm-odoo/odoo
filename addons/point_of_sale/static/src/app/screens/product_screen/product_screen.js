@@ -19,13 +19,12 @@ import { OrderSummary } from "@point_of_sale/app/screens/product_screen/order_su
 import { ProductInfoPopup } from "@point_of_sale/app/components/popups/product_info_popup/product_info_popup";
 import { fuzzyLookup } from "@web/core/utils/search";
 import { ProductCard } from "@point_of_sale/app/components/product_card/product_card";
-import {
-    ControlButtons,
-    ControlButtonsPopup,
-} from "@point_of_sale/app/screens/product_screen/control_buttons/control_buttons";
+import { ControlButtons } from "@point_of_sale/app/screens/product_screen/control_buttons/control_buttons";
 import { pick } from "@web/core/utils/objects";
 import { unaccent } from "@web/core/utils/strings";
 import { CameraBarcodeScanner } from "@point_of_sale/app/screens/product_screen/camera_barcode_scanner";
+import { OrderComponent } from "@point_of_sale/app/screens/order_component/order_component";
+import { DoubleScreen } from "@point_of_sale/app/screens/double_screen/double_screen";
 
 export class ProductScreen extends Component {
     static template = "point_of_sale.ProductScreen";
@@ -40,8 +39,10 @@ export class ProductScreen extends Component {
         OrderSummary,
         ProductCard,
         CameraBarcodeScanner,
+        OrderComponent,
+        DoubleScreen,
     };
-    static props = {};
+    static props = { numberBuffer: Object };
 
     setup() {
         super.setup();
@@ -49,7 +50,6 @@ export class ProductScreen extends Component {
         this.ui = useState(useService("ui"));
         this.dialog = useService("dialog");
         this.notification = useService("notification");
-        this.numberBuffer = useService("number_buffer");
         this.state = useState({
             previousSearchWord: "",
             currentOffset: 0,
@@ -60,7 +60,7 @@ export class ProductScreen extends Component {
             // Call `reset` when the `onMounted` callback in `numberBuffer.use` is done.
             // We don't do this in the `mounted` lifecycle method because it is called before
             // the callbacks in `onMounted` hook.
-            this.numberBuffer.reset();
+            this.props.numberBuffer.reset();
         });
 
         onWillRender(() => {
@@ -82,7 +82,7 @@ export class ProductScreen extends Component {
             gs1: this._barcodeGS1Action,
         });
 
-        this.numberBuffer.use({
+        this.props.numberBuffer.use({
             useWithBarcode: true,
         });
     }
@@ -133,46 +133,6 @@ export class ProductScreen extends Component {
         };
     }
 
-    getNumpadButtons() {
-        const colorClassMap = {
-            [this.env.services.localization.decimalPoint]: "o_colorlist_item_color_transparent_6",
-            Backspace: "o_colorlist_item_color_transparent_1",
-            "-": "o_colorlist_item_color_transparent_3",
-        };
-
-        return getButtons(DEFAULT_LAST_ROW, [
-            { value: "quantity", text: _t("Qty") },
-            { value: "discount", text: _t("%"), disabled: !this.pos.config.manual_discount },
-            {
-                value: "price",
-                text: _t("Price"),
-                disabled: !this.pos.cashierHasPriceControlRights(),
-            },
-            BACKSPACE,
-        ]).map((button) => ({
-            ...button,
-            class: `
-                ${colorClassMap[button.value] || ""}
-                ${this.pos.numpadMode === button.value ? "active" : ""}
-                ${button.value === "quantity" ? "numpad-qty rounded-0 rounded-top mb-0" : ""}
-                ${button.value === "price" ? "numpad-price rounded-0 rounded-bottom mt-0" : ""}
-                ${
-                    button.value === "discount"
-                        ? "numpad-discount my-0 rounded-0 border-top border-bottom"
-                        : ""
-                }
-            `,
-        }));
-    }
-    onNumpadClick(buttonValue) {
-        if (["quantity", "discount", "price"].includes(buttonValue)) {
-            this.numberBuffer.capture();
-            this.numberBuffer.reset();
-            this.pos.numpadMode = buttonValue;
-            return;
-        }
-        this.numberBuffer.sendKey(buttonValue);
-    }
     get currentOrder() {
         return this.pos.get_order();
     }
@@ -225,7 +185,7 @@ export class ProductScreen extends Component {
             { code },
             product.needToConfigure()
         );
-        this.numberBuffer.reset();
+        this.props.numberBuffer.reset();
     }
     async _getPartnerByBarcode(code) {
         let partner = this.pos.models["res.partner"].getBy("barcode", code.code);
@@ -272,10 +232,7 @@ export class ProductScreen extends Component {
             { product_id: product, product_tmpl_id: product.product_tmpl_id },
             { code: lotBarcode }
         );
-        this.numberBuffer.reset();
-    }
-    displayAllControlPopup() {
-        this.dialog.add(ControlButtonsPopup);
+        this.props.numberBuffer.reset();
     }
     get selectedOrderlineQuantity() {
         return this.currentOrder.get_selected_orderline()?.get_quantity_str();
@@ -306,7 +263,7 @@ export class ProductScreen extends Component {
 
     switchPane() {
         this.pos.scanning = false;
-        this.pos.switchPane();
+        this.pos.switchPane("ProductScreen");
     }
 
     getProductPrice(product) {
@@ -457,4 +414,103 @@ export class ProductScreen extends Component {
     }
 }
 
-registry.category("pos_screens").add("ProductScreen", ProductScreen);
+export class ProductScreenDouble extends Component {
+    static template = "point_of_sale.ProductScreenDouble";
+    static components = { DoubleScreen };
+    static props = {};
+    static name = "ProductScreen";
+
+    setup() {
+        super.setup();
+        this.pos = usePos();
+        this.numberBuffer = useService("number_buffer");
+    }
+
+    get currentOrder() {
+        return this.pos.get_order();
+    }
+
+    get doubleProps() {
+        return {
+            left: OrderComponent,
+            right: ProductScreen,
+            leftWidth: 25,
+            rightWidth: 75,
+            leftProps: {
+                order: this.currentOrder,
+                showControlButtons: true,
+                getNumpadButtons: () => this.getNumpadButtons(),
+                onNumpadClick: (buttonValue) => this.onNumpadClick(buttonValue),
+                getActionProps: () => this.getActionProps(),
+                topComponent: OrderSummary,
+                topProps: {},
+            },
+            rightProps: { numberBuffer: this.numberBuffer },
+        };
+    }
+
+    getNumpadButtons() {
+        const colorClassMap = {
+            [this.env.services.localization.decimalPoint]: "o_colorlist_item_color_transparent_6",
+            Backspace: "o_colorlist_item_color_transparent_1",
+            "-": "o_colorlist_item_color_transparent_3",
+        };
+
+        const default_last_row_values =
+            DEFAULT_LAST_ROW.map((button) => button.value) + [BACKSPACE.value];
+
+        return getButtons(DEFAULT_LAST_ROW, [
+            { value: "quantity", text: _t("Qty") },
+            { value: "discount", text: _t("%"), disabled: !this.pos.config.manual_discount },
+            {
+                value: "price",
+                text: _t("Price"),
+                disabled: !this.pos.cashierHasPriceControlRights(),
+            },
+            BACKSPACE,
+        ]).map((button) => ({
+            ...button,
+            class: `
+                ${default_last_row_values.includes(button.value) ? "border-0 2" : ""}
+                ${colorClassMap[button.value] || ""}
+                ${this.pos.numpadMode === button.value ? "active" : ""}
+                ${button.value === "quantity" ? "numpad-qty rounded-0 rounded-top mb-0" : ""}
+                ${button.value === "price" ? "numpad-price rounded-0 rounded-bottom mt-0" : ""}
+                ${
+                    button.value === "discount"
+                        ? "numpad-discount my-0 rounded-0 border-top border-bottom"
+                        : ""
+                }
+            `,
+        }));
+    }
+
+    onNumpadClick(buttonValue) {
+        if (["quantity", "discount", "price"].includes(buttonValue)) {
+            this.numberBuffer.capture();
+            this.numberBuffer.reset();
+            this.pos.numpadMode = buttonValue;
+            return;
+        }
+        this.numberBuffer.sendKey(buttonValue);
+    }
+
+    getActionProps() {
+        return {
+            partner: this.currentOrder?.get_partner(),
+            onClickMore: () => this.pos.displayAllControlPopup(),
+            showActionButton: !this.currentOrder?.is_empty(),
+            actions: this.getActions(),
+        };
+    }
+    getActions() {
+        return [
+            {
+                actionName: _t("Payment"),
+                actionToTrigger: async () => await this.pos.pay(),
+            },
+        ];
+    }
+}
+
+registry.category("pos_screens").add("ProductScreen", ProductScreenDouble);

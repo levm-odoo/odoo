@@ -3,7 +3,26 @@
 
     <t t-name="point_of_sale.Navbar">
         <div class="pos-topheader navbar-height d-flex align-items-center justify-content-between px-2 py-1 m-0 bg-white border-bottom">
-            <div class="pos-leftheader d-flex align-items-center overflow-hidden">
+            <div class="pos-leftheader d-flex align-items-center overflow-hidden" t-att-class="{ 'flex-grow-1': ui.isSmall }">
+                <div class="d-flex flex-shrink-0 gap-1 position-relative">
+                    <div class="navbar-menu d-flex d-lg-grid overflow-hidden position-relative">
+                        <t t-set="screen" t-value="pos.mainScreen.component.name" />
+                        <button class="register-label navbar-big-button z-1 btn btn-lg lh-lg" t-att-class="{'btn-primary': screen === 'ProductScreen'}" t-on-click="() => this.pos.showScreen('ProductScreen')">
+                            <span t-if="!ui.isSmall">Register</span>
+                            <i class="fa fa-pencil"/>
+                            <!-- <img t-else="" src="/pos_restaurant/static/img/table.svg" class="navbar-icon" alt="Table Selector"/> -->
+                        </button>
+                        <button class="orders-button navbar-big-button z-1 btn btn-lg lh-lg" t-att-class="{'btn-primary': screen === 'TicketScreen'}" t-on-click="() => this.pos.onTicketButtonClick()">
+                            <t t-if="!ui.isSmall">
+                                <span>Orders</span>
+                                <span t-if="orderCount gt 0" class="badge text-bg-info rounded-pill py-1 ms-2 float-end" t-esc="orderCount"/>
+                            </t>
+                            <i class="fa fa-book"/>
+                            <!-- <img t-else="" src="/pos_restaurant/static/img/plan.svg" class="navbar-icon" alt="Floor Plan"/> -->
+                        </button>
+                    </div>
+                    <div t-if="!ui.isSmall" class="navbar-separator ms-1 me-2 my-2 border-start border"/>
+                </div>
                 <OrderTabs orders="getOrderTabs()"/>
             </div>
             <div t-if="!ui.isSmall"  class="pos-centerheader d-flex justify-content-center overflow-hidden">
@@ -44,9 +63,6 @@
                             <div class="p-2 pos-burger-menu-items">
                                 <DropdownItem t-if="!isDisplayStandalone" onSelected="() => window.open(this.appUrl)">
                                     Install App
-                                </DropdownItem>
-                                <DropdownItem onSelected="() => this.pos.onTicketButtonClick()">
-                                    Orders <span t-if="orderCount gt 0" class="badge text-bg-info rounded-pill py-1 ms-2 float-end" t-esc="orderCount"/>
                                 </DropdownItem>
                                 <DropdownItem t-if="showCashMoveButton" onSelected="() => this.pos.cashMove()">
                                     Cash In/Out

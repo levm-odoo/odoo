@@ -6,7 +6,7 @@
                 <div t-ref="scrollable" t-att-style="props.style" t-att-class="props.class" class="order-container d-flex flex-column flex-grow-1 overflow-y-auto text-start">
                     <t t-foreach="props.lines" t-as="line" t-key="line_index">
                         <t t-if="props.slots?.default" t-slot="default" line="line"/>
-                        <Orderline t-else="" line="line" />
+                        <Orderline t-else="" line="line"/>
                     </t>
                     <div t-if="props.generalCustomerNote"
                         t-attf-class="{{ props.screenName == 'ReceiptScreen' ? 'mt-1 bg-opacity-75 p-0' : 'customer-note w-100 p-2 mt-2 rounded text-break text-bg-warning bg-opacity-25 mt-0'}}">

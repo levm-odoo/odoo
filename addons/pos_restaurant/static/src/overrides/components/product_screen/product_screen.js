@@ -1,4 +1,7 @@
-import { ProductScreen } from "@point_of_sale/app/screens/product_screen/product_screen";
+import {
+    ProductScreen,
+    ProductScreenDouble,
+} from "@point_of_sale/app/screens/product_screen/product_screen";
 import { patch } from "@web/core/utils/patch";
 
 patch(ProductScreen.prototype, {
@@ -50,5 +53,18 @@ patch(ProductScreen.prototype, {
         return (
             this.pos.getOrderChanges().nbrOfChanges !== 0 && this.pos.config.module_pos_restaurant
         );
+    },
+});
+
+patch(ProductScreenDouble.prototype, {
+    getActions() {
+        return [
+            {
+                actionName: "Order",
+                actionToTrigger: async () =>
+                    await this.pos.sendOrderInPreparationUpdateLastChange(this.currentOrder),
+            },
+            ...super.getActions(),
+        ];
     },
 });

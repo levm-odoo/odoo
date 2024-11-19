@@ -1,10 +1,13 @@
 import { _t } from "@web/core/l10n/translation";
-import { TicketScreen } from "@point_of_sale/app/screens/ticket_screen/ticket_screen";
+import {
+    TicketScreenLeft,
+    TicketScreen,
+} from "@point_of_sale/app/screens/ticket_screen/ticket_screen";
 import { useAutofocus } from "@web/core/utils/hooks";
 import { patch } from "@web/core/utils/patch";
 import { Component, useState } from "@odoo/owl";
 
-patch(TicketScreen.prototype, {
+patch(TicketScreenLeft.prototype, {
     _getScreenToStatusMap() {
         return Object.assign(super._getScreenToStatusMap(...arguments), {
             PaymentScreen: this.pos.config.set_tip_after_payment
@@ -38,16 +41,6 @@ patch(TicketScreen.prototype, {
                 modelField: "table_id.table_number",
             },
         });
-    },
-    async _setOrder(order) {
-        const shouldBeOverridden = this.pos.config.module_pos_restaurant && order.table_id;
-        if (!shouldBeOverridden) {
-            return super._setOrder(...arguments);
-        }
-        // we came from the FloorScreen
-        const orderTable = order.getTable();
-        await this.pos.setTable(orderTable, order.uuid);
-        this.closeTicketScreen();
     },
     async settleTips() {
         const promises = [];
@@ -113,6 +106,19 @@ patch(TicketScreen.prototype, {
     },
 });
 
+patch(TicketScreen.prototype, {
+    async _setOrder(order) {
+        const shouldBeOverridden = this.pos.config.module_pos_restaurant && order.table_id;
+        if (!shouldBeOverridden) {
+            return super._setOrder(...arguments);
+        }
+        // we came from the FloorScreen
+        const orderTable = order.getTable();
+        await this.pos.setTable(orderTable, order.uuid);
+        this.closeTicketScreen();
+    },
+});
+
 export class TipCell extends Component {
     static template = "pos_restaurant.TipCell";
     static props = {
@@ -142,6 +148,6 @@ export class TipCell extends Component {
     }
 }
 
-patch(TicketScreen, {
-    components: { ...TicketScreen.components, TipCell },
+patch(TicketScreenLeft, {
+    components: { ...TicketScreenLeft.components, TipCell },
 });

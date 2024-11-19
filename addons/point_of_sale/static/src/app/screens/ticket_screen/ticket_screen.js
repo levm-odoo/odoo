@@ -23,56 +23,32 @@ import { PosOrderLineRefund } from "@point_of_sale/app/models/pos_order_line_ref
 import { fuzzyLookup } from "@web/core/utils/search";
 import { parseUTCString } from "@point_of_sale/utils";
 import { useTrackedAsync } from "@point_of_sale/app/hooks/hooks";
+import { DoubleScreen } from "@point_of_sale/app/screens/double_screen/double_screen";
 
 const NBR_BY_PAGE = 30;
 
-export class TicketScreen extends Component {
-    static storeOnOrder = false;
-    static template = "point_of_sale.TicketScreen";
+export class TicketScreenLeft extends Component {
+    static template = "point_of_sale.TicketScreenLeft";
     static components = {
-        ActionpadWidget,
-        InvoiceButton,
-        Orderline,
-        OrderWidget,
         CenteredIcon,
         SearchBar,
-        Numpad,
-        BackButton,
     };
     static props = {
-        destinationOrder: { type: Object, optional: true },
-        reuseSavedUIState: { type: Boolean, optional: true },
-        stateOverride: { type: Object, optional: true },
-    };
-    static defaultProps = {
-        destinationOrder: null,
-        // When passed as true, it will use the saved _state.ui as default
-        // value when this component is reinstantiated.
-        // After setting the default value, the _state.ui will be overridden
-        // by the passed props.ui if there is any.
-        reuseSavedUIState: false,
-        ui: {},
+        stateOverride: Object,
+        setOrder: Function,
+        selection: Object,
+        isOrderSynced: Function,
+        numberBuffer: Object,
     };
 
     setup() {
         this.pos = usePos();
         this.ui = useState(useService("ui"));
-        this.dialog = useService("dialog");
-        this.numberBuffer = useService("number_buffer");
-        this.doPrint = useTrackedAsync((_selectedSyncedOrder) =>
-            this.pos.printReceipt({ order: _selectedSyncedOrder })
-        );
-        this.numberBuffer.use({
-            triggerAtInput: (event) => this._onUpdateSelectedOrderline(event),
-        });
 
         this.state = useState({
             page: 1,
             nbrPage: 1,
-            filter: null,
             search: this.pos.getDefaultSearchDetails(),
-            selectedOrder: this.pos.get_order() || null,
-            selectedOrderlineIds: {},
         });
         Object.assign(this.state, this.props.stateOverride || {});
 
@@ -81,39 +57,34 @@ export class TicketScreen extends Component {
     onMounted() {
         setTimeout(() => {
             // Show updated list of synced orders when going back to the screen.
-            this.onFilterSelected(this.state.filter);
+            this.onFilterSelected(this.props.selection.filter);
         });
     }
     async onFilterSelected(selectedFilter) {
-        this.state.filter = selectedFilter;
+        this.props.selection.filter = selectedFilter;
 
-        if (this.state.filter == "SYNCED") {
+        if (this.props.selection.filter == "SYNCED") {
             await this._fetchSyncedOrders();
         }
-    }
-    getNumpadButtons() {
-        return getButtons(DEFAULT_LAST_ROW, [
-            { value: "quantity", text: _t("Qty"), class: "active border-primary" },
-            { value: "discount", text: _t("% Disc"), disabled: true },
-            { value: "price", text: _t("Price"), disabled: true },
-            BACKSPACE,
-        ]);
     }
     async onSearch(search) {
         this.state.search = search;
         this.state.page = 1;
-        if (this.state.filter == "SYNCED") {
+        if (this.props.selection.filter == "SYNCED") {
             await this._fetchSyncedOrders();
         }
     }
     onClickOrder(clickedOrder) {
-        this.state.selectedOrder = clickedOrder;
-        this.numberBuffer.reset();
-        if ((!clickedOrder || clickedOrder.uiState.locked) && !this.getSelectedOrderlineId()) {
+        this.props.selection.selectedOrder = clickedOrder;
+        this.props.numberBuffer.reset();
+        if (
+            (!clickedOrder || clickedOrder.uiState.locked) &&
+            !this.props.selection.selectedOrderlineIds[this.props.selection.selectedOrder?.id]
+        ) {
             // Automatically select the first orderline of the selected order.
-            const firstLine = this.state.selectedOrder.get_orderlines()[0];
+            const firstLine = this.props.selection.selectedOrder.get_orderlines()[0];
             if (firstLine) {
-                this.state.selectedOrderlineIds[clickedOrder.id] = firstLine.id;
+                this.props.selection.selectedOrderlineIds[clickedOrder.id] = firstLine.id;
             }
         }
     }
@@ -129,184 +100,7 @@ export class TicketScreen extends Component {
             await this._fetchSyncedOrders();
         }
     }
-    async onInvoiceOrder(orderId) {
-        const order = this.pos.models["pos.order"].get(orderId);
-        this.state.selectedOrder = order;
-    }
-    onClickOrderline(orderline) {
-        if (this.state.selectedOrder.uiState.locked) {
-            const order = this.getSelectedOrder();
-            this.state.selectedOrderlineIds[order.id] = orderline.id;
-            this.numberBuffer.reset();
-        }
-    }
-    onClickRefundOrderUid(orderUuid) {
-        // Open the refund order.
-        const refundOrder = this.pos.models["pos.order"].find((order) => order.uuid == orderUuid);
-        if (refundOrder) {
-            this._setOrder(refundOrder);
-        }
-    }
-    _onUpdateSelectedOrderline({ key, buffer }) {
-        const order = this.getSelectedOrder();
-        if (!order) {
-            return this.numberBuffer.reset();
-        }
 
-        const selectedOrderlineId = this.getSelectedOrderlineId();
-        const orderline = order.lines.find((line) => line.id == selectedOrderlineId);
-        if (!orderline) {
-            return this.numberBuffer.reset();
-        }
-
-        const toRefundDetails = orderline
-            .getAllLinesInCombo()
-            .map((line) => this.getToRefundDetail(line));
-        for (const toRefundDetail of toRefundDetails) {
-            // When already linked to an order, do not modify the to refund quantity.
-            if (toRefundDetail.destionation_order_id) {
-                return this.numberBuffer.reset();
-            }
-
-            const refundableQty = toRefundDetail.line.qty - toRefundDetail.line.refunded_qty;
-            if (refundableQty <= 0) {
-                return this.numberBuffer.reset();
-            }
-
-            if (buffer == null || buffer == "") {
-                toRefundDetail.qty = 0;
-            } else {
-                const quantity = Math.abs(parseFloat(buffer));
-                if (quantity > refundableQty) {
-                    this.numberBuffer.reset();
-                    if (!toRefundDetail.line.combo_parent_id) {
-                        this.dialog.add(AlertDialog, {
-                            title: _t("Maximum Exceeded"),
-                            body: _t(
-                                "The requested quantity to be refunded is higher than the ordered quantity. %s is requested while only %s can be refunded.",
-                                quantity,
-                                refundableQty
-                            ),
-                        });
-                    }
-                } else {
-                    toRefundDetail.qty = quantity;
-                }
-            }
-        }
-    }
-    async addAdditionalRefundInfo(order, destinationOrder) {
-        // used by L10N, e.g: add a refund reason using a specific L10N field
-        return Promise.resolve();
-    }
-    async onDoRefund() {
-        const order = this.getSelectedOrder();
-
-        if (order && this._doesOrderHaveSoleItem(order)) {
-            if (!this._prepareAutoRefundOnOrder(order)) {
-                // Don't proceed on refund if preparation returned false.
-                return;
-            }
-        }
-
-        if (!order || !this.getHasItemsToRefund()) {
-            return;
-        }
-
-        const partner = order.get_partner();
-        // The order that will contain the refund orderlines.
-        // Use the destinationOrder from props if the order to refund has the same
-        // partner as the destinationOrder.
-        const destinationOrder =
-            this.props.destinationOrder &&
-            this.props.destinationOrder.lines.every(
-                (l) =>
-                    l.quantity >= 0 || order.lines.some((ol) => ol.id === l.refunded_orderline_id)
-            ) &&
-            partner === this.props.destinationOrder.get_partner() &&
-            !this.pos.doNotAllowRefundAndSales()
-                ? this.props.destinationOrder
-                : this._getEmptyOrder(partner);
-
-        destinationOrder.takeaway = order.takeaway;
-        // Add orderline for each toRefundDetail to the destinationOrder.
-        const lines = [];
-        for (const refundDetail of this._getRefundableDetails(partner, order)) {
-            const refundLine = refundDetail.line;
-            const line = this.pos.models["pos.order.line"].create({
-                qty: -refundDetail.qty,
-                price_unit: refundLine.price_unit,
-                product_id: refundLine.product_id,
-                order_id: destinationOrder,
-                discount: refundLine.discount,
-                tax_ids: refundLine.tax_ids.map((tax) => ["link", tax]),
-                refunded_orderline_id: refundLine,
-                pack_lot_ids: refundLine.pack_lot_ids.map((packLot) => ["link", packLot]),
-                price_type: "automatic",
-            });
-            lines.push(line);
-            refundDetail.destination_order_uuid = destinationOrder.uuid;
-        }
-        // link the refund combo lines
-        const refundComboParentLines = lines.filter(
-            (l) => l.refunded_orderline_id.combo_line_ids.length > 0
-        );
-        for (const refundComboParent of refundComboParentLines) {
-            const children = refundComboParent.refunded_orderline_id.combo_line_ids
-                .map((l) => l.refund_orderline_ids)
-                .flat();
-            refundComboParent.combo_line_ids = [["link", ...children]];
-        }
-
-        //Add a check too see if the fiscal position exist in the pos
-        if (order.fiscal_position_not_found) {
-            this.dialog.add(AlertDialog, {
-                title: _t("Fiscal Position not found"),
-                body: _t(
-                    "The fiscal position used in the original order is not loaded. Make sure it is loaded by adding it in the pos configuration."
-                ),
-            });
-            return;
-        }
-
-        if (order.fiscal_position_id) {
-            destinationOrder.fiscal_position_id = order.fiscal_position_id;
-        }
-        // Set the partner to the destinationOrder.
-        this.setPartnerToRefundOrder(partner, destinationOrder);
-
-        if (this.pos.get_order().uuid !== destinationOrder.uuid) {
-            this.pos.set_order(destinationOrder);
-        }
-        await this.addAdditionalRefundInfo(order, destinationOrder);
-
-        this.postRefund(destinationOrder);
-
-        this.closeTicketScreen();
-    }
-
-    postRefund(destinationOrder) {}
-
-    setPartnerToRefundOrder(partner, destinationOrder) {
-        if (partner && !destinationOrder.get_partner()) {
-            destinationOrder.set_partner(partner);
-        }
-    }
-    getSelectedOrder() {
-        return this.state.selectedOrder;
-    }
-    getSelectedOrderlineId() {
-        if (this.state.selectedOrder) {
-            return this.state.selectedOrderlineIds[this.state.selectedOrder.id];
-        }
-    }
-    get isOrderSynced() {
-        return (
-            this.state.selectedOrder?.uiState.locked &&
-            (this.state.selectedOrder.get_screen_data().name === "" ||
-                this.state.filter === "SYNCED")
-        );
-    }
     activeOrderFilter(o) {
         const screen = ["PaymentScreen", "ProductScreen", "ReceiptScreen", "TipScreen"];
         const oScreen = o.get_screen_data();
@@ -315,14 +109,17 @@ export class TicketScreen extends Component {
     getFilteredOrderList() {
         const orderModel = this.pos.models["pos.order"];
         let orders =
-            this.state.filter === "SYNCED"
+            this.props.selection.filter === "SYNCED"
                 ? orderModel.filter((o) => o.finalized && o.uiState.displayed)
                 : orderModel.filter(this.activeOrderFilter);
 
-        if (this.state.filter && !["ACTIVE_ORDERS", "SYNCED"].includes(this.state.filter)) {
+        if (
+            this.props.selection.filter &&
+            !["ACTIVE_ORDERS", "SYNCED"].includes(this.props.selection.filter)
+        ) {
             orders = orders.filter((order) => {
                 const screen = order.get_screen_data();
-                return this._getScreenToStatusMap()[screen.name] === this.state.filter;
+                return this._getScreenToStatusMap()[screen.name] === this.props.selection.filter;
             });
         }
 
@@ -346,7 +143,7 @@ export class TicketScreen extends Component {
             });
         };
 
-        if (this.state.filter === "SYNCED") {
+        if (this.props.selection.filter === "SYNCED") {
             return sortOrders(orders).slice(
                 (this.state.page - 1) * NBR_BY_PAGE,
                 this.state.page * NBR_BY_PAGE
@@ -373,7 +170,7 @@ export class TicketScreen extends Component {
     getStatus(order) {
         if (
             order.uiState?.locked &&
-            (order.get_screen_data().name === "" || this.state.filter === "SYNCED")
+            (order.get_screen_data().name === "" || this.props.selection.filter === "SYNCED")
         ) {
             return _t("Paid");
         } else {
@@ -401,13 +198,16 @@ export class TicketScreen extends Component {
         const orders = this.pos.models["pos.order"].filter((o) => !o.finalized);
         return (
             (orders.length === 1 && orders[0].lines.length === 0) ||
-            (this.ui.isSmall && order != this.state.selectedOrder) ||
+            (this.ui.isSmall && order != this.props.selection.selectedOrder) ||
             this.isDefaultOrderEmpty(order) ||
             order.payment_ids.some(
                 (payment) => payment.is_electronic() && payment.get_payment_status() === "done"
             ) ||
             order.finalized
         );
+    }
+    getSelectedOrder() {
+        return this.props.selection.selectedOrder;
     }
     isHighlighted(order) {
         const selectedOrder = this.getSelectedOrder();
@@ -423,7 +223,7 @@ export class TicketScreen extends Component {
             ),
             filter: { show: true, options: this._getFilterOptions() },
             defaultSearchDetails: this.state.search,
-            defaultFilter: this.state.filter,
+            defaultFilter: this.props.selection.filter,
         };
     }
     getNbrPages() {
@@ -435,127 +235,6 @@ export class TicketScreen extends Component {
         } else {
             return `${this.state.page}/${this.getNbrPages()}`;
         }
-    }
-    getHasItemsToRefund() {
-        const order = this.getSelectedOrder();
-        if (!order) {
-            return false;
-        }
-        if (this._doesOrderHaveSoleItem(order)) {
-            return true;
-        }
-        const total = Object.values(order.uiState.lineToRefund).reduce((acc, val) => {
-            acc += val.qty;
-            return acc;
-        }, 0);
-
-        return !this.pos.isProductQtyZero(total);
-    }
-    switchPane() {
-        this.pos.switchPaneTicketScreen();
-    }
-    closeTicketScreen() {
-        this.pos.ticket_screen_mobile_pane = "left";
-        this.pos.closeScreen();
-    }
-    /**
-     * Find the empty order with the following priority:
-     * - The empty order with the same parter as the provided.
-     * - The first empty order without a partner.
-     * - If no empty order, create a new one.
-     * @param {Object | null} partner
-     * @returns {boolean}
-     */
-    _getEmptyOrder(partner) {
-        let emptyOrderForPartner = null;
-        let emptyOrder = null;
-        for (const order of this.pos.models["pos.order"].filter((order) => !order.finalized)) {
-            if (order.get_orderlines().length === 0 && order.payment_ids.length === 0) {
-                if (order.get_partner() === partner) {
-                    emptyOrderForPartner = order;
-                    break;
-                } else if (!order.get_partner() && emptyOrder === null) {
-                    // If emptyOrderForPartner is not found, we will use the first empty order.
-                    emptyOrder = order;
-                }
-            }
-        }
-        return emptyOrderForPartner || emptyOrder || this.pos.add_new_order();
-    }
-    _doesOrderHaveSoleItem(order) {
-        const orderlines = order.get_orderlines();
-        if (orderlines.length !== 1) {
-            return false;
-        }
-        const theOrderline = orderlines[0];
-        const refundableQty = theOrderline.get_quantity() - theOrderline.refunded_qty;
-        return this.pos.isProductQtyZero(refundableQty - 1);
-    }
-    _prepareAutoRefundOnOrder(order) {
-        const selectedOrderlineId = this.getSelectedOrderlineId();
-        const orderline = order.lines.find((line) => line.id == selectedOrderlineId);
-        if (!orderline) {
-            return false;
-        }
-
-        const toRefundDetail = this.getToRefundDetail(orderline);
-        if (this.pos.isProductQtyZero(toRefundDetail.maxQty - 1) && toRefundDetail.qty === 0) {
-            toRefundDetail.qty = 1;
-        }
-        return true;
-    }
-    /**
-     * Returns the corresponding toRefundDetail of the given orderline.
-     * SIDE-EFFECT: Automatically creates a toRefundDetail object for
-     * the given orderline if it doesn't exist and returns it.
-     * @param {models.Orderline} orderline
-     * @returns
-     */
-    getToRefundDetail(orderline) {
-        const lineToRefund = orderline.order_id.uiState.lineToRefund;
-
-        if (orderline.uuid in lineToRefund) {
-            return lineToRefund[orderline.uuid];
-        }
-
-        const newToRefundDetail = new PosOrderLineRefund(
-            {
-                line_uuid: orderline.uuid,
-                qty: 0,
-            },
-            this.pos.models
-        );
-
-        lineToRefund[orderline.uuid] = newToRefundDetail;
-        return newToRefundDetail;
-    }
-    /**
-     * Select the lines from lineToRefund, as they can come from different orders.
-     * Returns only details that:
-     * - The quantity to refund is not zero
-     * - Filtered by partner (optional)
-     * - It's not yet linked to an active order (no destinationOrderUid)
-     *
-     * @param {Object} partner (optional)
-     * @param {Order} order
-     * @returns {Array} refundableDetails
-     */
-    _getRefundableDetails(partner, order) {
-        return Object.values(this.pos.linesToRefund).filter(
-            (refund) =>
-                !this.pos.isProductQtyZero(refund.qty) &&
-                refund.line.order_id.uuid === order.uuid &&
-                (partner ? refund.line.order_id.partner_id?.id === partner.id : true) &&
-                !refund.destination_order_id
-        );
-    }
-
-    async _setOrder(order) {
-        if (this.pos.isOpenOrderShareable()) {
-            await this.pos.syncAllOrders();
-        }
-        this.pos.set_order(order);
-        this.closeTicketScreen();
     }
     _getOrderList() {
         return this.pos.models["pos.order"].getAll();
@@ -707,6 +386,400 @@ export class TicketScreen extends Component {
         if (idsNotInCacheOrOutdated.length > 0) {
             await this.pos.data.read("pos.order", Array.from(new Set(idsNotInCacheOrOutdated)));
         }
+    }
+}
+
+export class TicketScreenRight extends Component {
+    static template = "point_of_sale.TicketScreenRight";
+    static components = {
+        OrderWidget,
+        Orderline,
+        InvoiceButton,
+        Numpad,
+        BackButton,
+        CenteredIcon,
+        ActionpadWidget,
+    };
+    static props = {
+        destinationOrder: [Object, { value: null }],
+        setOrder: Function,
+        selection: Object,
+        isOrderSynced: Function,
+        numberBuffer: Object,
+        getHasItemsToRefund: Boolean,
+        onDoRefund: Function,
+    };
+    static name = "TicketScreenRight";
+
+    setup() {
+        super.setup();
+        this.pos = usePos();
+        this.ui = useState(useService("ui"));
+        this.dialog = useService("dialog");
+        this.doPrint = useTrackedAsync((_selectedSyncedOrder) =>
+            this.pos.printReceipt({ order: _selectedSyncedOrder })
+        );
+    }
+    getSelectedOrder() {
+        return this.props.selection.selectedOrder;
+    }
+    getSelectedOrderlineId() {
+        return this.props.selection.selectedOrderlineIds[this.props.selection.selectedOrder?.id];
+    }
+    async onInvoiceOrder(orderId) {
+        const order = this.pos.models["pos.order"].get(orderId);
+        this.props.selection.selectedOrder = order;
+    }
+    onClickOrderline(orderline) {
+        if (this.props.selection.selectedOrder.uiState.locked) {
+            const order = this.getSelectedOrder();
+            this.props.selection.selectedOrderlineIds[order.id] = orderline.id;
+            this.props.numberBuffer.reset();
+        }
+    }
+    onClickRefundOrderUid(orderUuid) {
+        // Open the refund order.
+        const refundOrder = this.pos.models["pos.order"].find((order) => order.uuid == orderUuid);
+        if (refundOrder) {
+            this.props.setOrder(refundOrder);
+        }
+    }
+    getNumpadButtons() {
+        return getButtons(DEFAULT_LAST_ROW, [
+            { value: "quantity", text: _t("Qty"), class: "active border-primary" },
+            { value: "discount", text: _t("% Disc"), disabled: true },
+            { value: "price", text: _t("Price"), disabled: true },
+            BACKSPACE,
+        ]);
+    }
+}
+
+export class TicketScreen extends Component {
+    static template = "point_of_sale.TicketScreen";
+    static components = { DoubleScreen };
+    static props = {
+        destinationOrder: { type: [Object, { value: null }], optional: true },
+        stateOverride: { type: Object, optional: true },
+    };
+    static defaultProps = {
+        destinationOrder: null,
+        stateOverride: {},
+    };
+    static name = "TicketScreen";
+    static storeOnOrder = false;
+
+    setup() {
+        super.setup();
+        this.pos = usePos();
+        this.state = useState({
+            selectedOrder: this.pos.get_order() || null,
+            selectedOrderlineIds: {},
+            filter: null,
+        });
+        this.numberBuffer = useService("number_buffer");
+        this.numberBuffer.use({
+            triggerAtInput: (event) => this._onUpdateSelectedOrderline(event),
+        });
+    }
+
+    get doubleProps() {
+        return {
+            left: TicketScreenLeft,
+            right: TicketScreenRight,
+            leftWidth: 75,
+            rightWidth: 25,
+            rightProps: {
+                destinationOrder: this.props.destinationOrder,
+                setOrder: (order) => this._setOrder(order),
+                selection: this.state,
+                isOrderSynced: () => this.isOrderSynced(),
+                numberBuffer: this.numberBuffer,
+                getHasItemsToRefund: this.getHasItemsToRefund(),
+                onDoRefund: () => this.onDoRefund(),
+            },
+            leftProps: {
+                stateOverride: this.props.stateOverride,
+                setOrder: (order) => this._setOrder(order),
+                selection: this.state,
+                isOrderSynced: () => this.isOrderSynced(),
+                numberBuffer: this.numberBuffer,
+            },
+        };
+    }
+
+    /**
+     * Select the lines from lineToRefund, as they can come from different orders.
+     * Returns only details that:
+     * - The quantity to refund is not zero
+     * - Filtered by partner (optional)
+     * - It's not yet linked to an active order (no destinationOrderUid)
+     *
+     * @param {Object} partner (optional)
+     * @param {Order} order
+     * @returns {Array} refundableDetails
+     */
+
+    async _setOrder(order) {
+        if (this.pos.isOpenOrderShareable()) {
+            await this.pos.syncAllOrders();
+        }
+        this.pos.set_order(order);
+        this.closeTicketScreen();
+    }
+    closeTicketScreen() {
+        this.pos.mobilePanes.TicketScreen = "left";
+        this.pos.closeScreen();
+    }
+
+    isOrderSynced() {
+        return (
+            this.state.selectedOrder?.uiState.locked &&
+            (this.state.selectedOrder.get_screen_data().name === "" ||
+                this.state.filter === "SYNCED")
+        );
+    }
+    getSelectedOrder() {
+        return this.state.selectedOrder;
+    }
+    async onDoRefund() {
+        const order = this.getSelectedOrder();
+
+        if (order && this._doesOrderHaveSoleItem(order)) {
+            if (!this._prepareAutoRefundOnOrder(order)) {
+                // Don't proceed on refund if preparation returned false.
+                return;
+            }
+        }
+
+        if (!order || !this.getHasItemsToRefund()) {
+            return;
+        }
+
+        const partner = order.get_partner();
+        // The order that will contain the refund orderlines.
+        // Use the destinationOrder from props if the order to refund has the same
+        // partner as the destinationOrder.
+        const destinationOrder =
+            this.props.destinationOrder &&
+            this.props.destinationOrder.lines.every(
+                (l) =>
+                    l.quantity >= 0 || order.lines.some((ol) => ol.id === l.refunded_orderline_id)
+            ) &&
+            partner === this.props.destinationOrder.get_partner() &&
+            !this.pos.doNotAllowRefundAndSales()
+                ? this.props.destinationOrder
+                : this._getEmptyOrder(partner);
+
+        destinationOrder.takeaway = order.takeaway;
+        // Add orderline for each toRefundDetail to the destinationOrder.
+        const lines = [];
+        for (const refundDetail of this._getRefundableDetails(partner, order)) {
+            const refundLine = refundDetail.line;
+            const line = this.pos.models["pos.order.line"].create({
+                qty: -refundDetail.qty,
+                price_unit: refundLine.price_unit,
+                product_id: refundLine.product_id,
+                order_id: destinationOrder,
+                discount: refundLine.discount,
+                tax_ids: refundLine.tax_ids.map((tax) => ["link", tax]),
+                refunded_orderline_id: refundLine,
+                pack_lot_ids: refundLine.pack_lot_ids.map((packLot) => ["link", packLot]),
+                price_type: "automatic",
+            });
+            lines.push(line);
+            refundDetail.destination_order_uuid = destinationOrder.uuid;
+        }
+        // link the refund combo lines
+        const refundComboParentLines = lines.filter(
+            (l) => l.refunded_orderline_id.combo_line_ids.length > 0
+        );
+        for (const refundComboParent of refundComboParentLines) {
+            const children = refundComboParent.refunded_orderline_id.combo_line_ids
+                .map((l) => l.refund_orderline_ids)
+                .flat();
+            refundComboParent.combo_line_ids = [["link", ...children]];
+        }
+
+        //Add a check too see if the fiscal position exist in the pos
+        if (order.fiscal_position_not_found) {
+            this.dialog.add(AlertDialog, {
+                title: _t("Fiscal Position not found"),
+                body: _t(
+                    "The fiscal position used in the original order is not loaded. Make sure it is loaded by adding it in the pos configuration."
+                ),
+            });
+            return;
+        }
+
+        if (order.fiscal_position_id) {
+            destinationOrder.fiscal_position_id = order.fiscal_position_id;
+        }
+        // Set the partner to the destinationOrder.
+        this.setPartnerToRefundOrder(partner, destinationOrder);
+
+        if (this.pos.get_order().uuid !== destinationOrder.uuid) {
+            this.pos.set_order(destinationOrder);
+        }
+        await this.addAdditionalRefundInfo(order, destinationOrder);
+
+        this.postRefund(destinationOrder);
+
+        this.closeTicketScreen();
+    }
+
+    postRefund(destinationOrder) {}
+
+    setPartnerToRefundOrder(partner, destinationOrder) {
+        if (partner && !destinationOrder.get_partner()) {
+            destinationOrder.set_partner(partner);
+        }
+    }
+    _onUpdateSelectedOrderline({ key, buffer }) {
+        const order = this.getSelectedOrder();
+        if (!order) {
+            return this.numberBuffer.reset();
+        }
+
+        const selectedOrderlineId = this.state.selectedOrderlineIds[this.state.selectedOrder?.id];
+        const orderline = order.lines.find((line) => line.id == selectedOrderlineId);
+        if (!orderline) {
+            return this.numberBuffer.reset();
+        }
+
+        const toRefundDetails = orderline
+            .getAllLinesInCombo()
+            .map((line) => this.getToRefundDetail(line));
+        for (const toRefundDetail of toRefundDetails) {
+            // When already linked to an order, do not modify the to refund quantity.
+            if (toRefundDetail.destionation_order_id) {
+                return this.numberBuffer.reset();
+            }
+
+            const refundableQty = toRefundDetail.line.qty - toRefundDetail.line.refunded_qty;
+            if (refundableQty <= 0) {
+                return this.numberBuffer.reset();
+            }
+
+            if (buffer == null || buffer == "") {
+                toRefundDetail.qty = 0;
+            } else {
+                const quantity = Math.abs(parseFloat(buffer));
+                if (quantity > refundableQty) {
+                    this.numberBuffer.reset();
+                    if (!toRefundDetail.line.combo_parent_id) {
+                        this.dialog.add(AlertDialog, {
+                            title: _t("Maximum Exceeded"),
+                            body: _t(
+                                "The requested quantity to be refunded is higher than the ordered quantity. %s is requested while only %s can be refunded.",
+                                quantity,
+                                refundableQty
+                            ),
+                        });
+                    }
+                } else {
+                    toRefundDetail.qty = quantity;
+                }
+            }
+        }
+    }
+    async addAdditionalRefundInfo(order, destinationOrder) {
+        // used by L10N, e.g: add a refund reason using a specific L10N field
+        return Promise.resolve();
+    }
+    /**
+     * Find the empty order with the following priority:
+     * - The empty order with the same parter as the provided.
+     * - The first empty order without a partner.
+     * - If no empty order, create a new one.
+     * @param {Object | null} partner
+     * @returns {boolean}
+     */
+    _getEmptyOrder(partner) {
+        let emptyOrderForPartner = null;
+        let emptyOrder = null;
+        for (const order of this.pos.models["pos.order"].filter((order) => !order.finalized)) {
+            if (order.get_orderlines().length === 0 && order.payment_ids.length === 0) {
+                if (order.get_partner() === partner) {
+                    emptyOrderForPartner = order;
+                    break;
+                } else if (!order.get_partner() && emptyOrder === null) {
+                    // If emptyOrderForPartner is not found, we will use the first empty order.
+                    emptyOrder = order;
+                }
+            }
+        }
+        return emptyOrderForPartner || emptyOrder || this.pos.add_new_order();
+    }
+    _doesOrderHaveSoleItem(order) {
+        const orderlines = order.get_orderlines();
+        if (orderlines.length !== 1) {
+            return false;
+        }
+        const theOrderline = orderlines[0];
+        const refundableQty = theOrderline.get_quantity() - theOrderline.refunded_qty;
+        return this.pos.isProductQtyZero(refundableQty - 1);
+    }
+    _prepareAutoRefundOnOrder(order) {
+        const selectedOrderlineId = this.state.selectedOrderlineIds[this.state.selectedOrder?.id];
+        const orderline = order.lines.find((line) => line.id == selectedOrderlineId);
+        if (!orderline) {
+            return false;
+        }
+
+        const toRefundDetail = this.getToRefundDetail(orderline);
+        if (this.pos.isProductQtyZero(toRefundDetail.maxQty - 1) && toRefundDetail.qty === 0) {
+            toRefundDetail.qty = 1;
+        }
+        return true;
+    }
+    /**
+     * Returns the corresponding toRefundDetail of the given orderline.
+     * SIDE-EFFECT: Automatically creates a toRefundDetail object for
+     * the given orderline if it doesn't exist and returns it.
+     * @param {models.Orderline} orderline
+     * @returns
+     */
+    getToRefundDetail(orderline) {
+        const lineToRefund = orderline.order_id.uiState.lineToRefund;
+
+        if (orderline.uuid in lineToRefund) {
+            return lineToRefund[orderline.uuid];
+        }
+
+        const newToRefundDetail = new PosOrderLineRefund(
+            {
+                line_uuid: orderline.uuid,
+                qty: 0,
+            },
+            this.pos.models
+        );
+
+        lineToRefund[orderline.uuid] = newToRefundDetail;
+        return newToRefundDetail;
+    }
+    getHasItemsToRefund() {
+        const order = this.getSelectedOrder();
+        if (!order) {
+            return false;
+        }
+        if (this._doesOrderHaveSoleItem(order)) {
+            return true;
+        }
+        const total = Object.values(order.uiState.lineToRefund).reduce((acc, val) => {
+            acc += val.qty;
+            return acc;
+        }, 0);
+
+        return !this.pos.isProductQtyZero(total);
+    }
+    _getRefundableDetails(partner, order) {
+        return Object.values(this.pos.linesToRefund).filter(
+            (refund) =>
+                !this.pos.isProductQtyZero(refund.qty) &&
+                refund.line.order_id.uuid === order.uuid &&
+                (partner ? refund.line.order_id.partner_id?.id === partner.id : true) &&
+                !refund.destination_order_id
+        );
     }
 }
 

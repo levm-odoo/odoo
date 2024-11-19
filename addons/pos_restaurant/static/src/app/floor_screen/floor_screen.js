@@ -7,7 +7,7 @@ import { TextInputPopup } from "@point_of_sale/app/components/popups/text_input_
 import { NumberPopup } from "@point_of_sale/app/components/popups/number_popup/number_popup";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { usePos } from "@point_of_sale/app/hooks/pos_hook";
-import { useService } from "@web/core/utils/hooks";
+import { useService, useBus } from "@web/core/utils/hooks";
 import {
     Component,
     onMounted,
@@ -21,7 +21,13 @@ import { ask } from "@point_of_sale/app/utils/make_awaitable_dialog";
 import { loadImage } from "@point_of_sale/utils";
 import { getDataURLFromFile } from "@web/core/utils/urls";
 import { hasTouch } from "@web/core/browser/feature_detection";
-import { getButtons, DECIMAL, ZERO, BACKSPACE } from "@point_of_sale/app/components/numpad/numpad";
+import {
+    getButtons,
+    DECIMAL,
+    ZERO,
+    BACKSPACE,
+    Numpad,
+} from "@point_of_sale/app/components/numpad/numpad";
 import { makeDraggableHook } from "@web/core/utils/draggable_hook_builder_owl";
 import { pick } from "@web/core/utils/objects";
 import { getOrderChanges } from "@point_of_sale/app/models/utils/order_change";
@@ -29,6 +35,12 @@ import { Dropdown } from "@web/core/dropdown/dropdown";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { useTrackedAsync } from "@point_of_sale/app/hooks/hooks";
 import { FloorEditingPopup } from "../popup/floor_editing_popup/floor_editing_popup";
+import { ControlButtons } from "@point_of_sale/app/screens/product_screen/control_buttons/control_buttons";
+import { OrderTabs } from "@point_of_sale/app/components/order_tabs/order_tabs";
+import { ActionpadWidget } from "@point_of_sale/app/screens/product_screen/action_pad/action_pad";
+import { ListContainer } from "@point_of_sale/app/components/list_container/list_container";
+import { OrderComponent } from "@point_of_sale/app/screens/order_component/order_component";
+import { DoubleScreen } from "@point_of_sale/app/screens/double_screen/double_screen";
 
 function constrain(num, min, max) {
     return Math.min(Math.max(num, min), max);
@@ -77,10 +89,17 @@ const useDraggable = makeDraggableHook({
 const GRID_SIZE = 10;
 
 export class FloorScreen extends Component {
-    static components = { Dropdown, DropdownItem };
+    static components = {
+        Dropdown,
+        DropdownItem,
+        Numpad,
+        ControlButtons,
+        OrderTabs,
+        ActionpadWidget,
+        ListContainer,
+    };
     static template = "pos_restaurant.FloorScreen";
     static props = { floor: { type: true, optional: true } };
-    static storeOnOrder = false;
 
     setup() {
         this.pos = usePos();
@@ -1019,4 +1038,117 @@ export class FloorScreen extends Component {
     }
 }
 
-registry.category("pos_screens").add("FloorScreen", FloorScreen);
+class FloorScreenContent extends Component {
+    static template = "pos_restaurant.FloorScreenContent";
+    static components = { ListContainer };
+    static props = {
+        buffer: String,
+        clickOrder: Function,
+    };
+
+    setup() {
+        super.setup();
+        this.pos = usePos();
+    }
+}
+
+class FloorScreenDouble extends Component {
+    static template = "pos_restaurant.FloorScreenDouble";
+    static components = { DoubleScreen };
+    static props = { floor: { type: true, optional: true } };
+    static name = "FloorScreen";
+    static storeOnOrder = false;
+
+    setup() {
+        super.setup();
+        this.pos = usePos();
+        this.dialog = useService("dialog");
+        this.state = useState({
+            buffer: "",
+        });
+        this.numberBuffer = useService("number_buffer");
+        this.numberBuffer.use({
+            triggerAtEnter: () => this.confirm(),
+            triggerAtEscape: () => this.cancel(),
+        });
+        useBus(this.numberBuffer, "buffer-update", ({ detail: value }) => {
+            this.state.buffer = value;
+        });
+    }
+
+    get doubleProps() {
+        return {
+            left: OrderComponent,
+            right: FloorScreen,
+            leftWidth: 25,
+            rightWidth: 75,
+            leftProps: {
+                order: null,
+                showControlButtons: false,
+                getNumpadButtons: () => this.getNumpadButtons(),
+                onNumpadClick: (buttonValue) => this.onNumpadClick(buttonValue),
+                getActionProps: () => this.getActionProps(),
+                topComponent: FloorScreenContent,
+                topProps: {
+                    buffer: this.state.buffer,
+                    clickOrder: (order) => this.setFloatingOrder(order),
+                },
+            },
+            rightProps: { floor: this.props.floor },
+        };
+    }
+    getNumpadButtons() {
+        return getButtons([{ ...DECIMAL, disabled: true }, ZERO, BACKSPACE]);
+    }
+    onNumpadClick(buttonValue) {
+        this.numberBuffer.sendKey(buttonValue);
+    }
+    getActionProps() {
+        return {
+            actions: this.getActions(),
+            showPartnerButton: false,
+        };
+    }
+    getActions() {
+        return [
+            {
+                actionName: "New Order",
+                actionToTrigger: () => this.pos.add_new_order(),
+            },
+            {
+                actionName: "Open Table",
+                actionToTrigger: async () => await this.findOrder(),
+                disabled: !this.state.buffer,
+            },
+        ];
+    }
+    setFloatingOrder(floatingOrder) {
+        this.pos.set_order(floatingOrder);
+        this.pos.mobilePanes.FloorScreen = "right";
+        this.pos.closeScreen();
+    }
+    async findOrder() {
+        const find_table = (t) => t.table_number === parseInt(this.state.buffer);
+        const table =
+            this.pos.currentFloor?.table_ids.find(find_table) ||
+            this.pos.models["restaurant.table"].find(find_table);
+        if (table) {
+            return this.pos.setTableFromUi(table);
+        }
+        const floating_order = this.pos
+            .get_open_orders()
+            .find((o) => o.floatingOrderName === this.state.buffer);
+        if (floating_order) {
+            return this.setFloatingOrder(floating_order);
+        }
+        if (!table && !floating_order) {
+            this.dialog.add(AlertDialog, {
+                title: _t("Error"),
+                body: _t("No table or floating order found with this number"),
+            });
+            return;
+        }
+    }
+}
+
+registry.category("pos_screens").add("FloorScreen", FloorScreenDouble);

@@ -44,3 +44,54 @@
 .o-dropdown--menu .dropdown-item.focus {
     background-color: $o-gray-200;
 }
+
+@include media-breakpoint-up(sm) {
+    .navbar-menu {
+        grid-auto-columns: minmax(100px, 1fr);
+        grid-auto-flow: column;
+    }
+}
+
+.navbar-menu::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--btn-size); /* Starts on the first button */
+    height: 100%;
+    background-color: #714B67;
+    z-index: 0; /* Place below the buttons */
+    transition: left 0.5s ease; /* Smooth slide transition */
+}
+
+/* Use class to update the sliding effect */
+.navbar-menu.slide::before {
+    left: var(--bg-offset);
+}
+
+.navbar-menu button {
+    min-width: 52px;
+    min-height: 52px;
+}
+
+.navbar-menu .navbar-big-button{
+    --btn-hover-bg: transparent;
+    --btn-bg: transparent;
+    --btn-border-color: transparent;
+    --btn-hover-border-color: transparent;
+}
+
+.btn {
+    &-primary {
+        .navbar-icon {
+            filter: invert(1);
+        }
+    }
+
+    &-light {
+        .navbar-icon {
+            filter: invert(0);
+        }
+    }
+}
+

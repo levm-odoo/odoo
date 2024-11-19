@@ -45,7 +45,7 @@ patch(PosOrder.prototype, {
                     return table.isParent(t);
                 }
             });
-            let name = table.table_number.toString();
+            let name = "Table " + table.table_number.toString();
             for (const child_table of child_tables) {
                 name += ` & ${child_table.table_number}`;
             }

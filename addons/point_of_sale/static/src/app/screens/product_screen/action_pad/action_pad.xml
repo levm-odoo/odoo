@@ -4,18 +4,21 @@
     <t t-name="point_of_sale.ActionpadWidget">
         <div class="actionpad d-flex flex-column gap-2">
             <div t-if="ui.isSmall" class="d-flex gap-2">
-                <BackButton t-if="!props.showActionButton and pos.showBackButton()" onClick="() => pos.onClickBackButton()"/>
-                <SelectPartnerButton partner="props.partner"/>
+                <BackButton t-if="!this.swapButton and !props.showActionButton and pos.showBackButton()" onClick="() => pos.onClickBackButton()"/>
+                <SelectPartnerButton t-if="props.showPartnerButton" partner="props.partner"/>
                 <button class="button mobile-more-button btn btn-light btn-lg flex-fill" t-if="props.onClickMore" t-on-click="props.onClickMore">
                     <span>Actions</span>
                 </button>
             </div>
-            <div t-if="props.showActionButton" class="validation d-flex gap-2">
+            <div t-if="this.swapButton or props.showActionButton" class="validation d-flex gap-2">
                 <BackButton t-if="pos.showBackButton()" onClick="() => pos.onClickBackButton()"/>
-                <button class="pay pay-order-button button btn btn-primary btn-lg py-3 d-flex align-items-center justify-content-center flex-fill"
-                    t-on-click="props.actionToTrigger"
-                    t-esc="props.actionName"
-                />
+                <t t-foreach="this.props.actions" t-as="action" t-key="action_index">
+                    <button class="pay pay-order-button button btn btn-primary btn-lg py-3 d-flex align-items-center justify-content-center flex-fill"
+                        t-on-click="action.actionToTrigger"
+                        t-esc="action.actionName"
+                        t-att-class="{'disabled': action.disabled}"
+                    />
+                </t>
             </div>
         </div>
     </t>

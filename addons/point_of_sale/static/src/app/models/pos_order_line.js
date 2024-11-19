@@ -642,6 +642,14 @@ export class PosOrderline extends Base {
             qty: this.get_quantity_str(),
             unit: this.product_id.uom_id ? this.product_id.uom_id.name : "",
             unitPrice: formatCurrency(this.get_unit_display_price(), this.currency),
+            priceChanged:
+                this.product_id.get_price(
+                    this.order_id.pricelist_id,
+                    1,
+                    this.get_price_extra(),
+                    false,
+                    this.product_id
+                ) !== this.get_unit_price(),
             oldUnitPrice: this.get_old_unit_display_price()
                 ? formatCurrency(this.get_old_unit_display_price(), this.currency)
                 : "",

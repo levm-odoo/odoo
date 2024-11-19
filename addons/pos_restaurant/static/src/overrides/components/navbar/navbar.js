@@ -1,9 +1,5 @@
 import { Navbar } from "@point_of_sale/app/components/navbar/navbar";
 import { patch } from "@web/core/utils/patch";
-import { _t } from "@web/core/l10n/translation";
-import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
-import { getButtons, EMPTY, ZERO, BACKSPACE } from "@point_of_sale/app/components/numpad/numpad";
-import { TableSelector } from "./table_selector/table_selector";
 
 patch(Navbar.prototype, {
     /**
@@ -32,53 +28,19 @@ patch(Navbar.prototype, {
     get showEditPlanButton() {
         return true;
     },
-    setFloatingOrder(floatingOrder) {
-        this.pos.set_order(floatingOrder);
-
-        const props = {};
-        const screenName = floatingOrder.get_screen_data().name;
-        if (screenName === "PaymentScreen") {
-            props.orderUuid = floatingOrder.uuid;
-        }
-
-        this.pos.showScreen(screenName || "ProductScreen", props);
-    },
-    async onClickTableTab() {
-        await this.pos.syncAllOrders();
-        this.dialog.add(TableSelector, {
-            title: _t("Table Selector"),
-            placeholder: _t("Enter a table number"),
-            buttons: getButtons([
-                EMPTY,
-                ZERO,
-                { ...BACKSPACE, class: "o_colorlist_item_color_transparent_1" },
-            ]),
-            confirmButtonLabel: _t("Jump"),
-            getPayload: async (table_number) => {
-                const find_table = (t) => t.table_number === parseInt(table_number);
-                const table =
-                    this.pos.currentFloor?.table_ids.find(find_table) ||
-                    this.pos.models["restaurant.table"].find(find_table);
-                if (table) {
-                    return this.pos.setTableFromUi(table);
-                }
-                const floating_order = this.pos
-                    .get_open_orders()
-                    .find((o) => o.floatingOrderName === table_number);
-                if (floating_order) {
-                    return this.setFloatingOrder(floating_order);
-                }
-                if (!table && !floating_order) {
-                    this.dialog.add(AlertDialog, {
-                        title: _t("Error"),
-                        body: _t("No table or floating order found with this number"),
-                    });
-                    return;
-                }
-            },
-        });
-    },
     onClickPlanButton() {
+        this.pos.mobilePanes.FloorScreen = "right";
         this.pos.showScreen("FloorScreen", { floor: this.floor });
+    },
+    getBtnOffset() {
+        if (this.pos.mainScreen.component.name === "FloorScreen") {
+            return 0;
+        }
+        if (this.pos.mainScreen.component.name === "ProductScreen") {
+            return this.btnSize;
+        }
+        if (this.pos.mainScreen.component.name === "TicketScreen") {
+            return this.btnSize * 2;
+        }
     },
 });

@@ -1,5 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
+    <t t-name="pos_restaurant.FloorScreenDouble">
+        <DoubleScreen t-props="this.doubleProps" />
+    </t>
+
+    <t t-name="pos_restaurant.FloorScreenContent">
+        <ListContainer items="pos.get_open_orders().filter((o) => !o.table_id)"
+            class="'bg-white flex-grow-1'"
+            t-slot-scope="scope"
+            multiline="true"
+        >
+            <t t-set="order" t-value="scope.item" />
+            <div class="position-relative">
+                <button t-esc="order.getName()"
+                    t-att-class="{ 'active': pos.get_order()?.id === order.id }"
+                    class="btn btn-lg btn-secondary text-truncate mx-1 my-1"
+                    style="min-width: 4rem;"
+                    t-on-click="() => this.props.clickOrder(order)"
+                />
+            </div>
+        </ListContainer>
+        <div class="mb-3">
+            <div class="text-center">
+                <span t-if="this.props.buffer" class="input-value" t-esc="this.props.buffer"/>
+            </div>
+        </div>
+    </t>
+
     <t t-name="pos_restaurant.FloorScreen">
         <div class="floor-screen screen h-100 position-relative d-flex flex-column flex-nowrap m-0 bg-300 text-start overflow-hidden">
             <t t-set="editButtonClass" t-value="'btn btn-lg'" />
@@ -106,16 +133,14 @@
                             <span>Oops! No tables available.<br/>Add a new table to get started.</span>
                         </div>
                         <div t-else="" t-ref="map" t-att-class="{'floor-kanban d-grid gap-3 p-3': isKanban, 'h-100': !isKanban}">
-                           <t t-foreach="activeTables.sort((a,b)=>a.id-b.id)" t-as="table" t-key="table.id" >
+                        <t t-foreach="activeTables.sort((a,b)=>a.id-b.id)" t-as="table" t-key="table.id" >
                                 <t t-set="isOccupied" t-value="pos.tableHasOrders(table)"/>
                                 <t t-set="isIntersecting" t-value="state.potentialLink?.child?.id === table.id"/>
                                 <t t-set="isIntersected" t-value="state.potentialLink?.parent?.id === table.id"/>
                                 <div
                                     t-on-click="(ev) => this.onClickTable(table, ev)"
-                                    class="table o_draggable d-flex flex-column align-items-center justify-content-between cursor-pointer"
+                                    class="table o_draggable d-flex flex-column align-items-center justify-content-between cursor-pointer position-relative m-0"
                                     t-att-class="{
-                                        'position-relative m-0': isKanban,
-                                        'position-absolute': pos.floorPlanStyle !== 'kanban',
                                         'selected': state.selectedTableIds.includes(table.id),
                                     }"
                                     t-attf-class="tableId-{{table.id}}"
@@ -174,5 +199,16 @@
                 </div>
             </div>
         </div>
+        <t t-if="ui.isSmall">
+            <div class="switchpane position-absolute bottom-0 w-100 d-flex gap-2 p-2 border-top bg-view">
+                <button class="btn-switchpane new-order btn btn-lg w-50 btn-primary" t-on-click="() => this.pos.add_new_order()">
+                    <span class="d-block">New Order</span>
+                    <span t-esc="total" />
+                </button>
+                <button class="btn-switchpane btn btn-secondary review-button w-50" t-on-click="() => this.pos.switchPane('FloorScreen')">
+                    <span class="d-block">Pad</span>
+                </button>
+            </div>
+        </t>
     </t>
 </templates>

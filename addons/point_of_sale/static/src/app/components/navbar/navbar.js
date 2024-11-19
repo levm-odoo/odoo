@@ -9,7 +9,7 @@ import {
     SaleDetailsButton,
     handleSaleDetails,
 } from "@point_of_sale/app/components/navbar/sale_details_button/sale_details_button";
-import { Component, onMounted, useState } from "@odoo/owl";
+import { Component, onMounted, useState, onRendered } from "@odoo/owl";
 import { ProductScreen } from "@point_of_sale/app/screens/product_screen/product_screen";
 import { Input } from "@point_of_sale/app/components/inputs/input/input";
 import { isBarcodeScannerSupported } from "@web/core/barcode/barcode_video_scanner";
@@ -42,14 +42,34 @@ export class Navbar extends Component {
         this.hardwareProxy = useService("hardware_proxy");
         this.isDisplayStandalone = isDisplayStandalone();
         this.isBarcodeScannerSupported = isBarcodeScannerSupported;
+        this.btnSize = 0;
         onMounted(async () => {
             this.isSystemUser = await user.hasGroup("base.group_system");
+            const buttonContainer = document.querySelector(".navbar-menu");
+            const buttons = document.querySelectorAll(".navbar-menu button");
+            this.btnSize = buttons.length ? 100 / buttons.length : 0;
+            buttonContainer?.style.setProperty("--btn-size", `${this.btnSize}%`);
+            buttonContainer?.style.setProperty("--bg-offset", "0%");
         });
+        onRendered(() => {
+            const buttonContainer = document.querySelector(".navbar-menu");
+            buttonContainer?.style.setProperty("--btn-size", `${this.btnSize}%`);
+            buttonContainer?.style.setProperty("--bg-offset", `${this.getBtnOffset()}%`);
+            buttonContainer?.classList.add("slide");
+        });
+    }
+    getBtnOffset() {
+        if (this.pos.mainScreen.component.name === "ProductScreen") {
+            return 0;
+        }
+        if (this.pos.mainScreen.component.name === "TicketScreen") {
+            return this.btnSize;
+        }
     }
     onClickScan() {
         if (!this.pos.scanning) {
             this.pos.showScreen("ProductScreen");
-            this.pos.mobile_pane = "right";
+            this.pos.mobilePanes.ProductScreen = "right";
         }
         this.pos.scanning = !this.pos.scanning;
     }
