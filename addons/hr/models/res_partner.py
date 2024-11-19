@@ -46,7 +46,11 @@ class ResPartnerBank(models.Model):
     @api.depends_context('uid')
     def _compute_display_name(self):
         account_employee = self.browse()
-        if not self.user_has_groups('hr.group_hr_user'):
+        try:
+            self_origin = self.sudo(False)
+            self_origin.check_access_rights('read')
+            self_origin.check_access_rule('read')
+        except AccessError:
             account_employee = self.sudo().filtered("partner_id.employee_ids")
             for account in account_employee.with_env(self.env):
                 account.display_name = account.acc_number[:2] + "*" * len(account.acc_number[2:-4]) + account.acc_number[-4:]
