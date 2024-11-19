@@ -1716,13 +1716,8 @@ class TestQueries(TransactionCase):
 
         with self.assertQueries(['''
             SELECT COUNT(*)
-<<<<<<< HEAD
             FROM "res_country"
-            WHERE "res_country"."id" = %s
-=======
-            FROM "res_partner_title"
-            WHERE "res_partner_title"."id" IN %s
->>>>>>> fa81bde55fd ([IMP] orm: Domain optimization transform '=' into 'in')
+            WHERE "res_country"."id" IN %s
         ''']):
             Model.search_count([('id', '=', 1)])
 

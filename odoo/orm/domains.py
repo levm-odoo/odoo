@@ -272,6 +272,10 @@ class Domain:
         return _FALSE_DOMAIN
 
     @staticmethod
+    def is_negative_operator(operator: str) -> bool:
+        return operator in NEGATIVE_CONDITION_OPERATORS
+
+    @staticmethod
     def AND(items: Iterable) -> Domain:
         """Build the conjuction of domains: (item1 AND item2 AND ...)"""
         return DomainAnd.apply(items)
@@ -880,17 +884,30 @@ class DomainCondition(Domain):
             if not field.search:
                 _logger.error("Non-stored field %s cannot be searched.", field, stack_info=_logger.isEnabledFor(logging.DEBUG))
                 return _TRUE_DOMAIN
-            # XXX temporary fix until next commit that fixes search for '=' operators
-            operator = self.operator
-            value = self.value
-            if operator in ('in', 'not in'):
-                if len(value) == 1:
-                    operator = '=' if operator == 'in' else '!='
-                    value = next(iter(value))
-                elif not isinstance(value, list):
-                    value = list(value)
-            computed_domain = field.determine_domain(model, operator, value)
-            return Domain(computed_domain)._optimize(model, level)
+            operator, value = self.operator, self.value
+            # simplify further for boolean fields
+            if field.type == 'boolean':
+                if not (operator in ('in', 'not in') and isinstance(value, COLLECTION_TYPES) and len(value) == 1):
+                    self._raise("Cannot compare %r to %s which is not a collection of length 1", self.field, type(value))
+                # special case to ease implementation: always use (field_expr, 'in'/'not in', [True])
+                [truth] = value
+                if not truth:
+                    operator = _INVERSE_OPERATOR[operator]
+                value = [True]
+            try:
+                # use the `search` function of the field
+                computed_domain = Domain(field.determine_domain(model, operator, value))
+            except NotImplementedError as e:
+                # when not supported, check if it is supported for the positive operator
+                computed_domain = None
+                if positive_operator := NEGATIVE_CONDITION_OPERATORS.get(operator):
+                    try:
+                        computed_domain = ~Domain(field.determine_domain(model, positive_operator, value))
+                    except NotImplementedError:
+                        computed_domain = None
+                if computed_domain is None:
+                    raise NotImplementedError(f"Unsupported operator in {self!r} on model {model._name}") from e
+            return computed_domain._optimize(model, level)
 
         # optimizations based on operator
         for opt in _CONDITION_OPTIMIZATIONS_BY_OPERATOR[self.operator, level]:
