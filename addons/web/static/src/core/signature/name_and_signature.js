@@ -9,7 +9,7 @@ import { pick } from "@web/core/utils/objects";
 import { renderToString } from "@web/core/utils/render";
 import { getDataURLFromFile } from "@web/core/utils/urls";
 
-import { Component, useState, onWillStart, useRef, useEffect } from "@odoo/owl";
+import { Component, useState, onWillStart, useRef, useEffect, status } from "@odoo/owl";
 
 let htmlId = 0;
 export class NameAndSignature extends Component {
@@ -270,6 +270,14 @@ export class NameAndSignature extends Component {
      *  - call @see setMode with reset
      */
     resetSignature() {
+        // Ensure the component is accessed only if it is still active.
+        // The component is conditionally displayed or destroyed (e.g., during edit mode)
+        // within a modal rendered inside portal. The `resetSignature` method is always
+        // invoked when the modal is opened. However, if the component has already been
+        // destroyed, calling this method would result in a crash.
+        if (status(this) === "destroyed") {
+            return;
+        }
         const { width, height } = this.resizeSignature();
 
         this.$signatureField.empty().jSignature({
