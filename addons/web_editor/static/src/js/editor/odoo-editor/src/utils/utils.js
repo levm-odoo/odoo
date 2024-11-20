@@ -2432,7 +2432,7 @@ export function fillEmpty(el) {
         blockEl.appendChild(br);
         fillers.br = br;
     }
-    if (!isTangible(el) && !el.hasAttribute("data-oe-zws-empty-inline") && !el.hasChildNodes()) {
+    if (!isTangible(el) && !el.hasAttribute("data-oe-zws-empty-inline") && isEmptyBlock(el)) {
         // As soon as there is actual content in the node, the zero-width space
         // is removed by the sanitize function.
         const zws = document.createTextNode('\u200B');
@@ -3298,5 +3298,12 @@ export function isMacOS() {
 export function cleanZWS(node) {
     [node, ...descendants(node)]
         .filter(node => node.nodeType === Node.TEXT_NODE && node.nodeValue.includes('\u200B'))
-        .forEach(node => node.nodeValue = node.nodeValue.replace(/\u200B/g, ''));
+        .forEach((node) => {
+            if (node.nodeValue === "\u200B") {
+                // Remove text nodes that contain only zws
+                node.parentElement.removeChild(node);
+            } else {
+                node.nodeValue = node.nodeValue.replace(/\u200B/g, "");
+            }
+        });
 }
