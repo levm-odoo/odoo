@@ -26,7 +26,7 @@ class PurchaseRequisition(models.Model):
     user_id = fields.Many2one(
         'res.users', string='Purchase Representative',
         default=lambda self: self.env.user, check_company=True)
-    description = fields.Html()
+    description = fields.Html(sanitize_attributes=False)
     company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
     purchase_ids = fields.One2many('purchase.order', 'requisition_id', string='Purchase Orders')
     line_ids = fields.One2many('purchase.requisition.line', 'requisition_id', string='Products to Purchase', copy=True)

@@ -122,7 +122,7 @@ class AccountTax(models.Model):
     sequence = fields.Integer(required=True, default=1,
         help="The sequence field is used to define order in which the tax lines are applied.")
     amount = fields.Float(required=True, digits=(16, 4), default=0.0, tracking=True)
-    description = fields.Html(string='Description', translate=html_translate)
+    description = fields.Html(string='Description', translate=html_translate, sanitize_attributes=False)
     invoice_label = fields.Char(string='Label on Invoices', translate=True)
     price_include = fields.Boolean(
         compute='_compute_price_include',

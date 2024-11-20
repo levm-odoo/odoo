@@ -122,7 +122,7 @@ class Lead(models.Model):
         'res.company', string='Company', index=True,
         compute='_compute_company_id', readonly=False, store=True)
     referred = fields.Char('Referred By')
-    description = fields.Html('Notes')
+    description = fields.Html('Notes', sanitize_attributes=False)
     active = fields.Boolean('Active', default=True, tracking=True)
     type = fields.Selection([
         ('lead', 'Lead'), ('opportunity', 'Opportunity')], required=True, tracking=15, index=True,

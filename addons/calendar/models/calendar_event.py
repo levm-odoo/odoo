@@ -121,7 +121,7 @@ class Meeting(models.Model):
 
     # description
     name = fields.Char('Meeting Subject', required=True)
-    description = fields.Html('Description')
+    description = fields.Html('Description', sanitize_attributes=False)
     user_id = fields.Many2one('res.users', 'Organizer', default=lambda self: self.env.user)
     partner_id = fields.Many2one(
         'res.partner', string='Scheduled by', related='user_id.partner_id', readonly=True)

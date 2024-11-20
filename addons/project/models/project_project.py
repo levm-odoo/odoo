@@ -83,7 +83,7 @@ class Project(models.Model):
             self_sudo.favorite_user_ids = [Command.unlink(self.env.uid)]
 
     name = fields.Char("Name", index='trigram', required=True, tracking=True, translate=True, default_export_compatible=True)
-    description = fields.Html(help="Description to provide more information and context about this project")
+    description = fields.Html(help="Description to provide more information and context about this project", sanitize_attributes=False)
     active = fields.Boolean(default=True, copy=False, export_string_translation=False)
     sequence = fields.Integer(default=10, export_string_translation=False)
     partner_id = fields.Many2one('res.partner', string='Customer', auto_join=True, tracking=True, domain="['|', ('company_id', '=?', company_id), ('company_id', '=', False)]")

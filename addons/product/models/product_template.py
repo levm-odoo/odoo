@@ -47,7 +47,7 @@ class ProductTemplate(models.Model):
     name = fields.Char('Name', index='trigram', required=True, translate=True)
     sequence = fields.Integer('Sequence', default=1, help='Gives the sequence order when displaying a product list')
     description = fields.Html(
-        'Description', translate=True)
+        'Description', translate=True, sanitize_attributes=False)
     description_purchase = fields.Text(
         'Purchase Description', translate=True)
     description_sale = fields.Text(

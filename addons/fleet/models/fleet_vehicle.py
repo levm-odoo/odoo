@@ -30,7 +30,7 @@ class FleetVehicle(models.Model):
         return state if state and state.id else False
 
     name = fields.Char(compute="_compute_vehicle_name", store=True)
-    description = fields.Html("Vehicle Description")
+    description = fields.Html("Vehicle Description", sanitize_attributes=False)
     active = fields.Boolean('Active', default=True, tracking=True)
     manager_id = fields.Many2one(
         'res.users', 'Fleet Manager',

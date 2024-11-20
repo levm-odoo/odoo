@@ -54,7 +54,7 @@ class ProjectUpdate(models.Model):
     progress = fields.Integer(tracking=True)
     progress_percentage = fields.Float(compute='_compute_progress_percentage', export_string_translation=False)
     user_id = fields.Many2one('res.users', string='Author', required=True, default=lambda self: self.env.user)
-    description = fields.Html()
+    description = fields.Html(sanitize_attributes=False)
     date = fields.Date(default=fields.Date.context_today, tracking=True)
     project_id = fields.Many2one('project.project', required=True, export_string_translation=False)
     name_cropped = fields.Char(compute="_compute_name_cropped", export_string_translation=False)

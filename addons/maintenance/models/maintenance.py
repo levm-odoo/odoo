@@ -243,7 +243,7 @@ class MaintenanceRequest(models.Model):
     name = fields.Char('Subjects', required=True)
     company_id = fields.Many2one('res.company', string='Company', required=True,
         default=lambda self: self.env.company)
-    description = fields.Html('Description')
+    description = fields.Html('Description', sanitize_attributes=False)
     request_date = fields.Date('Request Date', tracking=True, default=fields.Date.context_today,
                                help="Date requested for the maintenance to happen")
     owner_user_id = fields.Many2one('res.users', string='Created by User', default=lambda s: s.env.uid)
