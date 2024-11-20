@@ -91,6 +91,7 @@ export class Macro {
         if (!this.stepHasStarted[this.currentIndex]) {
             delay = this.currentIndex === 0 ? 0 : 50;
             this.stepHasStarted[this.currentIndex] = true;
+            this.safeCall(this.onStep, this.currentStep, this.currentElement);
             if (this.currentStep?.initialDelay) {
                 const initialDelay = parseFloat(this.currentStep.initialDelay());
                 delay = initialDelay >= 0 ? initialDelay : delay;
@@ -108,20 +109,13 @@ export class Macro {
         if (this.isComplete) {
             return;
         }
-        if (this.currentStep.trigger) {
-            this.setTimer();
-        }
-        let proceedToAction = true;
-        if (this.currentStep.trigger) {
-            proceedToAction = this.findTrigger();
-        }
-        if (proceedToAction) {
-            this.safeCall(this.onStep, this.currentElement, this.currentStep);
-            const actionResult = await this.performAction();
+        this.findTrigger();
+        if (this.currentElement || !this.currentStep.trigger) {
             this.clearTimer();
+            const actionResult = await this.performAction();
+            // If falsy action result, it means the action worked properly.
+            // So we can proceed to the next step.
             if (!actionResult) {
-                // If falsy action result, it means the action worked properly.
-                // So we can proceed to the next step.
                 this.increment();
                 this.debounceAdvance("next");
             }
@@ -133,23 +127,22 @@ export class Macro {
      * @returns {boolean}
      */
     findTrigger() {
-        if (this.isComplete) {
+        if (!this.currentStep.trigger || this.isComplete || this.currentElement) {
             return;
         }
         const trigger = this.currentStep.trigger;
+        validate(trigger, macroSchema.steps.element.trigger);
+        this.setTimer();
         try {
             if (typeof trigger === "function") {
                 this.currentElement = this.safeCall(trigger);
             } else if (typeof trigger === "string") {
                 const triggerEl = document.querySelector(trigger);
                 this.currentElement = isVisible(triggerEl) && triggerEl;
-            } else {
-                throw new Error(`Trigger can only be string or function.`);
             }
         } catch (error) {
-            this.stop(`Error when trying to find trigger: ${error.message}`);
+            this.stop(`ERROR IN FIND TRIGGER: ${error.message}`);
         }
-        return !!this.currentElement;
     }
 
     /**
@@ -200,9 +193,6 @@ export class Macro {
         }
     }
 
-    /**
-     * Timer for findTrigger only (not for doing action)
-     */
     setTimer() {
         this.clearTimer();
         const timeout = this.currentStep.timeout || this.timeout;

@@ -12,8 +12,7 @@ export class TourAutomatic {
     constructor(data) {
         Object.assign(this, data);
         this.steps = this.steps.map((step, index) => new TourStepAutomatic(step, this, index));
-        const tourConfig = tourState.getCurrentConfig();
-        this.stepDelay = tourConfig.stepDelay;
+        this.config = tourState.getCurrentConfig() || {};
     }
 
     get currentIndex() {
@@ -25,15 +24,14 @@ export class TourAutomatic {
     }
 
     get debugMode() {
-        const tourConfig = tourState.getCurrentConfig() || {};
-        return tourConfig.debug !== false;
+        return this.config.debug !== false;
     }
 
     start(pointer) {
         const macroSteps = this.steps
             .filter((step) => step.index >= this.currentIndex)
             .flatMap((step) => {
-                const timeout = (step.timeout || 10000) + this.stepDelay;
+                const timeout = (step.timeout || 10000) + this.config.stepDelay;
                 return [
                     {
                         action: async () => {
