@@ -11,9 +11,21 @@ class Http(models.AbstractModel):
     def get_frontend_session_info(self):
         session_info = super().get_frontend_session_info()
         session_info["websocket_worker_version"] = WebsocketConnectionHandler._VERSION
+        autovacuum_job = self.env.ref("base.autovacuum_job")
+        session_info["autovacuum_info"] = {
+            "id": autovacuum_job.id,
+            "lastcall": str(autovacuum_job.lastcall),
+            "nextcall": str(autovacuum_job.nextcall),
+        }
         return session_info
 
     def session_info(self):
         session_info = super().session_info()
         session_info["websocket_worker_version"] = WebsocketConnectionHandler._VERSION
+        autovacuum_job = self.env.ref("base.autovacuum_job")
+        session_info["autovacuum_info"] = {
+            "id": autovacuum_job.id,
+            "lastcall": str(autovacuum_job.lastcall),
+            "nextcall": str(autovacuum_job.nextcall),
+        }
         return session_info
