@@ -8,7 +8,7 @@ export class AvatarCardEmployeePopover extends AvatarCardResourcePopover {
         recordModel: "hr.employee",
     };
     async onWillStart() {
-        await super.onWillStart();
+        [this.record] = await this.orm.read(this.props.recordModel, [this.props.id], this.fieldNames);
         this.record.employee_id = [this.props.id];
     }
 

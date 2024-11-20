@@ -1,6 +1,7 @@
 /* @odoo-module */
 
 import { patch } from "@web/core/utils/patch";
+import { user } from "@web/core/user";
 import { AvatarCardResourcePopover } from "@resource_mail/components/avatar_card_resource/avatar_card_resource_popover";
 import { useService } from "@web/core/utils/hooks";
 import { TagsList } from "@web/core/tags_list/tags_list";
@@ -11,6 +12,11 @@ const patchAvatarCardResourcePopover = {
         (this.userInfoTemplate = "hr.avatarCardResourceInfos"),
             (this.actionService = useService("action"));
     },
+    async onWillStart() {
+        this.hr_access = await user.hasGroup("hr.group_hr_user");
+        [this.record] = await this.orm.read(this.props.recordModel, [this.props.id], this.fieldNames);
+    },
+
     get fieldNames() {
         return [...super.fieldNames, "show_hr_icon_display", "hr_icon_display"];
     },
