@@ -11,7 +11,7 @@
         <xpath expr="//div[hasclass('o_list_buttons')]" position="inside">
             <input type="file" name="ufile" class="d-none" t-ref="fileInput" multiple="1" accept="*" t-on-change="onChangeFileInput"/>
             <!-- If Create Report is shown and window isSmall, 'New' button is added to the 'control-panel-additional-actions' slot (dropdown in mobile) -->
-            <t t-if="!model.root.editedRecord and activeActions.create and props.showButtons and env.isSmall and displayCreateReport()">
+            <t t-if="!editedRecord and activeActions.create and props.showButtons and env.isSmall and displayCreateReport()">
                 <button type="button" class="btn btn-primary o_list_button_add" data-hotkey="c" t-on-click="onClickCreate" data-bounce-button="">
                     New
                 </button>

@@ -80,10 +80,6 @@ export class StaticList extends DataPoint {
         return this._currentIds;
     }
 
-    get editedRecord() {
-        return this.records.find((record) => record.isInEdition);
-    }
-
     get evalContext() {
         const evalContext = getBasicEvalContext(this.config);
         evalContext.parent = this._parent.evalContext;
@@ -265,6 +261,10 @@ export class StaticList extends DataPoint {
         });
     }
 
+    findEditedRecord() {
+        return this.records.find((record) => record.isInEdition);
+    }
+
     forget(record) {
         return this.model.mutex.exec(async () => {
             await this._applyCommands([[x2ManyCommands.UNLINK, record.resId]]);
@@ -273,32 +273,31 @@ export class StaticList extends DataPoint {
     }
 
     async leaveEditMode({ discard, canAbandon, validate } = {}) {
-        if (this.editedRecord) {
+        if (this.findEditedRecord()) {
             await this.model._askChanges(false);
         }
         return this.model.mutex.exec(async () => {
-            if (this.editedRecord) {
-                const isValid = this.editedRecord._checkValidity();
+            let editedRecord = this.findEditedRecord();
+            if (editedRecord) {
+                const isValid = editedRecord._checkValidity();
                 if (!isValid && validate) {
                     return false;
                 }
                 if (canAbandon !== false && !validate) {
-                    this._abandonRecords([this.editedRecord], { force: true });
+                    this._abandonRecords([editedRecord], { force: true });
                 }
                 // if we still have an editedRecord, it means it hasn't been abandonned
-                if (this.editedRecord) {
-                    if (isValid && !this.editedRecord.dirty && discard) {
+                editedRecord = this.findEditedRecord();
+                if (editedRecord) {
+                    if (isValid && !editedRecord.dirty && discard) {
                         return false;
                     }
-                    if (
-                        isValid ||
-                        (!this.editedRecord.dirty && !this.editedRecord._manuallyAdded)
-                    ) {
-                        this.editedRecord._switchMode("readonly");
+                    if (isValid || (!editedRecord.dirty && !editedRecord._manuallyAdded)) {
+                        editedRecord._switchMode("readonly");
                     }
                 }
             }
-            return !this.editedRecord;
+            return !this.findEditedRecord();
         });
     }
 
@@ -318,7 +317,8 @@ export class StaticList extends DataPoint {
 
     load({ limit, offset, orderBy } = {}) {
         return this.model.mutex.exec(async () => {
-            if (this.editedRecord && !(await this.editedRecord.checkValidity())) {
+            const editedRecord = this.findEditedRecord();
+            if (editedRecord && !(await editedRecord.checkValidity())) {
                 return;
             }
             limit = limit !== undefined ? limit : this.limit;

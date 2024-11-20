@@ -769,7 +769,7 @@ export function useOpenX2ManyRecord({
         record = await list.extendRecord(params, record);
 
         const _onClose = () => {
-            list.editedRecord?.switchMode("readonly");
+            list.findEditedRecord()?.switchMode("readonly");
             onClose?.();
         };
 

@@ -247,13 +247,14 @@ export class X2ManyField extends Component {
             return this.selectCreate({ domain, context, title });
         }
         if (editable) {
-            if (this.list.editedRecord) {
+            const editedRecord = this.list.findEditedRecord();
+            if (editedRecord) {
                 const proms = [];
                 this.list.model.bus.trigger("NEED_LOCAL_CHANGES", { proms });
-                await Promise.all([...proms, this.list.editedRecord._updatePromise]);
+                await Promise.all([...proms, editedRecord._updatePromise]);
                 await this.list.leaveEditMode({ canAbandon: false });
             }
-            if (!this.list.editedRecord) {
+            if (!this.list.findEditedRecord()) {
                 return this.addInLine({ context, editable });
             }
             return;

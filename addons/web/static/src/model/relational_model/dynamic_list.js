@@ -38,14 +38,6 @@ export class DynamicList extends DataPoint {
         return this.config.domain;
     }
 
-    /**
-     * Be careful that this getter is costly, as it iterates over the whole list
-     * of records. This property should not be accessed in a loop.
-     */
-    get editedRecord() {
-        return this.records.find((record) => record.isInEdition);
-    }
-
     get isRecordCountTrustable() {
         return true;
     }
@@ -87,7 +79,7 @@ export class DynamicList extends DataPoint {
     }
 
     async enterEditMode(record) {
-        if (this.editedRecord === record) {
+        if (this.findEditedRecord() === record) {
             return true;
         }
         const canProceed = await this.leaveEditMode();
@@ -95,6 +87,10 @@ export class DynamicList extends DataPoint {
             this.model._updateConfig(record.config, { mode: "edit" }, { reload: false });
         }
         return canProceed;
+    }
+
+    findEditedRecord() {
+        return this.records.find((record) => record.isInEdition);
     }
 
     /**
@@ -119,32 +115,33 @@ export class DynamicList extends DataPoint {
     }
 
     async leaveEditMode({ discard } = {}) {
-        if (this.editedRecord) {
+        const editedRecord = this.findEditedRecord();
+        if (editedRecord) {
             let canProceed = true;
             if (discard) {
-                this._recordToDiscard = this.editedRecord;
-                await this.editedRecord.discard();
+                this._recordToDiscard = editedRecord;
+                await editedRecord.discard();
                 this._recordToDiscard = null;
-                if (this.editedRecord && this.editedRecord.isNew) {
-                    this._removeRecords([this.editedRecord.id]);
+                if (editedRecord && editedRecord.isNew) {
+                    this._removeRecords([editedRecord.id]);
                 }
             } else {
                 if (!this.model._urgentSave) {
-                    await this.editedRecord.checkValidity();
-                    if (!this.editedRecord) {
+                    await editedRecord.checkValidity();
+                    if (!this.findEditedRecord()) {
                         return true;
                     }
                 }
-                if (this.editedRecord.isNew && !this.editedRecord.dirty) {
-                    this._removeRecords([this.editedRecord.id]);
+                if (editedRecord.isNew && !editedRecord.dirty) {
+                    this._removeRecords([editedRecord.id]);
                 } else {
-                    canProceed = await this.editedRecord.save();
+                    canProceed = await editedRecord.save();
                 }
             }
 
-            if (canProceed && this.editedRecord) {
+            if (canProceed && editedRecord) {
                 this.model._updateConfig(
-                    this.editedRecord.config,
+                    editedRecord.config,
                     { mode: "readonly" },
                     { reload: false }
                 );
