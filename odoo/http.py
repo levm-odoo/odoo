@@ -1424,7 +1424,7 @@ class FutureResponse:
         if expires == -1:  # not forced value -> default value -> 1 year
             expires = datetime.now() + timedelta(days=365)
 
-        if request.db and not request.env['ir.http']._is_allowed_cookie(cookie_type):
+        if request.db and request.env and not request.env['ir.http']._is_allowed_cookie(cookie_type):
             max_age = 0
         werkzeug.Response.set_cookie(self, key, value=value, max_age=max_age, expires=expires, path=path, domain=domain, secure=secure, httponly=httponly, samesite=samesite)
 
@@ -1485,6 +1485,7 @@ class Request:
             registry = Registry(self.db)
             cr_readonly = registry.cursor(readonly=True)
             registry = registry.check_signaling(cr_readonly)
+            self.future_response.set_cookie('template_cache', str(registry.cache_sequences['templates']))
         except (AttributeError, psycopg2.OperationalError, psycopg2.ProgrammingError) as e:
             raise RegistryError(f"Cannot get registry {self.db}") from e
         return registry, cr_readonly
