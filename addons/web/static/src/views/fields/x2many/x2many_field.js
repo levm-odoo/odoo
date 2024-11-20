@@ -233,7 +233,12 @@ export class X2ManyField extends Component {
                 res_model: this.list.resModel,
             },
             {
-                props: { resIds: this.list.resIds },
+                props: {
+                    resIds: this.list.resIds,
+                    options: {
+                        parentRecord: this.props.record,
+                    }
+                },
             }
         );
     }

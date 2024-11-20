@@ -173,7 +173,7 @@ export class RelationalModel extends Model {
         const config = this._getNextConfig(this.config, params);
         this.hooks.onWillLoadRoot(config);
         const data = await this.keepLast.add(this._loadData(config));
-        this.root = this._createRoot(config, data);
+        this.root = this._createRoot(config, data, params.options);
         this.config = config;
         return this.hooks.onRootLoaded();
     }
@@ -218,9 +218,9 @@ export class RelationalModel extends Model {
      * @param {*} data
      * @returns {DataPoint}
      */
-    _createRoot(config, data) {
+    _createRoot(config, data, options = {}) {
         if (config.isMonoRecord) {
-            return new this.constructor.Record(this, config, data);
+            return new this.constructor.Record(this, config, data, options);
         }
         if (config.groupBy.length) {
             return new this.constructor.DynamicGroupList(this, config, data);

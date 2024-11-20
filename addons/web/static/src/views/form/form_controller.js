@@ -155,6 +155,7 @@ export class FormController extends Component {
         preventEdit: { type: Boolean, optional: true },
         onDiscard: { type: Function, optional: true },
         onSave: { type: Function, optional: true },
+        options: { type: Object, optional: true },
     };
     static defaultProps = {
         preventCreate: false,
