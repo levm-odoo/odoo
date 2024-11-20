@@ -121,6 +121,7 @@ class Http(models.AbstractModel):
                 "translations": self.env['ir.http'].sudo().get_web_translations_hash(
                     mods, request.session.context['lang']
                 ) if session_uid else None,
+                'template_cache': self.pool.cache_sequences['templates'],
             },
             "currencies": self.sudo().get_currencies(),
             'bundle_params': {
