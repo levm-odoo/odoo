@@ -472,9 +472,10 @@ export class TablePlugin extends Plugin {
         return true;
     }
 
-    hanldeFirefoxSelection(ev = null) {
+    handleFirefoxSelection(ev = null) {
         const selection = this.document.getSelection();
-        if (isBrowserFirefox()) {
+        const isSelectionInEditable = this.dependencies.selection.getSelectionData().documentSelectionIsInEditable;
+        if (isSelectionInEditable && isBrowserFirefox()) {
             if (selection.rangeCount > 1) {
                 // In Firefox, selecting multiple cells within a table using the mouse can create multiple ranges.
                 // This behavior can cause the original selection (where the selection started) to be lost.
@@ -517,7 +518,7 @@ export class TablePlugin extends Plugin {
     }
 
     updateSelectionTable(selectionData) {
-        if (this.hanldeFirefoxSelection()) {
+        if (this.handleFirefoxSelection()) {
             // It will be retriggered with selectionchange
             return;
         }
@@ -603,7 +604,7 @@ export class TablePlugin extends Plugin {
         if (this._currentMouseState !== "mousedown") {
             return;
         }
-        if (this.hanldeFirefoxSelection(ev)) {
+        if (this.handleFirefoxSelection(ev)) {
             return;
         }
         const selection = this.dependencies.selection.getEditableSelection();
