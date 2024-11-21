@@ -37,7 +37,8 @@
                         <group>
                             <field name="name"/>
                             <field name="model" readonly="id"/>
-                            <field name="order"/>
+                            <field name="order" readonly="state != 'manual'"/>
+                            <field name="fold_name" readonly="state != 'manual'"/>
                             <field name="abstract" readonly="id" groups="base.group_no_one"/>
                             <field name="transient" readonly="id" groups="base.group_no_one"/>
                         </group>

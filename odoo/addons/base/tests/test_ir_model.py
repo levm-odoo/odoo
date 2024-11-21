@@ -4,7 +4,7 @@
 from psycopg2 import IntegrityError
 from psycopg2.errors import NotNullViolation
 
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError, UserError
 from odoo.tests import Form, TransactionCase, HttpCase, tagged
 from odoo.tools import mute_logger
 from odoo import Command
@@ -346,6 +346,19 @@ class TestIrModel(TransactionCase):
 
             bananas = self.env['x_bananas'].search([])
             self.assertEqual(bananas.mapped('x_name'), names, 'failed to order by %s' % order)
+
+    def test_model_fold_search(self):
+        """Check that custom orders are applied when querying a model."""
+        self.assertEqual(self.bananas_model.fold_name, False)
+        self.assertEqual(self.env['x_bananas']._fold_name, None)
+
+        self.bananas_model.fold_name = 'x_name'
+        self.assertEqual(self.env['x_bananas']._fold_name, 'x_name')
+
+        # verify that you can't change fold_name on base models
+        partner_model = self.env['ir.model']._get('res.partner')
+        with self.assertRaises(UserError):
+            partner_model.fold_name = 'active'
 
     def test_group_expansion(self):
         """Check that the basic custom group expansion works."""

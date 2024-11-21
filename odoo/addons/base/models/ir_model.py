@@ -232,6 +232,8 @@ class IrModel(models.Model):
     view_ids = fields.One2many('ir.ui.view', compute='_view_ids', string='Views')
     count = fields.Integer(compute='_compute_count', string="Count (Incl. Archived)",
                            help="Total number of records in this model")
+    fold_name = fields.Char(string="Fold Field", help="In a Kanban view where columns are records of this model, the value "
+        "of this (boolean) field determines which column should be folded by default.")
 
     @api.depends()
     def _inherited_models(self):
@@ -298,6 +300,12 @@ class IrModel(models.Model):
             for field in order_fields:
                 if field not in stored_fields:
                     raise ValidationError(_("Unable to order by %s: fields used for ordering must be present on the model and stored.", field))
+
+    @api.constrains('fold_name')
+    def _check_fold_name(self):
+        for model in self:
+            if model.fold_name and model.fold_name not in model.field_id.mapped('name'):
+                raise ValidationError(_("The value of 'Fold Field' should be a field name of the model."))
 
     _obj_name_uniq = models.Constraint('UNIQUE (model)', 'Each model must have a unique name.')
 
@@ -370,18 +378,29 @@ class IrModel(models.Model):
         return res
 
     def write(self, vals):
-        for unmodifiable_field in ('model', 'state', 'abstract', 'transient'):
-            if unmodifiable_field in vals and any(rec[unmodifiable_field] != vals[unmodifiable_field] for rec in self):
-                raise UserError(_('Field %s cannot be modified on models.', self._fields[unmodifiable_field]._description_string(self.env)))
+        for fname in ('model', 'state', 'abstract', 'transient'):
+            if fname in vals and any(model[fname] != vals[fname] for model in self):
+                field_string = self._fields[fname]._description_string(self.env)
+                raise UserError(_('Field %s cannot be modified on models.', field_string))
+
+        base_models = self.filtered(lambda model: model.state != 'manual')
+        for fname in ('order', 'fold_name'):
+            if fname in vals and any(model[fname] != vals[fname] for model in base_models):
+                field_string = self._fields[fname]._description_string(self.env)
+                raise UserError(_('Field %s cannot be modified on non-custom models.', field_string))
+
         # Filter out operations 4 from field id, because the web client always
         # writes (4,id,False) even for non dirty items.
         if 'field_id' in vals:
             vals['field_id'] = [op for op in vals['field_id'] if op[0] != 4]
+
         res = super().write(vals)
-        # ordering has been changed, reload registry to reflect update + signaling
-        if 'order' in vals:
+
+        # ordering or fold_name has been changed, reload registry to reflect update + signaling
+        if 'order' in vals or 'fold_name' in vals:
             self.env.flush_all()  # setup_models need to fetch the updated values from the db
             self.pool.setup_models(self._cr)
+
         return res
 
     @api.model_create_multi
@@ -417,6 +436,7 @@ class IrModel(models.Model):
             'state': 'manual' if model._custom else 'base',
             'abstract': model._abstract,
             'transient': model._transient,
+            'fold_name': model._fold_name,
         }
 
     def _reflect_models(self, model_names):
@@ -471,6 +491,7 @@ class IrModel(models.Model):
             _abstract = bool(model_data['abstract'])
             _transient = bool(model_data['transient'])
             _order = model_data['order']
+            _fold_name = model_data['fold_name']
             __doc__ = model_data['info']
 
         return CustomModel
