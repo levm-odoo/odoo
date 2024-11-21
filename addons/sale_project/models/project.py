@@ -901,6 +901,23 @@ class ProjectTask(models.Model):
             if task.sale_order_id and task.partner_id.commercial_partner_id not in consistent_partners:
                 task.sale_order_id = task.sale_line_id = False
 
+    @api.onchange('partner_id')
+    def _on_change_partner_id(self):
+        sale_order = (
+            self.sale_line_id.order_id
+            or self.project_id.sale_order_id
+            or self.sale_order_id
+        )
+        consistent_partners = (
+            sale_order.partner_id
+            | sale_order.partner_invoice_id
+            | sale_order.partner_shipping_id
+        ).commercial_partner_id
+        if self.sale_order_id and self.partner_id.commercial_partner_id not in consistent_partners:
+            self.sale_order_id = self.sale_line_id = False
+        elif self.partner_id.commercial_partner_id in consistent_partners:
+            self.sale_line_id = self.project_id.sale_line_id
+
     @api.depends('sale_line_id.order_partner_id', 'parent_id.sale_line_id', 'project_id.sale_line_id', 'milestone_id.sale_line_id', 'allow_billable')
     def _compute_sale_line(self):
         for task in self:
