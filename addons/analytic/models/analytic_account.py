@@ -7,6 +7,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from odoo.tools import groupby
 
+from odoo.exceptions import AccessError, MissingError
 
 class AccountAnalyticAccount(models.Model):
     _name = 'account.analytic.account'
@@ -119,8 +120,11 @@ class AccountAnalyticAccount(models.Model):
 
     def web_read(self, specification: dict[str, dict]) -> list[dict]:
         self_context = self
-        if len(self) == 1:
-            self_context = self.with_context(analytic_plan_id=self.plan_id.id)
+        try:
+            if len(self) == 1:
+                self_context = self.with_context(analytic_plan_id=self.plan_id.id)
+        except AccessError:
+            pass
         return super(AccountAnalyticAccount, self_context).web_read(specification)
 
     def _read_group_select(self, aggregate_spec, query):
