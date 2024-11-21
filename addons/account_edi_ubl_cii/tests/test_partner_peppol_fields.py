@@ -103,8 +103,8 @@ class TestAccountUblCii(AccountTestInvoicingCommon):
         })
         with patch.object(self.env.registry['res.partner'], '_get_ubl_cii_formats_info', _get_ubl_cii_formats_info):
             self.assertEqual(Partner._get_ubl_cii_formats(), ['ubl_no_country', 'peppol', 'cii'])
-            self.assertEqual(Partner._get_ubl_cii_formats_by_country()['NZ'], ['peppol'])
-            self.assertEqual(Partner._get_ubl_cii_formats_by_country()['AU'], ['peppol', 'cii'])
+            self.assertEqual(Partner._get_suggested_ubl_cii_formats_by_country()['NZ'], ['peppol'])
+            self.assertEqual(Partner._get_suggested_ubl_cii_formats_by_country()['AU'], ['peppol', 'cii'])
             self.assertEqual(Partner._get_peppol_formats(), ['ubl_no_country', 'peppol'])
             self.assertEqual(partner_au._get_suggested_ubl_cii_edi_format(), 'cii')  # AU matches 2 formats but 'cii' has a lower sequence
             self.assertEqual(partner_nz._get_suggested_ubl_cii_edi_format(), 'peppol')

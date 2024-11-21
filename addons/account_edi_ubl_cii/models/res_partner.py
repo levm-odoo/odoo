@@ -4,6 +4,7 @@ from stdnum.fr import siret
 
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
+from odoo.addons.account.models.company import PEPPOL_DEFAULT_COUNTRIES
 from odoo.addons.account_edi_ubl_cii.models.account_edi_common import EAS_MAPPING
 
 
@@ -132,7 +133,7 @@ class ResPartner(models.Model):
     @api.model
     def _get_ubl_cii_formats_info(self):
         return {
-            'ubl_bis3': {'countries': list(EAS_MAPPING), 'on_peppol': True, 'sequence': 200},
+            'ubl_bis3': {'countries': list(EAS_MAPPING), 'default_countries': PEPPOL_DEFAULT_COUNTRIES, 'on_peppol': True, 'sequence': 200},
             'xrechnung': {'countries': ['DE'], 'on_peppol': True},
             'ubl_a_nz': {'countries': ['NZ', 'AU'], 'on_peppol': True},
             'nlcius': {'countries': ['NL'], 'on_peppol': True},
@@ -141,13 +142,18 @@ class ResPartner(models.Model):
         }
 
     @api.model
-    def _get_ubl_cii_formats_by_country(self):
+    def _get_suggested_ubl_cii_formats_by_country(self):
         formats_info = self._get_ubl_cii_formats_info()
-        countries = {country for format_val in formats_info.values() for country in (format_val.get('countries') or [])}
+        countries = {
+            country
+            for format_val in formats_info.values()
+            for country in (format_val.get('default_countries', format_val.get('countries')) or [])
+        }
         return {
             country_code: [
                 format_key
-                for format_key, format_val in formats_info.items() if country_code in (format_val.get('countries') or [])
+                for format_key, format_val in formats_info.items()
+                if country_code in (format_val.get('default_countries', format_val.get('countries')) or [])
             ]
             for country_code in countries
         }
@@ -155,7 +161,7 @@ class ResPartner(models.Model):
     def _get_suggested_ubl_cii_edi_format(self):
         self.ensure_one()
         formats_info = self._get_ubl_cii_formats_info()
-        format_mapping = self._get_ubl_cii_formats_by_country()
+        format_mapping = self._get_suggested_ubl_cii_formats_by_country()
         country_code = self._deduce_country_code()
         if country_code in format_mapping:
             formats_by_country = format_mapping[country_code]

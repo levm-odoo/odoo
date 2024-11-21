@@ -35,6 +35,12 @@ PEPPOL_LIST = [
     'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'SM', 'TR', 'VA',
 ]
 
+PEPPOL_DEFAULT_COUNTRIES = [
+    'AD', 'AL', 'AT', 'AU', 'BA', 'BE', 'BG', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI',
+    'FR', 'GB', 'GR', 'HR', 'IE', 'IS', 'IT', 'LI', 'LT', 'LU', 'LV', 'MC', 'ME',
+    'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'SM', 'TR', 'VA',
+]
+
 INTEGRITY_HASH_BATCH_SIZE = 1000
 
 SOFT_LOCK_DATE_FIELDS = [
