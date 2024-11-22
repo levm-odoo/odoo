@@ -20429,11 +20429,11 @@ day_count_convention (number, default=${DEFAULT_DAY_COUNT_CONVENTION} ) ${_lt("A
   }
 
   /* Custom css to highlight topbar composer on focus */
-  .o-topbar-toolbar .o-composer-container:focus-within {
-    border: 1px solid ${SELECTION_BORDER_COLOR};
+  .o-topbar-toolbar .o-composer-container[active] {
+    border: 1px solid ${SELECTION_BORDER_COLOR} !important;
   }
 
-  .o-topbar-toolbar .o-composer-container {
+  .o-topbar-toolbar .o-composer-container[active] {
     z-index: ${ComponentsImportance.TopBarComposer};
   }
 `;
@@ -43462,8 +43462,8 @@ day_count_convention (number, default=${DEFAULT_DAY_COUNT_CONVENTION} ) ${_lt("A
 
 
     __info__.version = '16.0.55';
-    __info__.date = '2024-11-13T15:37:39.251Z';
-    __info__.hash = '6984990';
+    __info__.date = '2024-11-22T13:28:10.361Z';
+    __info__.hash = '15549ef';
 
 
 })(this.o_spreadsheet = this.o_spreadsheet || {}, owl);
