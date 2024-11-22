@@ -19,9 +19,9 @@ import {
 import { childNodeIndex } from "@html_editor/utils/position";
 import { leftLeafOnlyNotBlockPath } from "@html_editor/utils/dom_state";
 import { _t } from "@web/core/l10n/translation";
-import { compareListTypes, createList, insertListAfter, isListItem } from "./utils";
+import { compareListTypes, createList, insertListAfter } from "./utils";
 import { callbacksForCursorUpdate } from "@html_editor/utils/selection";
-import { getListMode, switchListMode } from "@html_editor/utils/list";
+import { getListMode, switchListMode, isListItem } from "@html_editor/utils/list";
 import { withSequence } from "@html_editor/utils/resource";
 
 function isListActive(listMode) {
