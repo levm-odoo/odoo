@@ -105,6 +105,11 @@ export class Many2ManyTagsField extends Component {
             },
             onRecordSaved: async (record) => {
                 await this.props.record.data[this.props.name].forget(record);
+                if (record.data.view_choose_group_id) {
+                    console.log('TODO');
+                    const newId = record.data.view_choose_group_id[0];
+                    return saveRecord([newId]);
+                }
                 return saveRecord([record.resId]);
             },
         });
