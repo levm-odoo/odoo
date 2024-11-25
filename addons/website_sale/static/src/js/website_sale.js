@@ -72,6 +72,12 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, {
             filmstripContainer?.classList.add('o_wsale_filmstip_fancy_disabled');
         }
 
+        const _addTooltipToFirstBreadcrumb = (ev) => {
+            if (this._isEditorEnabled() && ev.target.classList.contains("first_breadcrumb_shop")) {
+                debugger;
+            }
+        }
+        this.el.ownerDocument.addEventListener("focus", _addTooltipToFirstBreadcrumb, true);
         return def;
     },
     destroy() {
