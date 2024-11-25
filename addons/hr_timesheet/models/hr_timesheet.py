@@ -20,7 +20,7 @@ class AccountAnalyticLine(models.Model):
 
     def web_read(self, specification):
         if self.env.user._is_portal():
-            self = self.sudo()
+            self.read(['account_id'])
         return super().web_read(specification)
 
     @api.model
