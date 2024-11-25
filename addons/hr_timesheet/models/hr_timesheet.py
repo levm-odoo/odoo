@@ -18,6 +18,11 @@ class AccountAnalyticLine(models.Model):
             ('project_id', '!=', False),
         ]
 
+    def web_read(self, specification):
+        if self.env.user._is_portal():
+            self = self.sudo()
+        return super().web_read(specification)
+
     @api.model
     def _get_favorite_project_id(self, employee_id=False):
         last_timesheet_ids = self.search(self._get_favorite_project_id_domain(employee_id), limit=5)
