@@ -376,8 +376,11 @@ patch(Chatter.prototype, {
         this.state.showActivities = !this.state.showActivities;
     },
 
-    toggleComposer(mode = false) {
+    async toggleComposer(mode = false) {
         this.closeSearch();
+        const fetchSuggested = async (thread) => {
+            await this.store.fetchSuggestedRecipients(thread.model, thread.id);
+        };
         const toggle = () => {
             if (this.state.composerType === mode) {
                 this.state.composerType = false;
@@ -386,6 +389,10 @@ patch(Chatter.prototype, {
             }
         };
         if (this.state.thread.id) {
+            if (mode == "message") {
+                console.log(this.state.thread.suggestedRecipients);
+                await fetchSuggested(this.state.thread);
+            };
             toggle();
         } else {
             this.onThreadCreated = toggle;
