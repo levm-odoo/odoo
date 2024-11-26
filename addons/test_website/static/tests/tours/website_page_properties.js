@@ -356,7 +356,7 @@ registerWebsitePreviewTour(
         ...openCreatePageDialog,
         {
             content: "Use blank template",
-            trigger: ".o_page_template .o_button_area",
+            trigger: ".o_page_template:contains(blank page)  .o_button_area:not(:visible)",
             run: "click",
         },
         {
