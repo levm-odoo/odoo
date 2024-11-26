@@ -53,7 +53,7 @@
                             <field name="name"/>
                             <field name="unit_amount" widget="timesheet_uom" decoration-danger="unit_amount &gt; 24"/>
                         </tree>
-                        <kanban class="o_kanban_mobile">
+                        <kanban class="o_kanban_mobile" action="test_account_view" type="object">
                             <field name="date"/>
                             <field name="employee_id"/>
                             <field name="name"/>
@@ -149,4 +149,18 @@
             </div>
         </field>
     </record>
+
+    <!-- <record id="view_account_analytic_line_form_inherit_hr_timesheet" model="ir.ui.view">
+        <field name="name">account.analytic.line.form.inherit.hr.timesheet</field>
+        <field name="model">account.analytic.line</field>
+        <field name="inherit_id" ref="analytic.view_account_analytic_line_form"/>
+        <field name="arch" type="xml">
+            <data>
+                <xpath expr="//field[@name='account_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </data>
+        </field>
+    </record> -->
+
 </odoo>

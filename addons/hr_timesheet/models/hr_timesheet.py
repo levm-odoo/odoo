@@ -293,9 +293,9 @@ class AccountAnalyticLine(models.Model):
         # 'string' attribute.
         for node in doc.xpath("//field[@name='unit_amount'][@widget='timesheet_uom'][not(@string)]"):
             node.set('string', _('Time Spent'))
-        if view_type == 'form' and self.env.user._is_portal():
-            for node in doc.xpath("//field[@name='account_id']"):
-                node.set('invisible', '1')
+        # if view_type == 'form' and self.env.user._is_portal():
+        #     for node in doc.xpath("//field[@name='account_id']"):
+        #         node.set('invisible', '1')
         return doc
 
     def _timesheet_get_portal_domain(self):
@@ -453,3 +453,14 @@ class AccountAnalyticLine(models.Model):
                 'res_id': uom_hours.id,
                 'noupdate': True,
             })
+
+    def test_account_view(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'res_id': self.id,
+            'res_model': 'account.analytic.line',
+            'views': [(self.env.ref('hr_timesheet.timesheet_view_form_portal_user').id, 'form')],
+            'context': {
+                **self._context,
+            },
+        }
