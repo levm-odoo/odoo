@@ -344,7 +344,7 @@ describe("to pre", () => {
         await testEditor({
             contentBefore: "<p>abcd<br>[]<br></p>",
             stepFunction: setTag("pre"),
-            contentAfter: "<pre>abcd<br>[]<br></pre>",
+            contentAfter: "<p>abcd</p><pre>[]<br></pre>",
         });
     });
 
