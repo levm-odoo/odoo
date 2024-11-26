@@ -72,7 +72,7 @@ class AccountMove(models.Model):
     @api.depends('l10n_in_state_id')
     def _compute_fiscal_position_id(self):
         other_country = None
-        in_moves = self.filtered(lambda move: move.country_code == 'IN' and move.is_sale_document(include_receipts=True))
+        in_moves = self.filtered(lambda move: move.country_code == 'IN' and move.is_invoice(include_receipts=True))
         for move in in_moves:
             state_id = move.l10n_in_state_id.id
             country_id = move.l10n_in_state_id.country_id.id
