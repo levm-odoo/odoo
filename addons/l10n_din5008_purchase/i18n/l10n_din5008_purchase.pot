@@ -18,71 +18,83 @@ msgstr ""
 #. module: l10n_din5008_purchase
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template
+#: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template_address_block
 msgid "<span class=\"fw-bold\">Shipping Address:</span>"
 msgstr ""
 
 #. module: l10n_din5008_purchase
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template
+#: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template_document_title
 msgid "Cancelled Purchase Order"
 msgstr ""
 
 #. module: l10n_din5008_purchase
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template
+#: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template_document_information
 msgid "Cancelled Purchase Order No.:"
 msgstr ""
 
 #. module: l10n_din5008_purchase
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template
+#: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template_document_information
 msgid "Incoterm:"
 msgstr ""
 
 #. module: l10n_din5008_purchase
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template
+#: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template_document_information
 msgid "Order Date:"
 msgstr ""
 
 #. module: l10n_din5008_purchase
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template
+#: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template_document_information
 msgid "Order Deadline:"
 msgstr ""
 
 #. module: l10n_din5008_purchase
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template
+#: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template_document_information
 msgid "Order Reference:"
 msgstr ""
 
 #. module: l10n_din5008_purchase
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template
+#: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template_document_title
 msgid "Purchase Order"
 msgstr ""
 
 #. module: l10n_din5008_purchase
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template
+#: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template_document_information
 msgid "Purchase Order No.:"
 msgstr ""
 
 #. module: l10n_din5008_purchase
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template
+#: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template_document_information
 msgid "Purchase Representative:"
 msgstr ""
 
 #. module: l10n_din5008_purchase
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template
+#: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template_document_title
 msgid "Request for Quotation"
 msgstr ""
 
 #. module: l10n_din5008_purchase
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_purchaseorder_document
 #: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template
+#: model_terms:ir.ui.view,arch_db:l10n_din5008_purchase.report_common_purchase_din5008_template_document_information
 msgid "Request for Quotation No.:"
 msgstr ""
