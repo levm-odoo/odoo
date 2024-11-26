@@ -25,24 +25,7 @@
                 <div class="position-relative d-flex flex-column flex-grow-1 overflow-hidden">
                     <CategorySelector t-if="!ui.isSmall || !pos.scanning" class="'p-2'" categories="getCategoriesAndSub()" onClick="(id) => this.pos.setSelectedCategory(id)"/>
                     <CameraBarcodeScanner t-if="pos.scanning"/>
-                    <div t-elif="productsToDisplay.length != 0 and pos.session._has_available_products" t-attf-class="product-list {{this.pos.productListViewMode}} overflow-y-auto px-2 pt-0 pb-2">
-                        <ProductCard
-                            t-foreach="productsToDisplay" t-as="product" t-key="product.id"
-                            productId="product.id"
-                            product="product"
-                            class="pos.productViewMode"
-                            name="getProductName(product)"
-                            color="product.pos_categ_ids?.at(-1)?.color"
-                            price="this.getProductPrice(product)"
-                            imageUrl="pos.config.show_product_images and this.getProductImage(product)"
-                            onClick.bind="() => this.addProductToOrder(product)"
-                            productInfo="true"
-                            onProductInfoClick.bind="() => this.onProductInfoClick(product)" />
-                    </div>
-                    <div t-else="" class="flex-grow-1 text-center mt-5">
-                        <p t-if="searchWord">No products found for <b>"<t t-esc="searchWord"/>"</b> in this category.</p>
-                        <p t-elif="pos.session._has_available_products">There are no products in this category.</p>
-                    </div>
+                    <ProductList searchWord="searchWord" />
                     <div t-if="searchWord" class="search-more-button d-flex justify-content-center m-2">
                         <button class="btn btn-primary btn-lg lh-lg" t-on-click="onPressEnterKey">Search more</button>
                     </div>

@@ -26,6 +26,7 @@ import {
 import { pick } from "@web/core/utils/objects";
 import { unaccent } from "@web/core/utils/strings";
 import { CameraBarcodeScanner } from "@point_of_sale/app/screens/product_screen/camera_barcode_scanner";
+import { ProductList } from "@point_of_sale/app/screens/product_screen/product_list/product_list";
 
 export class ProductScreen extends Component {
     static template = "point_of_sale.ProductScreen";
@@ -40,6 +41,7 @@ export class ProductScreen extends Component {
         OrderSummary,
         ProductCard,
         CameraBarcodeScanner,
+        ProductList,
     };
     static props = {};
 
@@ -182,12 +184,6 @@ export class ProductScreen extends Component {
     get items() {
         return this.currentOrder.lines?.reduce((items, line) => items + line.qty, 0) ?? 0;
     }
-    getProductName(product) {
-        const productTmplValIds = product.attribute_line_ids
-            .map((l) => l.product_template_value_ids)
-            .flat();
-        return productTmplValIds.length > 1 ? product.name : product.display_name;
-    }
     async _getProductByBarcode(code) {
         let product = this.pos.models["product.product"].getBy("barcode", code.base_code);
 
@@ -309,88 +305,8 @@ export class ProductScreen extends Component {
         this.pos.switchPane();
     }
 
-    getProductPrice(product) {
-        return this.pos.getProductPriceFormatted(product);
-    }
-
-    getProductImage(product) {
-        return product.getTemplateImageUrl();
-    }
-
     get searchWord() {
         return this.pos.searchProductWord.trim();
-    }
-
-    get products() {
-        return this.pos.models["product.product"].getAll();
-    }
-
-    get productsToDisplay() {
-        let list = [];
-
-        if (this.searchWord !== "") {
-            list = this.addMainProductsToDisplay(this.getProductsBySearchWord(this.searchWord));
-        } else if (this.pos.selectedCategory?.id) {
-            list = this.getProductsByCategory(this.pos.selectedCategory);
-        } else {
-            list = this.products;
-        }
-
-        if (!list || list.length === 0) {
-            return [];
-        }
-
-        const excludedProductIds = [
-            this.pos.config.tip_product_id?.id,
-            ...this.pos.hiddenProductIds,
-            ...this.pos.session._pos_special_products_ids,
-        ];
-
-        list = list
-            .filter(
-                (product) => !excludedProductIds.includes(product.id) && product.available_in_pos
-            )
-            .slice(0, 100);
-
-        return this.searchWord !== ""
-            ? list
-            : list.sort((a, b) => a.display_name.localeCompare(b.display_name));
-    }
-
-    getProductsBySearchWord(searchWord) {
-        const exactMatches = this.products.filter((product) => product.exactMatch(searchWord));
-
-        if (exactMatches.length > 0 && searchWord.length > 2) {
-            return exactMatches;
-        }
-
-        const fuzzyMatches = fuzzyLookup(unaccent(searchWord, false), this.products, (product) =>
-            unaccent(product.searchString, false)
-        );
-
-        return Array.from(new Set([...exactMatches, ...fuzzyMatches]));
-    }
-
-    addMainProductsToDisplay(products) {
-        const uniqueProductsMap = new Map();
-        for (const product of products) {
-            if (product.id in this.pos.mainProductVariant) {
-                const mainProduct = this.pos.mainProductVariant[product.id];
-                uniqueProductsMap.set(mainProduct.id, mainProduct);
-            } else {
-                uniqueProductsMap.set(product.id, product);
-            }
-        }
-        return Array.from(uniqueProductsMap.values());
-    }
-
-    getProductsByCategory(category) {
-        const allCategoryIds = category.getAllChildren().map((cat) => cat.id);
-        const products = allCategoryIds.flatMap(
-            (catId) => this.pos.models["product.product"].getBy("pos_categ_ids", catId) || []
-        );
-        // Remove duplicates since owl doesn't like it.
-        return Array.from(new Set(products));
     }
 
     async onPressEnterKey() {
@@ -453,15 +369,6 @@ export class ProductScreen extends Component {
 
         await this.pos.processProductAttributes();
         return product;
-    }
-
-    async addProductToOrder(product) {
-        await reactive(this.pos).addLineToCurrentOrder({ product_id: product }, {});
-    }
-
-    async onProductInfoClick(product) {
-        const info = await reactive(this.pos).getProductInfo(product, 1);
-        this.dialog.add(ProductInfoPopup, { info: info, product: product });
     }
 }
 

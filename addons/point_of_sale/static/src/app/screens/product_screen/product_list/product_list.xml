@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="point_of_sale.ProductList">
+       <div t-if="productsToDisplay.length != 0 and pos.session._has_available_products" t-attf-class="product-list d-grid gap-2 overflow-y-auto px-2 pt-0 pb-2">
+            <ProductCard
+                t-foreach="productsToDisplay" t-as="product" t-key="product.id"
+                productId="product.id"
+                product="product"
+                class="pos.productViewMode"
+                name="getProductName(product)"
+                color="product.pos_categ_ids?.at(-1)?.color"
+                price="this.getProductPrice(product)"
+                imageUrl="pos.config.show_product_images and this.getProductImage(product)"
+                onClick.bind="() => this.addProductToOrder(product)"
+                productInfo="true"
+                onProductInfoClick.bind="() => this.onProductInfoClick(product)" />
+        </div>
+        <div t-else="" class="flex-grow-1 text-center mt-5">
+            <p t-if="searchWord">No products found for <b>"<t t-esc="searchWord"/>"</b> in this category.</p>
+            <p t-elif="pos.session._has_available_products">There are no products in this category.</p>
+        </div>
+    </t>
+</templates>
