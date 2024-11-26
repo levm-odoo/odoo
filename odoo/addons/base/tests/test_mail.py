@@ -14,8 +14,7 @@ from odoo.tools import (
     email_domain_normalize, email_normalize, email_re,
     email_split, email_split_and_format, email_split_tuples,
     single_email_re, html2plaintext,
-    misc, formataddr,
-    prepend_html_content,
+    misc, formataddr, email_anonymize,
 )
 
 from . import test_mail_examples
@@ -830,6 +829,7 @@ class TestEmailTools(BaseCase):
             with self.subTest(source=source):
                 self.assertEqual(extract_rfc2822_addresses(source), expected)
 
+<<<<<<< 17.0
     def test_single_email_re(self):
         """ Test 'single_email_re', matching text input containing only one email """
         expected = [
@@ -845,6 +845,37 @@ class TestEmailTools(BaseCase):
             # falsy
             [], [], [],
         ]
+||||||| f24403ba8e114bd0793b32da44e3606d448fff75
+=======
+    def test_email_anonymize(self):
+        cases = [
+            # examples
+            ('admin@example.com', 'a****@example.com', 'a****@e******.com'),  # short
+            ('portal@example.com', 'p***al@example.com', 'p***al@e******.com'),  # long
+
+            # edge cases
+            ('a@example.com', 'a@example.com', 'a@e******.com'),  # single letter
+            ('joé@example.com', 'j**@example.com', 'j**@e******.com'),  # hidden unicode
+            ('élise@example.com', 'é****@example.com', 'é****@e******.com'),  # visible unicode
+            ('admin@[127.0.0.1]', 'a****@[127.0.0.1]', 'a****@[127.0.0.1]'),  # IPv4
+            ('admin@[IPv6:::1]', 'a****@[IPv6:::1]', 'a****@[IPv6:::1]'),  # IPv6
+
+            # bad cases, to show how the system behave
+            ('', '', ''),  # empty string
+            ('@example.com', '@example.com', '@e******.com'),  # missing local part
+            ('john', 'j***', 'j***'),  # missing domain
+            ('Jo <j@example.com>', 'J****@example.com>', 'J****@e******.com>'),  # non-normalized
+            ('admin@com', 'a****@com', 'a****@com'),  # dotless domain, prohibited by icann
+        ]
+        for source, expected, expected_redacted_domain in cases:
+            with self.subTest(source=source):
+                self.assertEqual(email_anonymize(source), expected)
+                self.assertEqual(
+                    email_anonymize(source, redact_domain=True),
+                    expected_redacted_domain,
+                )
+
+>>>>>>> 8e38fa8747ef9e870a651eade6c170847088bb3e
 
         for src, exp in zip(self.sources, expected):
             res = single_email_re.findall(src)
