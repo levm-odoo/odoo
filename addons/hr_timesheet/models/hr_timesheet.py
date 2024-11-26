@@ -18,10 +18,10 @@ class AccountAnalyticLine(models.Model):
             ('project_id', '!=', False),
         ]
 
-    def web_read(self, specification):
-        if self.env.user._is_portal():
-            self.read(['account_id'])
-        return super().web_read(specification)
+    # def web_read(self, specification):
+    #     if self.env.user._is_portal():
+    #         self.read(['account_id'])
+    #     return super().web_read(specification)
 
     @api.model
     def _get_favorite_project_id(self, employee_id=False):
@@ -293,6 +293,9 @@ class AccountAnalyticLine(models.Model):
         # 'string' attribute.
         for node in doc.xpath("//field[@name='unit_amount'][@widget='timesheet_uom'][not(@string)]"):
             node.set('string', _('Time Spent'))
+        if view_type == 'form' and self.env.user._is_portal():
+            for node in doc.xpath("//field[@name='account_id']"):
+                node.set('invisible', '1')
         return doc
 
     def _timesheet_get_portal_domain(self):
