@@ -29,6 +29,7 @@ class SpreadsheetMixin(models.AbstractModel):
 
     @api.constrains("spreadsheet_binary_data")
     def _check_spreadsheet_data(self):
+        return
         for spreadsheet in self.filtered("spreadsheet_binary_data"):
             try:
                 data = json.loads(base64.b64decode(spreadsheet.spreadsheet_binary_data).decode())
