@@ -267,15 +267,21 @@
                                         <td class="align-middle o_wish_price" t-else="">
                                             <t t-out="combination_info['price']"
                                                t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
-                                            <small t-if="combination_info['base_unit_price']" class="cart_product_base_unit_price d-block text-muted" groups="website_sale.group_show_uom_price">
-                                                <t t-call='website_sale.base_unit_price'><t t-set='product' t-value='wish.product_id' /></t>
+                                            <small
+                                                t-if="combination_info.get('base_unit_price')"
+                                                class="cart_product_base_unit_price d-block text-muted"
+                                            >
+                                                <t t-call="website_sale.base_unit_price">
+                                                    <t t-set="product" t-value="wish.product_id"/>
+                                                    <t t-set="base_unit_price" t-value="combination_info.get('base_unit_price')"/>
+                                                </t>
                                             </small>
                                         </td>
-                                        <td class='text-center td-wish-btn align-middle'>
+                                        <td class="text-center td-wish-btn align-middle">
                                             <input name="product_id" t-att-value="wish.product_id.id" type="hidden"/>
                                             <a t-if="combination_info['prevent_zero_price_sale']" t-att-href="website.contact_us_button_url" class="btn btn-primary btn_cta">Contact Us</a>
                                             <button id="add_to_cart_button" t-else="" type="button" role="button" class="btn btn-secondary btn-block o_wish_add mb4" >
-                                                Add <span class='d-none d-md-inline'>to Cart</span>
+                                                Add <span class="d-none d-md-inline">to Cart</span>
                                             </button>
                                         </td>
                                     </tr>
