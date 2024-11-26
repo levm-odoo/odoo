@@ -18255,7 +18255,8 @@ window.print = function () {
       return activeServiceOnEntry.performPrint();
     }).catch(function () {}).then(function () {
       if (activeServiceOnEntry.active) {
-        abort();
+        // odoo patch https://github.com/mozilla/pdf.js/issues/10630
+        setTimeout(abort, 1000);
       }
     });
   }
