@@ -8,7 +8,6 @@ import { delay } from "@odoo/hoot-dom";
 
 export class TourAutomatic {
     mode = "auto";
-    paused = false;
     pointer = null;
     constructor(data) {
         Object.assign(this, data);
@@ -40,7 +39,6 @@ export class TourAutomatic {
                 return [
                     {
                         action: async () => {
-                            await this.pause();
                             setupEventActions(document.createElement("div"));
                             if (this.debugMode) {
                                 console.groupCollapsed(step.describeMe);
@@ -79,7 +77,6 @@ export class TourAutomatic {
                             }
                             this.previousStepIsJustACheck = !this.currentStep.hasAction;
                             if (this.debugMode) {
-                                this.paused = step.pause;
                                 if (!step.skipped && this.showPointerDuration > 0 && step.element) {
                                     // Useful in watch mode.
                                     pointer.pointTo(step.element, this);
@@ -95,6 +92,9 @@ export class TourAutomatic {
                                 console.groupEnd();
                             }
                             const result = await step.doAction();
+                            if (this.debugMode && step.pause) {
+                                await this.pause();
+                            }
                             tourState.setCurrentIndex(step.index + 1);
                             return result;
                         },
@@ -181,24 +181,21 @@ export class TourAutomatic {
     }
 
     async pause() {
-        if (this.paused) {
-            this.paused = false;
-            const styles = [
-                "background: black; color: white; font-size: 14px",
-                "background: black; color: orange; font-size: 14px",
-            ];
-            console.log(
-                `%cTour is paused. Use %cplay()%c to continue.`,
-                styles[0],
-                styles[1],
-                styles[0]
-            );
-            await new Promise((resolve) => {
-                window.play = () => {
-                    resolve();
-                    delete window.play;
-                };
-            });
-        }
+        const styles = [
+            "background: black; color: white; font-size: 14px",
+            "background: black; color: orange; font-size: 14px",
+        ];
+        console.log(
+            `%cTour is paused. Use %cplay()%c to continue.`,
+            styles[0],
+            styles[1],
+            styles[0]
+        );
+        await new Promise((resolve) => {
+            window.play = () => {
+                resolve();
+                delete window.play;
+            };
+        });
     }
 }
