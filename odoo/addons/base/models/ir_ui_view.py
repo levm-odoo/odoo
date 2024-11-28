@@ -564,6 +564,8 @@ actual arch.
         default = dict(default or {})
         vals_list = super().copy_data(default=default)
         for view, vals in zip(self, vals_list):
+            if not has_default_without_key:
+                vals['key'] = default.get('key', view.key + '_%s' % str(uuid.uuid4())[:6])
             if view.key and has_default_without_key:
                 vals['key'] = default.get('key', view.key + '_%s' % str(uuid.uuid4())[:6])
         return vals_list
