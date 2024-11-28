@@ -396,8 +396,6 @@ class Repair(models.Model):
                 repair.move_ids._set_repair_locations()
             if 'schedule_date' in vals:
                 (repair.move_id + repair.move_ids).filtered(lambda m: m.state not in ('done', 'cancel')).write({'date': repair.schedule_date})
-            if 'under_warranty' in vals:
-                repair._update_sale_order_line_price()
         return res
 
     @api.ondelete(at_uninstall=False)
@@ -429,16 +427,18 @@ class Repair(models.Model):
             )
         sale_order_values_list = []
         for repair in self:
-            sale_order_values_list.append({
-                "company_id": self.company_id.id,
-                "partner_id": self.partner_id.id,
-                "warehouse_id": self.picking_type_id.warehouse_id.id,
-                "repair_order_ids": [Command.link(repair.id)],
-            })
+            sale_order_values_list.append(self._get_sale_order_values_list(repair))
         self.env['sale.order'].create(sale_order_values_list)
         # Add Sale Order Lines for 'add' move_ids
         self.move_ids._create_repair_sale_order_line()
         return self.action_view_sale_order()
+
+    def _get_sale_order_values_list(self, repair):
+        return {
+            "company_id": self.company_id.id,
+            "partner_id": self.partner_id.id,
+            "repair_order_ids": [Command.link(repair.id)],
+        }
 
     def action_repair_cancel(self):
         if any(repair.state == 'done' for repair in self):
@@ -452,11 +452,14 @@ class Repair(models.Model):
     def action_repair_cancel_draft(self):
         if self.filtered(lambda repair: repair.state != 'cancel'):
             self.action_repair_cancel()
-        sale_line_to_update = self.move_ids.sale_line_id.filtered(lambda l: l.order_id.state != 'cancel' and float_is_zero(l.product_uom_qty, precision_rounding=l.product_uom.rounding))
+        sale_line_to_update = self._get_sale_line_to_update()
         sale_line_to_update.move_ids._update_repair_sale_order_line()
         self.move_ids.state = 'draft'
         self.state = 'draft'
         return True
+
+    def _get_sale_line_to_update(self):
+        return self.env['repair.order']
 
     def action_repair_done(self):
         """ Creates stock move for final product of repair order.
@@ -532,10 +535,6 @@ class Repair(models.Model):
                 repair.move_id = move_id
         all_moves = self.move_ids + product_moves
         all_moves._action_done(cancel_backorder=True)
-
-        for sale_line in self.move_ids.sale_line_id:
-            price_unit = sale_line.price_unit
-            sale_line.write({'product_uom_qty': sale_line.qty_delivered, 'price_unit': price_unit})
 
         self.state = 'done'
         return True
@@ -664,13 +663,6 @@ class Repair(models.Model):
                 picking_type_by_company_user[(picking_type.company_id, False)] = picking_type
         return picking_type_by_company_user
 
-    def _update_sale_order_line_price(self):
-        for repair in self:
-            add_moves = repair.move_ids.filtered(lambda m: m.repair_line_type == 'add' and m.sale_line_id)
-            if repair.under_warranty:
-                add_moves.sale_line_id.write({'price_unit': 0.0, 'technical_price_unit': 0.0})
-            else:
-                add_moves.sale_line_id._compute_price_unit()
 
     # -------------------------------------------------------------------------
     # CATALOG

@@ -52,9 +52,6 @@ class StockMove(models.Model):
     def copy_data(self, default=None):
         default = dict(default or {})
         vals_list = super().copy_data(default=default)
-        for move, vals in zip(self, vals_list):
-            if 'repair_id' in default or move.repair_id:
-                vals['sale_line_id'] = False
         return vals_list
 
     @api.ondelete(at_uninstall=False)
@@ -108,10 +105,6 @@ class StockMove(models.Model):
             # checks vals update
             if 'repair_line_type' in vals or 'picking_type_id' in vals and move.repair_line_type:
                 move.location_id, move.location_dest_id = move._get_repair_locations(move.repair_line_type)
-            if not move.sale_line_id and 'sale_line_id' not in vals and move.repair_line_type == 'add':
-                moves_to_create_so_line |= move
-            if move.sale_line_id and ('repair_line_type' in vals or 'product_uom_qty' in vals):
-                repair_moves |= move
 
         repair_moves._update_repair_sale_order_line()
         moves_to_create_so_line._create_repair_sale_order_line()
@@ -131,17 +124,9 @@ class StockMove(models.Model):
             return
         so_line_vals = []
         for move in self:
-            if move.sale_line_id or move.repair_line_type != 'add' or not move.repair_id.sale_order_id:
+            if move.repair_line_type != 'add' or not move.repair_id.sale_order_id:
                 continue
-            product_qty = move.product_uom_qty if move.repair_id.state != 'done' else move.quantity
-            so_line_vals.append({
-                'order_id': move.repair_id.sale_order_id.id,
-                'product_id': move.product_id.id,
-                'product_uom_qty': product_qty, # When relying only on so_line compute method, the sol quantity is only updated on next sol creation
-                'product_uom': move.product_uom.id,
-                'move_ids': [Command.link(move.id)],
-                'qty_delivered': move.quantity if move.state == 'done' else 0.0,
-            })
+            so_line_vals.append(self._get_so_line_vals(move))
             if move.repair_id.under_warranty:
                 so_line_vals[-1]['price_unit'] = 0.0
             elif move.price_unit:
@@ -149,10 +134,18 @@ class StockMove(models.Model):
 
         self.env['sale.order.line'].create(so_line_vals)
 
+    def _get_so_line_vals(self, move):
+        product_qty = move.product_uom_qty if move.repair_id.state != 'done' else move.quantity
+        return {
+            'order_id': move.repair_id.sale_order_id.id,
+            'product_id': move.product_id.id,
+            'product_uom_qty': product_qty, # When relying only on so_line compute method, the sol quantity is only updated on next sol creation
+            'product_uom': move.product_uom.id,
+            'qty_delivered': move.quantity if move.state == 'done' else 0.0,
+        }
+
     def _clean_repair_sale_order_line(self):
-        self.filtered(
-            lambda m: m.repair_id and m.sale_line_id
-        ).mapped('sale_line_id').write({'product_uom_qty': 0.0})
+        return self.env['stock.move']
 
     def _update_repair_sale_order_line(self):
         if not self:
