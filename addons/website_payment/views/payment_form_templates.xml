@@ -8,6 +8,11 @@
                 <t t-call="website_payment.donation_information"/>
             </div>
         </xpath>
+        <xpath expr="//form[@id='o_payment_form']" position="attributes">
+            <div class="mb-3" t-if="is_donation">
+                <attribute name="class" separator=" " add="o_editable"></attribute>
+            </div>
+        </xpath>
     </template>
 
     <!-- Display of /donation/pay -->

@@ -250,6 +250,7 @@ const dynamicSnippetOptions = options.Class.extend({
      * @private
      */
     _renderDynamicFilterTemplatesSelector: async function (uiFragment) {
+        debugger;
         const templatesSelectorEl = uiFragment.querySelector('[data-name="template_opt"]');
         return this._renderSelectUserValueWidgetButtons(templatesSelectorEl, this.dynamicFilterTemplates);
     },
