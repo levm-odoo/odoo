@@ -60,36 +60,45 @@ tour.register('purchase_tour' , {
     auto: true,
     in_modal: false,
 }, {
-    trigger: ".o_field_x2many_list_row_add > a",
-    content: _t("Add some products or services to your quotation."),
-    position: "bottom",
-}, {
-    trigger: ".o_field_widget[name=product_id], .o_field_widget[name=product_template_id]",
-    extra_trigger: ".o_purchase_order",
-    content: _t("Select a product, or create a new one on the fly."),
-    position: "right",
+    content: "Add items",
+    trigger: '.o_field_x2many_list_row_add a:contains("Add a product")',
+},
+{
+    content: "Select input",
+    trigger: 'div[name="product_id"] input, div[name="product_template_id"] input',
+},
+{
+    content: "Type item",
+    trigger: 'div[name="product_id"] input, div[name="product_template_id"] input',
     run: function (actions) {
-        var $input = this.$anchor.find('input');
-        actions.text("DESK0001", $input.length === 0 ? this.$anchor : $input);
-        // fake keydown to trigger search
-        var keyDownEvent = jQuery.Event("keydown");
-        keyDownEvent.which = 42;
-        this.$anchor.trigger(keyDownEvent);
-        var $descriptionElement = $('.o_form_editable textarea[name="name"]');
-        // when description changes, we know the product has been created
-        $descriptionElement.change(function () {
-            $descriptionElement.addClass('product_creation_success');
-        });
-    },
-}, {
+        actions.text('DESK0001');
+    }
+},
+{
+    content: "Valid item",
     trigger: "a:contains('DESK0001')",
-    auto: true,
-}, {
-    trigger: "div.o_field_widget[name='product_qty'] input ",
-    extra_trigger: ".o_purchase_order",
-    content: _t("Indicate the product quantity you want to order."),
-    position: "right",
-    run: 'text 12.0'
+},
+{
+    content: "Select item quantity",
+    trigger: 'tbody tr.o_data_row .o_list_number[name="product_qty"]',
+},
+{
+    content: "Change item quantity",
+    trigger: 'tbody tr.o_data_row .o_list_number[name="product_qty"] input',
+    run: 'text 2',
+},
+{
+    content: "Valid the new value",
+    trigger: 'tbody tr.o_data_row .o_list_number[name="product_qty"] input',
+    run: function (actions) {
+        let keydownEvent = jQuery.Event('keydown');
+        keydownEvent.which = 13;
+        this.$anchor.trigger(keydownEvent);
+    },
+},
+{
+    content: "Save the account move",
+    trigger: '.o_form_button_save',
 },
 ...tour.stepUtils.statusbarButtonsSteps('Send by Email', _t("Send the request for quotation to your vendor."), ".o_statusbar_buttons button[name='action_rfq_send']"),
 {
@@ -110,12 +119,25 @@ tour.register('purchase_tour' , {
     position: "left",
     run: 'click',
 }, {
-    trigger: ".o_field_widget [name=price_unit]",
-    extra_trigger: ".o_purchase_order",
-    content: _t("Once you get the price from the vendor, you can complete the purchase order with the right price."),
-    position: "right",
-    run: 'text 200.00'
+    content: "Select item quantity",
+    trigger: 'tbody tr.o_data_row .o_list_number[name="price_unit"]',
 }, {
+    content: "Change item quantity",
+    trigger: 'tbody tr.o_data_row .o_list_number[name="price_unit"] input',
+    run: 'text 200.00',
+}, {
+    content: "Valid the new value",
+    trigger: 'tbody tr.o_data_row .o_list_number[name="price_unit"] input',
+    run: function (actions) {
+        let keydownEvent = jQuery.Event('keydown');
+        keydownEvent.which = 13;
+        this.$anchor.trigger(keydownEvent);
+    },
+},  {
+    content: "Save the account move",
+    trigger: '.o_form_button_save',
+},
+{
     auto: true,
     trigger: ".o_purchase_order",
     run: 'click',
