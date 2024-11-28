@@ -30,7 +30,7 @@ class ThreadController(http.Controller):
             ("model", "=", thread._name),
             ("message_type", "!=", "user_notification"),
         ]
-        if not thread.sudo(False).has_access("read"):
+        if not thread.sudo(False).has_access("read") or kwargs.get("portal"):
             domain = expression.AND(
                 [
                     domain,
