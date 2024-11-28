@@ -147,7 +147,6 @@ class ResGroups(models.Model):
     view_access = fields.Many2many('ir.ui.view', 'ir_ui_view_group_rel', 'group_id', 'view_id', string='Views')
     comment = fields.Text(translate=True)
     category_id = fields.Many2one('ir.module.category', string='Application', index=True)
-    color = fields.Integer(string='Color Index')
     full_name = fields.Char(compute='_compute_full_name', string='Group Name', search='_search_full_name')
     share = fields.Boolean(string='Share Group', help="Group created to set access rights for sharing data with some users.")
     api_key_duration = fields.Float(string='API Keys maximum duration days',

@@ -1,0 +1,98 @@
+
+<odoo>
+    <!-- res.users -->
+    <record id="res_users_view_access_form" model="ir.ui.view">
+        <field name="name">User form view to configure access from applications</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <page name="access_rights" position="replace">
+                <page name="access_rights">
+                    <field name="group_ids" invisible="1" widget="many2many_tags" readonly="0"/>  <!-- To save changes made from onchanges -->
+                    <group>
+                        <field string="Type" name="view_group_type_user" widget="radio" readonly="0"/>
+                        <field string="Applications" name="view_group_selection_ids" widget="many2many_tags"
+                            options="{'no_create': True, 'noSearchMore': True, 'color_field': 'color', 'edit_tags': True}"
+                            context="{'form_view_ref': 'base.res_users_view_access_form_dialog', 'view_user_settings': 1, 'view_category_ids': view_category_ids}"
+                            domain="[('category_id', 'not in', view_category_ids), ('color', '=', 1)]"
+                            readonly="0"
+                            invisible="view_group_user_id not in group_ids"
+                            groups="!base.group_no_one"/>
+                        <field string="Applications" name="view_group_selection_ids" widget="many2many_tags"
+                            options="{'no_create': True, 'noSearchMore': True, 'color_field': 'color', 'edit_tags': True}"
+                            context="{'form_view_ref': 'base.res_users_view_access_form_dialog', 'view_user_settings': 1, 'view_category_ids': view_category_ids}"
+                            domain="[('category_id', 'not in', view_category_ids), ('color', '=', 1)]"
+                            readonly="0"
+                            groups="base.group_no_one"/>
+                        <field string="Extra Groups" name="view_group_extra_ids" widget="many2many_tags"
+                            options="{'no_create': True, 'color_field': 'color', 'edit_tags': True}"
+                            context="{'view_user_settings': 0}"
+                            readonly="0"
+                            groups="base.group_no_one"/>
+                        <field string="Allowed Companies" name="company_ids" widget="many2many_tags"
+                            options="{'no_create': True, 'color_field': 'color'}"
+                            invisible="companies_count &lt;= 1"/>
+                        <field string="Default Company" name="company_id"
+                            context="{'user_preference': 0}"
+                            invisible="companies_count &lt;= 1"/>
+                    </group>
+                    <group string="Groups" groups="base.group_no_one">
+                        <label string="Child Groups" for="view_visible_implied_group_ids"/>
+                        <field name="view_visible_implied_group_ids" nolabel="1" colspan="2" context="{'view_user_settings': 0}">
+                            <list string="Implied groups" default_order="category_id,sequence,name"
+                                    decoration-it="set(implied_by_ids).difference(parent.view_visible_implied_group_ids).intersection(parent.group_ids)"
+                                    decoration-success="id in parent.group_ids"
+                                    decoration-warning="id in parent.view_all_disjoint_group_ids"
+                                    decoration-danger="id in parent.view_disjoint_group_ids">
+                                <field name="category_id"/>
+                                <field name="name"/>
+                                <field name="comment" optional="show"/>
+                                <field name="implied_by_ids" widget="many2many_tags" optional="show"/>
+                                <field name="disjoint_ids" widget="many2many_tags" optional="hide"/>
+                            </list>
+                        </field>
+                        <field name="view_show_technical_groups"/>
+                        <div class="o_stat_info">
+                            <div class="text-muted">The colored <span class="text-success">groups</span> is already added from a group implied.</div>
+                            <div class="text-muted">The colored <span class="text-danger">groups</span> are disjoint and cannot be together on the same user.</div>
+                            <div class="text-muted">The italic <span class="fst-italic">groups</span> is directly implied by one of the selected groups.</div>
+                        </div>
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record>
+
+    <!-- res.users.view.groups -->
+    <record id="res_users_view_access_form_dialog" model="ir.ui.view">
+        <field name="name">Dialog to select the level (group) for the application access</field>
+        <field name="model">res.groups</field>
+        <field eval="1000" name="priority"/>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field string="Applications" name="category_id" colspan="2" readonly="1"/>
+                        <field string="Level" name="view_choose_group_id" colspan="2" force_save="1"
+                            options="{'no_create': True, 'no_open': True}"
+                            context="{'view_user_settings': 2, 'category_id': category_id}"/>
+                        <field name="view_group_comment" readonly="1" nolabel="1" colspan="2"/>
+                    </group>
+                    <notebook>
+                        <page string="Child Groups">
+                            <field name="view_group_implied_ids" nolabel="1">
+                                <list default_order="category_id,sequence,name">
+                                    <field name="category_id"/>
+                                    <field string="Group" name="name"/>
+                                    <field string="Notes" name="comment" optional="show"/>
+                                    <field name="disjoint_ids" widget="many2many_tags" optional="hide"/>
+                                </list>
+                            </field>
+                            <label for="view_show_technical_groups"/> <field name="view_show_technical_groups"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

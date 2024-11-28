@@ -352,6 +352,8 @@ class TestUsers2(UsersCommonCase):
         app = self.env['ir.module.category'].create({'name': 'Foo'})
         group_contain_user = self.env['res.groups'].create({
             'name': 'Small user group', 'category_id': app.id, 'implied_ids': [group_user.id]})
+        group_boss_contain_user = self.env['res.groups'].create({
+            'name': 'Boss wirh small group', 'category_id': app.id, 'implied_ids': [group_contain_user.id]})
 
         user_form = Form(self.env['res.users'].with_context(view_user_settings=True), view='base.view_users_form')
         user_form.name = "Test"
@@ -375,7 +377,11 @@ class TestUsers2(UsersCommonCase):
         user_form['view_group_type_user'] = group_user.id
         user_form['view_group_selection_ids'] = group_contain_user
 
-        user_form.save()
+        user_form['view_group_selection_ids'] = group_boss_contain_user
+
+        record = user_form.save()
+
+        self.assertEqual(record.group_ids, group_user + group_boss_contain_user)
 
         # in debug mode, allow extra groups
 
