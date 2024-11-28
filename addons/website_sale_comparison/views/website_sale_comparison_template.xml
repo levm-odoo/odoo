@@ -202,10 +202,7 @@
                                                 <span t-esc="combination_info['display_name']"></span><br/>
                                             </a>
 
-                                            <span class="o_comparison_price" t-if="combination_info['prevent_zero_price_sale']">
-                                                <strong t-field="website.prevent_zero_price_sale_text"/>
-                                            </span>
-                                            <span class="o_comparison_price" t-else="">
+                                            <span class="o_comparison_price" t-if="not combination_info['prevent_zero_price_sale']">
                                                 <strong>Price:</strong>
                                                 <span t-out="combination_info['price']"
                                                       t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
@@ -316,7 +313,7 @@
                              t-esc="combination_info['list_price']"
                              t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
                     </div>
-                    <div t-attf-class="{{'' if combination_info['prevent_zero_price_sale'] else 'd-none'}}" t-field="website.prevent_zero_price_sale_text"/>
+                    <div t-attf-class="{{'' if combination_info['prevent_zero_price_sale'] else 'd-none'}}"/>
                 </h6>
             </div>
             <div class="col-1 text-end">
