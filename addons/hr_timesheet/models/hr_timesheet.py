@@ -462,5 +462,6 @@ class AccountAnalyticLine(models.Model):
             'views': [(self.env.ref('hr_timesheet.timesheet_view_form_portal_user').id, 'form')],
             'context': {
                 **self._context,
+                'hide_validated_status': True,
             },
         }
