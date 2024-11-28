@@ -2137,6 +2137,8 @@ class MrpProduction(models.Model):
         self._check_company()
         for order in self:
             order._check_sn_uniqueness()
+            if order.product_id.tracking in ('lot', 'serial') and not order.lot_producing_id:
+                raise UserError(_("You need to supply a Lot/Serial Number for product:\n%(product)s", product=order.product_id.display_name))
 
     def _should_return_records(self):
         # Meant to be overriden for flows that don't want to be redirected to the backend e.g. barcode
