@@ -8,9 +8,11 @@ import werkzeug.urls
 import requests
 from os.path import join as opj
 
+from requests.exceptions import RequestException
+
 from odoo import _, http, tools, SUPERUSER_ID
 from odoo.addons.html_editor.tools import get_video_url_data
-from odoo.exceptions import UserError, MissingError, AccessError
+from odoo.exceptions import UserError, MissingError, AccessError, ValidationError
 from odoo.http import request
 from odoo.tools.mimetypes import guess_mimetype
 from odoo.tools.misc import file_open
@@ -251,7 +253,11 @@ class HTML_Editor(http.Controller):
             # This approach is beneficial when the URL doesn't conclude with an
             # image extension. By verifying the MIME type, the code ensures that
             # only supported image types are incorporated into the data.
-            response = requests.head(url, timeout=10)
+            try:
+                response = requests.head(url, timeout=10)
+            except RequestException:
+                raise ValidationError(_('Something went wrong, please try again later!!')) from None
+
             if response.status_code == 200:
                 mime_type = response.headers['content-type']
                 if mime_type in SUPPORTED_IMAGE_MIMETYPES:
