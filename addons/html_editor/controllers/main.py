@@ -1,4 +1,5 @@
 import contextlib
+import logging
 import re
 import uuid
 from base64 import b64decode
@@ -18,6 +19,8 @@ from odoo.addons.iap.tools import iap_tools
 from odoo.addons.mail.tools import link_preview
 
 from ..models.ir_attachment import SUPPORTED_IMAGE_MIMETYPES
+
+_logger = logging.getLogger(__name__)
 
 DEFAULT_LIBRARY_ENDPOINT = 'https://media-api.odoo.com'
 DEFAULT_OLG_ENDPOINT = 'https://olg.api.odoo.com'
@@ -251,7 +254,10 @@ class HTML_Editor(http.Controller):
             # This approach is beneficial when the URL doesn't conclude with an
             # image extension. By verifying the MIME type, the code ensures that
             # only supported image types are incorporated into the data.
-            response = requests.head(url, timeout=10)
+            try:
+                response = requests.head(url, timeout=10)
+            except requests.exceptions.ConnectionError:
+                _logger.warning("unable to reach endpoint at %s", url)
             if response.status_code == 200:
                 mime_type = response.headers['content-type']
                 if mime_type in SUPPORTED_IMAGE_MIMETYPES:
