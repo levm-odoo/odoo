@@ -4,7 +4,7 @@
 from odoo.tests import HttpCase, tagged
 from freezegun import freeze_time
 
-@tagged('-at_install', 'post_install')
+@tagged('-at_install', 'post_install', 'lunch_tour')
 class TestUi(HttpCase):
     def test_01_ui(self):
         self.location_office = self.env['lunch.location'].create({

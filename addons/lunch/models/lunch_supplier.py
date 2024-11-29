@@ -299,6 +299,7 @@ class LunchSupplier(models.Model):
         self.ensure_one()
 
         fieldname = WEEKDAY_TO_NAME[date.weekday()]
+        print('LUNCH_DEBUG', self.partner_id.name, 'fieldname', fieldname, self[fieldname], 'end_date', self.recurrency_end_date, 'date', date.isoformat())
         return not (self.recurrency_end_date and date.date() >= self.recurrency_end_date) and self[fieldname]
 
     @api.depends('available_today', 'automatic_email_time', 'send_by')
