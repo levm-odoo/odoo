@@ -4,10 +4,6 @@ import { removeClass } from "@html_editor/utils/dom";
 import { selectElements } from "@html_editor/utils/dom_traversal";
 import { closestBlock } from "../utils/blocks";
 
-function isMutationRecordSavable(record) {
-    return !(record.type === "attributes" && record.attributeName === "placeholder");
-}
-
 /**
  * @param {SelectionData} selectionData
  * @param {HTMLElement} editable
@@ -36,7 +32,6 @@ export class HintPlugin extends Plugin {
         clean_for_save_handlers: ({ root }) => this.clearHints(root),
         content_updated_handlers: this.updateHints.bind(this),
 
-        savable_mutation_record_predicates: isMutationRecordSavable,
         system_classes: ["o-we-hint"],
         ...(this.config.placeholder && {
             hints: { text: this.config.placeholder, target },
@@ -59,11 +54,7 @@ export class HintPlugin extends Plugin {
     updateHints() {
         const selectionData = this.dependencies.selection.getSelectionData();
         const editableSelection = selectionData.editableSelection;
-        if (this.hint) {
-            const blockEl = closestBlock(editableSelection.anchorNode);
-            this.removeHint(this.hint);
-            this.removeHint(blockEl);
-        }
+        this.clearHints();
         if (editableSelection.isCollapsed) {
             for (const hint of this.getResource("hints")) {
                 if (hint.selector) {
