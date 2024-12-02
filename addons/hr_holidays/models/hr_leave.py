@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, time
 from dateutil.relativedelta import relativedelta
 from math import ceil
 from pytz import timezone, UTC
+from markupsafe import Markup
 
 from odoo.addons.base.models.ir_model import MODULE_UNINSTALL_FLAG
 
@@ -126,11 +127,7 @@ class HrLeave(models.Model):
         ('validate1', 'Second Approval'),
         ('validate', 'Approved'),
         ('cancel', 'Cancelled'),
-        ], string='Status', store=True, tracking=True, copy=False, readonly=False, default='confirm',
-        help="The status is set to 'To Submit', when a time off request is created." +
-        "\nThe status is 'To Approve', when time off request is confirmed by user." +
-        "\nThe status is 'Refused', when time off request is refused by manager." +
-        "\nThe status is 'Approved', when time off request is approved by manager.")
+        ], string='Status', store=True, tracking=True, copy=False, readonly=False, default='confirm')
     user_id = fields.Many2one('res.users', string='User', related='employee_id.user_id', related_sudo=True, compute_sudo=True, store=True, readonly=True, index=True)
     manager_id = fields.Many2one('hr.employee', compute='_compute_from_employee_id', store=True, readonly=False)
     # leave type configuration
@@ -156,8 +153,7 @@ class HrLeave(models.Model):
     active_employee = fields.Boolean(related='employee_id.active', string='Employee Active')
     tz_mismatch = fields.Boolean(compute='_compute_tz_mismatch')
     tz = fields.Selection(_tz_get, compute='_compute_tz')
-    department_id = fields.Many2one(
-        'hr.department', compute='_compute_department_id', store=True, string='Department', readonly=False)
+    department_id = fields.Many2one('hr.department', related='employee_id.department_id', string='Department')
     notes = fields.Text('Reasons', readonly=False)
     # duration
     resource_calendar_id = fields.Many2one('resource.calendar', compute='_compute_resource_calendar_id', store=True, readonly=False, copy=False)
@@ -174,8 +170,7 @@ class HrLeave(models.Model):
         'Duration (Hours)', compute='_compute_duration', store=True, tracking=True,
         help='Number of hours of the time off request. Used in the calculation.')
     last_several_days = fields.Boolean("All day", compute="_compute_last_several_days")
-    duration_display = fields.Char('Requested (Days/Hours)', compute='_compute_duration_display', store=True,
-        help="Field allowing to see the leave request duration in days or hours depending on the leave_type_request_unit")    # details
+    duration_display = fields.Char('Requested', compute='_compute_duration_display', store=True)    # details
     # details
     meeting_id = fields.Many2one('calendar.event', string='Meeting', copy=False)
     first_approver_id = fields.Many2one(
@@ -184,9 +179,11 @@ class HrLeave(models.Model):
     second_approver_id = fields.Many2one(
         'hr.employee', string='Second Approval', readonly=True, copy=False,
         help='This area is automatically filled by the user who validate the time off with second level (If time off type need second validation)')
-    can_reset = fields.Boolean('Can reset', compute='_compute_can_reset')
-    can_approve = fields.Boolean('Can Approve', compute='_compute_can_approve')
-    can_cancel = fields.Boolean('Can Cancel', compute='_compute_can_cancel')
+
+    can_approve = fields.Boolean(compute='_compute_can_approve', export_string_translation=False)
+    can_validate = fields.Boolean(compute='_compute_can_validate', export_string_translation=False)
+    can_refuse = fields.Boolean(compute='_compute_can_refuse', export_string_translation=False)
+    can_cancel = fields.Boolean(compute='_compute_can_cancel', export_string_translation=False)
 
     attachment_ids = fields.One2many('ir.attachment', 'res_id', string="Attachments")
     # To display in form view
@@ -219,6 +216,8 @@ class HrLeave(models.Model):
     has_mandatory_day = fields.Boolean(compute='_compute_has_mandatory_day')
     leave_type_increases_duration = fields.Boolean(compute='_compute_leave_type_increases_duration')
 
+    # warning message
+    dashboard_warning_message = fields.Html(compute='_compute_dashboard_warning_message')
     _date_check2 = models.Constraint(
         'CHECK ((date_from <= date_to))',
         'The start date must be before or equal to the end date.',
@@ -243,6 +242,66 @@ class HrLeave(models.Model):
 
         # avoid wrong order
         self.request_hour_to = max(self.request_hour_to, self.request_hour_from)
+
+    @api.depends('employee_id', 'request_date_from', 'request_date_to', 'request_hour_from', 'request_hour_to',
+        'request_unit_half', 'request_unit_hours')
+    def _compute_dashboard_warning_message(self):
+        all_leaves = self.search([
+            ('date_from', '<', max(self.mapped('date_to'))),
+            ('date_to', '>', min(self.mapped('date_from'))),
+            ('employee_id', 'in', self.employee_id.ids),
+            ('id', 'not in', self.ids),
+            ('state', 'not in', ['cancel', 'refuse']),
+        ])
+        for holiday in self:
+            domain = [
+                ('employee_id', '=', holiday.employee_id.id),
+                ('date_from', '<', holiday.date_to),
+                ('date_to', '>', holiday.date_from),
+                ('id', '!=', holiday.id),
+                ('state', 'not in', ['cancel', 'refuse']),
+            ]
+            conflicting_holidays = all_leaves.filtered_domain(domain)
+
+            if not conflicting_holidays:
+                holiday.dashboard_warning_message = Markup("")
+                break
+
+            conflicting_holidays_list = []
+            # Do not display the name of the employee if the conflicting holidays have an employee_id.user_id equivalent to the user id
+            holidays_only_have_uid = bool(holiday.employee_id)
+            holiday_states = dict(conflicting_holidays.fields_get(allfields=['state'])['state']['selection'])
+            for conflicting_holiday in conflicting_holidays:
+                conflicting_holiday_data = {
+                    'employee_name': conflicting_holiday.employee_id.name,
+                    'date_from': format_date(self.env, min(conflicting_holiday.mapped('date_from'))),
+                    'date_to': format_date(self.env, min(conflicting_holiday.mapped('date_to'))),
+                    'state': holiday_states[conflicting_holiday.state]
+                }
+                if conflicting_holiday.employee_id.user_id.id != self.env.uid:
+                    holidays_only_have_uid = False
+                if conflicting_holiday_data not in conflicting_holidays_list:
+                    conflicting_holidays_list.append(conflicting_holiday_data)
+
+            conflicting_holidays_strings = []
+            if holidays_only_have_uid:
+                holiday.dashboard_warning_message = Markup(_("<span>You\'ve already booked time off which overlaps with this period:%s</span>") %
+                    Markup().join(Markup(_('<li>from <strong>%(date_from)s</strong> to <strong>%(date_to)s</strong> - <strong>%(state)s</strong></li>' % {
+                        'date_from': conflicting_holiday_data['date_from'],
+                        'date_to': conflicting_holiday_data['date_to'],
+                        'state': conflicting_holiday_data['state']})) for conflicting_holiday_data in conflicting_holidays_list))
+                break
+
+            for conflicting_holiday_data in conflicting_holidays_list:
+                conflicting_holidays_string = "\n" + _('%(employee_name)s - from %(date_from)s to %(date_to)s - %(state)s',
+                                                employee_name=conflicting_holiday_data['employee_name'],
+                                                date_from=conflicting_holiday_data['date_from'],
+                                                date_to=conflicting_holiday_data['date_to'],
+                                                state=conflicting_holiday_data['state'])
+                conflicting_holidays_strings.append(conflicting_holidays_string)
+            holiday.dashboard_warning_message = _(
+                "An employee already booked time off which overlaps with this period:%s",
+                "".join(conflicting_holidays_strings))
 
     @api.depends_context('uid')
     def _compute_description(self):
@@ -354,11 +413,6 @@ class HrLeave(models.Model):
             elif holiday.employee_id.user_id != self.env.user and holiday._origin.employee_id != holiday.employee_id:
                 if holiday.employee_id and not holiday.holiday_status_id.with_context(employee_id=holiday.employee_id.id).has_valid_allocation:
                     holiday.holiday_status_id = False
-
-    @api.depends('employee_id')
-    def _compute_department_id(self):
-        for holiday in self:
-            holiday.department_id = holiday.employee_id.department_id
 
     @api.depends('date_from', 'date_to', 'holiday_status_id')
     def _compute_has_mandatory_day(self):
@@ -493,35 +547,52 @@ class HrLeave(models.Model):
                 display = f"{duration} {unit}"
             leave.duration_display = display
 
-    @api.depends('state', 'employee_id', 'department_id')
-    def _compute_can_reset(self):
-        for holiday in self:
-            try:
-                holiday._check_approval_update('confirm')
-            except (AccessError, UserError):
-                holiday.can_reset = False
-            else:
-                holiday.can_reset = True
-
-    @api.depends('state', 'employee_id', 'department_id')
+    @api.depends('state', 'employee_id')
     def _compute_can_approve(self):
+        is_officer = self.env.user.has_group('hr_holidays.group_hr_holidays_user')
         for holiday in self:
+            # To avoid double validation button (approve, validate)
+            if is_officer:
+                holiday.can_approve = False
+                break
             try:
-                if holiday.state == 'confirm' and holiday.validation_type == 'both':
-                    holiday._check_approval_update('validate1')
-                else:
-                    holiday._check_approval_update('validate')
+                holiday._check_approval_update('validate1')
             except (AccessError, UserError):
                 holiday.can_approve = False
             else:
                 holiday.can_approve = True
 
+    @api.depends('state', 'employee_id')
+    def _compute_can_validate(self):
+        for holiday in self:
+            try:
+                holiday._check_approval_update('validate')
+            except (AccessError, UserError):
+                holiday.can_validate = False
+            else:
+                holiday.can_validate = True
+
+    @api.depends('state', 'employee_id')
+    def _compute_can_refuse(self):
+        for holiday in self:
+            try:
+                holiday._check_approval_update('refuse')
+            except (AccessError, UserError):
+                holiday.can_refuse = False
+            else:
+                holiday.can_refuse = True
+
     @api.depends_context('uid')
     @api.depends('state', 'employee_id')
     def _compute_can_cancel(self):
         now = fields.Datetime.now().date()
-        for leave in self:
-            leave.can_cancel = leave.id and leave.employee_id.user_id == self.env.user and leave.state in ['validate', 'validate1'] and leave.date_from and leave.date_from.date() >= now
+        for holiday in self:
+            try:
+                holiday._check_approval_update('cancel')
+            except (AccessError, UserError):
+                holiday.can_cancel = False
+            else:
+                holiday.can_cancel = True
 
     @api.depends('state')
     def _compute_is_hatched(self):
@@ -543,65 +614,9 @@ class HrLeave(models.Model):
     def _check_date(self):
         if self.env.context.get('leave_skip_date_check', False):
             return
-
-        all_leaves = self.search([
-            ('date_from', '<', max(self.mapped('date_to'))),
-            ('date_to', '>', min(self.mapped('date_from'))),
-            ('employee_id', 'in', self.employee_id.ids),
-            ('id', 'not in', self.ids),
-            ('state', 'not in', ['cancel', 'refuse']),
-        ])
         for holiday in self:
-            domain = [
-                ('employee_id', '=', holiday.employee_id.id),
-                ('date_from', '<', holiday.date_to),
-                ('date_to', '>', holiday.date_from),
-                ('id', '!=', holiday.id),
-                ('state', 'not in', ['cancel', 'refuse']),
-            ]
-            conflicting_holidays = all_leaves.filtered_domain(domain)
-
-            if conflicting_holidays:
-                conflicting_holidays_list = []
-                # Do not display the name of the employee if the conflicting holidays have an employee_id.user_id equivalent to the user id
-                holidays_only_have_uid = bool(holiday.employee_id)
-                holiday_states = dict(conflicting_holidays.fields_get(allfields=['state'])['state']['selection'])
-                for conflicting_holiday in conflicting_holidays:
-                    conflicting_holiday_data = {}
-                    conflicting_holiday_data['employee_name'] = conflicting_holiday.employee_id.name
-                    conflicting_holiday_data['date_from'] = format_date(self.env, min(conflicting_holiday.mapped('date_from')))
-                    conflicting_holiday_data['date_to'] = format_date(self.env, min(conflicting_holiday.mapped('date_to')))
-                    conflicting_holiday_data['state'] = holiday_states[conflicting_holiday.state]
-                    if conflicting_holiday.employee_id.user_id.id != self.env.uid:
-                        holidays_only_have_uid = False
-                    if conflicting_holiday_data not in conflicting_holidays_list:
-                        conflicting_holidays_list.append(conflicting_holiday_data)
-                if not conflicting_holidays_list:
-                    return
-                conflicting_holidays_strings = []
-                if holidays_only_have_uid:
-                    for conflicting_holiday_data in conflicting_holidays_list:
-                        conflicting_holidays_string = _('from %(date_from)s to %(date_to)s - %(state)s',
-                                                        date_from=conflicting_holiday_data['date_from'],
-                                                        date_to=conflicting_holiday_data['date_to'],
-                                                        state=conflicting_holiday_data['state'])
-                        conflicting_holidays_strings.append(conflicting_holidays_string)
-                    raise ValidationError(_("""\
-You've already booked time off which overlaps with this period:
-%s
-Attempting to double-book your time off won't magically make your vacation 2x better!
-""",
-                        "\n".join(conflicting_holidays_strings)))
-                for conflicting_holiday_data in conflicting_holidays_list:
-                    conflicting_holidays_string = "\n" + _('%(employee_name)s - from %(date_from)s to %(date_to)s - %(state)s',
-                                                    employee_name=conflicting_holiday_data['employee_name'],
-                                                    date_from=conflicting_holiday_data['date_from'],
-                                                    date_to=conflicting_holiday_data['date_to'],
-                                                    state=conflicting_holiday_data['state'])
-                    conflicting_holidays_strings.append(conflicting_holidays_string)
-                raise ValidationError(_(
-                    "An employee already booked time off which overlaps with this period:%s",
-                    "".join(conflicting_holidays_strings)))
+            if holiday.dashboard_warning_message:
+                raise UserError(holiday.dashboard_warning_message)
 
     @api.constrains('date_from', 'date_to', 'employee_id')
     def _check_date_state(self):
@@ -648,7 +663,7 @@ Attempting to double-book your time off won't magically make your vacation 2x be
     @api.depends(
         'tz', 'date_from', 'date_to', 'employee_id',
         'holiday_status_id', 'number_of_hours',
-        'leave_type_request_unit', 'number_of_days', 'department_id',
+        'leave_type_request_unit', 'number_of_days',
     )
     @api.depends_context('short_name', 'hide_employee_name', 'groupby')
     def _compute_display_name(self):
@@ -1038,10 +1053,10 @@ Attempting to double-book your time off won't magically make your vacation 2x be
     def action_validate(self, check_state=True):
         current_employee = self.env.user.employee_id
         leaves = self._get_leaves_on_public_holiday()
+        if check_state and any(not holiday.can_validate for holiday in self):
+            raise UserError(_('You can\'t validate this record.'))
         if leaves:
             raise ValidationError(_('The following employees are not supposed to work during that period:\n %s') % ','.join(leaves.mapped('employee_id.name')))
-        if check_state and any(holiday.state not in ['confirm', 'validate1'] and holiday.validation_type != 'no_validation' for holiday in self):
-            raise UserError(_('Time off request must be confirmed in order to approve it.'))
 
         self.write({'state': 'validate'})
 
@@ -1161,51 +1176,115 @@ Attempting to double-book your time off won't magically make your vacation 2x be
             'domain': domain
         }
 
+    def _get_all_possible_states(self):
+        self.ensure_one()
+        state_result = {
+            'confirm' : set(),
+            'validate1': set(),
+            'validate': set(),
+            'refuse': set(),
+            'cancel': set()
+        }
+        validation_type = self.validation_type
+
+        is_superuser = self.env.is_superuser()
+        #No constraint for superUser
+        if is_superuser:
+            if validation_type == 'both':
+                state_result['confirm'].add('validate1')
+                state_result['validate'].add('validate1')
+                state_result['refuse'].add('validate1')
+                state_result['cancel'].add('validate1')
+            state_result['confirm'].update({'validate', 'refuse', 'cancel'})
+            state_result['validate1'].update({'confirm', 'validate', 'refuse', 'cancel'})
+            state_result['validate'].update({'confirm', 'refuse', 'cancel'})
+            state_result['refuse'].update({'confirm', 'validate', 'cancel'})
+            state_result['cancel'].update({'confirm', 'validate', 'refuse'})
+            return state_result
+
+        user_employees = self.env.user.employee_ids
+        is_own_leave = self.employee_id in user_employees
+        is_in_past = self.date_from.date() <= fields.Date.today()
+
+        is_time_off_manager = self.env.user.has_group('hr_holidays.group_hr_holidays_responsible')
+        is_officer = self.env.user.has_group('hr_holidays.group_hr_holidays_user')
+        is_time_off_administrator = self.env.user.has_group('hr_holidays.group_hr_holidays_manager')
+
+        if is_own_leave and (not is_in_past or is_time_off_administrator):
+            state_result['validate1'].add('cancel')
+            state_result['validate'].add('cancel')
+            state_result['refuse'].add('cancel')
+
+        # in the past, only the administrator can change the status of a leave
+        if (is_officer and not is_in_past) or is_time_off_administrator:
+            state_result['confirm'].update({'validate', 'refuse'})
+            state_result['validate'].update({'refuse'})
+            state_result['refuse'].update({'validate'})
+            if validation_type == 'both':
+                state_result['confirm'].add('validate1')
+                state_result['validate1'].update({'validate', 'refuse'})
+                state_result['refuse'].add('validate1')
+
+        elif is_time_off_manager and not is_in_past:
+            if validation_type != 'hr':
+                state_result['confirm'].add('refuse')
+                state_result['validate'].add('refuse')
+            if validation_type == 'both':
+                state_result['confirm'].add('validate1')
+                state_result['validate1'].update({'refuse'})
+            elif validation_type == 'manager':
+                state_result['confirm'].add('validate')
+                state_result['refuse'].add('validate')
+
+        return state_result
+
     def _check_approval_update(self, state):
         """ Check if target state is achievable. """
         if self.env.is_superuser():
             return
 
-        current_employee = self.env.user.employee_id
-        is_officer = self.env.user.has_group('hr_holidays.group_hr_holidays_user')
-        is_manager = self.env.user.has_group('hr_holidays.group_hr_holidays_manager')
+        is_time_off_manager = self.env.user.has_group('hr_holidays.group_hr_holidays_responsible')
+        is_time_off_administrator = self.env.user.has_group('hr_holidays.group_hr_holidays_manager')
 
         for holiday in self:
-            val_type = holiday.validation_type
+            dict_all_possible_state = holiday._get_all_possible_states()
+            validation_type = holiday.validation_type
+            is_in_past = holiday.date_from.date() <= fields.Date.today()
 
-            if not is_manager:
-                if holiday.state == 'cancel' and state != 'confirm':
-                    raise UserError(_('A cancelled leave cannot be modified.'))
+            # Standard Check
+            if holiday.state == state:
+                raise UserError(_('You can\'t do the same action twice.'))
+            if state == 'validate1' and validation_type != 'both':
+                raise UserError(_('Not possible state. State Approve is only used for leave needed 2 approvals'))
+            if holiday.state == 'cancel':
+                raise UserError(_('A cancelled leave cannot be modified.'))
+
+            # Leave in past
+            if is_in_past and not is_time_off_administrator:
+                raise UserError('Only a Time Off Manager can change the state of a leave in the past.')
+
+            if state not in dict_all_possible_state.get(holiday.state, {}):
+                if state == 'cancel':
+                    raise UserError(_('You can only cancel your own leave. You can cancel a leave only if this leave \
+is approved, validated or refused.'))
                 if state == 'confirm':
-                    if holiday.state == 'refuse':
-                        raise UserError(_('Only a Time Off Manager can reset a refused leave.'))
-                    if holiday.date_from and holiday.date_from.date() <= fields.Date.today():
-                        raise UserError(_('Only a Time Off Manager can reset a started leave.'))
-                    if holiday.employee_id != current_employee:
-                        raise UserError(_('Only a Time Off Manager can reset other people leaves.'))
-                else:
-                    if val_type == 'no_validation' and current_employee == holiday.employee_id and (is_officer or is_manager):
-                        continue
-                    # use ir.rule based first access check: department, members, ... (see security.xml)
-                    holiday.check_access('write')
-
-                    # This handles states validate1 validate and refuse
-                    if holiday.employee_id == current_employee\
-                            and self.env.user != holiday.employee_id.leave_manager_id\
-                            and not is_officer:
-                        raise UserError(_('Only a Time Off Officer or Manager can approve/refuse its own requests.'))
-
-                    if (state == 'validate1' and val_type == 'both'):
-                        if not is_officer and self.env.user != holiday.employee_id.leave_manager_id:
-                            raise UserError(_('You must be either %s\'s manager or Time off Manager to approve this leave') % (holiday.employee_id.name))
-
-                    if (state == 'validate' and val_type == 'manager')\
-                            and self.env.user != holiday.employee_id.leave_manager_id\
-                            and not is_officer:
-                        raise UserError(_("You must be %s's Manager to approve this leave", holiday.employee_id.name))
-
-                    if not is_officer and (state == 'validate' and val_type == 'hr'):
-                        raise UserError(_('You must either be a Time off Officer or Time off Manager to approve this leave'))
+                    raise UserError(_('You can\'t reset a leave. Cancel/delete this one and create an other'))
+                if state == 'validate1':
+                    if not is_time_off_manager:
+                        raise UserError(_('Only a Time Off Officer/Manager can approve a leave.'))
+                    raise UserError(_('You can\'t approve this refused leave.'))
+                if state == "validate":
+                    if not is_time_off_manager:
+                        raise UserError(_('Only a Time Off Officer/Manager can validate a leave.'))
+                    if holiday.state == "refuse":
+                        raise UserError(_('You can\'t approve this refused leave.'))
+                    raise UserError(_('You can only validate a leave with validation by Time Off Manager.'))
+                if state == "refuse":
+                    if not is_time_off_manager:
+                        raise UserError(_('Only a Time Off Officer/Manager can refuse a leave.'))
+                    raise UserError(_('You can\'t refuse a leave with validation by Time Off Officer.'))
+            if state != "cancel":
+                holiday.check_access('write')
 
     @api.model
     def open_pending_requests(self):

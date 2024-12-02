@@ -36,7 +36,8 @@ export const multiTimeOffGenerationMenu = {
     isDisplayed: async ({ config, searchModel }) => {
         return (
             ["hr.leave", "hr.leave.allocation"].includes(searchModel.resModel) &&
-            (await user.hasGroup("hr_holidays.group_hr_holidays_user"))
+            (await user.hasGroup("hr_holidays.group_hr_holidays_user")) &&
+            !["form"].includes(config.viewType)
         );
     },
 };

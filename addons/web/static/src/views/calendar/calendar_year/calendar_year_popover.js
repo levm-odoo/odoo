@@ -62,11 +62,17 @@ export class CalendarYearPopover extends Component {
     }
     getRecordClass(record) {
         const { colorIndex } = record;
+        const classes = [];
         const color = getColor(colorIndex);
         if (color && typeof color === "number") {
-            return `o_calendar_color_${color}`;
+            classes.push(`o_calendar_color_${color}`);
         }
-        return "";
+        if (record.startHour){
+            classes.push('o_event_dot');
+        } else {
+            classes.push('o_event_allday')
+        }
+        return classes.join(" ");
     }
     getRecordStyle(record) {
         const { colorIndex } = record;

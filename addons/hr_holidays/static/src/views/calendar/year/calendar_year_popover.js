@@ -9,4 +9,11 @@ export class TimeOffCalendarYearPopover extends CalendarYearPopover {
         ...CalendarYearPopover.subTemplates,
         body: "hr_holidays.MandatoryDayCalendarYearPopover.body",
     };
+
+    getRecordClass(record) {
+        let classes = [super.getRecordClass(record)];
+        classes = classes.filter((x) => x !== 'o_event_allday')
+        classes.push('o_event_dot')
+        return classes.join(" ");
+    }
 }

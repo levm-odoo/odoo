@@ -1,48 +1,105 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <div t-name="hr_holidays.LeaveStatsComponent" class="o_leave_stats">
-        <div t-if="state.employee" id="o_leave_stats_employee">
-            <div class="o_hr_leave_subtitle">
-                <t t-esc="state.employee[1]"/> in <t t-esc="thisYear"/>
+        <div t-if="state.employee" id="o_leave_stats_employee" class="sub_table px-3 py-2 mb-3">
+            <div>
+                <div class="d-flex">
+                    <div class="mx-1">
+                        <KanbanMany2OneAvatarEmployeeField
+                            record="this.props.record"
+                            name="'employee_id'"
+                        />
+                    </div>
+                    <div class="o_hr_leave_subtitle">
+                        <t t-esc="state.employee[1]"/>'s summary (<t t-esc="thisYear"/>)
+                    </div>
+                </div>
             </div>
             <div t-if="state.leaves.length === 0">
                 None
             </div>
-            <div t-foreach="state.leaves" t-as="leave" t-key="leave_index" class="d-flex flex-row justify-content-between">
-                <span t-esc="leave.holiday_status_id[1]"/>
-                <t t-if="leave.leave_type_request_unit?.includes('hour')">
-                    <span><t t-esc="leave.number_of_hours"/> hour(s)</span>
-                </t>
-                <t t-if="!leave.leave_type_request_unit?.includes('hour')">
-                    <span><t t-esc="leave.number_of_days"/> day(s)</span>
-                </t>
+            <div t-else="" class="d-flex flex-column mb-1">
+                <div t-foreach="state.leaves" t-as="leave_grouped_by_type" t-key="leave_grouped_by_type.id" class="d-flex flex-column mb-2">
+                    <div class=" d-flex fw-bold gap-1">
+                        <span t-esc="leave_grouped_by_type.name" class=" ms-1"/>
+                        <div class="d-flex gap-1">
+                            (<span t-if="leave_grouped_by_type.amount_type == 'hours'" t-esc="leave_grouped_by_type.total_hours"/>
+                            <span t-else="" t-esc="leave_grouped_by_type.total_days"/>
+                            <span t-esc="leave_grouped_by_type.amount_type"/>
+                            )
+                        </div>
+                    </div>
+                    <div t-foreach="leave_grouped_by_type.leaves" t-as="leave" t-key="leave_index" class="d-flex gap-2 ms-4">
+                        <div t-if="leave.leave_type_request_unit == 'hour'" class="d-flex gap-2 col-6">
+                            <span t-esc="leave.date_from"/>
+                            <span t-esc="leave.hour_from" class="fst-italic"/>
+                            <i class="fa fa-long-arrow-right my-1" aria-label="Arrow icon" title="Arrow"/>
+                            <span t-esc="leave.hour_to" class="fst-italic"/>
+                        </div>
+                        <div t-else="" class="col-6 d-flex gap-2">
+                            <span t-esc="leave.date_from"/>
+                            <i class="fa fa-long-arrow-right my-1" aria-label="Arrow icon" title="Arrow"/>
+                            <span t-esc="leave.date_to"/>
+                        </div>
+                        <div class="col-3">
+                        (
+                            <span t-if="leave.leave_type_request_unit == 'hour'"><t t-esc="leave.number_of_hours"/> hours</span>
+                            <span t-else=""><t t-esc="leave.number_of_days"/> days</span>
+                        )
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div t-if="state.department" id="o_leave_stats_department">
-            <div class="o_horizontal_separator o_hr_leave_subtitle">
-                <t t-esc="state.department[1]"/>
+        <div t-if="state.department" id="o_leave_stats_department" class="sub_table px-3 py-2">
+            <div class="o_horizontal_separator o_hr_leave_subtitle d-flex align-items-center justify-content-between">
+                        <div>
+                            <span t-if="state.has_parent_department" class="mx-1">.../</span>
+                            <span t-esc="state.department_name"/>
+                            <span>'s summary in this month</span>
+                        </div>
+                        <button class="btn btn-primary" t-on-click="(ev) => this.state.sum_up = !this.state.sum_up">Details</button>
             </div>
             <div t-if="state.departmentLeaves.length === 0">
                 None
             </div>
-            <div t-foreach="state.departmentLeaves" t-as="leave" t-key="leave_index" t-attf-class="d-flex flex-row justify-content-between {{leave.sameEmployee ? 'fw-bold': ''}}">
-                <span>
-                    <t t-esc="leave.employee_id[1]"/>: 
-                    <t t-if="leave.leave_type_request_unit === 'hour'">
-                        <t t-esc="leave.number_of_hours"/> hour(s)
-                    </t>
-                    <t t-if="leave.leave_type_request_unit !== 'hour'">
-                        <t t-esc="leave.number_of_days"/> day(s)
-                    </t>
-                </span>
-                <div class="d-flex flex-row gap-2 align-items-center">
-                    <span>
-                        <t t-esc="leave.dateFrom"/>
-                    </span>
-                    <i class="fa fa-long-arrow-right" aria-label="Arrow icon" title="Arrow"/>
-                    <span>
-                        <t t-esc="leave.dateTo"/>
-                    </span>
+            <div t-else="" class="d-flex flex-column mb-1">
+                <div t-foreach="state.departmentLeaves" t-as="grouped_leave" t-key="grouped_leave.id" class="d-flex flex-column mb-2" t-if="grouped_leave.has_overlap_leaves || !this.state.sum_up">
+                    <div class=" d-flex my-1">
+                        <KanbanMany2OneAvatarEmployeeField
+                            record="{'data' : {'employee_id': [grouped_leave.id, grouped_leave.name]}, 'fields': this.props.record.fields}"
+                            name="'employee_id'" relation="'hr.employee'"
+                        />
+                        <span t-esc="grouped_leave.name" class="mx-1 fw-bold"/>
+                        <div class="d-flex gap-1 fw-bold">
+                            (<span t-if="grouped_leave.amount_type == 'hours'" t-esc="grouped_leave.total_hours"/>
+                            <span t-else="" t-esc="grouped_leave.total_days"/>
+                            <span t-esc="grouped_leave.amount_type"/>
+                            )
+                        </div>
+                    </div>
+                    <div t-foreach="grouped_leave.leaves" t-as="leave" t-key="leave_index" t-attf-class="d-flex gap-1 {{this.state.sum_up ? 'ms-4' : ''}}" t-if="leave.overlap || !this.state.sum_up">
+                        <div class="col-1" t-if="!this.state.sum_up">
+                            <i class="fa fa-thumb-tack mx-2" t-if="leave.overlap" t-att-title="grouped_leave.name + ' will be off during ' + this.props.record.data.employee_id[1] + '\'s leave'"/>
+                        </div>
+                        <div t-if="leave.request_unit_hours" class="d-flex gap-2 col-6">
+                            <span t-esc="leave.date_from"/>
+                            <span t-esc="leave.hour_from" class="fst-italic"/>
+                            <i class="fa fa-long-arrow-right my-1" aria-label="Arrow icon" title="Arrow"/>
+                            <span t-esc="leave.hour_to" class="fst-italic"/>
+                        </div>
+                        <div t-else="" class="col-6 d-flex gap-2">
+                            <span t-esc="leave.date_from"/>
+                            <i class="fa fa-long-arrow-right my-1" aria-label="Arrow icon" title="Arrow"/>
+                            <span t-esc="leave.date_to"/>
+                        </div>
+                        <div class="col-3">
+                            (
+                            <span t-if="leave.leave_type_request_unit == 'hour'"><t t-esc="leave.number_of_hours"/> hours</span>
+                            <span t-else=""><t t-esc="leave.number_of_days"/> days</span>
+                            )
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
