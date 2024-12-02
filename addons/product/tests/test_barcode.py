@@ -83,7 +83,7 @@ class TestProductBarcode(TransactionCase):
         """ Test that the barcode of the package can be used when the package is removed from the product."""
         pack_uom = self.env['uom.uom'].create({
             'name': 'Pack of 10',
-            'factor_reference_uom': 10,
+            'relative_factor': 10,
         })
         product = self.env['product.product'].create({
             'name': 'product',

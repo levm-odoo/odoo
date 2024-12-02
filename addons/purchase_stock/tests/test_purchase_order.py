@@ -506,7 +506,7 @@ class TestPurchaseOrder(ValuationReconciliationTestCommon):
     def test_packaging_and_qty_decrease(self):
         packaging = self.env['uom.uom'].create({
             'name': "Super Packaging",
-            'factor_reference_uom': 10.0,
+            'relative_factor': 10.0,
         })
         self.product_a.uom_ids = packaging
 
@@ -538,12 +538,12 @@ class TestPurchaseOrder(ValuationReconciliationTestCommon):
         warehouse.reception_steps = 'three_steps'
         packOf10 = self.env['uom.uom'].create({
             'name': 'PackOf10',
-            'factor_reference_uom': 10
+            'relative_factor': 10
         })
 
         packOf20 = self.env['uom.uom'].create({
             'name': 'PackOf20',
-            'factor_reference_uom': 20
+            'relative_factor': 20
         })
         self.product_a.uom_ids = packOf10 | packOf20
 

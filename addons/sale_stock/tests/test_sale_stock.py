@@ -974,11 +974,11 @@ class TestSaleStock(TestSaleStockCommon, ValuationReconciliationTestCommon):
 
         packOf10 = self.env['uom.uom'].create({
             'name': 'PackOf10',
-            'factor_reference_uom': 10
+            'relative_factor': 10
         })
         packOf20 = self.env['uom.uom'].create({
             'name': 'PackOf20',
-            'factor_reference_uom': 20
+            'relative_factor': 20
         })
         product.uom_ids = packOf10 | packOf20
 
@@ -1046,7 +1046,7 @@ class TestSaleStock(TestSaleStockCommon, ValuationReconciliationTestCommon):
     def test_16_multi_uom(self):
         yards_uom = self.env['uom.uom'].create({
             'name': 'Yards',
-            'factor_reference_uom': 0.9144,
+            'relative_factor': 0.9144,
         })
         product = self.env['product.product'].create({
             'name': 'Test Product',
@@ -1390,7 +1390,7 @@ class TestSaleStock(TestSaleStockCommon, ValuationReconciliationTestCommon):
     def test_packaging_and_qty_decrease(self):
         packaging = self.env['uom.uom'].create({
             'name': "Super Packaging",
-            'factor_reference_uom': 10.0,
+            'relative_factor': 10.0,
         })
 
         so_form = Form(self.env['sale.order'])

@@ -1947,7 +1947,7 @@ class TestStockValuationWithCOA(AccountTestInvoicingCommon):
         uom_unit = self.env.ref('uom.product_uom_unit')
         uom_hundred = self.env['uom.uom'].create({
             'name': '100 x U',
-            'factor_reference_uom': 100.0,
+            'relative_factor': 100.0,
         })
         self.product1.write({
             'uom_id': uom_unit.id,

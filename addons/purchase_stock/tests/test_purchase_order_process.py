@@ -43,7 +43,7 @@ class TestPurchaseOrderProcess(PurchaseTestCommon):
 
         packaging = self.env['uom.uom'].create({
             'name': 'box',
-            'factor_reference_uom': 1.0,
+            'relative_factor': 1.0,
         })
         product.uom_ids = packaging
 

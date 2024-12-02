@@ -8,10 +8,10 @@ class UomUom(models.Model):
     is_pos_groupable = fields.Boolean(string='Group Products in POS', compute='_compute_is_pos_groupable', store=True,
         help="Check if you want to group products of this unit in point of sale orders")
 
-    @api.depends('reference_uom_id')
+    @api.depends('relative_uom_id')
     def _compute_is_pos_groupable(self):
         for uom in self:
-            uom.is_pos_groupable = uom.reference_uom_id.is_pos_groupable if uom.reference_uom_id else False
+            uom.is_pos_groupable = uom.relative_uom_id.is_pos_groupable if uom.relative_uom_id else False
 
     @api.model
     def _load_pos_data_fields(self, config_id):

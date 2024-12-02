@@ -3025,7 +3025,7 @@ class StockMove(TransactionCase):
         """
         uom_3units = self.env['uom.uom'].create({
             'name': '3 units',
-            'factor_reference_uom': 3,
+            'relative_factor': 3,
         })
         for i in range(1, 4):
             lot_id = self.env['stock.lot'].create({
@@ -6168,15 +6168,15 @@ class StockMove(TransactionCase):
         self.env.user.groups_id += self.env.ref("uom.group_uom")
         packaging_of_4 = self.env['uom.uom'].create({
             'name': 'pack of 4',
-            'factor_reference_uom': 4
+            'relative_factor': 4
         })
         packaging_of_5 = self.env['uom.uom'].create({
             'name': 'pack of 5',
-            'factor_reference_uom': 5
+            'relative_factor': 5
         })
         packaging_of_2_dozen = self.env['uom.uom'].create({
             'name': 'pack of 2 dozen',
-            'factor_reference_uom': 24,
+            'relative_factor': 24,
         })
         self.product.uom_ids = packaging_of_4 | packaging_of_5 | packaging_of_2_dozen
         self.env['stock.quant']._update_available_quantity(self.product, self.stock_location, 25)

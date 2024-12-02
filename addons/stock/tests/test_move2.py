@@ -2678,7 +2678,7 @@ class TestStockUOM(TestStockCommon):
         })
         T_GT = self.env['uom.uom'].create({
             'name': 'T-GT',
-            'factor_reference_uom': 2240.00,
+            'relative_factor': 2240.00,
         })
         T_TEST = self.env['product.product'].create({
             'name': 'T_TEST',

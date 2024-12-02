@@ -17,7 +17,7 @@
         <field name="model">uom.uom</field>
         <field name="inherit_id" ref="uom.product_uom_form_view"/>
         <field name="arch" type="xml">
-            <field name="factor_reference_uom" position="after">
+            <field name="relative_factor" position="after">
                 <field name="l10n_ar_afip_code" invisible="'AR' not in fiscal_country_codes"/>
             </field>
         </field>
