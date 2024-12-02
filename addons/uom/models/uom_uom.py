@@ -11,7 +11,7 @@ from odoo.exceptions import UserError, ValidationError
 class UomUom(models.Model):
     _name = 'uom.uom'
     _description = 'Product Unit of Measure'
-    _parent_name = 'reference_uom_id'
+    _parent_name = 'relative_uom_id'
     _order = "factor DESC, id"
 
     def _unprotected_uom_xml_ids(self):
@@ -21,20 +21,20 @@ class UomUom(models.Model):
         ]
 
     name = fields.Char('Unit', required=True, translate=True)
-    factor_reference_uom = fields.Float(
+    relative_factor = fields.Float(
         'Contains', default=1.0, digits=0, required=True,  # force NUMERIC with unlimited precision
         help='How much bigger or smaller this unit is compared to the reference UoM for this unit')
     active = fields.Boolean('Active', default=True, help="Uncheck the active field to disable a unit of measure without deleting it.")
-    reference_uom_id = fields.Many2one('uom.uom', 'Reference Unit', ondelete='cascade')
-    related_uom_ids = fields.One2many('uom.uom', 'reference_uom_id', 'Related UoMs')
+    relative_uom_id = fields.Many2one('uom.uom', 'Reference Unit', ondelete='cascade')
+    related_uom_ids = fields.One2many('uom.uom', 'relative_uom_id', 'Related UoMs')
     factor = fields.Float('Absolute Quantity', compute='_compute_factor', store=True, digits='Product Unit of Measure')
 
     _factor_gt_zero = models.Constraint(
-        'CHECK (factor_reference_uom!=0)',
+        'CHECK (relative_factor!=0)',
         'The conversion ratio for a unit of measure cannot be 0!',
     )
 
-    @api.onchange('factor_reference_uom')
+    @api.onchange('relative_factor')
     def _onchange_critical_fields(self):
         if self._filter_protected_uoms() and self.create_date < (fields.Datetime.now() - timedelta(days=1)):
             return {
@@ -93,13 +93,13 @@ class UomUom(models.Model):
             amount = amount / self.factor
         return amount
 
-    @api.depends('factor_reference_uom', 'reference_uom_id', 'reference_uom_id.factor_reference_uom')
+    @api.depends('relative_factor', 'relative_uom_id', 'relative_uom_id.relative_factor')
     def _compute_factor(self):
         for uom in self:
-            if uom.reference_uom_id:
-                uom.factor = uom.factor_reference_uom * uom.reference_uom_id.factor_reference_uom
+            if uom.relative_uom_id:
+                uom.factor = uom.relative_factor * uom.relative_uom_id.relative_factor
             else:
-                uom.factor = uom.factor_reference_uom
+                uom.factor = uom.relative_factor
 
     def _filter_protected_uoms(self):
         """Verifies self does not contain protected uoms."""

@@ -2046,7 +2046,7 @@ class TestMrpOrder(TestMrpCommon):
         uom_L = self.env.ref('uom.product_uom_litre')
         uom_cL = self.env['uom.uom'].create({
             'name': 'cL',
-            'factor_reference_uom': 0.01,
+            'relative_factor': 0.01,
         })
 
         product = self.env['product.product'].create({
@@ -2129,7 +2129,7 @@ class TestMrpOrder(TestMrpCommon):
 
         uom_ml = self.env['uom.uom'].create({
             'name': 'Test ml',
-            'factor_reference_uom': 0.001,
+            'relative_factor': 0.001,
         })
 
         # create a product component and the final product using the component
@@ -3454,7 +3454,7 @@ class TestMrpOrder(TestMrpCommon):
 
         self.box250 = self.env['uom.uom'].create({
             'name': 'box250',
-            'factor_reference_uom': 250.0,
+            'relative_factor': 250.0,
         })
 
         test_bom = self.env['mrp.bom'].create({

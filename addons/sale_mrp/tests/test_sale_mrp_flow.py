@@ -32,7 +32,7 @@ class TestSaleMrpFlowCommon(ValuationReconciliationTestCommon):
         })
         cls.uom_gm = cls.UoM.create({
             'name': 'Test-G',
-            'factor_reference_uom': 0.001,
+            'relative_factor': 0.001,
         })
         cls.uom_unit = cls.env.ref('uom.product_uom_unit')
         cls.uom_unit.write({
@@ -40,11 +40,11 @@ class TestSaleMrpFlowCommon(ValuationReconciliationTestCommon):
         })
         cls.uom_ten = cls.UoM.create({
             'name': 'Test-Ten',
-            'factor_reference_uom': 10,
+            'relative_factor': 10,
         })
         cls.uom_pack_of_6 = cls.UoM.create({
             'name': 'Test-DozenA',
-            'factor_reference_uom': 12,
+            'relative_factor': 12,
         })
 
         # Creating all components
@@ -564,7 +564,7 @@ class TestSaleMrpFlow(TestSaleMrpFlowCommon):
         self.env.company.currency_id = self.env.ref('base.USD')
         self.uom_unit = self.UoM.create({
             'name': 'Test-Unit',
-            'factor_reference_uom': 1,
+            'relative_factor': 1,
         })
         self.company = self.company_data['company']
         self.company.anglo_saxon_accounting = True

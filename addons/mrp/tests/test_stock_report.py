@@ -211,7 +211,7 @@ class TestMrpStockReports(TestReportsCommon):
             'type': 'consu',
             'uom_id': self.env['uom.uom'].create({
                 'name': '6-pack',
-                'factor_reference_uom': 6,
+                'relative_factor': 6,
             }).id,
         })
 

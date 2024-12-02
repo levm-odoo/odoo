@@ -256,7 +256,7 @@ class TestProductPricelist(ProductCommon):
             'name': '1 tonne of spam',
             'uom_id': self.env['uom.uom'].create({
                 'name': 'Test-Ton',
-                'factor_reference_uom': 1000,
+                'relative_factor': 1000,
             }).id,
             'list_price': 100,
             'type': 'consu'

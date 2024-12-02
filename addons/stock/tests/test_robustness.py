@@ -55,7 +55,7 @@ class TestRobustness(TransactionCase):
         # change the factor
         with self.assertRaises(UserError):
             with self.cr.savepoint():
-                move1.product_uom.factor_reference_uom = 0.05
+                move1.product_uom.relative_factor = 0.05
 
         # assert the reservation
         self.assertEqual(quant.reserved_quantity, 12)

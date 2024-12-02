@@ -256,11 +256,11 @@ class TestPurchase(AccountTestInvoicingCommon):
         self.env.user.groups_id += self.env.ref('uom.group_uom')
         packaging_single = self.env['uom.uom'].create({
             'name': "I'm a packaging",
-            'factor_reference_uom': 1.0,
+            'relative_factor': 1.0,
         })
         packaging_pack_of_6 = self.env['uom.uom'].create({
             'name': "I'm also a packaging",
-            'factor_reference_uom': 6.0,
+            'relative_factor': 6.0,
         })
         self.product_a.uom_ids = packaging_single | packaging_pack_of_6
 
@@ -314,11 +314,11 @@ class TestPurchase(AccountTestInvoicingCommon):
         company2 = self.company_data_2['company']
         generic_single_pack = self.env['uom.uom'].create({
             'name': "single pack",
-            'factor_reference_uom': 1.0,
+            'relative_factor': 1.0,
         })
         company2_pack_of_10 = self.env['uom.uom'].create({
             'name': "pack of 10 by Company 2",
-            'factor_reference_uom': 10.0,
+            'relative_factor': 10.0,
         })
         self.product_a.uom_ids = generic_single_pack | company2_pack_of_10
 
@@ -347,7 +347,7 @@ class TestPurchase(AccountTestInvoicingCommon):
         uom_pack_of_6 = self.env.ref('uom.product_uom_pack_6')
         uom_pairs = self.env['uom.uom'].create({
             'name': 'Pairs',
-            'factor_reference_uom': 2,
+            'relative_factor': 2,
         })
         product_data = {
             'name': 'SuperProduct',

@@ -1117,10 +1117,10 @@ class UomUom(models.Model):
 
     def write(self, values):
         # Users can not update the factor if open stock moves are based on it
-        if 'factor_reference_uom' in values or 'category_id' in values:
+        if 'relative_factor' in values or 'category_id' in values:
             changed = self.filtered(
                 lambda u: any(u[f] != values[f] if f in values else False
-                              for f in {'factor_reference_uom'})) + self.filtered(
+                              for f in {'relative_factor'})) + self.filtered(
                 lambda u: any(u[f].id != int(values[f]) if f in values else False
                               for f in {'category_id'}))
             if changed:

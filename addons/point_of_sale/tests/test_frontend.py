@@ -1081,7 +1081,7 @@ class TestUi(TestPointOfSaleHttpCommon):
     def test_09_pos_barcodes_scan_product_packaging(self):
         pack_of_10 = self.env['uom.uom'].create({
             'name': 'Pack of 10',
-            'factor_reference_uom': 10,
+            'relative_factor': 10,
         })
         product = self.env['product.product'].create({
             'name': 'Packaging Product',
