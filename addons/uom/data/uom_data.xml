@@ -5,62 +5,62 @@
     <!-- Units -->
     <record id="product_uom_unit" model="uom.uom">
         <field name="name">Units</field>
-        <field name="factor_reference_uom" eval="1.0"/>
+        <field name="relative_factor" eval="1.0"/>
     </record>
 
     <record id="product_uom_pack_6" model="uom.uom">
         <field name="name">Pack of 6</field>
-        <field name="factor_reference_uom" eval="6"/>
-        <field name="reference_uom_id" ref="uom.product_uom_unit"/>
+        <field name="relative_factor" eval="6"/>
+        <field name="relative_uom_id" ref="uom.product_uom_unit"/>
     </record>
 
     <!-- WORKING TIME -->
     <record id="product_uom_hour" model="uom.uom">
         <field name="name">Hours</field>
-        <field name="factor_reference_uom" eval="8"/>
+        <field name="relative_factor" eval="8"/>
     </record>
     <record id="product_uom_day" model="uom.uom">
         <field name="name">Days</field>
-        <field name="factor_reference_uom" eval="8.0"/>
-        <field name="reference_uom_id" ref="uom.product_uom_hour"/>
+        <field name="relative_factor" eval="8.0"/>
+        <field name="relative_uom_id" ref="uom.product_uom_hour"/>
     </record>
 
     <!-- LENGTH -->
     <record id="product_uom_meter" model="uom.uom">
         <field name="name">m</field>
-        <field name="factor_reference_uom" eval="1.0"/>
+        <field name="relative_factor" eval="1.0"/>
     </record>
     <record id="product_uom_millimeter" model="uom.uom">
         <field name="name">mm</field>
-        <field name="factor_reference_uom" eval="0.001"/>
-        <field name="reference_uom_id" ref="uom.product_uom_meter"/>
+        <field name="relative_factor" eval="0.001"/>
+        <field name="relative_uom_id" ref="uom.product_uom_meter"/>
     </record>
 
     <!-- SURFACE -->
     <record id="uom_square_meter" model="uom.uom">
         <field name="name">m²</field>
-        <field name="factor_reference_uom" eval="1.0"/>
+        <field name="relative_factor" eval="1.0"/>
     </record>
 
     <!-- VOLUME -->
     <record id="product_uom_litre" model="uom.uom">
         <field name="name">L</field>
-        <field name="factor_reference_uom">1.0</field>
+        <field name="relative_factor">1.0</field>
     </record>
 
     <!-- WEIGHT -->
     <record id="product_uom_kgm" model="uom.uom">
         <field name="name">kg</field>
-        <field name="factor_reference_uom" eval="1"/>
+        <field name="relative_factor" eval="1"/>
     </record>
     <record id="product_uom_gram" model="uom.uom">
         <field name="name">g</field>
-        <field name="factor_reference_uom" eval="0.001"/>
-        <field name="reference_uom_id" ref="uom.product_uom_kgm"/>
+        <field name="relative_factor" eval="0.001"/>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
     </record>
     <record id="product_uom_ton" model="uom.uom">
         <field name="name">Ton</field>
-        <field name="factor_reference_uom" eval="1000"/>
-        <field name="reference_uom_id" ref="uom.product_uom_kgm"/>
+        <field name="relative_factor" eval="1000"/>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
     </record>
 </odoo>

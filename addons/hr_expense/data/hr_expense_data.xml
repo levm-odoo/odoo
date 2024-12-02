@@ -30,8 +30,8 @@
         </record>
         <record id="product_uom_km" model="uom.uom">
             <field name="name">km</field>
-            <field name="reference_uom_id" ref="uom.product_uom_meter"/>
-            <field name="factor_reference_uom">1000.0</field>
+            <field name="relative_uom_id" ref="uom.product_uom_meter"/>
+            <field name="relative_factor">1000.0</field>
         </record>
         <record id="expense_product_mileage" model="product.product">
             <field name="name">Mileage</field>

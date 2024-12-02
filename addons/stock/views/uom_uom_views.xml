@@ -10,13 +10,13 @@
             </field>
         </field>
     </record>
-    
+
     <record id="product_uom_form_view_inherit" model="ir.ui.view">
         <field name="name">uom.uom.form.inherit</field>
         <field name="model">uom.uom</field>
         <field name="inherit_id" ref="uom.product_uom_form_view"/>
         <field name="arch" type="xml">
-            <field name="factor_reference_uom" position="after">
+            <field name="relative_factor" position="after">
                 <span groups="stock.group_tracking_lot">per</span>
                 <field name="package_type_id"
                     groups="stock.group_tracking_lot"
@@ -24,8 +24,8 @@
                     readonly="(context.get('product_id') or context.get('product_ids')) and id"
                 />
             </field>
-            <field name="reference_uom_id" position="after">
-                <field 
+            <field name="relative_uom_id" position="after">
+                <field
                     name="product_uom_ids"
                     invisible="not context.get('product_id') and not context.get('product_ids')"
                     widget="many2many_tags"

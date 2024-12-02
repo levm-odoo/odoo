@@ -31,7 +31,7 @@ class TestPurchaseMrpFlow(AccountTestInvoicingCommon):
         })
         cls.uom_gm = cls.UoM.create({
             'name': 'Test-G',
-            'factor_reference_uom': 0.001,
+            'relative_factor': 0.001,
         })
         cls.uom_unit = cls.env.ref('uom.product_uom_unit')
         cls.uom_unit.write({
@@ -39,7 +39,7 @@ class TestPurchaseMrpFlow(AccountTestInvoicingCommon):
         })
         cls.uom_pack_of_6 = cls.UoM.create({
             'name': 'Test-DozenA',
-            'factor_reference_uom': 12,
+            'relative_factor': 12,
 })
 
         # Creating all components

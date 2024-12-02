@@ -162,7 +162,7 @@ class TestProductCommon(ProductVariantsCommon):
         # Product environment related data
         cls.uom_dunit = cls.env['uom.uom'].create({
             'name': 'DeciUnit',
-            'factor_reference_uom': 10.0,
+            'relative_factor': 10.0,
         })
 
         cls.product_1, cls.product_2 = cls.env['product.product'].create([{

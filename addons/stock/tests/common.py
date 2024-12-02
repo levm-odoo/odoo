@@ -69,15 +69,15 @@ class TestStockCommon(TestProductCommon):
         })
         cls.uom_tone = cls.UomObj.create({
             'name': 'Test-Tone',
-            'factor_reference_uom': 1000.0,
+            'relative_factor': 1000.0,
         })
         cls.uom_gm = cls.UomObj.create({
             'name': 'Test-G',
-            'factor_reference_uom': 0.001,
+            'relative_factor': 0.001,
         })
         cls.uom_mg = cls.UomObj.create({
             'name': 'Test-MG',
-            'factor_reference_uom': 0.0001,
+            'relative_factor': 0.0001,
         })
         # Check Unit
         cls.uom_unit = cls.env.ref('uom.product_uom_unit')
@@ -86,15 +86,15 @@ class TestStockCommon(TestProductCommon):
         })
         cls.uom_pack_of_6 = cls.UomObj.create({
             'name': 'Test-DozenA',
-            'factor_reference_uom': 12,
+            'relative_factor': 12,
         })
         cls.uom_spack_of_6 = cls.UomObj.create({
             'name': 'Test-SDozenA',
-            'factor_reference_uom': 144,
+            'relative_factor': 144,
         })
         cls.uom_spack_of_6_round = cls.UomObj.create({
             'name': 'Test-SDozenA Round',
-            'factor_reference_uom': 144,
+            'relative_factor': 144,
         })
 
         # Product for different unit of measure.

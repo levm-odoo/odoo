@@ -1232,7 +1232,7 @@ class TestAngloSaxonValuation(ValuationReconciliationTestCommon):
         self.product.standard_price = 2.0
         unit_12 = self.env['uom.uom'].create({
             'name': 'Pack of 12 units',
-            'factor_reference_uom': 12,
+            'relative_factor': 12,
         })
 
         # Create, confirm and deliver a sale order for 12@1.5 without reception with std_price = 2.0 (SO1)

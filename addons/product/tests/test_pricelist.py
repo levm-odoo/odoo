@@ -40,7 +40,7 @@ class TestPricelist(ProductCommon):
         cls.env.user.groups_id += cls.env.ref('product.group_product_pricelist')
         cls.uom_ton = cls.env['uom.uom'].create({
             'name': 'Tonne',
-            'factor_reference_uom': 1000,
+            'relative_factor': 1000,
         })
 
     def test_10_discount(self):

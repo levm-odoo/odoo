@@ -1011,7 +1011,7 @@ class TestSubcontractingFlows(TestMrpSubcontractingCommon):
         supplier_location = self.env.ref('stock.stock_location_suppliers')
         uom_duo = self.env['uom.uom'].create({
             'name': 'Duos',
-            'factor_reference_uom': 2.0,
+            'relative_factor': 2.0,
         })
 
         receipt = self.env['stock.picking'].create({
