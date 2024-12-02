@@ -157,7 +157,7 @@
         Registration failed! These tickets are not available anymore.
     </div>
     <div t-if="registration_error_code == 'recaptcha_failed'" class="alert alert-danger my-3" role="alert">
-        Registration failed! Suspicious activity detected by Google reCaptcha.
+        Registration failed! Suspicious activity detected by during captcha validation.
     </div>
     <t t-if="not event.event_registrations_open">
         <!-- Delayed registration time -->
@@ -239,7 +239,7 @@
 <template id="registration_attendee_details" name="Registration Attendee Details">
     <div id="modal_attendees_registration" class="modal fade" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg" role="document">
-            <form id="attendee_registration" t-attf-action="/event/#{slug(event)}/registration/confirm" method="post" class="js_website_submit_form">
+            <form id="attendee_registration" t-attf-action="/event/#{slug(event)}/registration/confirm" method="post" class="js_website_submit_form" data-captcha="website_event_registration">
                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                 <div class="modal-content">
                     <div class="modal-header align-items-center">

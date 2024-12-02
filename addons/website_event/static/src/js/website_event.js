@@ -1,27 +1,8 @@
 import publicWidget from "@web/legacy/js/public/public_widget";
-import { _t } from "@web/core/l10n/translation";
-import { ReCaptcha } from "@google_recaptcha/js/recaptcha";
 import { rpc } from "@web/core/network/rpc";
 
 // Catch registration form event, because of JS for attendee details
 var EventRegistrationForm = publicWidget.Widget.extend({
-
-    /**
-     * @constructor
-     */
-    init: function () {
-        this._super(...arguments);
-        this._recaptcha = new ReCaptcha();
-        this.notification = this.bindService("notification");
-    },
-
-    /**
-     * @override
-     */
-    willStart: async function () {
-        this._recaptcha.loadLibs();
-        return this._super(...arguments);
-    },
 
     /**
      * @override
@@ -68,19 +49,7 @@ var EventRegistrationForm = publicWidget.Widget.extend({
         const buttonEl = ev.currentTarget.closest("[type='submit']");
         const post = this._getPost();
         buttonEl.disabled = true;
-        const [modal, recaptchaToken] = await Promise.all([
-            rpc(formEl.action, post),
-            this._recaptcha.getToken("website_event_registration"),
-        ]);
-        if (recaptchaToken.error) {
-            this.notification.add(recaptchaToken.error, {
-                type: "danger",
-                title: _t("Error"),
-                sticky: true,
-            });
-            buttonEl.disabled = false;
-            return false;
-        }
+        const modal = await rpc(formEl.action, post);
         const modalEl = new DOMParser().parseFromString(modal, "text/html").body.firstChild;
         const _onClick = () => {
             buttonEl.disabled = false;
@@ -90,12 +59,11 @@ var EventRegistrationForm = publicWidget.Widget.extend({
         };
         modalEl.querySelector(".js_goto_event").addEventListener("click", _onClick);
         modalEl.querySelector(".btn-close").addEventListener("click", _onClick);
-        modalEl.querySelector("form").addEventListener("submit", (ev) => {
-            const tokenInput = document.createElement("input");
-            tokenInput.setAttribute("name", "recaptcha_token_response");
-            tokenInput.setAttribute("type", "hidden");
-            tokenInput.setAttribute("value", recaptchaToken.token);
-            ev.currentTarget.appendChild(tokenInput);
+        modalEl.addEventListener('shown.bs.modal', () => {
+            this.trigger_up('widgets_start_request', {$target: $(modalEl)});
+        });
+        modalEl.addEventListener('hidden.bs.modal', () => {
+            this.trigger_up('widgets_stop_request', {$target: $(modalEl)});
         });
         const formModal = Modal.getOrCreateInstance(modalEl, {
             backdrop: "static",
