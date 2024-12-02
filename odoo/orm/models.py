@@ -64,6 +64,7 @@ from odoo.tools.translate import _, LazyTranslate
 from . import fields
 from . import decorators as api
 from .commands import Command
+from .expression import AggregateExpression, FieldExpression, OrderSpecification
 from .fields import Field, determine
 from .fields_misc import Id
 from .fields_temporal import Datetime
@@ -118,6 +119,7 @@ def class_name_to_model_name(classname: str) -> str:
 
 def parse_read_group_spec(spec: str) -> tuple:
     """ Return a triplet corresponding to the given groupby/path/aggregate specification. """
+    # XXX deprecate
     res_match = regex_read_group_spec.match(spec)
     if not res_match:
         raise ValueError(
@@ -273,21 +275,6 @@ class MetaModel(api.Meta):
 # special columns automatically created by the ORM
 LOG_ACCESS_COLUMNS = ['create_uid', 'create_date', 'write_uid', 'write_date']
 MAGIC_COLUMNS = ['id'] + LOG_ACCESS_COLUMNS
-
-# valid SQL aggregation functions
-READ_GROUP_AGGREGATE = {
-    'sum': lambda table, expr: SQL('SUM(%s)', expr),
-    'avg': lambda table, expr: SQL('AVG(%s)', expr),
-    'max': lambda table, expr: SQL('MAX(%s)', expr),
-    'min': lambda table, expr: SQL('MIN(%s)', expr),
-    'bool_and': lambda table, expr: SQL('BOOL_AND(%s)', expr),
-    'bool_or': lambda table, expr: SQL('BOOL_OR(%s)', expr),
-    'array_agg': lambda table, expr: SQL('ARRAY_AGG(%s ORDER BY %s)', expr, SQL.identifier(table, 'id')),
-    # 'recordset' aggregates will be post-processed to become recordsets
-    'recordset': lambda table, expr: SQL('ARRAY_AGG(%s ORDER BY %s)', expr, SQL.identifier(table, 'id')),
-    'count': lambda table, expr: SQL('COUNT(%s)', expr),
-    'count_distinct': lambda table, expr: SQL('COUNT(DISTINCT %s)', expr),
-}
 
 READ_GROUP_DISPLAY_FORMAT = {
     # Careful with week/year formats:
@@ -1907,33 +1894,22 @@ class BaseModel(metaclass=MetaModel):
         The method also checks whether the fields used in the aggregate are
         accessible for reading.
         """
-        if aggregate_spec == '__count':
-            return SQL("COUNT(*)")
-
-        fname, property_name, func = parse_read_group_spec(aggregate_spec)
-
-        if property_name:
-            raise ValueError(f"Invalid {aggregate_spec!r}, this dot notation is not supported")
-
-        if fname not in self:
-            raise ValueError(f"Invalid field {fname!r} on model {self._name!r} for {aggregate_spec!r}.")
-        if not func:
-            raise ValueError(f"Aggregate method is mandatory for {fname!r}")
-        if func not in READ_GROUP_AGGREGATE:
-            raise ValueError(f"Invalid aggregate method {func!r} for {aggregate_spec!r}.")
-
-        field = self._fields[fname]
-        if func == 'recordset' and not (field.relational or fname == 'id'):
-            raise ValueError(f"Aggregate method {func!r} can be only used on relational field (or id) (for {aggregate_spec!r}).")
-
-        sql_field = self._field_to_sql(self._table, fname, query)
-        return READ_GROUP_AGGREGATE[func](self._table, sql_field)
+        aggregate = AggregateExpression(aggregate_spec)
+        if field_expr := aggregate.field_expr:
+            if not field_expr.is_single_field:
+                raise ValueError(f"Invalid {aggregate_spec!r}, this dot notation is not supported")
+            if aggregate.aggregate == 'recordset' and (field := field_expr.field(self)) and not (field.relational or field.name == 'id'):
+                func = 'recordset'
+                raise ValueError(f"Aggregate method {func!r} can be only used on relational field (or id) (for {aggregate_spec!r}).")
+        return aggregate._to_sql(self, query)
 
     def _read_group_groupby(self, groupby_spec: str, query: Query) -> SQL:
         """ Return <SQL expression> corresponding to the given groupby element.
         The method also checks whether the fields used in the groupby are
         accessible for reading.
         """
+        field_expr = FieldExpression(groupby_spec)
+        # XXX use field_expr
         fname, property_name, granularity = parse_read_group_spec(groupby_spec)
         if fname not in self:
             raise ValueError(f"Invalid field {fname!r} on model {self._name!r}")
@@ -2044,6 +2020,7 @@ class BaseModel(metaclass=MetaModel):
         if not having_domain:
             return SQL()
 
+        # TODO rewrite using Domain
         stack: list[SQL] = []
         SUPPORTED = ('in', 'not in', '<', '>', '<=', '>=', '=', '!=')
         for item in reversed(having_domain):
@@ -2083,39 +2060,35 @@ class BaseModel(metaclass=MetaModel):
             order = ','.join(groupby_terms)
             traverse_many2one = False
 
-        if not order:
+        spec = OrderSpecification(order)
+        if not spec:
             return SQL()
 
         orderby_terms = []
+        for item in spec.items:
+            sql_direction = item.sql_direction
+            sql_nulls = item.sql_nulls
+            expression = str(item.field_expr)
+            sql_expr = groupby_terms.get(expression)
 
-        for order_part in order.split(','):
-            order_match = regex_order.match(order_part)
-            if not order_match:
-                raise ValueError(f"Invalid order {order!r} for _read_group()")
-            term = order_match['term']
-            direction = (order_match['direction'] or 'ASC').upper()
-            nulls = (order_match['nulls'] or '').upper()
-
-            sql_direction = SQL(direction) if direction in ('ASC', 'DESC') else SQL()
-            sql_nulls = SQL(nulls) if nulls in ('NULLS FIRST', 'NULLS LAST') else SQL()
-
-            if term not in groupby_terms:
+            if sql_expr is None:
                 try:
-                    sql_expr = self._read_group_select(term, query)
+                    sql_expr = self._read_group_select(expression, query)
                 except ValueError as e:
-                    raise ValueError(f"Order term {order_part!r} is not a valid aggregate nor valid groupby") from e
+                    raise ValueError(f"Order term {item!r} is not a valid aggregate nor valid groupby") from e
                 orderby_terms.append(SQL("%s %s %s", sql_expr, sql_direction, sql_nulls))
                 continue
 
-            field = self._fields.get(term)
             if (
-                traverse_many2one and field and field.type == 'many2one'
+                traverse_many2one
+                and (field := self._fields.get(expression)) is not None
+                and field.type == 'many2one'
                 and self.env[field.comodel_name]._order != 'id'
             ):
-                if sql_order := self._order_to_sql(f'{term} {direction} {nulls}', query):
+                sql_order = self._order_field_to_sql(self._table, field.name, sql_direction, sql_nulls, query)
+                if sql_order:
                     orderby_terms.append(sql_order)
             else:
-                sql_expr = groupby_terms[term]
                 orderby_terms.append(SQL("%s %s %s", sql_expr, sql_direction, sql_nulls))
 
         return SQL(", ").join(orderby_terms)
@@ -2123,15 +2096,24 @@ class BaseModel(metaclass=MetaModel):
     @api.model
     def _read_group_empty_value(self, spec):
         """ Return the empty value corresponding to the given groupby spec or aggregate spec. """
-        if spec == '__count':
-            return 0
-        fname, __, func = parse_read_group_spec(spec)  # func is either None, granularity or an aggregate
-        if func in ('count', 'count_distinct'):
+        if isinstance(spec, str):
+            try:
+                spec = AggregateExpression(spec)
+            except ValueError:
+                spec = FieldExpression(spec)
+        if isinstance(spec, AggregateExpression):
+            field_expr = spec.field_expr
+            func = spec.aggregate
+        elif isinstance(spec, FieldExpression):
+            field_expr = spec
+            func = None
+        else:
+            raise TypeError(f"Invalid type for spec: {type(spec)}")
+        if func in ('__count', 'count', 'count_distinct'):
             return 0
         if func == 'array_agg':
             return []
-        field = self._fields[fname]
-        if (not func or func == 'recordset') and (field.relational or fname == 'id'):
+        if (not func or func == 'recordset') and (field := field_expr.field(self)) and (field.relational or field.name == 'id'):
             return self.env[field.comodel_name] if field.relational else self.env[self._name]
         return False
 
@@ -2145,10 +2127,10 @@ class BaseModel(metaclass=MetaModel):
         """
         empty_value = self._read_group_empty_value(groupby_spec)
 
-        fname, *__ = parse_read_group_spec(groupby_spec)
-        field = self._fields[fname]
+        expr = FieldExpression(groupby_spec)
+        field = expr.field(self)
 
-        if field.relational or fname == 'id':
+        if field.relational or field.name == 'id':
             Model = self.pool[field.comodel_name] if field.relational else self.pool[self._name]
             prefetch_ids = tuple(raw_value for raw_value in raw_values if raw_value)
 
@@ -2169,12 +2151,11 @@ class BaseModel(metaclass=MetaModel):
         """
         empty_value = self._read_group_empty_value(aggregate_spec)
 
-        if aggregate_spec == '__count':
-            return ((value if value is not None else empty_value) for value in raw_values)
-
-        fname, __, func = parse_read_group_spec(aggregate_spec)
-        if func == 'recordset':
-            field = self._fields[fname]
+        aggregate_expr = AggregateExpression(aggregate_spec)
+        if aggregate_expr.aggregate == 'recordset':
+            field_expr = aggregate_expr.field_expr
+            assert field_expr.is_single_field
+            field = field_expr.field(self)
             Model = self.pool[field.comodel_name] if field.relational else self.pool[self._name]
             prefetch_ids = tuple(unique(
                 id_
@@ -2796,6 +2777,7 @@ class BaseModel(metaclass=MetaModel):
             raise ValueError(f'Cannot convert {field} to SQL because it is not a sudoed related or inherited field')
 
         model = self.sudo(self.env.su or field.compute_sudo)
+        # XXX expression related
         *path_fnames, last_fname = field.related.split('.')
         for path_fname in path_fnames:
             path_field = model._fields[path_fname]
@@ -5506,16 +5488,6 @@ class BaseModel(metaclass=MetaModel):
         else:
             return Query(self.env, self._table, self._table_sql)
 
-    def _check_qorder(self, word):
-        if not regex_order.match(word):
-            raise UserError(_(
-                "Invalid \"order\" specified (%s)."
-                " A valid \"order\" specification is a comma-separated list of valid field names"
-                " (optionally followed by asc/desc for the direction)",
-                word,
-            ))
-        return True
-
     @api.model
     def _apply_ir_rules(self, query, mode='read'):
         """Add what's missing in ``query`` to implement all appropriate ir.rules
@@ -5538,33 +5510,25 @@ class BaseModel(metaclass=MetaModel):
         clause, without the ORDER BY keyword.  The method also checks whether
         the fields in the order are accessible for reading.
         """
-        order = order or self._order
-        if not order:
+        try:
+            spec = OrderSpecification(order or self._order)
+        except ValueError:
+            raise UserError(_(
+                "Invalid \"order\" specified (%s)."
+                " A valid \"order\" specification is a comma-separated list of valid field names"
+                " (optionally followed by asc/desc for the direction)",
+                order,
+            ))
+        if not spec:
             return SQL()
-        self._check_qorder(order)
 
         alias = alias or self._table
 
         terms = []
-        for order_part in order.split(','):
-            order_match = regex_order.match(order_part)
-            field_name = order_match['field']
-
-            property_name = order_match['property']
-            if property_name:
-                field_name = f"{field_name}.{property_name}"
-
-            direction = (order_match['direction'] or '').upper()
-            nulls = (order_match['nulls'] or '').upper()
+        for item in spec.items:
             if reverse:
-                direction = 'ASC' if direction == 'DESC' else 'DESC'
-                if nulls:
-                    nulls = 'NULLS LAST' if nulls == 'NULLS FIRST' else 'NULLS FIRST'
-
-            sql_direction = SQL(direction) if direction in ('ASC', 'DESC') else SQL()
-            sql_nulls = SQL(nulls) if nulls in ('NULLS FIRST', 'NULLS LAST') else SQL()
-
-            term = self._order_field_to_sql(alias, field_name, sql_direction, sql_nulls, query)
+                item = item.reversed()
+            term = item._to_sql(self, alias, query)
             if term:
                 terms.append(term)
 
@@ -5580,6 +5544,7 @@ class BaseModel(metaclass=MetaModel):
         :param nulls: one of ``SQL("NULLS FIRST")``, ``SQL("NULLS LAST")``, ``SQL()``
         """
         # field_name can be a path (for properties by example)
+        # TODO rename field_name to field_expr or just use FieldExpression
         fname = field_name.split('.', 1)[0] if '.' in field_name else field_name
         field = self._fields.get(fname)
         if not field:
@@ -5735,7 +5700,7 @@ class BaseModel(metaclass=MetaModel):
             self.env[model_name].flush_model(field_names)
 
     @api.model
-    def _search(self, domain, offset=0, limit=None, order=None) -> Query:
+    def _search(self, domain, offset=0, limit=None, order: str = '') -> Query:
         """
         Private implementation of search() method.
 
@@ -6461,7 +6426,9 @@ class BaseModel(metaclass=MetaModel):
 
         if isinstance(func, str):
             # special case: sequence of field names
-            *rel_field_names, field_name = func.split('.')
+            expression = FieldExpression(func)
+            # XXX expression.getters()
+            *rel_field_names, field_name = expression.path
             records = self
             for rel_field_name in rel_field_names:
                 records = records[rel_field_name]
@@ -6508,8 +6475,9 @@ class BaseModel(metaclass=MetaModel):
         if isinstance(func, str):
             if '.' in func:
                 return self.browse(rec.id for rec in self if any(rec.mapped(func)))
-            # avoid costly mapped
-            func = self._fields[func].__get__
+            # XXX review
+            expression = FieldExpression(func)
+            func = expression.getter(self)
         return self.browse(rec.id for rec in self if func(rec))
 
     def grouped(self, key):
@@ -6530,7 +6498,7 @@ class BaseModel(metaclass=MetaModel):
         :rtype: dict
         """
         if isinstance(key, str):
-            key = itemgetter(key)
+            key = FieldExpression(key)
 
         collator = defaultdict(list)
         for record in self:
@@ -6573,6 +6541,7 @@ class BaseModel(metaclass=MetaModel):
                     continue
 
                 # determine the field with the final type for values
+                # XXX use FieldExpression
                 if key.endswith('.id'):
                     key = key[:-3]
                 if '.' in key:

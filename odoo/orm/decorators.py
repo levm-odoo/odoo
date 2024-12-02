@@ -15,6 +15,8 @@ try:
 except ImportError:
     from decorator import decorator
 
+from .expression import FieldExpression
+
 if typing.TYPE_CHECKING:
     from collections.abc import Callable
     from .types import BaseModel, ValuesType
@@ -256,7 +258,7 @@ def depends(*args: str) -> Callable[[T], T]:
     """
     if args and callable(args[0]):
         args = args[0]
-    elif any('id' in arg.split('.') for arg in args):
+    elif any('id' in FieldExpression(arg).path for arg in args):
         raise NotImplementedError("Compute method cannot depend on field 'id'.")
     return attrsetter('_depends', args)
 

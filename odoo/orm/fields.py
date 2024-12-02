@@ -556,6 +556,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
 
         # determine the chain of fields, and make sure they are all set up
         model_name = self.model_name
+        # XXX review all ".related"
         for name in self.related.split('.'):
             field = model.pool[model_name]._fields.get(name)
             if field is None:

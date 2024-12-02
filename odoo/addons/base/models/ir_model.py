@@ -277,7 +277,7 @@ class IrModel(models.Model):
     def _check_order(self):
         for model in self:
             try:
-                model._check_qorder(model.order)  # regex check for the whole clause ('is it valid sql?')
+                model._order_to_sql(model.order, model._as_query(ordered=False))
             except UserError as e:
                 raise ValidationError(str(e))
             # add MAGIC_COLUMNS to 'stored_fields' in case 'model' has not been
