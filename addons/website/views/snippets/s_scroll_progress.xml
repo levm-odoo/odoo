@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<template id="s_scroll_progress" name="Scroll Progress">
+    <section class="s_scroll_progress">
+        <div class="s_scroll_progress_bar bg-primary"/>
+    </section>
+</template>
+
+<record id="website.s_scroll_progress_000_scss" model="ir.asset">
+    <field name="name">Scroll Progress 000 SCSS</field>
+    <field name="bundle">web.assets_frontend</field>
+    <field name="path">website/static/src/snippets/s_scroll_progress/000.scss</field>
+</record>
+
+<record id="website.s_scroll_progress_000_js" model="ir.asset">
+    <field name="name">Scroll Progress 000 JS</field>
+    <field name="bundle">web.assets_frontend</field>
+    <field name="path">website/static/src/snippets/s_scroll_progress/000.js</field>
+</record>
+
+</odoo>

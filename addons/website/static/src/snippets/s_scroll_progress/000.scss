@@ -1,0 +1,15 @@
+
+.s_scroll_progress {
+    position: absolute;
+    inset: 100% 0 auto 0;
+
+    header & {
+        height: 0.3em;
+    }
+
+    .s_scroll_progress_bar {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 0;
+    }
+}
