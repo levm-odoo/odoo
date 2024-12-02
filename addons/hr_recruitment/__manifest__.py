@@ -17,6 +17,8 @@
         'digest',
     ],
     'data': [
+        'wizard/talent_pool_add_applicants.xml',
+        'wizard/job_add_applicants.xml',
         'security/hr_recruitment_security.xml',
         'security/ir.model.access.csv',
         'data/digest_data.xml',
@@ -25,7 +27,6 @@
         'data/mail_templates.xml',
         'data/hr_recruitment_data.xml',
         'data/hr_recruitment_tour.xml',
-        'views/hr_candidate_views.xml',
         'views/hr_recruitment_degree_views.xml',
         'views/hr_recruitment_source_views.xml',
         'views/hr_recruitment_stage_views.xml',
@@ -33,6 +34,7 @@
         'views/hr_applicant_category_views.xml',
         'views/hr_applicant_refuse_reason_views.xml',
         'views/hr_applicant_views.xml',
+        'views/hr_talent_pool_views.xml',
         'views/res_config_settings_views.xml',
         'views/hr_department_views.xml',
         'views/hr_job_views.xml',
@@ -41,7 +43,6 @@
         'views/digest_views.xml',
         'wizard/applicant_refuse_reason_views.xml',
         'wizard/applicant_send_mail_views.xml',
-        'wizard/candidate_send_mail_views.xml',
         'views/menuitems.xml',
     ],
     'demo': [
