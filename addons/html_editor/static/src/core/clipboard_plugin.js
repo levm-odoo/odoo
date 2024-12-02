@@ -1,9 +1,10 @@
 import { isTextNode, paragraphRelatedElements } from "../utils/dom_info";
 import { Plugin } from "../plugin";
 import { closestBlock, isBlock } from "../utils/blocks";
-import { unwrapContents } from "../utils/dom";
+import { unwrapContents, splitTextNode } from "../utils/dom";
 import { ancestors, childNodes, closestElement } from "../utils/dom_traversal";
 import { parseHTML } from "../utils/html";
+import { DIRECTIONS } from "../utils/position";
 
 /**
  * @typedef { import("./selection_plugin").EditorSelection } EditorSelection
@@ -600,6 +601,48 @@ export class ClipboardPlugin extends Plugin {
         if (!isHtmlContentSupported(ev.target)) {
             return;
         }
+        let caretRange;
+        if (this.document.caretPositionFromPoint) {
+            const range = this.document.caretPositionFromPoint(ev.clientX, ev.clientY);
+            caretRange = document.createRange();
+            caretRange.setStart(range.offsetNode, range.offset);
+            caretRange.setEnd(range.offsetNode, range.offset);
+        } else if (this.document.caretRangeFromPoint) {
+            caretRange = this.document.caretRangeFromPoint(ev.clientX, ev.clientY);
+        }
+        if (caretRange) {
+            const caretRect = caretRange.getBoundingClientRect();
+
+            const selection = this.dependencies.selection.getEditableSelection();
+            const range = document.createRange();
+            range.setStart(selection.anchorNode, selection.anchorOffset);
+            range.setEnd(selection.focusNode, selection.focusOffset);
+            const selectionRect = range.getBoundingClientRect();
+
+            // Check if the caret's bounding box is inside the selection's bounding box
+            if (
+                caretRect.left >= selectionRect.left &&
+                caretRect.right <= selectionRect.right &&
+                caretRect.top >= selectionRect.top &&
+                caretRect.bottom <= selectionRect.bottom
+            ) {
+                return true; // Do nothing if the drop is inside the selection
+            }
+            const nodeToSplit =
+                selection.direction === DIRECTIONS.RIGHT
+                    ? selection.focusNode
+                    : selection.anchorNode;
+            const offsetToSplit =
+                selection.direction === DIRECTIONS.RIGHT
+                    ? selection.focusOffset
+                    : selection.anchorOffset;
+            if (nodeToSplit.nodeType === Node.TEXT_NODE && !selection.isCollapsed) {
+                const selectionToRestore = this.dependencies.selection.preserveSelection();
+                splitTextNode(nodeToSplit, offsetToSplit, DIRECTIONS.LEFT);
+                selectionToRestore.restore();
+            }
+        }
+
         const dataTransfer = (ev.originalEvent || ev).dataTransfer;
         const imageNodeHTML = ev.dataTransfer.getData("application/vnd.odoo.odoo-editor-node");
         const image =
@@ -613,12 +656,14 @@ export class ClipboardPlugin extends Plugin {
         if (image || fileTransferItems.length || htmlTransferItem) {
             if (this.document.caretPositionFromPoint) {
                 const range = this.document.caretPositionFromPoint(ev.clientX, ev.clientY);
+                this.dependencies.delete.deleteSelection();
                 this.dependencies.selection.setSelection({
                     anchorNode: range.offsetNode,
                     anchorOffset: range.offset,
                 });
             } else if (this.document.caretRangeFromPoint) {
                 const range = this.document.caretRangeFromPoint(ev.clientX, ev.clientY);
+                this.dependencies.delete.deleteSelection();
                 this.dependencies.selection.setSelection({
                     anchorNode: range.startContainer,
                     anchorOffset: range.startOffset,
