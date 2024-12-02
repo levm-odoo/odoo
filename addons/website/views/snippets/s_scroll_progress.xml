@@ -7,6 +7,30 @@
     </section>
 </template>
 
+<template id="s_scroll_progress_options" inherit_id="website.snippet_options">
+    <xpath expr="." position="inside">
+        <div data-selector=".s_scroll_progress" data-no-check="true">
+            <we-input
+                string="Height"
+                data-select-style=""
+                data-css-property="height"
+                data-unit="px"
+                data-save-unit="rem"/>
+            <we-colorpicker
+                string="Progress Color"
+                data-select-style="true"
+                data-css-property="background-color"
+                data-color-prefix="bg-"
+                data-with-gradients="true"
+                data-apply-to=".s_scroll_progress_bar"/>
+            <we-select string="Position" data-attribute-name="position">
+                <we-button data-select-data-attribute="">Below Header</we-button>
+                <we-button data-select-data-attribute="footer">Bottom</we-button>
+            </we-select>
+        </div>
+    </xpath>
+</template>
+
 <record id="website.s_scroll_progress_000_scss" model="ir.asset">
     <field name="name">Scroll Progress 000 SCSS</field>
     <field name="bundle">web.assets_frontend</field>

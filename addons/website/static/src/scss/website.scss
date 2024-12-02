@@ -732,7 +732,7 @@ font[class*='bg-'] {
 // Probably outdated
 // Disable fixed height
 @include media-breakpoint-down(md) {
-    section,
+    section:where(:not(.s_scroll_progress)),
     .parallax,
     .row,
     .hr,
