@@ -27,7 +27,7 @@ class UomUom(models.Model):
     active = fields.Boolean('Active', default=True, help="Uncheck the active field to disable a unit of measure without deleting it.")
     relative_uom_id = fields.Many2one('uom.uom', 'Reference Unit', ondelete='cascade')
     related_uom_ids = fields.One2many('uom.uom', 'relative_uom_id', 'Related UoMs')
-    factor = fields.Float('Absolute Quantity', compute='_compute_factor', store=True, digits='Product Unit of Measure')
+    factor = fields.Float('Absolute Quantity', compute='_compute_factor', store=True)
 
     _factor_gt_zero = models.Constraint(
         'CHECK (relative_factor!=0)',
@@ -59,7 +59,7 @@ class UomUom(models.Model):
                 ", ".join(locked_uoms.mapped('name')),
             ))
 
-    def _compute_quantity(self, qty, to_unit, round=True, rounding_method='UP', raise_if_failure=True):
+    def _compute_quantity(self, qty, to_unit, round=True, precision_digits=0, rounding_method='UP', raise_if_failure=True):
         """ Convert the given quantity from the current UoM `self` into a given one
             :param qty: the quantity to convert
             :param to_unit: the destination UomUom record (uom.uom)
@@ -78,7 +78,6 @@ class UomUom(models.Model):
             if to_unit:
                 amount = amount / to_unit.factor
 
-        precision_digits = self.env['decimal.precision'].precision_get('Product Unit of Measure')
         if to_unit and round:
             amount = tools.float_round(amount, precision_digits=precision_digits, rounding_method=rounding_method)
 
@@ -97,7 +96,7 @@ class UomUom(models.Model):
     def _compute_factor(self):
         for uom in self:
             if uom.relative_uom_id:
-                uom.factor = uom.relative_factor * uom.relative_uom_id.relative_factor
+                uom.factor = uom.relative_factor * uom.relative_uom_id.factor
             else:
                 uom.factor = uom.relative_factor
 

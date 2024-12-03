@@ -23,7 +23,7 @@ class TestUom(UomCommon):
 
         # Regression test for side-effect of commit 311c77bb - converting 1234 Grams
         # into Kilograms should work even if grams are rounded to 1.
-        qty = self.uom_gram._compute_quantity(1234, self.uom_kgm)
+        qty = self.uom_gram._compute_quantity(1234, self.uom_kgm, precision_digits=2)
         self.assertEqual(qty, 1.24, "Converted quantity does not correspond.")
 
     def test_20_rounding(self):
@@ -31,7 +31,6 @@ class TestUom(UomCommon):
             'name': 'Score',
             'relative_factor': 20,
         })
-        self.env['decimal.precision'].search([('name', '=', 'Product Unit of Measure')]).digits = 0
 
         qty = self.uom_unit._compute_quantity(2, product_uom)
         self.assertEqual(qty, 1, "Converted quantity should be rounded up.")

@@ -17,7 +17,7 @@
     <!-- WORKING TIME -->
     <record id="product_uom_hour" model="uom.uom">
         <field name="name">Hours</field>
-        <field name="relative_factor" eval="8"/>
+        <field name="relative_factor" eval="1.0"/>
     </record>
     <record id="product_uom_day" model="uom.uom">
         <field name="name">Days</field>
