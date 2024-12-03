@@ -1486,6 +1486,13 @@ class ResUsers(models.Model):
         """
         return False
 
+    def _alert_untrusted_location(self):
+        """Deal with new untrusted geoip location detected during login.
+
+        To be overriden.
+        """
+        pass
+
 
 ResUsersPatchedInTest = ResUsers
 
