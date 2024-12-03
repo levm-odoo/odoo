@@ -159,6 +159,7 @@
 
                             <group string="Display">
                                 <field name="position"/>
+                                <field name="iso_minor_unit"/>
                             </group>
                         </group>
                         <notebook class="o_currency_rate_list" invisible="is_current_company_currency">

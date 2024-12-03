@@ -8,6 +8,7 @@
             <field name="full_name">United States dollar</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="position">before</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
@@ -20,6 +21,7 @@
             <field name="full_name">Venezuelan bolívar fuerte</field>
             <field name="symbol">Bs.F</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Bolivar</field>
             <field name="currency_subunit_label">Centimos</field>
@@ -31,6 +33,7 @@
             <field name="full_name">Canadian dollar</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -43,6 +46,7 @@
             <field name="symbol">CHF</field>
             <field name="position">before</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Franc</field>
             <field name="currency_subunit_label">Centimes</field>
@@ -54,6 +58,7 @@
             <field name="full_name">Brazilian real</field>
             <field name="symbol">R$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="position">before</field>
             <field name="currency_unit_label">Real</field>
@@ -66,6 +71,7 @@
             <field name="full_name">Chinese yuan</field>
             <field name="symbol">¥</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Yuan</field>
             <field name="currency_subunit_label">Fen</field>
@@ -77,6 +83,7 @@
             <field name="full_name">Chinese yuan - Offshore</field>
             <field name="symbol">¥</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Yuan</field>
             <field name="currency_subunit_label">Fen</field>
@@ -89,6 +96,7 @@
             <field name="full_name">Colombian peso</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="position">before</field>
             <field name="currency_unit_label">Peso</field>
@@ -101,6 +109,7 @@
             <field name="full_name">Czech koruna</field>
             <field name="symbol">Kč</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Koruna</field>
             <field name="currency_subunit_label">Halers</field>
@@ -112,6 +121,7 @@
             <field name="full_name">Danish krone</field>
             <field name="symbol">kr</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="position">before</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Krone</field>
@@ -124,6 +134,7 @@
             <field name="full_name">Hungarian forint</field>
             <field name="symbol">Ft</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Forint</field>
             <field name="currency_subunit_label">Filler</field>
@@ -135,6 +146,7 @@
             <field name="full_name">Indonesian rupiah</field>
             <field name="symbol">Rp</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="position">before</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Rupiah</field>
@@ -147,6 +159,7 @@
             <field name="full_name">Latvian lats</field>
             <field name="symbol">Ls</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Lats</field>
             <field name="currency_subunit_label">Santims</field>
@@ -158,6 +171,7 @@
             <field name="full_name">Norwegian krone</field>
             <field name="symbol">kr</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="position">before</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Krone</field>
@@ -170,6 +184,7 @@
             <field name="full_name">CFP franc</field>
             <field name="symbol">XPF</field>
             <field name="rounding">1.00</field>
+            <field name="iso_minor_unit">0</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Franc</field>
             <field name="currency_subunit_label">Centimes</field>
@@ -181,6 +196,7 @@
             <field name="full_name">Panamanian balboa</field>
             <field name="symbol">B/.</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Balboa</field>
             <field name="currency_subunit_label">Centesimo</field>
@@ -192,6 +208,7 @@
             <field name="full_name">Polish złoty</field>
             <field name="symbol">zł</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Zloty</field>
             <field name="currency_subunit_label">Groszy</field>
@@ -203,6 +220,7 @@
             <field name="full_name">Swedish krona</field>
             <field name="symbol">kr</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Krona</field>
             <field name="currency_subunit_label">Ore</field>
@@ -214,6 +232,7 @@
             <field name="full_name">Argentine peso</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="position">before</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Peso</field>
@@ -226,6 +245,7 @@
             <field name="full_name">Indian rupee</field>
             <field name="symbol">₹</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="position">before</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Rupees</field>
@@ -239,6 +259,7 @@
             <field name="symbol">$</field>
             <field name="position">before</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -250,6 +271,7 @@
             <field name="full_name">Ukraine Hryvnia</field>
             <field name="symbol">₴</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Hryvnia</field>
             <field name="currency_subunit_label">Kopiyka</field>
@@ -261,6 +283,7 @@
             <field name="full_name">Vietnamese đồng</field>
             <field name="symbol">₫</field>
             <field name="rounding">1.00</field>
+            <field name="iso_minor_unit">0</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dong</field>
             <field name="currency_subunit_label">Xu</field>
@@ -273,6 +296,7 @@
             <field name="symbol">$</field>
             <field name="position">before</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -284,6 +308,7 @@
             <field name="full_name">Japanese yen</field>
             <field name="symbol">¥</field>
             <field name="rounding">1.00</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="position">before</field>
             <field name="currency_unit_label">Yen</field>
@@ -296,6 +321,7 @@
             <field name="full_name">Bulgarian lev</field>
             <field name="symbol">лв</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Lev</field>
             <field name="currency_subunit_label">Stotinki</field>
@@ -307,6 +333,7 @@
             <field name="full_name">Lithuanian litas</field>
             <field name="symbol">Lt</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Litas</field>
             <field name="currency_subunit_label">Centas</field>
@@ -318,6 +345,7 @@
             <field name="full_name">Romanian leu</field>
             <field name="symbol">lei</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Leu</field>
             <field name="currency_subunit_label">Bani</field>
@@ -329,6 +357,7 @@
             <field name="full_name">Croatian kuna</field>
             <field name="symbol">kn</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Kuna</field>
             <field name="currency_subunit_label">Lipa</field>
@@ -340,6 +369,7 @@
             <field name="full_name">Russian ruble</field>
             <field name="symbol">руб</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Ruble</field>
             <field name="currency_subunit_label">Kopek</field>
@@ -351,6 +381,7 @@
             <field name="full_name">Turkish lira</field>
             <field name="symbol">₺</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Lira</field>
             <field name="currency_subunit_label">Kurus</field>
@@ -362,6 +393,7 @@
             <field name="full_name">South Korean won</field>
             <field name="symbol">₩</field>
             <field name="rounding">1</field>
+            <field name="iso_minor_unit">0</field>
             <field name="active" eval="False"/>
             <field name="position">before</field>
             <field name="currency_unit_label">Won</field>
@@ -374,6 +406,7 @@
             <field name="full_name">Mexican peso</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="position">before</field>
             <field name="currency_unit_label">Pesos</field>
@@ -386,6 +419,7 @@
             <field name="full_name">Malaysian ringgit</field>
             <field name="symbol">RM</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="position">before</field>
             <field name="currency_unit_label">Ringgit</field>
@@ -399,6 +433,7 @@
             <field name="symbol">$</field>
             <field name="position">before</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -410,6 +445,7 @@
             <field name="full_name">Philippine peso</field>
             <field name="symbol">₱</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Peso</field>
             <field name="currency_subunit_label">Centavos</field>
@@ -421,6 +457,7 @@
             <field name="full_name">Singapore dollar</field>
             <field name="symbol">S$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="position">before</field>
             <field name="currency_unit_label">Dollars</field>
@@ -433,6 +470,7 @@
             <field name="full_name">South African rand</field>
             <field name="symbol">R</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="position">before</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Rand</field>
@@ -444,6 +482,7 @@
             <field name="iso_numeric">188</field>
             <field name="full_name">Costa Rican colón</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="symbol">₡</field>
             <field name="position">before</field>
             <field name="active" eval="False"/>
@@ -457,6 +496,7 @@
             <field name="full_name">Mauritian rupee</field>
             <field name="symbol">Rs</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Rupee</field>
             <field name="currency_subunit_label">Cents</field>
@@ -468,6 +508,7 @@
             <field name="full_name">CFA franc BCEAO</field>
             <field name="symbol">CFA</field>
             <field name="rounding">1</field>
+            <field name="iso_minor_unit">0</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Franc</field>
             <field name="currency_subunit_label">Centimes</field>
@@ -479,6 +520,7 @@
             <field name="full_name">CFA franc BEAC</field>
             <field name="symbol">FCFA</field>
             <field name="rounding">1</field>
+            <field name="iso_minor_unit">0</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Franc</field>
             <field name="currency_subunit_label">Centimes</field>
@@ -490,6 +532,7 @@
             <field name="full_name">Ugandan shilling</field>
             <field name="symbol">USh</field>
             <field name="rounding">1</field>
+            <field name="iso_minor_unit">0</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Shilling</field>
             <field name="currency_subunit_label">Cents</field>
@@ -501,6 +544,7 @@
             <field name="full_name">Honduran lempira</field>
             <field name="symbol">L</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="position">before</field>
             <field name="currency_unit_label">Lempiras</field>
@@ -513,6 +557,7 @@
             <field name="full_name">Chilean peso</field>
             <field name="symbol">$</field>
             <field name="rounding">1</field>
+            <field name="iso_minor_unit">0</field>
             <field name="active" eval="False"/>
             <field name="position">before</field>
             <field name="currency_unit_label">Peso</field>
@@ -525,6 +570,7 @@
             <field name="full_name">Uruguayan peso</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Peso</field>
             <field name="currency_subunit_label">Centesimos</field>
@@ -536,6 +582,7 @@
             <field name="full_name">Afghan afghani</field>
             <field name="symbol">Afs</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Afghani</field>
             <field name="currency_subunit_label">Puls</field>
@@ -547,6 +594,7 @@
             <field name="full_name">Angolan kwanza</field>
             <field name="symbol">Kz</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Kwanza</field>
             <field name="currency_subunit_label">Centimos</field>
@@ -558,6 +606,7 @@
             <field name="full_name">East Caribbean dollar</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -569,6 +618,7 @@
             <field name="full_name">Armenian dram</field>
             <field name="symbol">դր.</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dram</field>
             <field name="currency_subunit_label">Luma</field>
@@ -580,6 +630,7 @@
             <field name="full_name">Aruban florin</field>
             <field name="symbol">Afl.</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Guilder</field>
             <field name="currency_subunit_label">Cents</field>
@@ -591,6 +642,7 @@
             <field name="full_name">Azerbaijani manat</field>
             <field name="symbol">m</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Manat</field>
             <field name="currency_subunit_label">Qapik</field>
@@ -602,6 +654,7 @@
             <field name="full_name">Bahamian dollar</field>
             <field name="symbol">B$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -613,6 +666,7 @@
             <field name="full_name">Bahraini dinar</field>
             <field name="symbol">BD</field>
             <field name="rounding">0.001</field>
+            <field name="iso_minor_unit">3</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dinar</field>
             <field name="currency_subunit_label">Fils</field>
@@ -624,6 +678,7 @@
             <field name="full_name">Bangladeshi taka</field>
             <field name="symbol">৳</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Taka</field>
             <field name="currency_subunit_label">Paisa</field>
@@ -635,6 +690,7 @@
             <field name="full_name">Barbados dollar</field>
             <field name="symbol">Bds$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -646,6 +702,7 @@
             <field name="full_name">Belarusian ruble</field>
             <field name="symbol">BR</field>
             <field name="rounding">1</field>
+            <field name="iso_minor_unit">0</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Ruble BYR</field>
             <field name="currency_subunit_label">Kapeyka</field>
@@ -657,6 +714,7 @@
             <field name="full_name">Belarusian ruble</field>
             <field name="symbol">Br</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Rubles</field>
             <field name="currency_subunit_label">Kopeks</field>
@@ -668,6 +726,7 @@
             <field name="full_name">Belize dollar</field>
             <field name="symbol">BZ$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -679,6 +738,7 @@
             <field name="full_name">Bermudian dollar</field>
             <field name="symbol">BD$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -690,6 +750,7 @@
             <field name="full_name">Bhutanese ngultrum</field>
             <field name="symbol">Nu.</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Ngultrum</field>
             <field name="currency_subunit_label">Chhertum</field>
@@ -701,6 +762,7 @@
             <field name="full_name">Boliviano</field>
             <field name="symbol">Bs.</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Boliviano</field>
             <field name="currency_subunit_label">Centavos</field>
@@ -712,6 +774,7 @@
             <field name="full_name">Bosnia and Herzegovina convertible mark</field>
             <field name="symbol">KM</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Mark</field>
             <field name="currency_subunit_label">Fening</field>
@@ -723,6 +786,7 @@
             <field name="full_name">Botswana pula</field>
             <field name="symbol">P</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Pula</field>
             <field name="currency_subunit_label">Thebe</field>
@@ -734,6 +798,7 @@
             <field name="full_name">Burundian franc</field>
             <field name="symbol">FBu</field>
             <field name="rounding">1</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Franc</field>
             <field name="currency_subunit_label">Centime</field>
@@ -745,6 +810,7 @@
             <field name="full_name">Cambodian riel</field>
             <field name="symbol">៛</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Riel</field>
             <field name="currency_subunit_label">Sen</field>
@@ -756,6 +822,7 @@
             <field name="full_name">Cayman Islands dollar</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -767,6 +834,7 @@
             <field name="full_name">Comorian franc</field>
             <field name="symbol">CF</field>
             <field name="rounding">1</field>
+            <field name="iso_minor_unit">0</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Franc</field>
             <field name="currency_subunit_label">Centime</field>
@@ -778,6 +846,7 @@
             <field name="full_name">Congolese franc</field>
             <field name="symbol">Fr</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Franc</field>
             <field name="currency_subunit_label">Centime</field>
@@ -789,6 +858,7 @@
             <field name="full_name">Cuban peso</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Peso</field>
             <field name="currency_subunit_label">Centavos</field>
@@ -800,6 +870,7 @@
             <field name="full_name">Netherlands Antillean guilder</field>
             <field name="symbol">ƒ</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Guilder</field>
             <field name="currency_subunit_label">Cents</field>
@@ -812,6 +883,7 @@
             <field name="full_name">Djiboutian franc</field>
             <field name="symbol">Fdj</field>
             <field name="rounding">1</field>
+            <field name="iso_minor_unit">0</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Franc</field>
             <field name="currency_subunit_label">Centime</field>
@@ -823,6 +895,7 @@
             <field name="full_name">Dominican peso</field>
             <field name="symbol">RD$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Pesos</field>
             <field name="currency_subunit_label">Centavos</field>
@@ -835,6 +908,7 @@
             <field name="full_name">Egyptian pound</field>
             <field name="symbol">LE</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Pound</field>
             <field name="currency_subunit_label">Piastres</field>
@@ -846,6 +920,7 @@
             <field name="full_name">Salvadoran Colon</field>
             <field name="symbol">¢</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Colones</field>
             <field name="currency_subunit_label">Centavo</field>
@@ -857,6 +932,7 @@
             <field name="full_name">Eritrean nakfa</field>
             <field name="symbol">Nfk</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Nakfa</field>
             <field name="currency_subunit_label">Cents</field>
@@ -868,6 +944,7 @@
             <field name="full_name">Ethiopian birr</field>
             <field name="symbol">Br</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Birr</field>
             <field name="currency_subunit_label">Cents</field>
@@ -879,6 +956,7 @@
             <field name="full_name">Falkland Islands pound</field>
             <field name="symbol">£</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Pound</field>
             <field name="currency_subunit_label">Penny</field>
@@ -890,6 +968,7 @@
             <field name="full_name">Fiji dollar</field>
             <field name="symbol">FJ$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -901,6 +980,7 @@
             <field name="full_name">Georgian lari</field>
             <field name="symbol">ლ</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Lari</field>
             <field name="currency_subunit_label">Tetri</field>
@@ -912,6 +992,7 @@
             <field name="full_name">Gibraltar pound</field>
             <field name="symbol">£</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Pound</field>
             <field name="currency_subunit_label">Penny</field>
@@ -923,6 +1004,7 @@
             <field name="full_name">Guinean franc</field>
             <field name="symbol">FG</field>
             <field name="rounding">1</field>
+            <field name="iso_minor_unit">0</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Franc</field>
             <field name="currency_subunit_label">Centime</field>
@@ -934,6 +1016,7 @@
             <field name="full_name">Guyanese dollar</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -945,6 +1028,7 @@
             <field name="full_name">Haitian gourde</field>
             <field name="symbol">G</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Gourde</field>
             <field name="currency_subunit_label">Centime</field>
@@ -956,6 +1040,7 @@
             <field name="full_name">Icelandic króna</field>
             <field name="symbol">kr</field>
             <field name="rounding">1</field>
+            <field name="iso_minor_unit">0</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Krona</field>
             <field name="currency_subunit_label">Aurar</field>
@@ -967,6 +1052,7 @@
             <field name="full_name">Iranian rial</field>
             <field name="symbol">﷼</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dinar</field>
             <field name="currency_subunit_label">Fils</field>
@@ -978,6 +1064,7 @@
             <field name="full_name">Iraqi dinar</field>
             <field name="symbol"> ع.د</field>
             <field name="rounding">0.001</field>
+            <field name="iso_minor_unit">3</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dinar</field>
             <field name="currency_subunit_label">Fils</field>
@@ -990,6 +1077,7 @@
             <field name="symbol">₪</field>
             <field name="position">before</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Shekel</field>
             <field name="currency_subunit_label">Agorot</field>
@@ -1001,6 +1089,7 @@
             <field name="full_name">Jamaican dollar</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -1012,6 +1101,7 @@
             <field name="full_name">Jordanian dinar</field>
             <field name="symbol"> د.ا </field>
             <field name="rounding">0.001</field>
+            <field name="iso_minor_unit">3</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dinar</field>
             <field name="currency_subunit_label">Fils</field>
@@ -1023,6 +1113,7 @@
             <field name="full_name">Kazakhstani tenge</field>
             <field name="symbol">₸</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Tenge</field>
             <field name="currency_subunit_label">Tiin</field>
@@ -1034,6 +1125,7 @@
             <field name="full_name">Kenyan shilling</field>
             <field name="symbol">KSh</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Shilling</field>
             <field name="currency_subunit_label">Cents</field>
@@ -1045,6 +1137,7 @@
             <field name="full_name">Kuwaiti dinar</field>
             <field name="symbol"> د.ك </field>
             <field name="rounding">0.001</field>
+            <field name="iso_minor_unit">3</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dinar</field>
             <field name="currency_subunit_label">Fils</field>
@@ -1056,6 +1149,7 @@
             <field name="full_name">Kyrgyzstani som</field>
             <field name="symbol">лв</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Som</field>
             <field name="currency_subunit_label">Tyiyn</field>
@@ -1067,6 +1161,7 @@
             <field name="full_name">Lao kip</field>
             <field name="symbol">₭</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Kip</field>
             <field name="currency_subunit_label">Att</field>
@@ -1078,6 +1173,7 @@
             <field name="full_name">Lebanese pound</field>
             <field name="symbol">ل.ل</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Pound</field>
             <field name="currency_subunit_label">Piastres</field>
@@ -1089,6 +1185,7 @@
             <field name="full_name">Lesotho loti</field>
             <field name="symbol">M</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Loti</field>
             <field name="currency_subunit_label">Sente</field>
@@ -1100,6 +1197,7 @@
             <field name="full_name">Liberian dollar</field>
             <field name="symbol">L$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -1111,6 +1209,7 @@
             <field name="full_name">Libyan dinar</field>
             <field name="symbol"> ل.د </field>
             <field name="rounding">0.001</field>
+            <field name="iso_minor_unit">3</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dinar</field>
             <field name="currency_subunit_label">Dirham</field>
@@ -1122,6 +1221,7 @@
             <field name="full_name">Macanese pataca</field>
             <field name="symbol">MOP$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Pataca</field>
             <field name="currency_subunit_label">Sin</field>
@@ -1133,6 +1233,7 @@
             <field name="full_name">Macedonian denar</field>
             <field name="symbol">ден</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Denar</field>
             <field name="currency_subunit_label">Deni</field>
@@ -1144,6 +1245,7 @@
             <field name="full_name">Malagasy ariary</field>
             <field name="symbol">Ar</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Ariary</field>
             <field name="currency_subunit_label">Iraimbilanja</field>
@@ -1155,6 +1257,7 @@
             <field name="full_name">Malawian kwacha</field>
             <field name="symbol">MK</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Kwacha</field>
             <field name="currency_subunit_label">Tambala</field>
@@ -1166,6 +1269,7 @@
             <field name="full_name">Maldivian rufiyaa</field>
             <field name="symbol">Rf</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="position">before</field>
             <field name="currency_unit_label">Rufiyaa</field>
@@ -1178,6 +1282,7 @@
             <field name="full_name">Mauritanian ouguiya (old)</field>
             <field name="symbol">UM</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Ouguiya</field>
             <field name="currency_subunit_label">Khoums</field>
@@ -1189,6 +1294,7 @@
             <field name="full_name">Mauritanian ouguiya</field>
             <field name="symbol">UM</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Ouguiya</field>
             <field name="currency_subunit_label">Khoums</field>
@@ -1200,6 +1306,7 @@
             <field name="full_name">Moldovan leu</field>
             <field name="symbol">L</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Leu</field>
             <field name="currency_subunit_label">Ban</field>
@@ -1211,6 +1318,7 @@
             <field name="full_name">Mongolian tögrög</field>
             <field name="symbol">₮</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Tugrik</field>
             <field name="currency_subunit_label">Mongo</field>
@@ -1222,6 +1330,7 @@
             <field name="full_name">Moroccan dirham</field>
             <field name="symbol">DH</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dirham</field>
             <field name="currency_subunit_label">Centimes</field>
@@ -1233,6 +1342,7 @@
             <field name="full_name">Brunei dollar</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -1244,6 +1354,7 @@
             <field name="full_name">Algerian dinar</field>
             <field name="symbol">DA</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dinar</field>
             <field name="currency_subunit_label">Centimes</field>
@@ -1255,6 +1366,7 @@
             <field name="full_name">Ghanaian cedi</field>
             <field name="symbol">GH¢</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Cedi</field>
             <field name="currency_subunit_label">Pesewas</field>
@@ -1266,6 +1378,7 @@
             <field name="full_name">Gambian dalasi</field>
             <field name="symbol">D</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dalasi</field>
             <field name="currency_subunit_label">Butut</field>
@@ -1277,6 +1390,7 @@
             <field name="full_name">Mozambican metical</field>
             <field name="symbol">MT</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Metical</field>
             <field name="currency_subunit_label">Centavo</field>
@@ -1288,6 +1402,7 @@
             <field name="full_name">Myanmar kyat</field>
             <field name="symbol">K</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Kyat</field>
             <field name="currency_subunit_label">Pya</field>
@@ -1299,6 +1414,7 @@
             <field name="full_name">Namibian dollar</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -1310,6 +1426,7 @@
             <field name="full_name">Nepalese rupee</field>
             <field name="symbol">₨</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Rupee</field>
             <field name="currency_subunit_label">Paisa</field>
@@ -1321,6 +1438,7 @@
             <field name="full_name">Albanian lek</field>
             <field name="symbol">L</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Lek</field>
             <field name="currency_subunit_label">Qindarke</field>
@@ -1332,6 +1450,7 @@
             <field name="full_name">Nicaraguan córdoba</field>
             <field name="symbol">C$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Cordoba</field>
             <field name="currency_subunit_label">Centavos</field>
@@ -1343,6 +1462,7 @@
             <field name="full_name">Nigerian naira</field>
             <field name="symbol">₦</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Naira</field>
             <field name="currency_subunit_label">Kobo</field>
@@ -1354,6 +1474,7 @@
             <field name="full_name">North Korean won</field>
             <field name="symbol">₩</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Won</field>
             <field name="currency_subunit_label">Chon</field>
@@ -1364,6 +1485,7 @@
             <field name="full_name">Zimbabwe Gold</field>
             <field name="symbol">ZiG</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">ZiGs</field>
         </record>
@@ -1374,6 +1496,7 @@
             <field name="full_name">Zambian kwacha</field>
             <field name="symbol">ZK</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Kwacha</field>
             <field name="currency_subunit_label">Ngwee</field>
@@ -1385,6 +1508,7 @@
             <field name="full_name">Yemeni rial</field>
             <field name="symbol">﷼</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Rial</field>
             <field name="currency_subunit_label">Fils</field>
@@ -1396,6 +1520,7 @@
             <field name="full_name">Euro</field>
             <field name="symbol">€</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Euros</field>
             <field name="currency_subunit_label">Cents</field>
@@ -1407,6 +1532,7 @@
             <field name="full_name">Vanuatu vatu</field>
             <field name="symbol">VT</field>
             <field name="rounding">1</field>
+            <field name="iso_minor_unit">0</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Vatu</field>
         </record>
@@ -1417,6 +1543,7 @@
             <field name="full_name">Uzbekistan som</field>
             <field name="symbol">лв</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Som</field>
             <field name="currency_subunit_label">Tiyin</field>
@@ -1428,6 +1555,7 @@
             <field name="full_name">United Arab Emirates dirham</field>
             <field name="symbol">د.إ</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dirham</field>
             <field name="currency_subunit_label">Fils</field>
@@ -1439,6 +1567,7 @@
             <field name="full_name">Turkmenistan manat</field>
             <field name="symbol">T</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Manat</field>
             <field name="currency_subunit_label">Tenge</field>
@@ -1450,6 +1579,7 @@
             <field name="full_name">Tunisian dinar</field>
             <field name="symbol">DT</field>
             <field name="rounding">0.001</field>
+            <field name="iso_minor_unit">3</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dinar</field>
             <field name="currency_subunit_label">Millimes</field>
@@ -1461,6 +1591,7 @@
             <field name="full_name">Trinidad and Tobago dollar</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -1472,6 +1603,7 @@
             <field name="full_name">Tongan paʻanga</field>
             <field name="symbol">T$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Paanga</field>
             <field name="currency_subunit_label">Seniti</field>
@@ -1483,6 +1615,7 @@
             <field name="full_name">Thai baht</field>
             <field name="symbol">฿</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Baht</field>
             <field name="currency_subunit_label">Satang</field>
@@ -1494,6 +1627,7 @@
             <field name="full_name">Tanzanian shilling</field>
             <field name="symbol">TSh</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Shilling</field>
             <field name="currency_subunit_label">Senti</field>
@@ -1505,6 +1639,7 @@
             <field name="full_name">Tajikistani somoni</field>
             <field name="symbol">TJS</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Somoni</field>
             <field name="currency_subunit_label">Diram</field>
@@ -1516,6 +1651,7 @@
             <field name="full_name">New Taiwan dollar</field>
             <field name="symbol">NT$</field>
             <field name="rounding">1.00</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -1527,6 +1663,7 @@
             <field name="full_name">Syrian pound</field>
             <field name="symbol">£</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Pound</field>
             <field name="currency_subunit_label">Piastrp</field>
@@ -1538,6 +1675,7 @@
             <field name="full_name">Swazi lilangeni</field>
             <field name="symbol">E</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Lilangeni</field>
             <field name="currency_subunit_label">Cents</field>
@@ -1549,6 +1687,7 @@
             <field name="full_name">Surinamese dollar</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -1560,6 +1699,7 @@
             <field name="full_name">Sudanese pound</field>
             <field name="symbol">ج.س.</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
         </record>
 
@@ -1569,6 +1709,7 @@
             <field name="full_name">Sri Lankan rupee</field>
             <field name="symbol">Rs</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Rupee</field>
             <field name="currency_subunit_label">Cents</field>
@@ -1580,6 +1721,7 @@
             <field name="full_name">South Sudanese pound</field>
             <field name="symbol">£</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Pounds</field>
             <field name="currency_subunit_label">Piasters</field>
@@ -1591,6 +1733,7 @@
             <field name="full_name">Pound sterling</field>
             <field name="symbol">£</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="position">before</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Sterling</field>
@@ -1603,6 +1746,7 @@
             <field name="full_name">Somali shilling</field>
             <field name="symbol">Sh.</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Shillings</field>
             <field name="currency_subunit_label">Senti</field>
@@ -1614,6 +1758,7 @@
             <field name="full_name">Solomon Islands dollar</field>
             <field name="symbol">SI$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dollars</field>
             <field name="currency_subunit_label">Cents</field>
@@ -1625,6 +1770,7 @@
             <field name="full_name">Sierra Leonean leone</field>
             <field name="symbol">Le</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Leone</field>
             <field name="currency_subunit_label">Cents</field>
@@ -1636,6 +1782,7 @@
             <field name="full_name">Sierra Leonean leone</field>
             <field name="symbol">Le</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Leone</field>
             <field name="currency_subunit_label">Cents</field>
@@ -1647,6 +1794,7 @@
             <field name="full_name">Seychellois rupee</field>
             <field name="symbol">SR</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Rupee</field>
             <field name="currency_subunit_label">Cents</field>
@@ -1658,6 +1806,7 @@
             <field name="full_name">Serbian dinar</field>
             <field name="symbol">din.</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dinar</field>
             <field name="currency_subunit_label">Para</field>
@@ -1669,6 +1818,7 @@
             <field name="full_name">Saudi riyal</field>
             <field name="symbol">SR</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Riyal</field>
             <field name="currency_subunit_label">Halala</field>
@@ -1680,6 +1830,7 @@
             <field name="full_name">São Tomé and Príncipe dobra</field>
             <field name="symbol">Db</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dobra</field>
             <field name="currency_subunit_label">Centimo</field>
@@ -1691,6 +1842,7 @@
             <field name="full_name">Samoan tālā</field>
             <field name="symbol">WS$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Tala</field>
             <field name="currency_subunit_label">Sene</field>
@@ -1702,6 +1854,7 @@
             <field name="full_name">Saint Helena pound</field>
             <field name="symbol">£</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Pound</field>
             <field name="currency_subunit_label">Penny</field>
@@ -1713,6 +1866,7 @@
             <field name="full_name">Rwandan franc</field>
             <field name="symbol">RF</field>
             <field name="rounding">1</field>
+            <field name="iso_minor_unit">0</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Franc</field>
             <field name="currency_subunit_label">Santime</field>
@@ -1724,6 +1878,7 @@
             <field name="full_name">Qatari riyal</field>
             <field name="symbol">QR</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Rial</field>
             <field name="currency_subunit_label">Dirham</field>
@@ -1735,6 +1890,7 @@
             <field name="full_name">Peruvian sol</field>
             <field name="symbol">S/</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="position">before</field>
             <field name="currency_unit_label">Soles</field>
@@ -1747,6 +1903,7 @@
             <field name="full_name">Paraguayan guaraní</field>
             <field name="symbol">₲</field>
             <field name="rounding">1</field>
+            <field name="iso_minor_unit">0</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Guarani</field>
             <field name="currency_subunit_label">Centimos</field>
@@ -1758,6 +1915,7 @@
             <field name="full_name">Papua New Guinean kina</field>
             <field name="symbol">K</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Kina</field>
             <field name="currency_subunit_label">Toea</field>
@@ -1769,6 +1927,7 @@
             <field name="full_name">Pakistani rupee</field>
             <field name="symbol">Rs.</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Rupee</field>
             <field name="currency_subunit_label">Paisa</field>
@@ -1780,6 +1939,7 @@
             <field name="full_name">Omani rial</field>
             <field name="symbol">ر.ع.</field>
             <field name="rounding">0.001</field>
+            <field name="iso_minor_unit">3</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Rial</field>
             <field name="currency_subunit_label">Baisa</field>
@@ -1791,6 +1951,7 @@
             <field name="full_name">Cape Verdean escudo</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Escudo</field>
             <field name="currency_subunit_label">Centavo</field>
@@ -1802,6 +1963,7 @@
             <field name="full_name">Unidad de Valor Real</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="position">before</field>
             <field name="currency_unit_label">Peso</field>
@@ -1814,6 +1976,7 @@
             <field name="full_name">Unidad de Fomento</field>
             <field name="symbol">$</field>
             <field name="rounding">0.0001</field>
+            <field name="iso_minor_unit">4</field>
             <field name="active" eval="False"/>
             <field name="position">before</field>
             <field name="currency_unit_label">Peso</field>
@@ -1826,6 +1989,7 @@
             <field name="full_name">Cuban convertible peso</field>
             <field name="symbol">$</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Cuban convertible peso</field>
         </record>
@@ -1836,6 +2000,7 @@
             <field name="full_name">Guatemalan Quetzal</field>
             <field name="symbol">Q</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Quetzales</field>
             <field name="currency_subunit_label">Centavo</field>
@@ -1847,6 +2012,7 @@
             <field name="full_name">Venezuelan bolívar soberano</field>
             <field name="symbol">Bs</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
         </record>
 
@@ -1856,6 +2022,7 @@
             <field name="full_name">Unidad previsional</field>
             <field name="symbol">$</field>
             <field name="rounding">0.0001</field>
+            <field name="iso_minor_unit">4</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">peso</field>
             <field name="currency_subunit_label">centésimo</field>
@@ -1867,6 +2034,7 @@
             <field name="full_name">Uruguay Peso en Unidades Indexadas</field>
             <field name="symbol">$</field>
             <field name="rounding">0.0001</field>
+            <field name="iso_minor_unit">0</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Peso</field>
             <field name="currency_subunit_label">centésimo</field>
@@ -1878,6 +2046,7 @@
             <field name="full_name">São Tomé and Príncipe dobra</field>
             <field name="symbol">Db</field>
             <field name="rounding">0.01</field>
+            <field name="iso_minor_unit">2</field>
             <field name="active" eval="False"/>
             <field name="currency_unit_label">Dobra</field>
             <field name="currency_subunit_label">cêntimo</field>

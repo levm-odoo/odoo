@@ -38,6 +38,9 @@ class ResCurrency(models.Model):
     rate_ids = fields.One2many('res.currency.rate', 'currency_id', string='Rates')
     rounding = fields.Float(string='Rounding Factor', digits=(12, 6), default=0.01,
         help='Amounts in this currency are rounded off to the nearest multiple of the rounding factor.')
+    iso_minor_unit = fields.Integer(string='Minor Unit', readonly=True, default=2,
+        help='The decimal relationship between the major unit and the minor unit of the currency.'
+            ' 2 means that the ratio is 1:100, and 0 means that the currency has no minor unit.')
     decimal_places = fields.Integer(compute='_compute_decimal_places', store=True,
         help='Decimal places taken into account for operations on amounts in this currency. It is determined by the rounding factor.')
     active = fields.Boolean(default=True)
