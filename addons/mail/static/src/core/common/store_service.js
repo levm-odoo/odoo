@@ -754,6 +754,7 @@ export const storeService = {
         store.settings ??= {};
         store.initialize();
         store.onStarted();
+        window.store = store;
         return store;
     },
 };
