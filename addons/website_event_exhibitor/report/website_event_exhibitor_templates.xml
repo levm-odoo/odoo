@@ -19,7 +19,7 @@
 
     <template id="event_report_template_full_page_ticket_inherit_exhibitor" inherit_id="event.event_report_template_full_page_ticket">
         <xpath expr="//div[hasclass('o_event_full_page_ticket_sponsors_container')]" position="inside">
-            <t t-set="sponsors" t-value="event.sponsor_ids.filtered(lambda sponsor: sponsor.image_128 and sponsor.website_published)[:3]"/>
+            <t t-set="sponsors" t-value="event.sponsor_ids.filtered(lambda sponsor: sponsor.image_128 and sponsor.website_published)"/>
             <div t-if="sponsors" class="o_event_full_page_ticket_sponsors_container row g-0 pt-2">
                 <t t-foreach="sponsors" t-as="sponsor">
                     <div class="col-4 text-center">
