@@ -53,7 +53,6 @@ RUN dnf update -d 0 -e 0 -y && \
         python3-six \
         python3-stdnum \
         python3-vobject \
-        python3-werkzeug \
         python3-wheel \
         python3-xlrd \
         python3-xlsxwriter \

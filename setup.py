@@ -59,7 +59,6 @@ setup(
         'requests',
         'urllib3',
         'vobject',
-        'werkzeug',
         'xlrd',
         'xlsxwriter',
         'xlwt',
