@@ -91,9 +91,9 @@ class TestSaleMrpKitBom(TransactionCase):
                 # - BoM Type: Kit
                 # - Quantity: 1
                 # - Components:
-                # * 1 x Component A (Cost: $ 6, QTY: 1, UOM: Dozens)
+                # * 1 x Component A (Cost: $ 12, QTY: 1, UOM: Pack of 6)
                 # * 1 x Component B (Cost: $ 10, QTY: 2, UOM: Unit)
-            # cost of Kit A = (6 * 1 * 12) + (10 * 2) = $ 92
+            # cost of Kit A = (12 * 1 * 6) + (10 * 2) = $ 92
         """
         self.customer = self.env['res.partner'].create({
             'name': 'customer'
@@ -102,7 +102,7 @@ class TestSaleMrpKitBom(TransactionCase):
         self.kit_product = self._create_product('Kit Product', True, 1.00)
         # Creating components
         self.component_a = self._create_product('Component A', True, 1.00)
-        self.component_a.product_tmpl_id.standard_price = 6
+        self.component_a.product_tmpl_id.standard_price = 12
         self.component_b = self._create_product('Component B', True, 1.00)
         self.component_b.product_tmpl_id.standard_price = 10
 

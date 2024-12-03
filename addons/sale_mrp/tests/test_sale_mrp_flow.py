@@ -42,7 +42,7 @@ class TestSaleMrpFlowCommon(ValuationReconciliationTestCommon):
             'name': 'Test-Ten',
             'relative_factor': 10,
         })
-        cls.uom_pack_of_6 = cls.UoM.create({
+        cls.uom_dozen = cls.UoM.create({
             'name': 'Test-DozenA',
             'relative_factor': 12,
         })
@@ -229,7 +229,7 @@ class TestSaleMrpFlow(TestSaleMrpFlowCommon):
         route_mto = self.company_data['default_warehouse'].mto_pull_id.route_id
         product_a = self._cls_create_product('Product A', self.uom_unit, routes=[route_manufacture, route_mto])
         product_c = self._cls_create_product('Product C', self.uom_kg)
-        product_b = self._cls_create_product('Product B', self.uom_pack_of_6, routes=[route_manufacture, route_mto])
+        product_b = self._cls_create_product('Product B', self.uom_dozen, routes=[route_manufacture, route_mto])
         product_d = self._cls_create_product('Product D', self.uom_unit, routes=[route_manufacture, route_mto])
 
         # ------------------------------------------------------------------------------------------
@@ -240,7 +240,7 @@ class TestSaleMrpFlow(TestSaleMrpFlowCommon):
         with Form(self.env['mrp.bom']) as f:
             f.product_tmpl_id = product_a.product_tmpl_id
             f.product_qty = 2
-            f.product_uom_id = self.uom_pack_of_6
+            f.product_uom_id = self.uom_dozen
             with f.bom_line_ids.new() as line:
                 line.product_id = product_b
                 line.product_qty = 3
@@ -283,7 +283,7 @@ class TestSaleMrpFlow(TestSaleMrpFlowCommon):
         order_form.partner_id = self.env['res.partner'].create({'name': 'My Test Partner'})
         with order_form.order_line.new() as line:
             line.product_id = product_a
-            line.product_uom_id = self.uom_pack_of_6
+            line.product_uom_id = self.uom_dozen
             line.product_uom_qty = 10
         order = order_form.save()
         order.action_confirm()
@@ -330,7 +330,7 @@ class TestSaleMrpFlow(TestSaleMrpFlowCommon):
 
         self.assertTrue(mnf_product_a, 'Manufacturing order not created.')
         self.assertEqual(mnf_product_a.product_qty, 10, 'Wrong product quantity in manufacturing order.')
-        self.assertEqual(mnf_product_a.product_uom_id, self.uom_pack_of_6, 'Wrong unit of measure in manufacturing order.')
+        self.assertEqual(mnf_product_a.product_uom_id, self.uom_dozen, 'Wrong unit of measure in manufacturing order.')
         self.assertEqual(mnf_product_a.state, 'confirmed', 'Manufacturing order should be confirmed.')
 
         # ------------------------------------------------------------------------------------------
@@ -1105,7 +1105,7 @@ class TestSaleMrpFlow(TestSaleMrpFlowCommon):
         """
         # Create some components
         component_uom_unit = self._cls_create_product('Comp Unit', self.uom_unit)
-        component_uom_pack_of_6 = self._cls_create_product('Comp Dozen', self.uom_pack_of_6)
+        component_uom_pack_of_6 = self._cls_create_product('Comp Dozen', self.uom_dozen)
         component_uom_kg = self._cls_create_product('Comp Kg', self.uom_kg)
 
         # Create a kit 'kit_uom_1' :
@@ -1126,12 +1126,12 @@ class TestSaleMrpFlow(TestSaleMrpFlowCommon):
         BomLine.create({
             'product_id': component_uom_unit.id,
             'product_qty': 2.0,
-            'product_uom_id': self.uom_pack_of_6.id,
+            'product_uom_id': self.uom_dozen.id,
             'bom_id': bom_kit_uom_1.id})
         BomLine.create({
             'product_id': component_uom_pack_of_6.id,
             'product_qty': 1.0,
-            'product_uom_id': self.uom_pack_of_6.id,
+            'product_uom_id': self.uom_dozen.id,
             'bom_id': bom_kit_uom_1.id})
         BomLine.create({
             'product_id': component_uom_kg.id,
@@ -1208,7 +1208,7 @@ class TestSaleMrpFlow(TestSaleMrpFlowCommon):
 
         # Create some components
         component_uom_unit = self._cls_create_product('Comp Unit', self.uom_unit)
-        component_uom_pack_of_6 = self._cls_create_product('Comp Dozen', self.uom_pack_of_6)
+        component_uom_pack_of_6 = self._cls_create_product('Comp Dozen', self.uom_dozen)
         component_uom_kg = self._cls_create_product('Comp Kg', self.uom_kg)
         component_uom_gm = self._cls_create_product('Comp g', self.uom_gm)
         components = [component_uom_unit, component_uom_pack_of_6, component_uom_kg, component_uom_gm]
@@ -1232,12 +1232,12 @@ class TestSaleMrpFlow(TestSaleMrpFlowCommon):
         BomLine.create({
             'product_id': component_uom_unit.id,
             'product_qty': 2.0,
-            'product_uom_id': self.uom_pack_of_6.id,
+            'product_uom_id': self.uom_dozen.id,
             'bom_id': bom_kit_uom_1.id})
         BomLine.create({
             'product_id': component_uom_pack_of_6.id,
             'product_qty': 1.0,
-            'product_uom_id': self.uom_pack_of_6.id,
+            'product_uom_id': self.uom_dozen.id,
             'bom_id': bom_kit_uom_1.id})
         BomLine.create({
             'product_id': component_uom_kg.id,
@@ -1258,7 +1258,7 @@ class TestSaleMrpFlow(TestSaleMrpFlowCommon):
         BomLine.create({
             'product_id': kit_uom_1.id,
             'product_qty': 2.0,
-            'product_uom_id': self.uom_pack_of_6.id,
+            'product_uom_id': self.uom_dozen.id,
             'bom_id': bom_kit_uom_in_kit.id})
 
         # Create a simple warehouse to receives some products
@@ -1302,7 +1302,7 @@ class TestSaleMrpFlow(TestSaleMrpFlowCommon):
         # Moves are created instead of only updating the quant quantities in order to trigger every compute fields.
         qty_to_process = {
             component_uom_unit: (1152, self.uom_unit),
-            component_uom_pack_of_6: (48, self.uom_pack_of_6),
+            component_uom_pack_of_6: (48, self.uom_dozen),
             component_uom_kg: (0.24, self.uom_kg),
             component_uom_gm: (6000, self.uom_gm)
         }
@@ -1431,7 +1431,7 @@ class TestSaleMrpFlow(TestSaleMrpFlowCommon):
         with Form(self.env['mrp.bom']) as bom:
             bom.product_tmpl_id = kit_1.product_tmpl_id
             bom.product_qty = 2
-            bom.product_uom_id = self.uom_pack_of_6
+            bom.product_uom_id = self.uom_dozen
             bom.type = 'phantom'
             with bom.bom_line_ids.new() as line:
                 line.product_id = component_unit

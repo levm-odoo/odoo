@@ -712,11 +712,6 @@ class TestSaleService(TestCommonSaleTimesheet):
         }, {
             'order_id': self.sale_order.id,
             'product_id': self.product_delivery_timesheet3.id,
-            'product_uom_qty': 1,
-            'product_uom_id': self.env.ref('uom.product_uom_pack_6').id,  # 0 hours
-        }, {
-            'order_id': self.sale_order.id,
-            'product_id': self.product_delivery_timesheet3.id,
             'product_uom_qty': 6,
             'product_uom_id': self.env.ref('uom.product_uom_unit').id,  # 6 hours
         }])
@@ -824,7 +819,7 @@ class TestSaleService(TestCommonSaleTimesheet):
         """
         Ensure hours are rounded consistently on SO & invoice.
         """
-        self.env.company.project_time_mode_id.rounding = 1.0
+        self.env['decimal.precision'].search([('name', '=', 'Product Unit of Measure')]).digits = 0
         self.env['sale.order.line'].create({
             'name': self.product_delivery_timesheet3.name,
             'product_id': self.product_delivery_timesheet3.id,

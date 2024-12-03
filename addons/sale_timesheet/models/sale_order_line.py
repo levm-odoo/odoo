@@ -93,7 +93,7 @@ class SaleOrderLine(models.Model):
         if product_uom == self.env.ref('uom.product_uom_unit'):
             product_uom = self.env.ref('uom.product_uom_hour')
         if product_uom != company_time_uom_id:
-            allocated_hours = product_uom._compute_quantity(self.product_uom_qty, company_time_uom_id)
+            allocated_hours = product_uom._compute_quantity(self.product_uom_qty, company_time_uom_id, rounding_method='HALF-UP')
         else:
             allocated_hours = self.product_uom_qty
         return allocated_hours
@@ -127,7 +127,7 @@ class SaleOrderLine(models.Model):
                     and line.product_id.service_tracking in ['task_in_project', 'project_only'] \
                     and line.product_id.project_template_id == self.product_id.project_template_id \
                     and line.product_uom_id.id in factor_per_id:
-                uom_factor = project_uom.factor / factor_per_id[line.product_uom_id.id]
+                uom_factor = factor_per_id[line.product_uom_id.id] / project_uom.factor
                 allocated_hours += line.product_uom_qty * uom_factor
 
         project.write({

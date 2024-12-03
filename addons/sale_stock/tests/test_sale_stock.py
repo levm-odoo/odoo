@@ -403,15 +403,15 @@ class TestSaleStock(TestSaleStockCommon, ValuationReconciliationTestCommon):
         })
         so1.action_confirm()
 
-        # the move should be 12 units
+        # the move should be 6 units
         # note: move.product_qty = computed field, always in the uom of the quant
         #       move.product_uom_qty = stored field representing the initial demand in move.product_uom
         move1 = so1.picking_ids.move_ids[0]
-        self.assertEqual(move1.product_uom_qty, 12)
+        self.assertEqual(move1.product_uom_qty, 6)
         self.assertEqual(move1.product_uom.id, uom_unit.id)
-        self.assertEqual(move1.product_qty, 12)
+        self.assertEqual(move1.product_qty, 6)
 
-        # edit the so line, sell 2 pack_of_6, the move should now be 24 units
+        # edit the so line, sell 2 pack_of_6, the move should now be 12 units
         so1.write({
             'order_line': [
                 (1, so1.order_line.id, {'product_uom_qty': 2}),
@@ -432,9 +432,9 @@ class TestSaleStock(TestSaleStockCommon, ValuationReconciliationTestCommon):
         #     moves_to_unlink |= moves[1:]
         # ```
         move1 = so1.picking_ids.move_ids[0]
-        self.assertEqual(move1.product_uom_qty, 24)
+        self.assertEqual(move1.product_uom_qty, 12)
         self.assertEqual(move1.product_uom.id, uom_unit.id)
-        self.assertEqual(move1.product_qty, 24)
+        self.assertEqual(move1.product_qty, 12)
 
         # force the propagation of the uom, sell 3 pack_of_6
         self.env['ir.config_parameter'].sudo().set_param('stock.propagate_uom', '1')
@@ -446,10 +446,10 @@ class TestSaleStock(TestSaleStockCommon, ValuationReconciliationTestCommon):
         move2 = so1.picking_ids.move_ids.filtered(lambda m: m.product_uom.id == uom_pack_of_6.id)
         self.assertEqual(move2.product_uom_qty, 1)
         self.assertEqual(move2.product_uom.id, uom_pack_of_6.id)
-        self.assertEqual(move2.product_qty, 12)
+        self.assertEqual(move2.product_qty, 6)
 
         # deliver everything
-        move1.write({'quantity': 24, 'picked': True})
+        move1.write({'quantity': 12, 'picked': True})
         move2.write({'quantity': 1, 'picked': True})
         so1.picking_ids.button_validate()
 
@@ -960,59 +960,6 @@ class TestSaleStock(TestSaleStockCommon, ValuationReconciliationTestCommon):
         sale_order4.action_confirm()
         self.assertTrue(sale_order4.picking_ids)
         self.assertEqual(sale_order4.picking_ids.state, 'assigned')
-
-    def test_packaging_propagation(self):
-        """Create a SO with lines using packaging, check the packaging propagate
-        to its move.
-        """
-        warehouse = self.company_data['default_warehouse']
-        warehouse.delivery_steps = 'pick_pack_ship'
-        product = self.env['product.product'].create({
-            'name': 'Product with packaging',
-            'is_storable': True,
-        })
-
-        packOf10 = self.env['uom.uom'].create({
-            'name': 'PackOf10',
-            'relative_factor': 10
-        })
-        packOf20 = self.env['uom.uom'].create({
-            'name': 'PackOf20',
-            'relative_factor': 20
-        })
-        product.uom_ids = packOf10 | packOf20
-
-        so = self.env['sale.order'].create({
-            'partner_id': self.partner_a.id,
-            'warehouse_id': self.warehouse_3_steps_pull.id,
-            'order_line': [
-                (0, 0, {
-                    'product_id': product.id,
-                    'product_uom_qty': 10.0,
-                    'product_uom_id': packOf10.id,
-                })],
-        })
-        so.action_confirm()
-        ship = so.order_line.move_ids
-        pack = ship.move_orig_ids
-        pick = pack.move_orig_ids
-        self.assertEqual(pick.packaging_uom_id, packOf10)
-        self.assertEqual(pack.packaging_uom_id, packOf10)
-        self.assertEqual(ship.packaging_uom_id, packOf10)
-
-        so.order_line[0].write({
-            'product_uom_id': packOf20.id,
-            'product_uom_qty': 20
-        })
-        self.assertEqual(so.order_line.move_ids.packaging_uom_id, packOf20)
-        self.assertEqual(pick.packaging_uom_id, packOf20)
-        self.assertEqual(pack.packaging_uom_id, packOf20)
-        self.assertEqual(ship.packaging_uom_id, packOf20)
-
-        so.order_line[0].write({'product_uom_id': False})
-        self.assertFalse(pick.packaging_uom_id)
-        self.assertFalse(pack.packaging_uom_id)
-        self.assertFalse(ship.packaging_uom_id)
 
     def test_15_cancel_delivery(self):
         """ Suppose the option "Lock Confirmed Sales" enabled and a product with the invoicing
