@@ -161,14 +161,14 @@ export function cancelAllTimers() {
     }
 }
 
-export async function cleanupTime() {
+export function cleanupTime() {
     allowTimers = false;
     freezed = false;
 
     cancelAllTimers();
 
     // Wait for remaining async code to run
-    await delay();
+    return delay();
 }
 
 /**
@@ -311,15 +311,13 @@ export function resetTimeOffset() {
  * @see {@link advanceTime}
  * @returns {Promise<number>} time consumed by timers (in ms).
  */
-export async function runAllTimers() {
+export function runAllTimers() {
     if (!timers.size) {
         return 0;
     }
 
     const endts = $max(...[...timers.values()].map(([, init, delay]) => init + delay));
-    const ms = await advanceTime($ceil(endts - now()));
-
-    return ms;
+    return advanceTime($ceil(endts - now()));
 }
 
 /**

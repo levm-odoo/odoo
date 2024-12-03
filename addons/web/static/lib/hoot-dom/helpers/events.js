@@ -22,6 +22,7 @@ import {
     setDimensions,
     toSelector,
 } from "./dom";
+import { delay } from "./time";
 
 /**
  * @typedef {Target | Promise<Target>} AsyncTarget
@@ -239,6 +240,9 @@ const getDefaultRunTimeValue = () => ({
     previousPointerTarget: null,
     /** @type {EventPosition | {}} */
     touchStartPosition: {},
+
+    /** @type {Promise<void> | null} */
+    triggerDelay: null,
 
     // File
     fileInput: null,
@@ -890,7 +894,7 @@ const triggerFocus = async (target) => {
             catchNextEvent(previous, "focusout");
         }
         // If document is focused, this will trigger a trusted "blur" event
-        previous.blur();
+        await delay().then(() => previous.blur());
         if (!$hasFocus()) {
             // When document is not focused: manually trigger a "blur" event
             const eventInit = { relatedTarget: target };
@@ -905,7 +909,7 @@ const triggerFocus = async (target) => {
         if ($hasFocus() && isNodeVisible(target)) {
             catchNextEvent(target, "focusin");
         }
-        target.focus();
+        await delay().then(() => target.focus());
         if (!$hasFocus()) {
             // When document is not focused: manually trigger a "focus" event
             const eventInit = { relatedTarget: previous };
@@ -1879,7 +1883,7 @@ export async function dispatch(target, type, eventInit) {
     }
     const event = new Constructor(type, params);
 
-    await Promise.resolve(target.dispatchEvent(event));
+    await delay().then(() => target.dispatchEvent(event));
 
     getCurrentEvents().push(event);
 
@@ -2394,7 +2398,7 @@ export async function scroll(target, position, options) {
     }
     // This will trigger a trusted "scroll" event
     catchNextEvent(element, "scroll");
-    await Promise.resolve(element.scrollTo(scrollOptions));
+    await delay().then(() => element.scrollTo(scrollOptions));
 
     return finalizeEvents(options);
 }

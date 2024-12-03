@@ -15,7 +15,7 @@ import {
     isNodeVisible,
     queryRect,
 } from "@web/../lib/hoot-dom/helpers/dom";
-import { isFirefox, isIterable } from "@web/../lib/hoot-dom/hoot_dom_utils";
+import { addInteractionListener, isFirefox, isIterable } from "@web/../lib/hoot-dom/hoot_dom_utils";
 import {
     ElementMap,
     FormattedString,
@@ -51,8 +51,12 @@ import { Test } from "./test";
  *  message?: AssertionMessage;
  * }} ExpectOptions
  *
+ * @typedef {InteractionType & "assertion" | "error" | "step"} ResultEventType
+ *
  * @typedef {import("@odoo/hoot-dom").Dimensions} Dimensions
  * @typedef {import("@odoo/hoot-dom").FormatXmlOptions} FormatXmlOptions
+ * @typedef {import("@web/../lib/hoot-dom/hoot_dom_utils").InteractionDetails} InteractionDetails
+ * @typedef {import("@web/../lib/hoot-dom/hoot_dom_utils").InteractionType} InteractionType
  * @typedef {import("@odoo/hoot-dom").QueryRectOptions} QueryRectOptions
  * @typedef {import("@odoo/hoot-dom").QueryTextOptions} QueryTextOptions
  * @typedef {import("@odoo/hoot-dom").Target} Target
@@ -296,7 +300,22 @@ const roundTo = (value, digits) => {
  */
 const scopeError = (method) => new HootError(`cannot call \`${method}()\` outside of a test`);
 
+class CaseEvent {
+    static nextId = 1;
+
+    id = CaseEvent.nextId++;
+    consumed = false;
+    label = "";
+    message = "";
+    /** @type {(string | FormattedString)[]} */
+    messageParts = [];
+    ts = $now();
+    /** @type {ResultEventType} */
+    type;
+}
+
 const R_NOT = /\[([\w\s]*)!([\w\s]*)\]/;
+const R_WHITE_SPACE = /\s+/g;
 
 const LABEL_EXPECTED = "Expected:";
 const LABEL_RECEIVED = "Received:";
@@ -321,6 +340,8 @@ export function makeExpect(params) {
     function afterTest(options) {
         const { test } = currentResult;
 
+        removeInteractionListener();
+
         currentResult.done();
 
         // Expect without matchers
@@ -336,7 +357,7 @@ export function makeExpect(params) {
                 default:
                     times = [unconsumedMatchers.size, r`times`];
             }
-            currentResult.registerAssertion({
+            currentResult.registerEvent("assertion", {
                 label: "expect",
                 message: [r`called`, ...times, r`without calling any matchers`],
                 pass: false,
@@ -345,33 +366,33 @@ export function makeExpect(params) {
         }
 
         // Steps
-        if (currentResult.steps.length) {
-            currentResult.registerAssertion({
+        if (currentResult.currentSteps.length) {
+            currentResult.registerEvent("assertion", {
                 label: "step",
                 message: "unverified steps",
                 pass: false,
-                failedDetails: [Markup.red("Steps:", currentResult.steps)],
+                failedDetails: [Markup.red("Steps:", currentResult.currentSteps)],
             });
         }
 
         // Assertions count
-        if (!currentResult.assertions.length) {
-            currentResult.registerAssertion({
+        if (!currentResult.counts.assertion) {
+            currentResult.registerEvent("assertion", {
                 label: "assertions",
                 message: [r`expected at least`, 1, r`assertion, but none were run`],
                 pass: false,
             });
         } else if (
             currentResult.expectedAssertions &&
-            currentResult.assertions.length !== currentResult.expectedAssertions
+            currentResult.counts.assertion !== currentResult.expectedAssertions
         ) {
-            currentResult.registerAssertion({
+            currentResult.registerEvent("assertion", {
                 label: "assertions",
                 message: [
                     r`expected`,
                     currentResult.expectedAssertions,
                     r`assertions, but`,
-                    currentResult.assertions.length,
+                    currentResult.counts.assertion,
                     r`were run`,
                 ],
                 pass: false,
@@ -379,10 +400,10 @@ export function makeExpect(params) {
         }
 
         // Errors count
-        const errorCount = currentResult.caughtErrors;
+        const errorCount = currentResult.counts.error;
         if (currentResult.expectedErrors) {
             if (currentResult.expectedErrors !== errorCount) {
-                currentResult.registerAssertion({
+                currentResult.registerEvent("assertion", {
                     label: "errors",
                     message: [
                         r`expected`,
@@ -394,10 +415,10 @@ export function makeExpect(params) {
                     pass: false,
                 });
             }
-        } else if (errorCount) {
-            currentResult.registerAssertion({
+        } else if (currentResult.currentErrors.length) {
+            currentResult.registerEvent("assertion", {
                 label: "errors",
-                message: [errorCount, r`unverified error(s)`],
+                message: [currentResult.currentErrors.length, r`unverified error(s)`],
                 pass: false,
             });
         }
@@ -405,7 +426,7 @@ export function makeExpect(params) {
         // "Todo" tag
         if (test?.config.todo) {
             if (currentResult.pass) {
-                currentResult.registerAssertion({
+                currentResult.registerEvent("assertion", {
                     label: "TODO",
                     message: `all assertions passed: remove "todo" test modifier`,
                     pass: false,
@@ -416,7 +437,7 @@ export function makeExpect(params) {
         }
 
         if (options?.aborted) {
-            currentResult.registerAssertion({
+            currentResult.registerEvent("assertion", {
                 label: "aborted",
                 message: "test was aborted, results may not be relevant",
                 pass: false,
@@ -435,7 +456,7 @@ export function makeExpect(params) {
 
             /** @type {import("../hoot_utils").Reporting} */
             const report = {
-                assertions: currentResult.assertions.length,
+                assertions: currentResult.counts.assertion,
                 tests: 1,
             };
             if (!currentResult.pass) {
@@ -484,6 +505,7 @@ export function makeExpect(params) {
         } else {
             currentResult = new CaseResult();
         }
+        removeInteractionListener = addInteractionListener(["event", "query"], onInteraction);
     }
 
     /**
@@ -499,6 +521,17 @@ export function makeExpect(params) {
     }
 
     /**
+     * @param {CustomEvent<InteractionDetails>} event
+     */
+    function onInteraction({ detail, type }) {
+        if (!currentResult) {
+            return;
+        }
+
+        currentResult.registerEvent(type, detail);
+    }
+
+    /**
      * @param {any} value
      */
     function step(value) {
@@ -506,7 +539,7 @@ export function makeExpect(params) {
             throw scopeError("expect.step");
         }
 
-        currentResult.registerStep(value);
+        currentResult.registerEvent("step", value);
     }
 
     /**
@@ -551,7 +584,7 @@ export function makeExpect(params) {
                 Markup.red("Source:", Markup.text(formattedStack, { technical: true })),
             ];
         }
-        currentResult.registerAssertion(assertion);
+        currentResult.registerEvent("assertion", assertion);
     }
 
     /**
@@ -588,7 +621,7 @@ export function makeExpect(params) {
                 Markup.red("Source:", Markup.text(formattedStack, { technical: true })),
             ];
         }
-        currentResult.registerAssertion(assertion);
+        currentResult.registerEvent("assertion", assertion);
     }
 
     /**
@@ -631,69 +664,9 @@ export function makeExpect(params) {
     /** @type {CaseResult | null} */
     let currentResult = null;
 
+    let removeInteractionListener;
+
     return [enrichedExpect, expectHooks];
-}
-
-export class Assertion {
-    static nextId = 1;
-
-    id = Assertion.nextId++;
-    /** @type {[any, any][] | null} */
-    failedDetails = null;
-    label = "";
-    message = "";
-    messageParts = [];
-    /** @type {Modifiers<false>} */
-    modifiers = { not: false, rejects: false, resolves: false };
-    pass = false;
-    ts = $now();
-
-    /**
-     * @param {Partial<Assertion & { message: AssertionMessage }>} values
-     */
-    constructor(values) {
-        let { message } = values;
-        delete values.message;
-
-        $assign(this, values);
-
-        if (typeof message === "function") {
-            message = message(this.pass, r);
-        }
-
-        const parts = Array.isArray(message) ? message : [r`${message}`];
-        for (const part of parts) {
-            if (part instanceof ElementMap) {
-                if (typeof part.selector === "string") {
-                    this.messageParts.push(
-                        r`elements matching`,
-                        new FormattedString(part.selector)
-                    );
-                } else {
-                    const elements = part.getElements();
-                    this.messageParts.push(
-                        r`elements`,
-                        new FormattedString(elements.length === 1 ? elements[0] : elements)
-                    );
-                }
-            } else if (part instanceof FormattedString) {
-                this.messageParts.push(
-                    new FormattedString(
-                        formatMessage(part.toString(), this.modifiers.not),
-                        part.type
-                    )
-                );
-            } else if (typeof part === "string") {
-                this.messageParts.push(
-                    new FormattedString(formatMessage(part, this.modifiers.not))
-                );
-            } else {
-                this.messageParts.push(new FormattedString(part));
-            }
-        }
-
-        this.message = this.messageParts.join(" ");
-    }
 }
 
 export class CaseResult {
@@ -703,18 +676,22 @@ export class CaseResult {
     test = null;
     ts = $now();
 
-    // Assertions
-    /** @type {Assertion[]} */
-    assertions = [];
-    expectedAssertions = 0;
-    /** @type {any[]} */
-    steps = [];
+    /** @type {CaseEvent[]} */
+    events = [];
+    /** @type {Record<ResultEventType, number>} */
+    counts = {
+        assertion: 0,
+        error: 0,
+        event: 0,
+        query: 0,
+        step: 0,
+    };
 
-    // Errors
-    caughtErrors = 0;
-    /** @type {Error[]} */
-    errors = [];
+    expectedAssertions = 0;
     expectedErrors = 0;
+
+    currentErrors = [];
+    currentSteps = [];
 
     /**
      * @param {Test | null} [test]
@@ -726,15 +703,22 @@ export class CaseResult {
     }
 
     consumeErrors() {
-        const errors = this.errors;
-        this.errors = [];
+        const errors = this.currentErrors;
+        this.currentErrors = [];
         return errors;
     }
 
     consumeSteps() {
-        const steps = this.steps;
-        this.steps = [];
+        const steps = this.currentSteps;
+        this.currentSteps = [];
         return steps;
+    }
+
+    /**
+     * @param {ResultEventType} type
+     */
+    getEvents(type) {
+        return this.events.filter((event) => event.type === type);
     }
 
     done() {
@@ -742,27 +726,36 @@ export class CaseResult {
     }
 
     /**
-     * @param {Partial<Assertion>} assertionSpecs
-     */
-    registerAssertion(assertionSpecs) {
-        const assertion = new Assertion(assertionSpecs);
-        this.assertions.push(assertion);
-        this.pass &&= assertion.pass;
-    }
-
-    /**
-     * @param {Error} error
-     */
-    registerError(error) {
-        this.errors.push(error);
-        this.caughtErrors++;
-    }
-
-    /**
+     *
+     * @param {ResultEventType} type
      * @param {any} value
      */
-    registerStep(value) {
-        this.steps.push(deepCopy(value));
+    registerEvent(type, value) {
+        let caseEvent;
+        switch (type) {
+            case "assertion": {
+                caseEvent = new Assertion(value);
+                this.pass &&= caseEvent.pass;
+                break;
+            }
+            case "error": {
+                caseEvent = new CaseError(value);
+                this.currentErrors.push(value);
+                break;
+            }
+            case "event":
+            case "query": {
+                caseEvent = new DOMCaseEvent(type, value);
+                break;
+            }
+            case "step": {
+                caseEvent = new Step(value);
+                this.currentSteps.push(deepCopy(value));
+                break;
+            }
+        }
+        this.events.push(caseEvent);
+        this.counts[type]++;
     }
 }
 
@@ -1608,7 +1601,7 @@ export class Matcher {
         ensureArguments(arguments, ["string", "string[]"], ["object", null]);
 
         const rawClassNames = ensureArray(className);
-        const classNames = rawClassNames.flatMap((cls) => cls.trim().split(/\s+/g));
+        const classNames = rawClassNames.flatMap((cls) => cls.trim().split(R_WHITE_SPACE));
 
         return this._resolve((received) => {
             const elMap = new ElementMap(received, (el) => [...el.classList]);
@@ -2007,7 +2000,7 @@ export class Matcher {
                 /** @param {PromiseFulfilledResult<R>} reason */
                 (result) => {
                     if (this._modifiers.rejects) {
-                        this._result.registerAssertion({
+                        this._result.registerEvent("assertion", {
                             label: "rejects",
                             message: [
                                 r`expected promise to reject, instead resolved with:`,
@@ -2023,7 +2016,7 @@ export class Matcher {
                 /** @param {PromiseRejectedResult} reason */
                 (reason) => {
                     if (this._modifiers.resolves) {
-                        this._result.registerAssertion({
+                        this._result.registerEvent("assertion", {
                             label: "resolves",
                             message: [
                                 r`expected promise to resolve, instead rejected with:`,
@@ -2079,7 +2072,7 @@ export class Matcher {
                 Markup.red("Source:", Markup.text(formattedStack, { technical: true })),
             ].filter(Boolean);
         }
-        this._result.registerAssertion(assertion);
+        this._result.registerEvent("assertion", assertion);
     }
 
     /**
@@ -2127,5 +2120,121 @@ export class Matcher {
                     elMap.getValues((val) => detailsFromValuesWithDiff(expected, val)),
             };
         });
+    }
+}
+
+//-----------------------------------------------------------------------------
+// Case events
+//-----------------------------------------------------------------------------
+
+export class Assertion extends CaseEvent {
+    type = "assertion";
+
+    /**
+     * @param {Partial<Assertion & { message: AssertionMessage }>} values
+     */
+    constructor(values) {
+        super();
+
+        this.label = values.label;
+        /** @type {[any, any][] | null} */
+        this.failedDetails = values.failedDetails || null;
+        /** @type {Modifiers<false>} */
+        this.modifiers = {
+            not: false,
+            rejects: false,
+            resolves: false,
+            ...values.modifiers,
+        };
+        this.pass = values.pass || false;
+
+        let { message } = values;
+        if (typeof message === "function") {
+            message = message(this.pass, r);
+        }
+
+        const parts = Array.isArray(message) ? message : [r`${message}`];
+        for (const part of parts) {
+            if (part instanceof ElementMap) {
+                if (typeof part.selector === "string") {
+                    this.messageParts.push(
+                        r`elements matching`,
+                        new FormattedString(part.selector)
+                    );
+                } else {
+                    const elements = part.getElements();
+                    this.messageParts.push(
+                        r`elements`,
+                        new FormattedString(elements.length === 1 ? elements[0] : elements)
+                    );
+                }
+            } else if (part instanceof FormattedString) {
+                this.messageParts.push(
+                    new FormattedString(
+                        formatMessage(part.toString(), this.modifiers.not),
+                        part.type
+                    )
+                );
+            } else if (typeof part === "string") {
+                this.messageParts.push(
+                    new FormattedString(formatMessage(part, this.modifiers.not))
+                );
+            } else {
+                this.messageParts.push(new FormattedString(part));
+            }
+        }
+
+        this.message = this.messageParts.join(" ");
+    }
+}
+
+export class DOMCaseEvent extends CaseEvent {
+    /**
+     * @param {InteractionType} type
+     * @param {InteractionDetails} details
+     */
+    constructor(type, details) {
+        super();
+
+        this.type = type;
+        this.label = details.name;
+        if (details.arguments.length) {
+            this.messageParts.push(new FormattedString(details.arguments[0]));
+        }
+        if (type !== "event" && details.returnValue) {
+            this.messageParts.push(":", new FormattedString(details.returnValue));
+        }
+        this.message = this.messageParts.join(" ");
+    }
+}
+
+export class CaseError extends CaseEvent {
+    type = "error";
+
+    /**
+     * @param {Error} error
+     */
+    constructor(error) {
+        super();
+
+        this.cause = error.cause;
+        this.label = error.name;
+        this.message = error.message;
+        this.messageParts = error.message.split(R_WHITE_SPACE);
+        this.stack = error.stack;
+    }
+}
+
+export class Step extends CaseEvent {
+    type = "step";
+    label = "step";
+
+    /**
+     * @param {any} value
+     */
+    constructor(value) {
+        super();
+
+        this.message = new FormattedString(value);
     }
 }
