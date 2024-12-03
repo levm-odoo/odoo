@@ -57,7 +57,7 @@ class TestPurchaseOrderProcess(PurchaseTestCommon):
                 })],
         })
         po.button_confirm()
-        self.assertEqual(po.order_line.move_ids.packaging_uom_id, packaging)
+        self.assertEqual(po.order_line.move_ids.product_uom, packaging)
 
     def test_02_vendor_delay_report_partially_cancelled_purchase_order(self):
         """ Test vendor delay reports for partially cancelled purchase order"""

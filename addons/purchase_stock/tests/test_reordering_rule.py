@@ -1173,7 +1173,7 @@ class TestReorderingRule(TransactionCase):
             'name': 'Storable Product',
             'is_storable': True,
             'uom_id': self.env.ref('uom.product_uom_kgm').id,
-            'seller_ids': [(0, 0, {'partner_id': self.partner.id, 'min_qty': 6})],
+            'seller_ids': [(0, 0, {'partner_id': self.partner.id, 'min_qty': 6, 'product_uom_id': self.env.ref('uom.product_uom_ton').id})],
         })
         warehouse = self.env['stock.warehouse'].search([('company_id', '=', self.env.company.id)], limit=1)
         orderpoint = self.env['stock.warehouse.orderpoint'].create({

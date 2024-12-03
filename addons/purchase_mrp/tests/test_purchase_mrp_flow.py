@@ -32,6 +32,7 @@ class TestPurchaseMrpFlow(AccountTestInvoicingCommon):
         cls.uom_gm = cls.UoM.create({
             'name': 'Test-G',
             'relative_factor': 0.001,
+            'relative_uom_id': cls.uom_kg.id,
         })
         cls.uom_unit = cls.env.ref('uom.product_uom_unit')
         cls.uom_unit.write({
@@ -1008,7 +1009,7 @@ class TestPurchaseMrpFlow(AccountTestInvoicingCommon):
         self.component_d.write({
             'route_ids': [Command.link(buy_route.id)],
             'seller_ids': [
-                Command.create({'partner_id': self.partner_a.id, 'min_qty': 1, 'price': 10}),
+                Command.create({'partner_id': self.partner_a.id, 'product_uom_id': self.uom_pack_of_6.id, 'min_qty': 1, 'price': 10}),
             ]
         })
 

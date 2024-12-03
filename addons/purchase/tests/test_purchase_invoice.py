@@ -695,10 +695,10 @@ class TestPurchaseToInvoice(TestPurchaseToInvoiceCommon):
         po = po_form.save()
         po_line = po.order_line[0]
 
-        self.assertEqual(1680.0, po_line.price_unit, "140.0 * 12 = 1680.0")
+        self.assertEqual(840.0, po_line.price_unit, "140.0 * 6 = 840.0")
         self.assertEqual(50, po_line.discount)
-        self.assertEqual(840.0, po_line.price_unit_discounted, "1680.0 * 0.5 = 840.0")
-        self.assertEqual(2520.0, po_line.price_subtotal, "840.0 * 3 = 2520.0")
+        self.assertEqual(420.0, po_line.price_unit_discounted, "840.0 * 0.5 = 420.0")
+        self.assertEqual(1260.0, po_line.price_subtotal, "420.0 * 3 = 1260.0")
 
     def test_invoice_line_name_has_product_name(self):
         """ Testing that when invoicing a sales order, the invoice line name ALWAYS contains the product name. """

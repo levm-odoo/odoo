@@ -18,7 +18,7 @@ class PurchaseOrderLine(models.Model):
     name = fields.Text(
         string='Description', required=True, compute='_compute_price_unit_and_date_planned_and_name', store=True, readonly=False)
     sequence = fields.Integer(string='Sequence', default=10)
-    product_qty = fields.Float(string='Quantity', digits='Product Unit of Measure', required=True, store=True, readonly=False)
+    product_qty = fields.Float(string='Quantity', digits='Product Unit of Measure', required=True)
     product_uom_qty = fields.Float(string='Total Quantity', compute='_compute_product_uom_qty', store=True)
     date_planned = fields.Datetime(
         string='Expected Arrival', index=True,
@@ -349,7 +349,7 @@ class PurchaseOrderLine(models.Model):
                 price_unit = line.env['account.tax']._fix_tax_included_price_company(seller.price, line.product_id.supplier_taxes_id, line.taxes_id, line.company_id) if seller else 0.0
                 price_unit = seller.currency_id._convert(price_unit, line.currency_id, line.company_id, line.date_order or fields.Date.context_today(line), False)
                 price_unit = float_round(price_unit, precision_digits=max(line.currency_id.decimal_places, self.env['decimal.precision'].precision_get('Product Price')))
-                line.price_unit = line.product_id.uom_id._compute_price(price_unit, line.product_uom_id or seller.product_uom_id)
+                line.price_unit = seller.product_uom_id._compute_price(price_unit, line.product_uom_id)
                 line.discount = seller.discount or 0.0
 
             # record product names to avoid resetting custom descriptions

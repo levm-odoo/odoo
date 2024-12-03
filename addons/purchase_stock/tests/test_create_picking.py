@@ -189,37 +189,44 @@ class TestCreatePicking(common.TestProductCommon):
         self.assertEqual(self.product_id_1.uom_id.id, uom_unit.id)
 
         # buy a pack_of_6
-        po = self.env['purchase.order'].create(self.po_vals)
-
-        po.order_line.product_qty = 1
-        po.order_line.product_uom_id = uom_pack_of_6.id
+        po_form = Form(self.env['purchase.order'])
+        po_form.partner_id = self.partner_id
+        with po_form.order_line.new() as po_line:
+            po_line.product_id = self.product_id_1
+            po_line.product_qty = 1
+            po_line.product_uom_id = uom_pack_of_6
+        po = po_form.save()
         po.button_confirm()
 
-        # the move should be 12 units
+        # the move should be 6 units
         # note: move.product_qty = computed field, always in the uom of the quant
         #       move.product_uom_qty = stored field representing the initial demand in move.product_uom
+        move1 = po.picking_ids.move_ids.sorted()[0]
+        self.assertEqual(move1.product_uom_qty, 6)
+        self.assertEqual(move1.product_uom.id, uom_unit.id)
+        self.assertEqual(move1.product_qty, 6)
+
+        # edit the po line, sell 2 pack_of_6, the move should now be 12 units
+        with po_form.order_line.edit(0) as po_line:
+            po_line.product_qty = 2
+        po_form.save()
         move1 = po.picking_ids.move_ids.sorted()[0]
         self.assertEqual(move1.product_uom_qty, 12)
         self.assertEqual(move1.product_uom.id, uom_unit.id)
         self.assertEqual(move1.product_qty, 12)
 
-        # edit the so line, sell 2 pack_of_6, the move should now be 24 units
-        po.order_line.product_qty = 2
-        move1 = po.picking_ids.move_ids.sorted()[0]
-        self.assertEqual(move1.product_uom_qty, 24)
-        self.assertEqual(move1.product_uom.id, uom_unit.id)
-        self.assertEqual(move1.product_qty, 24)
-
         # force the propagation of the uom, sell 3 pack_of_6
         self.env['ir.config_parameter'].sudo().set_param('stock.propagate_uom', '1')
-        po.order_line.product_qty = 3
+        with po_form.order_line.edit(0) as po_line:
+            po_line.product_qty = 3
+        po_form.save()
         move2 = po.picking_ids.move_ids.filtered(lambda m: m.product_uom.id == uom_pack_of_6.id)
         self.assertEqual(move2.product_uom_qty, 1)
         self.assertEqual(move2.product_uom.id, uom_pack_of_6.id)
-        self.assertEqual(move2.product_qty, 12)
+        self.assertEqual(move2.product_qty, 6)
 
         # deliver everything
-        move1.quantity = 24
+        move1.quantity = 12
         move1.picked = True
         move2.quantity = 1
         move2.picked = True
@@ -324,6 +331,7 @@ class TestCreatePicking(common.TestProductCommon):
             at reception.
         """
         uom_unit = self.env.ref('uom.product_uom_unit')
+        self.env['decimal.precision'].search([('name', '=', 'Product Unit of Measure')]).digits = 0
 
         # buy a pack_of_6
         po = self.env['purchase.order'].create(self.po_vals)
@@ -352,24 +360,25 @@ class TestCreatePicking(common.TestProductCommon):
         self.assertEqual(po.order_line.qty_received, 2.0)
 
     def test_05_uom_rounding(self):
-        """ We set the Unit(s) and Dozen(s) rounding to 1.0 and ensure buying 1.3 pack_of_6 in a PO is
+        """ We set the Unit(s) and Pack(s) of 6 rounding to 1.0 and ensure buying 1.3 pack_of_6 in a PO is
             rounded to 1.0 at reception.
         """
         uom_unit = self.env.ref('uom.product_uom_unit')
         uom_pack_of_6 = self.env.ref('uom.product_uom_pack_6')
+        self.env['decimal.precision'].search([('name', '=', 'Product Unit of Measure')]).digits = 0
 
         # buy 1.3 pack_of_6
         po = self.env['purchase.order'].create(self.po_vals)
 
+        po.order_line.product_uom_id = uom_pack_of_6
         po.order_line.product_qty = 1.3
-        po.order_line.product_uom_id = uom_pack_of_6.id
         po.button_confirm()
 
-        # the move should be 16.0 units
+        # the move should be 6.0 units
         move1 = po.picking_ids.move_ids[0]
-        self.assertEqual(move1.product_uom_qty, 16.0)
+        self.assertEqual(move1.product_uom_qty, 6.0)
         self.assertEqual(move1.product_uom.id, uom_unit.id)
-        self.assertEqual(move1.product_qty, 16.0)
+        self.assertEqual(move1.product_qty, 6.0)
 
         # force the propagation of the uom, buy 2.6 pack_of_6, the move 2 should have 2 pack_of_6
         self.env['ir.config_parameter'].sudo().set_param('stock.propagate_uom', '1')
@@ -377,7 +386,7 @@ class TestCreatePicking(common.TestProductCommon):
         move2 = po.picking_ids.move_ids.filtered(lambda m: m.product_uom.id == uom_pack_of_6.id)
         self.assertEqual(move2.product_uom_qty, 2)
         self.assertEqual(move2.product_uom.id, uom_pack_of_6.id)
-        self.assertEqual(move2.product_qty, 24)
+        self.assertEqual(move2.product_qty, 12)
 
     def create_delivery_order(self):
         stock_location = self.env.ref('stock.stock_location_stock')

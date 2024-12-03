@@ -273,39 +273,27 @@ class TestPurchase(AccountTestInvoicingCommon):
             line.product_qty = 1.0
             line.product_uom_id = packaging_single
         po_form.save()
-        self.assertEqual(po.order_line.packaging_uom_qty, 1.0)
-        with po_form.order_line.edit(0) as line:
-            line.packaging_uom_qty = 2.0
-        po_form.save()
-        self.assertEqual(po.order_line.product_qty, 2.0)
+        self.assertEqual(po.order_line.product_uom_qty, 1.0)
 
         with po_form.order_line.edit(0) as line:
             line.product_qty = 24.0
             line.product_uom_id = packaging_pack_of_6
         po_form.save()
-        self.assertEqual(po.order_line.packaging_uom_qty, 4.0)
-        with po_form.order_line.edit(0) as line:
-            line.packaging_uom_qty = 1.0
-        po_form.save()
-        self.assertEqual(po.order_line.product_qty, 6)
+        self.assertEqual(po.order_line.product_uom_qty, 144.0)
 
         # Do the same test but without form, to check the `product_packaging_qty` is set
         # without manual call to compute
         po = self.env['purchase.order'].create({
             'partner_id': self.partner_a.id,
             'order_line': [
-                Command.create({'product_id': self.product_a.id, 'product_qty': 1.0, 'product_uom_id': packaging_single}),
+                Command.create({'product_id': self.product_a.id, 'product_qty': 1.0, 'product_uom_id': packaging_single.id}),
             ]
         })
-        self.assertEqual(po.order_line.packaging_uom_qty, 1.0)
-        po.order_line.packaging_uom_qty = 2.0
-        self.assertEqual(po.order_line.product_qty, 2.0)
+        self.assertEqual(po.order_line.product_uom_qty, 1.0)
 
         po.order_line.product_qty = 24.0
         po.order_line.product_uom_id = packaging_pack_of_6
-        self.assertEqual(po.order_line.packaging_uom_qty, 2.0)
-        po.order_line.packaging_uom_qty = 1.0
-        self.assertEqual(po.order_line.product_qty, 12)
+        self.assertEqual(po.order_line.product_uom_qty, 144.0)
 
     def test_compute_packaging_01(self):
         """Create a PO and use packaging in a multicompany environment.
@@ -325,19 +313,19 @@ class TestPurchase(AccountTestInvoicingCommon):
         po1 = self.env['purchase.order'].with_company(company1).create({
             'partner_id': self.partner_a.id,
             'order_line': [
-                Command.create({'product_id': self.product_a.id, 'product_qty': 10.0, 'product_uom_id': generic_single_pack}),
+                Command.create({'product_id': self.product_a.id, 'product_qty': 10.0, 'product_uom_id': generic_single_pack.id}),
             ]
         })
-        self.assertEqual(po1.order_line.packaging_uom_qty, 10.0)
+        self.assertEqual(po1.order_line.product_uom_qty, 10.0)
 
         # verify that with the right company, we can get the other packaging
         po2 = self.env['purchase.order'].with_company(company2).create({
             'partner_id': self.partner_a.id,
             'order_line': [
-                Command.create({'product_id': self.product_a.id, 'product_qty': 10.0, 'product_uom_id': company2_pack_of_10}),
+                Command.create({'product_id': self.product_a.id, 'product_qty': 10.0, 'product_uom_id': company2_pack_of_10.id}),
             ]
         })
-        self.assertEqual(po2.order_line.product_packaging_qty, 1.0)
+        self.assertEqual(po2.order_line.product_uom_qty, 100.0)
 
     def test_with_different_uom(self):
         """ This test ensures that the unit price is correctly computed"""
@@ -348,15 +336,16 @@ class TestPurchase(AccountTestInvoicingCommon):
         uom_pairs = self.env['uom.uom'].create({
             'name': 'Pairs',
             'relative_factor': 2,
+            'relative_uom_id': uom_units.id,
         })
         product_data = {
             'name': 'SuperProduct',
             'type': 'consu',
             'uom_id': uom_units.id,
-            'standard_price': 100,
             'seller_ids': [Command.create({
                 'partner_id': self.partner_a.id,
                 'product_uom_id': uom_pairs.id,
+                'price': 100,
             })]
         }
         product_01 = self.env['product.product'].create(product_data)
@@ -371,8 +360,8 @@ class TestPurchase(AccountTestInvoicingCommon):
             po_line.product_uom_id = uom_pack_of_6
         po = po_form.save()
 
-        self.assertEqual(po.order_line[0].price_unit, 200)
-        self.assertEqual(po.order_line[1].price_unit, 1200)
+        self.assertEqual(po.order_line[0].price_unit, 100)
+        self.assertEqual(po.order_line[1].price_unit, 300)
 
     def test_on_change_quantity_description(self):
         """

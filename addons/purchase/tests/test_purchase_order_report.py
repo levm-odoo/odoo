@@ -90,7 +90,7 @@ class TestPurchaseOrderReport(AccountTestInvoicingCommon):
         ])
 
         # check that report will convert pack_of_6 to unit or not
-        self.assertEqual(res_product1.qty_ordered, 12.0, 'UoM conversion is not working')
+        self.assertEqual(res_product1.qty_ordered, 6.0, 'UoM conversion is not working')
         # report should show in company currency (amount/rate) = (100/2)
         self.assertEqual(res_product1.price_total, 50.0, 'Currency conversion is not working')
 

@@ -86,8 +86,8 @@ class TestOnchangeProductId(TransactionCase):
         po_line.write({'product_qty': 20})
         self.assertEqual(0, po_line.price_unit, "Unit price should be reset to 0 since the supplier supplies minimum of 24 quantities")
 
-        po_line.write({'product_qty': 3, 'product_uom_id': self.ref("uom.product_uom_pack_6")})
-        self.assertEqual(1200, po_line.price_unit, "Unit price should be 1200 for one Dozen")
+        po_line.write({'product_qty': 6, 'product_uom_id': self.ref("uom.product_uom_pack_6")})
+        self.assertEqual(600, po_line.price_unit, "Unit price should be 600 for one Pack of 6")
         ipad_lot = self.env['uom.uom'].create({
             'name': 'Ipad',
         })

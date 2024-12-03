@@ -359,8 +359,14 @@ class TestPurchaseOrder(ValuationReconciliationTestCommon):
         self.assertEqual(partner_on_time_rate, po_on_time_rate)
 
     def test_04_multi_uom(self):
+        yards_uom = self.env['uom.uom'].create({
+            'name': 'Yards',
+            'factor': 0.9144,
+            'relative_uom_id': self.env.ref('uom.product_uom_meter').id,
+        })
         self.product_id_2.write({
             'uom_id': self.env.ref('uom.product_uom_meter').id,
+            'uom_ids': [Command.link(yards_uom.id)],
         })
         po = self.env['purchase.order'].create({
             'partner_id': self.partner_a.id,
@@ -369,7 +375,7 @@ class TestPurchaseOrder(ValuationReconciliationTestCommon):
                     'name': self.product_id_2.name,
                     'product_id': self.product_id_2.id,
                     'product_qty': 4.0,
-                    'product_uom_id': self.product_id_2.uom_id.id,
+                    'product_uom_id': yards_uom.id,
                     'price_unit': 1.0,
                     'date_planned': datetime.today().strftime(DEFAULT_SERVER_DATETIME_FORMAT),
                 })
@@ -507,6 +513,7 @@ class TestPurchaseOrder(ValuationReconciliationTestCommon):
         packaging = self.env['uom.uom'].create({
             'name': "Super Packaging",
             'relative_factor': 10.0,
+            'relative_uom_id': self.uom_unit.id,
         })
         self.product_a.uom_ids = packaging
 
@@ -519,13 +526,13 @@ class TestPurchaseOrder(ValuationReconciliationTestCommon):
         po = po_form.save()
         po.button_confirm()
 
-        self.assertEqual(po.order_line.packaging_uom_qty, 1)
+        self.assertEqual(po.order_line.product_uom_qty, 100)
 
         with Form(po) as po_form:
             with po_form.order_line.edit(0) as line:
                 line.product_qty = 8
 
-        self.assertEqual(po.picking_ids.move_ids.product_uom_qty, 8)
+        self.assertEqual(po.picking_ids.move_ids.product_uom_qty, 80)
 
     def test_packaging_propagation(self):
         """ Editing the packaging on an purchase.order.line
@@ -559,16 +566,16 @@ class TestPurchaseOrder(ValuationReconciliationTestCommon):
         po.button_confirm()
         # the 3 moves for the 3 steps
         step_1 = po.order_line.move_ids
-        self.assertEqual(step_1.packaging_uom_id, packOf10)
+        self.assertEqual(step_1.product_uom, packOf10)
 
         po.order_line[0].write({
             'product_uom_id': packOf20.id,
             'product_uom_qty': 20
         })
-        self.assertEqual(step_1.packaging_uom_id, packOf20)
+        self.assertEqual(step_1.product_uom, packOf20)
 
         po.order_line[0].write({'product_uom_id': False})
-        self.assertFalse(step_1.packaging_uom_id)
+        self.assertFalse(step_1.product_uom)
 
     def test_putaway_strategy_in_backorder(self):
         stock_location = self.company_data['default_warehouse'].lot_stock_id

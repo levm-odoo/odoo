@@ -300,7 +300,7 @@ class TestPurchaseRequisition(TestPurchaseRequisitionCommon):
             line.product_qty = 1
             line.product_uom_id = self.env.ref('uom.product_uom_pack_6')
         po_1 = po_form.save()
-        self.assertEqual(po_1.order_line[0].price_unit, 120)
+        self.assertEqual(po_1.order_line[0].price_unit, 60)
 
         # Creates an alternative PO.
         action = po_1.action_create_alternative()
@@ -312,7 +312,7 @@ class TestPurchaseRequisition(TestPurchaseRequisitionCommon):
 
         po_2 = po_1.alternative_po_ids - po_1
         self.assertEqual(po_2.order_line[0].product_uom_id, po_1.order_line[0].product_uom_id)
-        self.assertEqual(po_2.order_line[0].price_unit, 120)
+        self.assertEqual(po_2.order_line[0].price_unit, 60)
 
     def test_11_alternative_po_from_po_with_requisition_id(self):
         """Create a purchase order from a blanket order, then check that the alternative purchase order
