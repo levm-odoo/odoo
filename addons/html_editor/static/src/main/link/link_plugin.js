@@ -122,6 +122,13 @@ export class LinkPlugin extends Plugin {
                 run: this.toggleLinkTools.bind(this),
             },
             {
+                id: "toggleLinkToolsButton",
+                title: _t("Button"),
+                description: _t("Add a button"),
+                icon: "fa-link",
+                run: this.toggleLinkTools.bind(this, { type: "primary" }),
+            },
+            {
                 id: "removeLinkFromSelection",
                 title: _t("Remove Link"),
                 icon: "fa-unlink",
@@ -169,7 +176,7 @@ export class LinkPlugin extends Plugin {
                 title: _t("Button"),
                 description: _t("Add a button"),
                 categoryId: "navigation",
-                commandId: "toggleLinkTools",
+                commandId: "toggleLinkToolsButton",
             },
         ],
 
@@ -283,11 +290,12 @@ export class LinkPlugin extends Plugin {
      * @param {Object} options
      * @param {HTMLElement} options.link
      */
-    toggleLinkTools({ link } = {}) {
+    toggleLinkTools({ link, type } = {}) {
         if (!link) {
             link = this.getOrCreateLink();
         }
         this.linkElement = link;
+        this.type = type;
     }
 
     normalizeLink() {
@@ -318,6 +326,7 @@ export class LinkPlugin extends Plugin {
             },
             getInternalMetaData: this.getInternalMetaData,
             getExternalMetaData: this.getExternalMetaData,
+            type: this.type || "",
         };
         if (!selectionData.documentSelectionIsInEditable) {
             // note that data-prevent-closing-overlay also used in color picker but link popover

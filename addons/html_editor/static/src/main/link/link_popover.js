@@ -15,6 +15,7 @@ export class LinkPopover extends Component {
         getInternalMetaData: Function,
         getExternalMetaData: Function,
         isImage: Boolean,
+        type: String,
     };
     colorsData = [
         { type: "", label: _t("Link"), btnPreview: "link" },
@@ -53,8 +54,12 @@ export class LinkPopover extends Component {
             linkPreviewName: "",
             imgSrc: "",
             iconSrc: "",
-            classes: this.props.linkEl.className || "",
+            classes:
+                this.props.type === "primary"
+                    ? "btn btn-primary"
+                    : this.props.linkEl.className || "",
             type:
+                this.props.type ||
                 this.props.linkEl.className.match(/btn(-[a-z0-9_-]*)(primary|secondary)/)?.pop() ||
                 "",
             buttonSize: this.props.linkEl.className.match(/btn-(sm|lg)/)?.[1] || "",
