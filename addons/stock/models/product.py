@@ -1117,12 +1117,11 @@ class UomUom(models.Model):
 
     def write(self, values):
         # Users can not update the factor if open stock moves are based on it
-        if 'relative_factor' in values or 'category_id' in values:
+        keys_to_protect = {'factor', 'relative_factor', 'category_id'}
+        if any(key in values for key in keys_to_protect):
             changed = self.filtered(
                 lambda u: any(u[f] != values[f] if f in values else False
-                              for f in {'relative_factor'})) + self.filtered(
-                lambda u: any(u[f].id != int(values[f]) if f in values else False
-                              for f in {'category_id'}))
+                              for f in keys_to_protect))
             if changed:
                 error_msg = _(
                     "You cannot change the ratio of this unit of measure"

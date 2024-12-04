@@ -223,7 +223,7 @@ class StockMoveLine(TestStockCommon):
             freeze.tick(delta=datetime.timedelta(seconds=2))
             ml.write({
                 'product_uom_id': self.uom_unit.id,
-                'quantity': 24
+                'quantity': 12
             })
             # 2 pack_of_6 = 24 units
             self.assertEqual(update_date_3, ml.date, "Quantity change check for date should take into account UoM conversion")

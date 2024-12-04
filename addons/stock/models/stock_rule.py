@@ -364,7 +364,6 @@ class StockRule(models.Model):
             'description_picking': picking_description,
             'priority': values.get('priority', "0"),
             'orderpoint_id': values.get('orderpoint_id') and values['orderpoint_id'].id,
-            'packaging_uom_id': values.get('packaging_uom_id') and values['packaging_uom_id'].id,
         }
         if self.location_dest_from_rule:
             move_values['location_dest_id'] = self.location_dest_id.id

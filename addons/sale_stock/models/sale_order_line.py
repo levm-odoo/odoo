@@ -270,7 +270,6 @@ class SaleOrderLine(models.Model):
             'location_final_id': self._get_location_final(),
             'product_description_variants': self.with_context(lang=self.order_id.partner_id.lang)._get_sale_order_line_multiline_description_variants(),
             'company_id': self.order_id.company_id,
-            'packaging_uom_id': self.product_uom_id if self.product_uom_id != self.product_id.uom_id else False,
             'sequence': self.sequence,
             'never_product_template_attribute_value_ids': self.product_no_variant_attribute_value_ids,
             'uom_id': self.product_uom_id,

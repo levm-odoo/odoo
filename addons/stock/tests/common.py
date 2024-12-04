@@ -69,39 +69,22 @@ class TestStockCommon(TestProductCommon):
         })
         cls.uom_tone = cls.UomObj.create({
             'name': 'Test-Tone',
-            'relative_factor': 1000.0,
+            'factor': 1000.0,
         })
         cls.uom_gm = cls.UomObj.create({
             'name': 'Test-G',
-            'relative_factor': 0.001,
+            'factor': 0.001,
         })
         cls.uom_mg = cls.UomObj.create({
             'name': 'Test-MG',
-            'relative_factor': 0.0001,
+            'factor': 0.0001,
         })
         # Check Unit
         cls.uom_unit = cls.env.ref('uom.product_uom_unit')
         cls.uom_unit.write({
             'name': 'Test-Unit',
         })
-        cls.uom_pack_of_6 = cls.UomObj.create({
-            'name': 'Test-DozenA',
-            'relative_factor': 12,
-        })
-        cls.uom_spack_of_6 = cls.UomObj.create({
-            'name': 'Test-SDozenA',
-            'relative_factor': 144,
-        })
-        cls.uom_spack_of_6_round = cls.UomObj.create({
-            'name': 'Test-SDozenA Round',
-            'relative_factor': 144,
-        })
 
-        # Product for different unit of measure.
-        cls.DozA = cls.ProductObj.create({'name': 'Dozon-A', 'is_storable': True, 'uom_id': cls.uom_pack_of_6.id})
-        cls.SDozA = cls.ProductObj.create({'name': 'SuperDozon-A', 'is_storable': True, 'uom_id': cls.uom_spack_of_6.id})
-        cls.SDozARound = cls.ProductObj.create({'name': 'SuperDozenRound-A', 'is_storable': True, 'uom_id': cls.uom_spack_of_6_round.id})
-        cls.UnitA = cls.ProductObj.create({'name': 'Unit-A', 'is_storable': True})
         cls.kgB = cls.ProductObj.create({'name': 'kg-B', 'is_storable': True, 'uom_id': cls.uom_kg.id})
         cls.gB = cls.ProductObj.create({'name': 'g-B', 'is_storable': True, 'uom_id': cls.uom_gm.id})
 

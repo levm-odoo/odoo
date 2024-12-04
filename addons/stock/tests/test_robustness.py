@@ -38,7 +38,7 @@ class TestRobustness(TransactionCase):
             'location_dest_id': self.customer_location.id,
             'product_id': self.product1.id,
             'product_uom': self.uom_pack_of_6.id,
-            'product_uom_qty': 1,
+            'product_uom_qty': 2,
         })
         move1._action_confirm()
         move1._action_assign()
@@ -55,7 +55,7 @@ class TestRobustness(TransactionCase):
         # change the factor
         with self.assertRaises(UserError):
             with self.cr.savepoint():
-                move1.product_uom.relative_factor = 0.05
+                move1.product_uom.factor = 0.05
 
         # assert the reservation
         self.assertEqual(quant.reserved_quantity, 12)

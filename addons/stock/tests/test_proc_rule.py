@@ -32,7 +32,7 @@ class TestProcRule(TransactionCase):
         orderpoint_form.product_max_qty = 5.1
         orderpoint_form.replenishment_uom_id = self.env['uom.uom'].create({
             'name': 'Test UoM',
-            'factor_uom_reference': 0.1,
+            'factor': 0.1,
         })
         orderpoint = orderpoint_form.save()
         self.assertAlmostEqual(orderpoint.qty_to_order, orderpoint.product_max_qty)
@@ -303,20 +303,22 @@ class TestProcRule(TransactionCase):
             'name': 'Desk Combination',
             'is_storable': True,
         })
+        pack_of_10 = self.env['uom.uom'].create({
+            'name': 'pack of 10',
+            'factor': 10.0,
+        })
         self.env['stock.quant'].with_context(inventory_mode=True).create({
             'product_id': self.productA.id,
             'location_id': stock_location.id,
             'inventory_quantity': 14.5,
         }).action_apply_inventory()
+
         orderpoint = self.env['stock.warehouse.orderpoint'].create({
             'name': 'ProductA RR',
             'product_id': self.productA.id,
             'product_min_qty': 15.0,
             'product_max_qty': 30.0,
-            'replenishment_uom_id': [Command.create({
-                'name': 'Test UoM',
-                'factor_uom_reference': 10,
-            })]
+            'replenishment_uom_id': pack_of_10.id,
         })
         self.assertEqual(orderpoint.qty_to_order, 10.0)  # 15.0 < 14.5 + 10 <= 30.0
         # Test search on computed field
@@ -328,7 +330,7 @@ class TestProcRule(TransactionCase):
         orderpoint.write({
             'replenishment_uom_id': self.env['uom.uom'].create({
                 'name': 'Test UoM',
-                'factor_uom_reference': 1,
+                'factor': 1,
             })
         })
         self.assertEqual(orderpoint.qty_to_order, 15.0)  # 15.0 < 14.5 + 15 <= 30.0

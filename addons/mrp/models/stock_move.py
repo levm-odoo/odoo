@@ -91,15 +91,6 @@ class StockMoveLine(models.Model):
         kit_moves = defaultdict(lambda: self.env['stock.move'])
         kit_qty = {}
 
-        for line in aggregated_move_lines.values():
-            if line.get('packaging'):
-                bom_id = line['bom']
-                if bom_id and bom_id.type == "phantom":
-                    kit_aggregated_ml.add(line['line_key'])
-                    kit_moves[bom_id] |= line['move']
-                else:
-                    non_kit_ml[line['line_key']] = line
-
         filters = {'incoming_moves': lambda m: True, 'outgoing_moves': lambda m: False}
         for bom, moves in kit_moves.items():
             if moves.picking_id.backorder_ids:

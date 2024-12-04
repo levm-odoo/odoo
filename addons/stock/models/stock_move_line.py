@@ -807,15 +807,6 @@ class StockMoveLine(models.Model):
             'move': move,
         }
 
-    @api.model
-    def _compute_packaging_qtys(self, aggregated_move_lines):
-        # Needs to be computed after aggregation of line qtys
-        for line in aggregated_move_lines.values():
-            if line.get('packaging'):
-                line['packaging_qty'] = line['packaging']._compute_qty(line['qty_ordered'], line['product_uom'])
-                line['packaging_quantity'] = line['packaging']._compute_qty(line['quantity'], line['product_uom'])
-        return aggregated_move_lines
-
     def _get_aggregated_product_quantities(self, **kwargs):
         """ Returns a dictionary of products (key = id+name+description+uom) and corresponding values of interest.
 
@@ -824,7 +815,7 @@ class StockMoveLine(models.Model):
         the products by (i.e. so data is not lost). This function purposely ignores lots/SNs because these are
         expected to already be properly grouped by line.
 
-        returns: dictionary {product_id+name+description+uom: {product, name, description, quantity, product_uom, packaging}, ...}
+        returns: dictionary {product_id+name+description+uom: {product, name, description, quantity, product_uom}, ...}
         """
         aggregated_move_lines = {}
 
@@ -869,7 +860,7 @@ class StockMoveLine(models.Model):
         # Does the same for empty move line to retrieve the ordered qty. for partially done moves
         # (as they are splitted when the transfer is done and empty moves don't have move lines).
         if kwargs.get('strict'):
-            return self._compute_packaging_qtys(aggregated_move_lines)
+            return aggregated_move_lines
         pickings = (self.picking_id | backorders)
         for empty_move in pickings.move_ids:
             to_bypass = False
@@ -894,7 +885,7 @@ class StockMoveLine(models.Model):
             elif line_key in aggregated_move_lines:
                 aggregated_move_lines[line_key]['qty_ordered'] += empty_move.product_uom_qty
 
-        return self._compute_packaging_qtys(aggregated_move_lines)
+        return aggregated_move_lines
 
     def _compute_sale_price(self):
         # To Override

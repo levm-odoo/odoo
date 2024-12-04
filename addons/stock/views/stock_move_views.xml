@@ -40,8 +40,6 @@
                         decoration-muted="location_usage not in ('internal','transit')"/>
                     <field name="location_dest_id" options="{'no_create': True}" string="To"
                         decoration-muted="location_dest_usage not in ('internal','transit')"/>
-                    <field name="packaging_uom_id" groups="uom.group_uom"
-                        optional="hide" readonly="not product_id" options="{'no_create': True}"/>
                     <field name="product_uom_qty" sum="Total Demand" readonly="state == 'done'"/>
                     <field name="quantity" string="Quantity" sum="Total Quantity"
                         decoration-danger="(location_usage in ('internal','transit')) and (location_dest_usage not in ('internal','transit'))"

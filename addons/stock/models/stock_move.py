@@ -190,9 +190,6 @@ class StockMove(models.Model):
     forecast_expected_date = fields.Datetime('Forecasted Expected date', compute='_compute_forecast_information', compute_sudo=True)
     lot_ids = fields.Many2many('stock.lot', compute='_compute_lot_ids', inverse='_set_lot_ids', string='Serial Numbers', readonly=False)
     reservation_date = fields.Date('Date to Reserve', compute='_compute_reservation_date', store=True, help="Computes when a move should be reserved")
-    allowed_packaging_uom_ids = fields.Many2many('uom.uom', compute='_compute_allowed_packaging_uom_ids')
-    packaging_uom_id = fields.Many2one('uom.uom', 'Packaging', domain="[('id', 'in', allowed_packaging_uom_ids)]")
-    packaging_uom_qty = fields.Float('Packaging Quantity', compute='_compute_packaging_uom_qty', inverse='_set_packaging_uom_qty', store=True)
     show_quant = fields.Boolean("Show Quant", compute="_compute_show_info")
     show_lots_m2o = fields.Boolean("Show lot_id", compute="_compute_show_info")
     show_lots_text = fields.Boolean("Show lot_name", compute="_compute_show_info")
@@ -591,22 +588,6 @@ Please change the quantity done or the rounding precision of your unit of measur
                 if move.priority == '1':
                     days = move.picking_type_id.reservation_days_before_priority
                 move.reservation_date = fields.Date.to_date(move.date) - timedelta(days=days)
-
-    @api.depends('product_id', 'product_id.uom_id', 'product_id.uom_ids')
-    def _compute_allowed_packaging_uom_ids(self):
-        for move in self:
-            move.allowed_packaging_uom_ids = move.product_id.uom_id | move.product_id.uom_ids
-
-    @api.depends('product_id', 'product_uom', 'product_uom_qty', 'packaging_uom_id', 'packaging_uom_qty')
-    def _compute_packaging_uom_qty(self):
-        for move in self:
-            if move.packaging_uom_id and move.packaging_uom_id != move.product_uom:
-                move.packaging_uom_qty = move.product_uom._compute_quantity(move.product_uom_qty, move.packaging_uom_id)
-
-    def _set_packaging_uom_qty(self):
-        for move in self:
-            if move.packaging_uom_id and move.packaging_uom_id != move.product_uom:
-                move.product_uom_qty = move.packaging_uom_id._compute_quantity(move.packaging_uom_qty, move.product_uom)
 
     @api.depends(
         'has_tracking',

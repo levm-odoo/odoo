@@ -280,8 +280,6 @@
                                     <field name="is_initial_demand_editable" column_invisible="True"/>
                                     <field name="display_import_lot" column_invisible="True"/>
                                     <field name="picking_type_entire_packs" column_invisible="True"/>
-                                    <field name="packaging_uom_qty" groups="uom.group_uom" readonly="1" optional="hide"/>
-                                    <field name="packaging_uom_id" groups="uom.group_uom" readonly="1" optional="hide" options="{'no_create': True}"/>
                                     <field name="product_uom_qty" string="Demand" readonly="not is_initial_demand_editable"/>
                                     <button type="object" name="action_product_forecast_report" title="Forecast Report" icon="fa-area-chart"
                                         invisible="not product_id or product_uom_qty == 0 or quantity == 0 and forecast_availability &lt;= 0 or (parent.picking_type_code == 'outgoing' and state != 'draft')"/>
