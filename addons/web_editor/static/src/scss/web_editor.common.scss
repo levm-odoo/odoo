@@ -905,8 +905,25 @@ section, .oe_img_bg, [data-oe-shape-data] {
     @return $url-params;
 }
 
+.test .o_we_shape {
+    &:before {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 10px;
+        background: #fff;
+        content: '❌ Mobile';
+        color: #000;
+    }
+}
+
+.test_solution .o_we_shape:before {
+    content: '✅ Mobile';
+}
+
 .o_we_shape {
     @extend %o-we-background-layer;
+
 
     &.o_we_animated {
         will-change: transform;
