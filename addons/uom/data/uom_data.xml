@@ -63,4 +63,35 @@
         <field name="relative_factor" eval="1000"/>
         <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
     </record>
+
+    <!--Americanization of units of measure-->
+    <!-- LENGTH -->
+    <record id="product_uom_inch" model="uom.uom">
+        <field name="name">inch</field>
+        <field name="relative_uom_id" ref="uom.product_uom_meter"/>
+        <field name="relative_factor" eval="0.0254"/>
+        <field name="active" eval="False"/>
+    </record>
+    <record id="product_uom_foot" model="uom.uom">
+        <field name="name">foot</field>
+        <field name="relative_uom_id" ref="uom.product_uom_meter"/>
+        <field name="relative_factor" eval="0.3048"/>
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- SURFACE -->
+    <record id="product_uom_square_foot" model="uom.uom">
+        <field name="name">ft²</field>
+        <field name="relative_uom_id" ref="uom.uom_square_meter"/>
+        <field name="relative_factor" eval="0.092903"/>
+        <field name="active" eval="False"/>
+    </record>
+
+    <!-- WEIGHT -->
+    <record id="product_uom_pound" model="uom.uom">
+        <field name="name">lb</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+        <field name="relative_factor" eval="0.453592"/>
+        <field name="active" eval="False"/>
+    </record>
 </odoo>

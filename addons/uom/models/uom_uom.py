@@ -27,7 +27,7 @@ class UomUom(models.Model):
     active = fields.Boolean('Active', default=True, help="Uncheck the active field to disable a unit of measure without deleting it.")
     relative_uom_id = fields.Many2one('uom.uom', 'Reference Unit', ondelete='cascade')
     related_uom_ids = fields.One2many('uom.uom', 'relative_uom_id', 'Related UoMs')
-    factor = fields.Float('Absolute Quantity', compute='_compute_factor', store=True, digits='Product Unit of Measure')
+    factor = fields.Float('Absolute Quantity', compute='_compute_factor', store=True, digits=0)
 
     _factor_gt_zero = models.Constraint(
         'CHECK (relative_factor!=0)',
