@@ -770,22 +770,3 @@ class EventEvent(models.Model):
         ])
         if ended_events:
             ended_events.action_set_done()
-
-    def _get_event_timeframe_string(self):
-        self.ensure_one()
-        start_datetime = format_datetime(self.env, self.date_begin, self.date_tz, "short")
-        if self.is_one_day:
-            end_datetime = format_time(self.env, self.date_end, self.date_tz, "short")
-        else:
-            end_datetime = format_datetime(self.env, self.date_end, self.date_tz, "short")
-        return _("%(start_date)s to %(end_date)s", start_date=start_datetime, end_date=end_datetime)
-
-    def _get_event_print_details(self):
-        self.ensure_one()
-        return {
-            'name': self.name,
-            'badge_image': self.badge_image,
-            'timeframe': self._get_event_timeframe_string(),
-            'address': self.address_id.name if self.address_id else None,
-            'logo': self.company_id.logo,
-        }
