@@ -19,7 +19,7 @@ class TestCustomize(HttpCaseWithUserDemo, HttpCaseWithUserPortal, TestProductCon
         cls.env.company.country_id = cls.env.ref('base.us')
 
         product_attribute = cls.env['product.attribute'].create({
-            'name': 'Legs',
+            'name': 'Legs Test',
             'visibility': 'visible',
             'sequence': 10,
             'value_ids': [

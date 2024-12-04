@@ -280,6 +280,11 @@ class WebsiteSale(payment_portal.PaymentPortal):
         if attrib_list:
             post['attribute_value'] = attrib_list
 
+        if attrib_values:
+            request.session['attrib_values'] = attrib_values
+        else:
+            request.session.pop('attrib_values', None)
+
         filter_by_tags_enabled = website.is_view_active('website_sale.filter_products_tags')
         if filter_by_tags_enabled:
             tags = request_args.getlist('tags')
