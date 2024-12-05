@@ -456,12 +456,26 @@ class AccountMove(models.Model):
         required=True,
         compute='_compute_currency_id', inverse='_inverse_currency_id', store=True, readonly=False, precompute=True,
     )
+    expected_invoice_currency_rate = fields.Float(
+        string='Expected Currency Rate',
+        compute='_compute_expected_invoice_currency_rate',
+    )
     invoice_currency_rate = fields.Float(
         string='Currency Rate',
         compute='_compute_invoice_currency_rate', store=True, precompute=True,
         copy=False,
         digits=0,
+        readonly=False,
+        tracking=True,
+        inverse='_inverse_invoice_currency_rate',
         help="Currency rate from company currency to document currency.",
+    )
+    is_invoice_currency_rate_manually_modified = fields.Boolean(
+        copy=False,
+        readonly=True,
+    )
+    show_invoice_currency_rate_expected_vs_set_warning = fields.Boolean(
+        compute='_compute_show_invoice_currency_rate_expected_vs_set_warning'
     )
 
     # === Amount fields === #
@@ -987,19 +1001,37 @@ class AccountMove(models.Model):
             )
             invoice.currency_id = currency
 
-    @api.depends('currency_id', 'company_currency_id', 'company_id', 'invoice_date')
-    def _compute_invoice_currency_rate(self):
+    @api.depends('currency_id', 'company_currency_id', 'company_id', 'invoice_date', 'reversed_entry_id')
+    def _compute_expected_invoice_currency_rate(self):
         for move in self:
             if move.is_invoice(include_receipts=True):
-                if move.currency_id:
-                    move.invoice_currency_rate = self.env['res.currency']._get_conversion_rate(
+                if move.reversed_entry_id:
+                    move.expected_invoice_currency_rate = move.reversed_entry_id.invoice_currency_rate
+                elif move.currency_id:
+                    move.expected_invoice_currency_rate = self.env['res.currency']._get_conversion_rate(
                         from_currency=move.company_currency_id,
                         to_currency=move.currency_id,
                         company=move.company_id,
                         date=move.invoice_date or fields.Date.context_today(move),
                     )
                 else:
-                    move.invoice_currency_rate = 1
+                    move.expected_invoice_currency_rate = 1
+            else:
+                move.expected_invoice_currency_rate = False
+
+    @api.depends('currency_id', 'company_currency_id', 'company_id', 'invoice_date', 'reversed_entry_id')
+    def _compute_invoice_currency_rate(self):
+        for move in self:
+            move.invoice_currency_rate = move.expected_invoice_currency_rate
+
+    @api.depends('invoice_currency_rate', 'expected_invoice_currency_rate')
+    def _compute_show_invoice_currency_rate_expected_vs_set_warning(self):
+        for move in self:
+            if move.invoice_currency_rate and move.expected_invoice_currency_rate:
+                diff = abs(move.expected_invoice_currency_rate - move.invoice_currency_rate) / move.expected_invoice_currency_rate
+                move.show_invoice_currency_rate_expected_vs_set_warning = diff >= 0.2
+            else:
+                move.show_invoice_currency_rate_expected_vs_set_warning = False
 
     @api.depends('move_type')
     def _compute_direction_sign(self):
@@ -2014,6 +2046,18 @@ class AccountMove(models.Model):
     # -------------------------------------------------------------------------
     # INVERSE METHODS
     # -------------------------------------------------------------------------
+
+    def _inverse_invoice_currency_rate(self):
+        if (
+            isinstance(self.invoice_currency_rate, float)
+            and (
+                self.invoice_currency_rate <= 0
+                or self.currency_id == self.company_currency_id
+            )
+        ):
+            self.invoice_currency_rate = self.expected_invoice_currency_rate
+
+        self.is_invoice_currency_rate_manually_modified = self.invoice_currency_rate != self.expected_invoice_currency_rate
 
     def _inverse_tax_totals(self):
         if self.env.context.get('skip_invoice_sync'):
@@ -3175,7 +3219,8 @@ class AccountMove(models.Model):
             move_state = vals.get('state', move.state)
             unmodifiable_fields = (
                 'invoice_line_ids', 'line_ids', 'invoice_date', 'date', 'partner_id', 'partner_bank_id',
-                'invoice_payment_term_id', 'currency_id', 'fiscal_position_id', 'invoice_cash_rounding_id')
+                'invoice_payment_term_id', 'currency_id', 'fiscal_position_id', 'invoice_cash_rounding_id',
+                'invoice_currency_rate')
             readonly_fields = [val for val in vals if val in unmodifiable_fields]
             if not self._context.get('skip_readonly_check') and move_state == "posted" and readonly_fields:
                 raise UserError(_("You cannot modify the following readonly fields on a posted move: %s", ', '.join(readonly_fields)))
@@ -4776,7 +4821,10 @@ class AccountMove(models.Model):
             # lines are recomputed accordingly.
             if not invoice.invoice_date:
                 if invoice.is_sale_document(include_receipts=True):
-                    invoice.invoice_date = fields.Date.context_today(self)
+                    invoice.write(
+                        {'invoice_date': fields.Date.context_today(invoice)}
+                        | {} if not invoice.is_invoice_currency_rate_manually_modified else {'invoice_currency_rate': invoice.invoice_currency_rate}
+                    )
                 elif invoice.is_purchase_document(include_receipts=True):
                     validation_msgs.add(_("The Bill/Refund date is required to validate this document."))
 
