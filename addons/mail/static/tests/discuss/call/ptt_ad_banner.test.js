@@ -10,6 +10,7 @@ import {
     startServer,
 } from "@mail/../tests/mail_test_helpers";
 import { describe, test } from "@odoo/hoot";
+import { animationFrame } from "@odoo/hoot-dom";
 import { mockService } from "@web/../tests/web_test_helpers";
 
 describe.current.tags("desktop");
@@ -32,6 +33,7 @@ test("display banner when ptt extension is not enabled", async () => {
     await click("button", { text: "Push to Talk" });
     await click("[title*='Close Chat Window']");
     await click("button", { text: "Start a meeting" });
+    await animationFrame();
     await click("button[title='Close panel']"); // invitation panel automatically open
     await contains(".o-discuss-PttAdBanner");
     await click("[title='Open Actions Menu']");

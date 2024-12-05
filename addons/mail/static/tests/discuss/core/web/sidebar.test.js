@@ -75,8 +75,8 @@ test("unknown channel can be displayed and interacted with", async () => {
     await contains(".o-mail-DiscussSidebarChannel.o-active", { text: "Not So Secret" });
     await insertText(".o-mail-Composer-input", "Hello", { replace: true });
     await click(".o-mail-Composer-send:enabled");
-    await contains(".o-mail-Message", { text: "Hello" });
     await waitNotifications([env, "discuss.channel/new_message"]);
+    await contains(".o-mail-Message", { text: "Hello" });
     await click("button", { text: "Inbox" });
     await contains(".o-mail-DiscussSidebarChannel:not(.o-active)", { text: "Not So Secret" });
     await click("[title='Leave Channel']", {

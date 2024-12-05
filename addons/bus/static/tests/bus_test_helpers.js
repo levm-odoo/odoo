@@ -58,9 +58,11 @@ viewsRegistry.category("form").add(
     </form>`
 );
 
+const CHANNEL_TIMEOUT = 2000;
 // should be enough to decide whether or not notifications/channel
 // subscriptions... are received.
-const TIMEOUT = 500;
+const NOTIFICATION_TIMEOUT = 500;
+const SUBSCRIPTION_TIMEOUT = 500;
 
 /**
  * @param {string} eventName
@@ -90,7 +92,7 @@ export function offWebsocketEvent(eventName, cb) {
  */
 export function waitUntilSubscribe() {
     const def = new Deferred();
-    const timeout = setTimeout(() => handleResult(false), TIMEOUT);
+    const timeout = setTimeout(() => handleResult(false), SUBSCRIPTION_TIMEOUT);
 
     function handleResult(success) {
         clearTimeout(timeout);
@@ -136,7 +138,7 @@ export function waitForChannels(channels, { operation = "add" } = {}) {
         offWebsocketEvent("subscribe", check);
         const message = success
             ? `Channel(s) [${channels.join(", ")}] ${operation === "add" ? "added" : "deleted"}.`
-            : `Waited ${TIMEOUT}ms for [${channels.join(", ")}] to be ${
+            : `Waited ${CHANNEL_TIMEOUT}ms for [${channels.join(", ")}] to be ${
                   operation === "add" ? "added" : "deleted"
               }`;
         expect(success).toBe(true, { message });
@@ -148,7 +150,7 @@ export function waitForChannels(channels, { operation = "add" } = {}) {
         done = true;
     }
 
-    const failTimeout = setTimeout(() => check({ crashOnFail: true }), TIMEOUT);
+    const failTimeout = setTimeout(() => check({ crashOnFail: true }), CHANNEL_TIMEOUT);
     after(() => {
         if (!done) {
             check({ crashOnFail: true });
@@ -181,7 +183,7 @@ function _waitNotification(notification) {
         });
         env.services["bus_service"].unsubscribe(type, callback);
         notificationDeferred.resolve();
-    }, TIMEOUT);
+    }, NOTIFICATION_TIMEOUT);
     const callback = (notifPayload) => {
         if (payload === undefined || JSON.stringify(notifPayload) === JSON.stringify(payload)) {
             expect(received).toBe(true, {

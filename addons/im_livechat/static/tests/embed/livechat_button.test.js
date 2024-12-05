@@ -50,8 +50,8 @@ test("open/close persisted channel", async () => {
     await insertText(".o-mail-Composer-input", "How can I help?");
     await triggerHotkey("Enter");
     await assertSteps(["persisted"]);
-    await contains(".o-mail-Message-content", { text: "How can I help?" });
     await waitNotifications([env, "discuss.channel/new_message"]);
+    await contains(".o-mail-Message-content", { text: "How can I help?" });
     await click("[title*='Close Chat Window']");
     await click(".o-livechat-CloseConfirmation-leave");
     await contains(".o-mail-ChatWindow", { text: "Did we correctly answer your question?" });
