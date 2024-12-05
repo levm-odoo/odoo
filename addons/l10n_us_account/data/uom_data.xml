@@ -2,20 +2,20 @@
 <odoo noupdate="1">
 
     <!-- LENGTH -->
-    <record id="product_uom_inch" model="uom.uom">
+    <record id="uom.product_uom_inch" model="uom.uom">
         <field name="active" eval="True"/>
     </record>
-    <record id="product_uom_foot" model="uom.uom">
+    <record id="uom.product_uom_foot" model="uom.uom">
         <field name="active" eval="True"/>
     </record>
 
     <!-- SURFACE -->
-    <record id="product_uom_square_foot" model="uom.uom">
+    <record id="uom.product_uom_square_foot" model="uom.uom">
         <field name="active" eval="True"/>
     </record>
 
     <!-- WEIGHT -->
-    <record id="product_uom_pound" model="uom.uom">
+    <record id="uom.product_uom_pound" model="uom.uom">
         <field name="active" eval="True"/>
     </record>
 </odoo>
