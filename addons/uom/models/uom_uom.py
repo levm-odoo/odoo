@@ -6,7 +6,6 @@ from datetime import timedelta
 
 from odoo import api, fields, tools, models, _
 from odoo.exceptions import UserError, ValidationError
-from odoo.orm.decorators import readonly
 
 
 class UomUom(models.Model):
