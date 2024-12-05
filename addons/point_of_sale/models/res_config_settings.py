@@ -164,6 +164,9 @@ class ResConfigSettings(models.TransientModel):
 
         return result
 
+    def execute(self):
+        return False
+
     def set_values(self):
         super(ResConfigSettings, self).set_values()
         if not self.group_product_pricelist:
