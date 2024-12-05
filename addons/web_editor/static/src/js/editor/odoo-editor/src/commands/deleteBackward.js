@@ -33,6 +33,7 @@ import {
 } from '../utils/utils.js';
 
 Text.prototype.oDeleteBackward = function (offset, alreadyMoved = false) {
+
     const parentElement = this.parentElement;
 
     if (!offset) {
