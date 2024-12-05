@@ -8,6 +8,7 @@ import "@website/libs/zoomodoo/zoomodoo";
 import { ProductImageViewer } from "@website_sale/js/components/website_sale_image_viewer";
 import VariantMixin from "@website_sale/js/sale_variant_mixin";
 import { cartHandlerMixin } from "@website_sale/js/website_sale_utils";
+import wUtils from '@website/js/utils';
 
 
 export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, cartHandlerMixin, {
@@ -50,6 +51,11 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, cartHandlerM
     start() {
         const def = this._super(...arguments);
 
+        this.productPageGrid = this.$target[0].querySelector("#o-grid-product");
+        if (this.productPageGrid) {
+            this._masonry()
+        }
+
         this._applyHash();
 
         // This has to be triggered to compute the "out of stock" feature and the hash variant changes
@@ -78,6 +84,70 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, cartHandlerM
         this.getRedirectOption();
         return def;
     },
+
+    reorderImages(images, columns) {
+        const rows = Math.ceil(images.length / columns);
+        const orderedImages = [];
+        const len = images.length
+    
+        for (let r = 0; r < rows; r++) {
+            let next_rows = (r < rows-1) ? len - (r+1) * columns : 0;
+            for (let c = 0; c < columns; c++) {
+                let empty_next_rows = (columns > next_rows && next_rows > 0 && next_rows < c) ? c - next_rows : 0;
+                const index = c * rows + r - empty_next_rows;
+                if (index < len && c < (len - columns * r)) {
+                    orderedImages.push(images[index]);
+                }
+            }
+        }
+        return orderedImages;
+    },
+    
+    _masonry() {
+        let imgs = Array.from(document.querySelectorAll('#product_detail_main [data-oe-type="image"]'));
+        const columns = Math.min(this.productPageGrid.dataset.grid_columns, imgs.length);
+        imgs = this.reorderImages(imgs, columns);
+        const colClass = 'col-lg-' + (12 / columns);
+        const cols = [];
+    
+        const row = document.createElement('div');
+        row.className = 'row';
+        const container = document.querySelector('.o_wsale_product_images > #o-grid-product > .container');
+        container.innerHTML = ''; // Vider le conteneur
+        container.appendChild(row);
+    
+        // Créer des colonnes
+        for (let c = 0; c < columns; c++) {
+            const col = document.createElement('div');
+            col.className = `col o_wsale_product_page_grid_column d-flex flex-column px-0 ${colClass}`;
+            row.appendChild(col);
+            cols.push(col);
+        }
+    
+        // Distribuer les images dans les colonnes en plaçant toujours la prochaine dans la colonne la plus courte
+        return new Promise(async resolve => {
+            for (const imgEl of imgs) {
+                let min = Infinity;
+                let smallestColEl;
+    
+                for (const colEl of cols) {
+                    const imgEls = colEl.querySelectorAll('img');
+                    const lastImgRect = imgEls.length ? imgEls[imgEls.length - 1].getBoundingClientRect() : null;
+                    const height = lastImgRect ? Math.round(lastImgRect.top + lastImgRect.height) : 0;
+                    if (height < min) {
+                        min = height;
+                        smallestColEl = colEl;
+                    }
+                }
+    
+                // Chrome : forcer le chargement en clonant les images
+                smallestColEl.appendChild(imgEl.cloneNode(true));
+                await wUtils.onceAllImagesLoaded(this.$target); // Appeler cette méthode après avoir déplacé une image
+            }
+            resolve();
+        });
+    },
+    
     destroy() {
         this._super.apply(this, arguments);
         this._cleanupZoom();

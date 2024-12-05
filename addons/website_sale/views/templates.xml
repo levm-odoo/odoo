@@ -3275,7 +3275,7 @@
                 />
                 <!-- One row for every two images -->
                 <t t-set="image_classes" t-value="'w-100'"/>
-                <div class="row">
+                <div class="row opacity-0">
                     <t t-foreach="website.product_page_grid_columns" t-as="col_idx">
                         <t t-set="col_feed_counter" t-value="0"/>
 
