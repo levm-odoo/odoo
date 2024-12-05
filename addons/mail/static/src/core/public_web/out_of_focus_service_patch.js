@@ -7,7 +7,7 @@ patch(OutOfFocusService.prototype, {
         this.titleService = services.title;
         this.counter = 0;
         this.contributingMessageLocalIds = new Set();
-        env.bus.addEventListener("window_focus", () => this.clearUnreadMessage());
+        // env.bus.addEventListener("window_focus", () => this.clearUnreadMessage());
     },
     clearUnreadMessage() {
         this.counter = 0;
