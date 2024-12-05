@@ -69,7 +69,14 @@ def float_round(value, precision_digits=None, precision_rounding=None, rounding_
     # direction.
     # Credit: discussion with OpenERP community members on bug 882036
 
-    normalized_value = value / rounding_factor # normalize
+    inversed_normalize = precision_digits is not None and abs(value - 10**-precision_digits) > 10
+    if inversed_normalize:
+        # avoid using a rounding factor that is too small compared
+        # to the number being rounded in absolute value
+        rounding_factor = 10**precision_digits
+        normalized_value = value * rounding_factor # normalize
+    else:
+        normalized_value = value / rounding_factor # normalize
     sign = math.copysign(1.0, normalized_value)
     epsilon_magnitude = math.log(abs(normalized_value), 2)
     epsilon = 2**(epsilon_magnitude-52)
@@ -96,7 +103,7 @@ def float_round(value, precision_digits=None, precision_rounding=None, rounding_
         normalized_value += math.copysign(epsilon, normalized_value)
         rounded_value = round(normalized_value)     # round to integer
 
-    result = rounded_value * rounding_factor # de-normalize
+    result = rounded_value / rounding_factor if inversed_normalize else rounded_value * rounding_factor # de-normalize
     return result
 
 def float_is_zero(value, precision_digits=None, precision_rounding=None):
