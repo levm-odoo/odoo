@@ -1539,7 +1539,13 @@ class Float(Field):
         # apply rounding here, otherwise value in cache may be wrong!
         value = float(value or 0.0)
         digits = self.get_digits(record.env)
-        return float_round(value, precision_digits=digits[1]) if digits else value
+        # float_round has issues when the magnitude of value is hihg compared to the precision
+        # e.g: rounding 434.4 to two digits (normalizing factor=0.01)
+        # >>> 434.4 / 0.01 * 0.01
+        # 434.40000000000003
+        # thus for precision in digits we can resort to the str representation to be sure the value
+        # matches what gets shown in, and sent from, the frontend
+        return float(float_repr(float_round(value, precision_digits=digits[1]), precision_digits=digits[1])) if digits else value
 
     def convert_to_record(self, value, record):
         return value or 0.0
