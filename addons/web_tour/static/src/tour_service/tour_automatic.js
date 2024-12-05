@@ -34,6 +34,7 @@ export class TourAutomatic {
 
     start(pointer) {
         setupEventActions(document.createElement("div"));
+        console.log("Starting tour currentIndex", this.currentIndex);
         const macroSteps = this.steps
             .filter((step) => step.index >= this.currentIndex)
             .flatMap((step) => {
