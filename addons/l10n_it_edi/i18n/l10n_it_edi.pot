@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 18.0\n"
+"Project-Id-Version: Odoo Server 18.1alpha1+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-17 09:50+0000\n"
-"PO-Revision-Date: 2024-10-17 09:50+0000\n"
+"POT-Creation-Date: 2024-12-19 17:49+0000\n"
+"PO-Revision-Date: 2024-12-19 17:49+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -296,7 +296,14 @@ msgid "Destination Code must have between 6 and 7 characters."
 msgstr ""
 
 #. module: l10n_it_edi
+#: model:ir.model.fields,field_description:l10n_it_edi.field_account_edi_proxy_client_user__display_name
+#: model:ir.model.fields,field_description:l10n_it_edi.field_account_move__display_name
+#: model:ir.model.fields,field_description:l10n_it_edi.field_account_move_send__display_name
+#: model:ir.model.fields,field_description:l10n_it_edi.field_ir_attachment__display_name
 #: model:ir.model.fields,field_description:l10n_it_edi.field_l10n_it_ddt__display_name
+#: model:ir.model.fields,field_description:l10n_it_edi.field_res_company__display_name
+#: model:ir.model.fields,field_description:l10n_it_edi.field_res_config_settings__display_name
+#: model:ir.model.fields,field_description:l10n_it_edi.field_res_partner__display_name
 msgid "Display Name"
 msgstr ""
 
@@ -354,7 +361,14 @@ msgid "Fiscal code of your company"
 msgstr ""
 
 #. module: l10n_it_edi
+#: model:ir.model.fields,field_description:l10n_it_edi.field_account_edi_proxy_client_user__id
+#: model:ir.model.fields,field_description:l10n_it_edi.field_account_move__id
+#: model:ir.model.fields,field_description:l10n_it_edi.field_account_move_send__id
+#: model:ir.model.fields,field_description:l10n_it_edi.field_ir_attachment__id
 #: model:ir.model.fields,field_description:l10n_it_edi.field_l10n_it_ddt__id
+#: model:ir.model.fields,field_description:l10n_it_edi.field_res_company__id
+#: model:ir.model.fields,field_description:l10n_it_edi.field_res_config_settings__id
+#: model:ir.model.fields,field_description:l10n_it_edi.field_res_partner__id
 msgid "ID"
 msgstr ""
 

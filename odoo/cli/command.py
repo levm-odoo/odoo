@@ -1,12 +1,14 @@
 import argparse
-import contextlib
 import logging
 import sys
 from inspect import cleandoc
+from contextlib import contextmanager, suppress
 from pathlib import Path
 
 import odoo
 from odoo.modules import get_module_path, get_modules, initialize_sys_path
+from odoo.modules.registry import Registry
+
 
 commands = {}
 """All loaded commands"""
@@ -39,6 +41,12 @@ class Command:
             )
         return self._parser
 
+    @contextmanager
+    def build_env(self, db_name):
+        with Registry(db_name).cursor() as cr:
+            self.env = odoo.api.Environment(cr, odoo.SUPERUSER_ID, {})
+            yield
+
 
 def load_internal_commands():
     """Load `commands` from `odoo.cli`"""
@@ -55,7 +63,7 @@ def load_addons_commands():
     initialize_sys_path()
     for module in get_modules():
         if (Path(get_module_path(module)) / 'cli').is_dir():
-            with contextlib.suppress(ImportError):
+            with suppress(ImportError):
                 __import__(f'odoo.addons.{module}')
     logging.disable(logging.NOTSET)
     return list(commands)
