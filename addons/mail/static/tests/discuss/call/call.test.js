@@ -12,6 +12,10 @@ import {
     triggerEvents,
 } from "@mail/../tests/mail_test_helpers";
 import { mailDataHelpers } from "@mail/../tests/mock_server/mail_mock_server";
+import {
+    CROSS_TAB_HOST_MESSAGE,
+    CROSS_TAB_CLIENT_MESSAGE,
+} from "@mail/discuss/call/common/rtc_service";
 
 import { describe, expect, test } from "@odoo/hoot";
 import { hover, queryFirst } from "@odoo/hoot-dom";
@@ -582,4 +586,44 @@ test("Use saved volume settings", async () => {
     const rangeInput = queryFirst(".o-discuss-CallContextMenu input[type='range']");
     expect(rangeInput.value).toBe(expectedVolume.toString());
     await click(".o-discuss-CallActionList button[aria-label='Disconnect']");
+});
+
+test("Cross tab calls: tabs can interact with calls remotely", async () => {
+    mockGetMedia();
+    const pyEnv = await startServer();
+    const channelId = pyEnv["discuss.channel"].create({ name: "General" });
+    const broadcastChannel = new browser.BroadcastChannel("call_sync_state");
+    const sessionId = pyEnv["discuss.channel.rtc.session"].create({
+        channel_member_id: pyEnv["discuss.channel.member"].create({
+            channel_id: channelId,
+            partner_id: pyEnv["res.partner"].create({ name: "remoteHost" }),
+        }),
+        channel_id: channelId,
+    });
+    await start();
+    await openDiscuss(channelId);
+    expect("[title='Disconnect']").not.toBeVisible();
+    expect("[title='Mute']").not.toBeVisible();
+    expect("[title='Deafen']").not.toBeVisible();
+    broadcastChannel.postMessage({
+        type: CROSS_TAB_HOST_MESSAGE.UPDATE_REMOTE,
+        hostedChannelId: channelId,
+        hostedSessionId: sessionId,
+        changes: {
+            [sessionId]: {
+                is_muted: false,
+                is_deaf: false,
+            },
+        },
+    });
+    await contains("[title='Disconnect']");
+    await contains("[title='Deafen']");
+
+    broadcastChannel.onmessage = (event) => {
+        if (event.data.type === CROSS_TAB_CLIENT_MESSAGE.REQUEST_ACTION) {
+            asyncStep(`is_muted:${event.data.changes["is_muted"]}`);
+        }
+    };
+    await click("[title='Mute']");
+    await waitForSteps(["is_muted:true"]);
 });
