@@ -36,7 +36,7 @@ class ProductSupplierinfo(models.Model):
         'Quantity', default=0.0, required=True, digits="Product Unit of Measure",
         help="The quantity to purchase from this vendor to benefit from the price, expressed in the vendor Product Unit of Measure if not any, in the default unit of measure of the product otherwise.")
     price = fields.Float(
-        'Price', digits='Product Price', compute='_compute_price', store=True, readonly=False, help="The price to purchase a product")
+        'Price', digits='Product Price', default=0.0, help="The price to purchase a product")
     price_discounted = fields.Float('Discounted Price', compute='_compute_price_discounted')
     company_id = fields.Many2one(
         'res.company', 'Company',

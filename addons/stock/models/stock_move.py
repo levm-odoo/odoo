@@ -1220,19 +1220,6 @@ Please change the quantity done or the rounding precision of your unit of measur
                 'warning': {'title': _('Warning'), 'message': _('Unavailable Serial numbers. Please correct the serial numbers encoded: %(serial_numbers_to_locations)s', serial_numbers_to_locations=sn_to_location)}
             }
 
-    @api.onchange('product_uom')
-    def _onchange_product_uom(self):
-        if self.product_uom.factor > self.product_id.uom_id.factor:
-            return {
-                'warning': {
-                    'title': _("Unsafe unit of measure"),
-                    'message': _("You are using a unit of measure smaller than the one you are using in "
-                                 "order to stock your product. This can lead to rounding problem on reserved quantity. "
-                                 "You should use the smaller unit of measure possible in order to valuate your stock or "
-                                 "change its rounding precision to a smaller value (example: 0.00001)."),
-                }
-            }
-
     def _key_assign_picking(self):
         self.ensure_one()
         keys = (self.group_id, self.location_id, self.location_dest_id, self.picking_type_id)

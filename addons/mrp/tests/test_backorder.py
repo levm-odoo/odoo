@@ -496,6 +496,8 @@ class TestMrpProductionBackorder(TestMrpCommon):
         self.assertEqual(mo2.move_raw_ids.mapped('state'), ['draft', 'draft'])
 
     def test_split_merge(self):
+        # Change 'Units' rounding to 1 (integer only quantities)
+        self.env['decimal.precision'].search([('name', '=', 'Product Unit of Measure')]).digits = 0
         # Create a mo for 10 products
         mo, _, _, p1, p2 = self.generate_mo(qty_final=10)
         # Split in 3 parts

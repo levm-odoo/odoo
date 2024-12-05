@@ -563,25 +563,30 @@ class TestMrpOrder(TestMrpCommon):
         """ Checks we round up when bringing goods to produce and round half-up when producing.
         This implementation allows to implement an efficiency notion (see rev 347f140fe63612ee05e).
         """
+        # FIXME QUWO: Still needs to production of bom from bigger uom with no decimals
+        # Only consider whole units
+        self.env['decimal.precision'].search([('name', '=', 'Product Unit of Measure')]).digits = 0
+        uom_unit = self.env.ref('uom.product_uom_unit')
+        uom_pack_of_6 = self.env.ref('uom.product_uom_pack_6')
         bom_eff = self.env['mrp.bom'].create({
             'product_id': self.product_6.id,
             'product_tmpl_id': self.product_6.product_tmpl_id.id,
             'product_qty': 1,
-            'product_uom_id': self.product_6.uom_id.id,
+            'product_uom_id': uom_pack_of_6.id,
             'type': 'normal',
             'bom_line_ids': [
-                (0, 0, {'product_id': self.product_2.id, 'product_qty': 2.03}),
-                (0, 0, {'product_id': self.product_8.id, 'product_qty': 4.16})
+                (0, 0, {'product_id': self.product_2.id, 'product_qty': 2, 'product_uom_id': uom_unit.id}),
+                (0, 0, {'product_id': self.product_8.id, 'product_qty': 6, 'product_uom_id': uom_unit.id}),
             ]
         })
         production_form = Form(self.env['mrp.production'])
         production_form.product_id = self.product_6
         production_form.bom_id = bom_eff
-        production_form.product_qty = 20
-        production_form.product_uom_id = self.product_6.uom_id
+        production_form.product_qty = 2
+        production_form.product_uom_id = uom_unit
         production = production_form.save()
         production.action_confirm()
-        #Check the production order has the right quantities
+        # Check the production order has the right quantities
         self.assertEqual(production.move_raw_ids[0].product_qty, 41, 'The quantity should be rounded up')
         self.assertEqual(production.move_raw_ids[1].product_qty, 84, 'The quantity should be rounded up')
 
@@ -1798,11 +1803,11 @@ class TestMrpOrder(TestMrpCommon):
 
         mo.action_confirm()
         mo.action_assign()
-        self.assertEqual(mo.move_raw_ids.product_qty, 12, '12 units should be reserved.')
+        self.assertEqual(mo.move_raw_ids.product_qty, 6, '6 units should be reserved.')
 
         # produce product
         mo_form = Form(mo)
-        mo_form.qty_producing = 1/12.0
+        mo_form.qty_producing = 1/6.0
         mo_form.lot_producing_id = final_product_lot
         mo = mo_form.save()
 
@@ -2603,7 +2608,7 @@ class TestMrpOrder(TestMrpCommon):
         mo_form.product_uom_id = self.env['uom.uom'].browse(self.ref('uom.product_uom_pack_6'))
         mo3 = mo_form.save()
         self.assertEqual(len(mo3.move_finished_ids), 1, 'Wrong number of finish product moves created')
-        self.assertEqual(mo3.move_finished_ids.product_qty, 12, 'Wrong qty to produce for the finished product move')
+        self.assertEqual(mo3.move_finished_ids.product_qty, 6, 'Wrong qty to produce for the finished product move')
 
         # ===== bom_id onchange checks ===== #
         component = self.env['product.product'].create({
@@ -3456,6 +3461,8 @@ class TestMrpOrder(TestMrpCommon):
             'name': 'box250',
             'relative_factor': 250.0,
         })
+        # Only consider whole units
+        self.env['decimal.precision'].search([('name', '=', 'Product Unit of Measure')]).digits = 0
 
         test_bom = self.env['mrp.bom'].create({
             'product_tmpl_id': self.product_7_template.id,
@@ -3756,7 +3763,7 @@ class TestMrpOrder(TestMrpCommon):
             if move.product_id == p2:
                 move.unlink()
             elif move.product_id == p1:
-                # p1 = qty_base_1 = 12 => now 12 pack_of_6 instead of units
+                # p1 = qty_base_1 = 12 => now 12 packs of 6 instead of units
                 move.product_uom = self.env.ref('uom.product_uom_pack_6')
         mo2.action_confirm()
         mo2_form = Form(mo2)
@@ -3779,13 +3786,13 @@ class TestMrpOrder(TestMrpCommon):
         self.assertEqual(consumption.mrp_consumption_warning_line_ids[0].product_expected_qty_uom, 0, "additional component should have no expected qty")
         self.assertEqual(consumption.mrp_consumption_warning_line_ids[1].product_consumed_qty_uom, 0, "missing line was not correctly passed to wizard")
         self.assertEqual(consumption.mrp_consumption_warning_line_ids[1].product_expected_qty_uom, 40, "expected qty should match current BoM qty for qty being produced")
-        self.assertEqual(consumption.mrp_consumption_warning_line_ids[2].product_consumed_qty_uom, 576, "qty consumed was not correctly converted to product's uom before passing to wizard")
+        self.assertEqual(consumption.mrp_consumption_warning_line_ids[2].product_consumed_qty_uom, 288, "qty consumed was not correctly converted to product's uom before passing to wizard")
         self.assertEqual(consumption.mrp_consumption_warning_line_ids[2].product_expected_qty_uom, 48, "expected qty should match current BoM qty for qty being produced")
         action = consumption.action_set_qty()
         backorder2 = Form(self.env['mrp.production.backorder'].with_context(**action['context']))
         backorder2.save().action_backorder()
         # expect 3 moves: 1 for the originally missing product p2 with qty demand/done = 40
-        #                 1 for the overused product p1 one with qty demand/done = 48/12 = 4 pack_of_6
+        #                 1 for the overused product p1 one with qty demand/done = 48/6 = 8 packs of 6
         #                 1 for the additional product self.product_1 with demand/done = 40/0
         self.assertEqual(len(mo2.move_raw_ids), 3, "missing line was not correctly added")
         for move in mo2.move_raw_ids:
@@ -3794,7 +3801,7 @@ class TestMrpOrder(TestMrpCommon):
                 self.assertEqual(move.quantity, 40, "missing line values were not correctly added")
             elif move.product_id == p1:
                 self.assertEqual(move.product_uom_qty, 48, "expected qty should be unchanged")
-                self.assertEqual(move.quantity, 4, "expected qty was not applied as qty to be done (UoM was possibly not correctly converted)")
+                self.assertEqual(move.quantity, 8, "expected qty was not applied as qty to be done (UoM was possibly not correctly converted)")
             else:
                 self.assertEqual(move.product_uom_qty, 40, "additional component's demand should have carried over")
                 self.assertEqual(move.quantity, 0, "additional component should have nothing reserved")

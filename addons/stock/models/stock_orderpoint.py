@@ -361,11 +361,12 @@ class StockWarehouseOrderpoint(models.Model):
             qty_in_progress = qty_in_progress_by_orderpoint.get(self.id) or self._quantity_in_progress()[self.id]
             qty_forecast_with_visibility = self.product_id.with_context(product_context).read(['virtual_available'])[0]['virtual_available'] + qty_in_progress
             qty_to_order = max(self.product_min_qty, self.product_max_qty) - qty_forecast_with_visibility
-            remainder = (self.replenishment_uom_id and qty_to_order % self.replenishment_uom_id.factor) or 0.0
+            qty_multiple = self.replenishment_uom_id._compute_quantity(self.replenishment_uom_id.factor, self.product_uom) if self.replenishment_uom_id else 0.0
+            remainder = (qty_multiple > 0.0 and qty_to_order % qty_multiple) or 0.0
             if (float_compare(remainder, 0.0, precision_digits=rounding) > 0
-                    and float_compare(self.replenishment_uom_id.factor - remainder, 0.0, precision_digits=rounding) > 0):
+                    and float_compare(qty_multiple - remainder, 0.0, precision_digits=rounding) > 0):
                 if float_is_zero(self.product_max_qty, precision_digits=rounding):
-                    qty_to_order += self.replenishment_uom_id.factor - remainder
+                    qty_to_order += qty_multiple - remainder
                 else:
                     qty_to_order -= remainder
         return qty_to_order
