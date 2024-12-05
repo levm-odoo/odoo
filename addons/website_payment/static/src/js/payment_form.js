@@ -88,7 +88,13 @@ PaymentForm.include({
                 return;
             }
         }
-        await this._super(...arguments);
+        // This prevents unnecessary toaster notifications on payment failure
+        // by catching the Promise.reject as we are already displaying error popup.
+        try {
+            await this._super(...arguments);
+        } catch (error) {
+            console.error(error.data.message);
+        }
     },
 
     /**
