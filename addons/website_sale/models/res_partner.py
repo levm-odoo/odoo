@@ -1,6 +1,8 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import _, api, fields, models
+from odoo.http import request
+
 
 from odoo.addons.website.models import ir_http
 
@@ -49,10 +51,21 @@ class ResPartner(models.Model):
                 ),
             }}
 
-    def _can_be_edited_by_current_customer(self, sale_order, address_type):
-        self.ensure_one()
-        children_partner_ids = self.env['res.partner']._search([
-            ('id', 'child_of', sale_order.partner_id.commercial_partner_id.id),
-            ('type', 'in', ('invoice', 'delivery', 'other')),
-        ])
-        return self == sale_order.partner_id or self.id in children_partner_ids
+    def _get_country_id(self):
+        country_sudo = super()._get_country_id()
+        if self._is_anonymous_customer():
+            ResCountrySudo = request.env['res.country'].sudo()
+            if request.geoip.country_code:
+                country_sudo = ResCountrySudo.search([
+                    ('code', '=', request.geoip.country_code),
+                ], limit=1)
+            else:
+                country_sudo = request.website.user_id.country_id
+
+        return country_sudo
+
+    def _is_anonymous_customer(self):
+        return (
+            super()._is_anonymous_customer()
+            or self.id == request.website.user_id.sudo().partner_id.id
+        )
