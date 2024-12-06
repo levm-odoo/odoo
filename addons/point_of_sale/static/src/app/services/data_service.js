@@ -180,13 +180,12 @@ export class PosData extends Reactive {
         let localData = await this.getCachedServerDataFromIndexedDB();
         const sessionState = localData?.["pos.session"]?.[0]?.state;
 
-        if (navigator.onLine && sessionState !== "opened") {
+        const serverDate = localData?.["pos.session"]?.[0]?._data_server_date;
+        const lastConfigChange = DateTime.fromSQL(odoo.last_data_change);
+        const serverDateTime = DateTime.fromSQL(serverDate);
+        if (navigator.onLine && (serverDateTime < lastConfigChange || sessionState !== "opened")) {
             try {
                 const limitedLoading = this.isLimitedLoading();
-                const serverDate = localData?.["pos.session"]?.[0]?._data_server_date;
-                const lastConfigChange = DateTime.fromSQL(odoo.last_data_change);
-                const serverDateTime = DateTime.fromSQL(serverDate);
-
                 if (serverDateTime < lastConfigChange) {
                     await this.resetIndexedDB();
                     await this.initIndexedDB(this.relations);

@@ -422,7 +422,7 @@ class PosConfig(models.Model):
             prepa_printers_menuitem.active = self.sudo().env['pos.config'].search_count([('is_order_printer', '=', True)], limit=1) > 0
 
     @api.depends('use_pricelist', 'pricelist_id', 'available_pricelist_ids', 'payment_method_ids', 'limit_categories',
-        'iface_available_categ_ids')
+        'iface_available_categ_ids', 'iface_tipproduct', 'module_pos_discount', 'module_pos_hr')
     def _compute_local_data_integrity(self):
         self.last_data_change = self.env.cr.now()
 
@@ -432,7 +432,6 @@ class PosConfig(models.Model):
         if ('is_order_printer' in vals and not vals['is_order_printer']):
             vals['printer_ids'] = [fields.Command.clear()]
 
-        bypass_categories_forbidden_change = self.env.context.get('bypass_categories_forbidden_change', False)
         bypass_payment_method_ids_forbidden_change = self.env.context.get('bypass_payment_method_ids_forbidden_change', False)
 
         self._preprocess_x2many_vals_from_settings_view(vals)
@@ -442,38 +441,8 @@ class PosConfig(models.Model):
             forbidden_fields = []
             for key in self._get_forbidden_change_fields():
                 if key in vals.keys():
-                    if bypass_categories_forbidden_change and key in ('limit_categories', 'iface_available_categ_ids'):
-                        continue
                     if bypass_payment_method_ids_forbidden_change and key == 'payment_method_ids':
                         continue
-                    if key == 'use_pricelist' and vals[key]:
-                        continue
-                    if key == 'available_pricelist_ids':
-                        will_unlink_a_pricelist = \
-                            (
-                                (not isinstance(vals[key], list) or len(vals[key]) == 0)
-                                and self.available_pricelist_ids
-                            ) or (
-                                isinstance(vals[key], list) and any(
-                                    (
-                                        len(cmd) >= 1
-                                        and cmd[0] == Command.CLEAR
-                                        and self.available_pricelist_ids
-                                    ) or (
-                                        len(cmd) >= 2
-                                        and cmd[0] in {Command.UNLINK, Command.DELETE}
-                                        and cmd[1] in self.available_pricelist_ids.ids
-                                    ) or (
-                                        len(cmd) == 3
-                                        and cmd[0] == Command.SET
-                                        and set(self.available_pricelist_ids.ids) - set(cmd[2])
-                                    )
-                                    for cmd in vals[key]
-                                )
-                            )
-
-                        if not will_unlink_a_pricelist:
-                            continue
                     field_name = self._fields[key].get_description(self.env)["string"]
                     forbidden_fields.append(field_name)
             if len(forbidden_fields) > 0:
@@ -544,9 +513,7 @@ class PosConfig(models.Model):
         return new_vals
 
     def _get_forbidden_change_fields(self):
-        forbidden_keys = ['module_pos_hr', 'module_pos_restaurant', 'available_pricelist_ids',
-                          'limit_categories', 'iface_available_categ_ids', 'use_pricelist', 'module_pos_discount',
-                          'payment_method_ids', 'iface_tipproduc']
+        forbidden_keys = ['module_pos_restaurant', 'payment_method_ids']
         return forbidden_keys
 
     def unlink(self):
