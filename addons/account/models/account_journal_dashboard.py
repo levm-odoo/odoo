@@ -555,18 +555,25 @@ class account_journal(models.Model):
                 query_results_to_pay[journal.id] = query_result[journal.id]
                 late_query_results[journal.id] = [r for r in query_result[journal.id] if r['late']]
 
-        to_check_vals = {
-            journal.id: (amount_total_signed_sum, count)
-            for journal, amount_total_signed_sum, count in self.env['account.move']._read_group(
+        to_check_vals = {}
+        journals = [{
+                'journal_id': journal.id,
+                'currency': currency.id,
+                'company_id': company.id,
+                'amount_total_company': amount_total_company,
+                'amount_total': amount_total,
+                'count': count,
+            } for journal, currency, company, amount_total_company, amount_total, count in self.env['account.move']._read_group(
                 domain=[
                     *self.env['account.move']._check_company_domain(self.env.companies),
                     ('journal_id', 'in', sale_purchase_journals.ids),
                     ('to_check', '=', True),
                 ],
-                groupby=['journal_id'],
-                aggregates=['amount_total_signed:sum', '__count'],
-            )
-        }
+                groupby=['journal_id', 'currency_id', 'company_id'],
+                aggregates=['amount_total_signed:sum', 'amount_total:sum', '__count'],
+            )]
+        for journal in journals:
+            to_check_vals.setdefault(journal.get("journal_id"), []).append(journal)
 
         self.env.cr.execute(SQL("""
             SELECT id, moves_exists
@@ -591,7 +598,7 @@ class account_journal(models.Model):
             (number_waiting, sum_waiting) = self._count_results_and_sum_amounts(query_results_to_pay[journal.id], currency)
             (number_draft, sum_draft) = self._count_results_and_sum_amounts(query_results_drafts[journal.id], currency)
             (number_late, sum_late) = self._count_results_and_sum_amounts(late_query_results[journal.id], currency)
-            amount_total_signed_sum, count = to_check_vals.get(journal.id, (0, 0))
+            (count, amount_total_signed_sum) = self._count_results_and_sum_amounts(to_check_vals.get(journal.id), currency)
             if journal.type == 'purchase':
                 title_has_sequence_holes = _("Irregularities due to draft, cancelled or deleted bills with a sequence number since last lock date.")
                 drag_drop_settings = {
