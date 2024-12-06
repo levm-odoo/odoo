@@ -1,87 +1,86 @@
-import { roundPrecision as round_pr } from "@web/core/utils/numbers";
 import { usePos } from "@point_of_sale/app/store/pos_hook";
 import { Component, onMounted, onWillUnmount, useState } from "@odoo/owl";
+import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { Dialog } from "@web/core/dialog/dialog";
+import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
+
+const MEASURING_DELAY_MS = 500;
+const TARE_TIMEOUT_MS = 3000;
 
 export class ScaleScreen extends Component {
     static template = "point_of_sale.ScaleScreen";
     static components = { Dialog };
     static props = {
         getPayload: Function,
-        productName: String,
-        uomName: String,
-        uomRounding: Number,
-        productPrice: Number,
         close: Function,
     };
     setup() {
         this.pos = usePos();
-        this.hardwareProxy = useService("hardware_proxy");
-        this.state = useState({ weight: 0, tare: 0, tareLoading: false });
+        this.scale = useState(useService("pos_scale"));
+        this.dialog = useService("dialog");
+        this.state = useState({ tarePressed: false, weightLoading: false });
         onMounted(this.onMounted);
         onWillUnmount(this.onWillUnmount);
     }
     onMounted() {
-        // start the scale reading
-        this._readScale();
+        if (!this.scale.isManualMeasurement) {
+            this.shouldRead = true;
+            this._readScaleAutomatically();
+        }
     }
     onWillUnmount() {
-        // stop the scale reading
         this.shouldRead = false;
+        this.scale.reset();
     }
     confirm() {
-        this.props.getPayload(this.netWeight);
+        this.props.getPayload(this.scale.netWeight);
         this.props.close();
     }
-    _readScale() {
-        this.shouldRead = true;
-        this._setWeight();
+
+    _showError(message) {
+        this.dialog.add(AlertDialog, {
+            title: _t("Scale error"),
+            body: message,
+        });
     }
-    async _setWeight() {
+
+    async _readScaleAutomatically() {
         if (!this.shouldRead) {
             return;
         }
-        this.state.weight = await this.hardwareProxy.readScale();
-        this.pos.setScaleWeight(this.state.weight);
-        setTimeout(() => this._setWeight(), 500);
-    }
-    get netWeight() {
-        const weight = round_pr(this.state.weight || 0, this.props.uomRounding);
-        const weightRound = weight.toFixed(
-            Math.ceil(Math.log(1.0 / this.props.uomRounding) / Math.log(10))
-        );
-        return weightRound - parseFloat(this.state.tare);
+        await this.readScale();
+        setTimeout(() => this._readScaleAutomatically(), MEASURING_DELAY_MS);
     }
 
-    get productWeightString() {
-        const defaultstr = (this.state.weight || 0).toFixed(3) + " Kg";
-        const uom = this.props.uomName;
-        if (!uom) {
-            return defaultstr;
+    _setTareIfPending() {
+        if (this.state.tarePressed) {
+            this.scale.setTare();
+            this.state.tarePressed = false;
         }
-        const weight = round_pr(this.state.weight || 0, this.props.uomRounding);
-        let weightstr = weight.toFixed(
-            Math.ceil(Math.log(1.0 / this.props.uomRounding) / Math.log(10))
-        );
-        weightstr += " " + this.props.uomName;
-        return weightstr;
     }
-    get computedPriceString() {
-        const priceString = this.env.utils.formatCurrency(this.netWeight * this.props.productPrice);
-        this.pos.totalPriceOnScale = priceString;
-        return priceString;
+
+    async readScale() {
+        this.state.weightLoading = true;
+        try {
+            await this.scale.readWeight();
+        } catch (error) {
+            this._showError(error.message);
+            this.props.close();
+        }
+        this.state.weightLoading = false;
+        this._setTareIfPending();
     }
-    async handleTareButtonClick() {
-        this.state.tareLoading = true;
-        const tareWeight = await this.hardwareProxy.readScale();
-        this.state.tare = tareWeight;
-        this.pos.setScaleTare(this.state.tare);
-        setTimeout(() => {
-            this.state.tareLoading = false;
-        }, 3000);
-    }
-    handleInputChange(ev) {
-        this.pos.setScaleTare(ev.target.value);
+
+    async onTareClick() {
+        this.state.tarePressed = true;
+        if (this.scale.isManualMeasurement && !this.state.weightLoading) {
+            this.readScale();
+        } else {
+            setTimeout(() => {
+                this.state.tarePressed = false;
+                this.scale.setTare();
+            }, TARE_TIMEOUT_MS);
+        }
     }
 }
