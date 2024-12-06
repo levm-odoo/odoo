@@ -125,7 +125,7 @@ export class WebsiteLoader extends Component {
                 // FIXME: website user/interactive tours are not properly
                 // working at the moment. This disables the "follow the tips"
                 // message in the website loader while waiting for a fix.
-                // "showTips",
+                "showTips",
                 "selectedFeatures",
                 "showWaitingMessages",
                 "bottomMessageTemplate",
