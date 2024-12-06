@@ -1052,7 +1052,7 @@ class StackMap(MutableMapping[K, T], typing.Generic[K, T]):
         return self._maps.pop()
 
 
-class OrderedSet(MutableSet[T], typing.Generic[T]):
+class OrderedSet(MutableSet[T], Reversible[T], typing.Generic[T]):
     """ A set collection that remembers the elements first insertion order. """
     __slots__ = ['_map']
 
@@ -1064,6 +1064,9 @@ class OrderedSet(MutableSet[T], typing.Generic[T]):
 
     def __iter__(self):
         return iter(self._map)
+
+    def __reversed__(self):
+        return reversed(self._map)
 
     def __len__(self):
         return len(self._map)

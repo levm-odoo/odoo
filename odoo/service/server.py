@@ -54,7 +54,7 @@ import odoo
 from odoo.modules import get_modules
 from odoo.modules.registry import Registry
 from odoo.release import nt_service_name
-from odoo.tools import config, osutil
+from odoo.tools import config, osutil, OrderedSet
 from odoo.tools.cache import log_ormcache_stats
 from odoo.tools.misc import stripped_sys_argv, dumpstacks
 
@@ -469,14 +469,29 @@ class ThreadedServer(CommonServer):
                 _logger.warning("PG cluster in recovery mode, cron trigger not activated")
             cr.commit()
 
+            check_all_time = 0
+            all_db_names = None
             while True:
                 select.select([pg_conn], [], [], SLEEP_INTERVAL + number)
                 time.sleep(number / 100)
                 pg_conn.poll()
+                notified_databases = OrderedSet(notif.payload for notif in pg_conn.notifies if notif.channel == 'cron_trigger')
+                pg_conn.notifies.clear()  # free resources
 
-                # restrict to only notified databases
-                db_names = cron_database_list()
-                _logger.debug('cron%d polling for jobs', number)
+                if time.time() - SLEEP_INTERVAL > check_all_time:
+                    # woken after SLEEP_INTERVAL, check all databases
+                    check_all_time = time.time()
+                    all_db_names = cron_database_list()
+                    # process notified databases first, then the other ones
+                    db_names = [name for name in all_db_names if name not in notified_databases]
+                    db_names = [*notified_databases, *db_names]
+                else:
+                    # restrict to only notified databases
+                    db_names = notified_databases.intersection(all_db_names)
+                    if not db_names:
+                        continue
+
+                _logger.debug('cron%d polling for jobs (notified: %s)', number, notified_databases)
                 for db_name in db_names:
                     thread = threading.current_thread()
                     thread.start_time = time.time()
@@ -1171,14 +1186,15 @@ class WorkerCron(Worker):
     def __init__(self, multi):
         super(WorkerCron, self).__init__(multi)
         # process_work() below process a single database per call.
-        # The variable db_index is keeping track of the next database to
+        # The variable db_queue is keeping track of the next databases to
         # process.
-        self.db_index = 0
         self.watchdog_timeout = multi.cron_timeout  # Use a distinct value for CRON Worker
+        self.db_queue: OrderedSet[str] = OrderedSet()
+        self.db_count: int = 0
 
     def sleep(self):
         # Really sleep once all the databases have been processed.
-        if self.db_index == 0:
+        if not self.db_queue:
             interval = SLEEP_INTERVAL + self.pid % 10   # chorus effect
 
             # simulate interruptible sleep with select(wakeup_fd, timeout)
@@ -1193,28 +1209,45 @@ class WorkerCron(Worker):
                     raise
 
     def process_work(self):
+        """Process a single database."""
         _logger.debug("WorkerCron (%s) polling for jobs", self.pid)
-        db_names = cron_database_list()
-        if not len(db_names):
-            self.db_index = 0
+        # check notified databases
+        notified_databases = OrderedSet(notif.payload for notif in self.dbcursor.notifies if notif.channel == 'cron_trigger')
+        self.dbcursor.notifies.clear()  # free resources
+
+        # list databases
+        if not self.db_queue:
+            database_list = cron_database_list()
+            self.db_queue.update(reversed(database_list))
+            self.db_count = len(self.db_queue)
+        else:
+            # move notified databases as to be processed soon
+            # ignore unqueued databases
+            for db_name in notified_databases:
+                if db_name in self.db_queue:
+                    self.db_queue.remove(db_name)
+                    self.db_queue.add(db_name)
+        if not self.db_queue:
             return
 
-        self.db_index = (self.db_index + 1) % len(db_names)
-        db_name = db_names[self.db_index]
+        # pop the last element (because notified databases are moved to the end)
+        db_name = next(reversed(self.db_queue))
+        self.db_queue.remove(db_name)
         self.setproctitle(db_name)
 
         from odoo.addons.base.models.ir_cron import IrCron  # noqa: PLC0415
         IrCron._process_jobs(db_name)
 
         # dont keep cursors in multi database mode
-        if len(db_names) > 1:
+        if self.db_count > 1:
             odoo.sql_db.close_db(db_name)
 
         self.request_count += 1
-        if self.request_count >= self.request_max and self.request_max < len(db_names):
-            _logger.error("There are more dabatases to process than allowed "
-                            "by the `limit_request` configuration variable: %s more.",
-                            len(db_names) - self.request_max)
+        if self.request_count >= self.request_max and self.request_max < self.db_count:
+            _logger.error(
+                "There are more dabatases to process than allowed "
+                "by the `limit_request` configuration variable: %s more.",
+                self.db_count - self.request_max)
 
     def start(self):
         os.nice(10)     # mommy always told me to be nice with others...
