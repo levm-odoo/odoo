@@ -13,7 +13,7 @@ import odoo
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from odoo.modules.registry import Registry
-from odoo.tools import SQL
+from odoo.tools import config, SQL
 from odoo.tools.constants import GC_UNLINK_LIMIT
 
 _logger = logging.getLogger(__name__)
@@ -121,8 +121,19 @@ class IrCron(models.Model):
         return True
 
     @staticmethod
-    def _process_jobs(db_name):
+    def _process_jobs(db_name, soft_limit=None):
         """ Execute every job ready to be run on this database. """
+        if soft_limit is None:
+            soft_limit = config['limit_time_soft_cron']
+            if soft_limit < 0:
+                # default to half of the hard-limit
+                real_limit_cron = config['limit_time_real_cron']
+                if real_limit_cron < 0:
+                    real_limit_cron = config['limit_time_real']
+                soft_limit = (real_limit_cron + 1) // 2
+        if not soft_limit:
+            soft_limit = float('inf')
+        end_time = time.monotonic() + soft_limit
         try:
             db = odoo.sql_db.db_connect(db_name)
             threading.current_thread().dbname = db_name
@@ -135,6 +146,9 @@ class IrCron(models.Model):
                 cls._check_modules_state(cron_cr, jobs)
 
                 for job_id in (job['id'] for job in jobs):
+                    if end_time <= time.monotonic():
+                        _logger.info("Database %s soft-time limit reached", db_name)
+                        break
                     try:
                         job = cls._acquire_one_job(cron_cr, job_id)
                     except psycopg2.extensions.TransactionRollbackError:
