@@ -23,12 +23,12 @@ from odoo.exceptions import AccessError, UserError, CacheMiss
 from odoo.sql_db import BaseCursor
 from odoo.tools import clean_context, frozendict, lazy_property, OrderedSet, Query, SQL
 from odoo.tools.translate import get_translation, get_translated_module, LazyGettext
-from odoo.tools.misc import StackMap
+from odoo.tools.misc import StackMap, SENTINEL
 
 from .registry import Registry
 
 if typing.TYPE_CHECKING:
-    from .types import BaseModel
+    from .types import BaseModel, IdType
 
 _logger = logging.getLogger('odoo.api')
 
@@ -113,7 +113,7 @@ class Environment(Mapping):
     def __hash__(self):
         return object.__hash__(self)
 
-    def __call__(self, cr=None, user=None, context=None, su=None):
+    def __call__(self, cr=None, user: BaseModel | IdType | None = None, context=None, su=None):
         """ Return an environment based on ``self`` with modified parameters.
 
         :param cr: optional database cursor to change the current cursor
@@ -539,8 +539,7 @@ class Transaction:
 
 
 # sentinel value for optional parameters
-NOTHING = object()
-EMPTY_DICT = frozendict()
+EMPTY_DICT = frozendict()  # type: ignore
 
 
 class Cache:
@@ -634,7 +633,7 @@ class Cache:
             return any(value for value in cache.values())
         return True
 
-    def get(self, record, field, default=NOTHING):
+    def get(self, record, field, default=SENTINEL):
         """ Return the value of ``field`` for ``record``. """
         try:
             field_cache = self._get_field_cache(record, field)
@@ -644,7 +643,7 @@ class Cache:
                 return cache_value[lang]
             return cache_value
         except KeyError:
-            if default is NOTHING:
+            if default is SENTINEL:
                 raise CacheMiss(record, field) from None
             return default
 

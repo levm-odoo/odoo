@@ -24,11 +24,11 @@ class Integer(Field[int]):
 
     def convert_to_column(self, value, record, values=None, validate=True):
         return int(value or 0)
-    
+
     def convert_to_column_update(self, value, record):
-         if self.company_dependent:
-             value = {k: int(v or 0) for k, v in value.items()}
-         return super().convert_to_column_update(value, record)
+        if self.company_dependent:
+            value = {k: int(v or 0) for k, v in value.items()}
+        return super().convert_to_column_update(value, record)
 
     def convert_to_cache(self, value, record, validate=True):
         if isinstance(value, dict):
@@ -98,12 +98,12 @@ class Float(Field[float]):
     """
 
     type = 'float'
-    _digits = None                      # digits argument passed to class initializer
+    _digits: int | None = None  # digits argument passed to class initializer
     falsy_value = 0.0
     aggregator = 'sum'
 
-    def __init__(self, string: str | Sentinel = SENTINEL, digits: str | tuple[int, int] | None | Sentinel = SENTINEL, **kwargs):
-        super(Float, self).__init__(string=string, _digits=digits, **kwargs)
+    def __init__(self, string: str | Sentinel = SENTINEL, digits: str | tuple[int, int] | Sentinel | None = SENTINEL, **kwargs):
+        super().__init__(string=string, _digits=digits, **kwargs)
 
     @property
     def _column_type(self):
@@ -130,17 +130,17 @@ class Float(Field[float]):
     def convert_to_column(self, value, record, values=None, validate=True):
         value_float = value = float(value or 0.0)
         if digits := self.get_digits(record.env):
-            precision, scale = digits
+            _precision, scale = digits
             value_float = float_round(value, precision_digits=scale)
             value = float_repr(value_float, precision_digits=scale)
         if self.company_dependent:
             return value_float
         return value
-    
+
     def convert_to_column_update(self, value, record):
-         if self.company_dependent:
-             value = {k: float(v or 0.0) for k, v in value.items()}
-         return super().convert_to_column_update(value, record)
+        if self.company_dependent:
+            value = {k: float(v or 0.0) for k, v in value.items()}
+        return super().convert_to_column_update(value, record)
 
     def convert_to_cache(self, value, record, validate=True):
         # apply rounding here, otherwise value in cache may be wrong!
@@ -176,11 +176,11 @@ class Monetary(Field[float]):
     _column_type = ('numeric', 'numeric')
     falsy_value = 0.0
 
-    currency_field = None
+    currency_field: Field | None = None
     aggregator = 'sum'
 
     def __init__(self, string: str | Sentinel = SENTINEL, currency_field: str | Sentinel = SENTINEL, **kwargs):
-        super(Monetary, self).__init__(string=string, currency_field=currency_field, **kwargs)
+        super().__init__(string=string, currency_field=currency_field, **kwargs)
 
     def _description_currency_field(self, env):
         return self.get_currency_field(env[self.model_name])
