@@ -71,6 +71,16 @@ class IrHttp(models.AbstractModel):
             'session_info': self.session_info(),
         }
 
+    def lazy_session_info(self):
+        IrConfigSudo = self.env['ir.config_parameter'].sudo()
+        max_file_upload_size = int(IrConfigSudo.get_param(
+            'web.max_file_upload_size',
+            default=DEFAULT_MAX_CONTENT_LENGTH,
+        ))
+        return {
+            "max_file_upload_size": max_file_upload_size,
+        }
+
     def session_info(self):
         user = self.env.user
         session_uid = request.session.uid
@@ -84,10 +94,6 @@ class IrHttp(models.AbstractModel):
             user_context = {}
 
         IrConfigSudo = self.env['ir.config_parameter'].sudo()
-        max_file_upload_size = int(IrConfigSudo.get_param(
-            'web.max_file_upload_size',
-            default=DEFAULT_MAX_CONTENT_LENGTH,
-        ))
         mods = odoo.tools.config['server_wide_modules']
         if request.db:
             mods = list(request.registry._init_modules) + mods
@@ -114,7 +120,6 @@ class IrHttp(models.AbstractModel):
             'profile_session': request.session.get('profile_session'),
             'profile_collectors': request.session.get('profile_collectors'),
             'profile_params': request.session.get('profile_params'),
-            "max_file_upload_size": max_file_upload_size,
             "home_action_id": user.action_id.id,
             "cache_hashes": {
                 "translations": self.env['ir.http'].sudo().get_web_translations_hash(
