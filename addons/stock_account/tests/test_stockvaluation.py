@@ -4033,9 +4033,9 @@ class TestStockValuation(TestStockValuationBase):
         receipt.button_validate()
 
         self.assertEqual(self.product1.uom_name, 'Units')
-        self.assertEqual(self.product1.quantity_svl, 12)
+        self.assertEqual(self.product1.quantity_svl, 6)
         move.quantity = 2
-        self.assertEqual(self.product1.quantity_svl, 24)
+        self.assertEqual(self.product1.quantity_svl, 12)
 
     def test_average_manual_price_change(self):
         """
@@ -4265,7 +4265,7 @@ class TestStockValuation(TestStockValuationBase):
         move.move_line_ids = [
             Command.update(
                 move.move_line_ids[0].id,
-                {'quantity': 1, 'product_uom_id': pack_of_6_uom.id}
+                {'quantity': 2, 'product_uom_id': pack_of_6_uom.id}
             )
         ]
         move.picked = True
@@ -4276,7 +4276,7 @@ class TestStockValuation(TestStockValuationBase):
 
         move.picking_id.action_toggle_is_locked()
         # Change from 1 Dozen to 2 Dozens (12 -> 24)
-        move.move_line_ids = [Command.update(move.move_line_ids[0].id, {'quantity': 2})]
+        move.move_line_ids = [Command.update(move.move_line_ids[0].id, {'quantity': 4})]
 
         self.assertEqual(move.quantity, 24)
         self.assertRecordValues(move.stock_valuation_layer_ids, [{'quantity': 12}, {'quantity': 12}])

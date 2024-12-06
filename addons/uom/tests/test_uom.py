@@ -29,7 +29,7 @@ class TestUom(UomCommon):
     def test_20_rounding(self):
         product_uom = self.env['uom.uom'].create({
             'name': 'Score',
-            'relative_factor': 20,
+            'factor': 20,
         })
         self.env['decimal.precision'].search([('name', '=', 'Product Unit of Measure')]).digits = 0
 

@@ -312,7 +312,6 @@ class TestProcRule(TransactionCase):
             'location_id': stock_location.id,
             'inventory_quantity': 14.5,
         }).action_apply_inventory()
-
         orderpoint = self.env['stock.warehouse.orderpoint'].create({
             'name': 'ProductA RR',
             'product_id': self.productA.id,

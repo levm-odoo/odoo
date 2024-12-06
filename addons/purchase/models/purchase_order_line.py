@@ -529,19 +529,21 @@ class PurchaseOrderLine(models.Model):
     @api.model
     def _prepare_purchase_order_line(self, product_id, product_qty, product_uom, company_id, supplier, po):
         partner = supplier.partner_id
-        uom_po_qty = product_uom._compute_quantity(product_qty, product_id.uom_id, rounding_method='HALF-UP')
+        product_uom_qty = product_uom._compute_quantity(product_qty, product_id.uom_id, rounding_method='HALF-UP')
         # _select_seller is used if the supplier have different price depending
         # the quantities ordered.
         today = fields.Date.today()
         seller = product_id.with_company(company_id)._select_seller(
             partner_id=partner,
-            quantity=uom_po_qty,
+            quantity=product_uom_qty,
             date=po.date_order and max(po.date_order.date(), today) or today,
             uom_id=product_id.uom_id)
 
         product_taxes = product_id.supplier_taxes_id.filtered(lambda x: x.company_id in company_id.parent_ids)
         taxes = po.fiscal_position_id.map_tax(product_taxes)
-
+        uom_po_qty = product_uom_qty
+        if seller.product_uom_id and seller.product_uom_id != product_id.uom_id:
+            uom_po_qty = product_uom._compute_quantity(product_qty, seller.product_uom_id, rounding_method='HALF-UP')
         price_unit = seller.price if seller else product_id.standard_price
         price_unit = self.env['account.tax']._fix_tax_included_price_company(
             price_unit, product_taxes, taxes, company_id)
