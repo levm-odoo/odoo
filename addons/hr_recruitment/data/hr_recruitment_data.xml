@@ -113,5 +113,11 @@
         <field name="email">no-reply@indeed.com</field>
         <field name="regex">^([^ ]+ [^ ]+)</field>
     </record>
+
+    <record id="employers_indeed_job_platform" model="hr.job.platform">
+        <field name="name">Indeed employers</field>
+        <field name="email">employers-noreply@indeed.com</field>
+        <field name="regex">^([^ ]+ [^ ]+)</field>
+    </record>
 </data>
 </odoo>
