@@ -1,0 +1,13 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+training.access_estate_property_manager,access_estate_property,training.model_estate_property,training.estate_group_manager,1,1,1,1
+training.access_estate_property_type_manager,access_estate_property_type,training.model_estate_property_type,training.estate_group_manager,1,1,1,1
+training.access_estate_property_tag_manager,access_estate_property_tag,training.model_estate_property_tag,training.estate_group_manager,1,1,1,1
+training.access_estate_property_offers_manager,access_estate_property_offers,training.model_estate_property_offers,training.estate_group_manager,1,1,1,1
+
+training.access_estate_property_user,access_estate_property,training.model_estate_property,training.estate_group_user,1,1,1,0
+training.access_estate_property_type_user,access_estate_property_type,training.model_estate_property_type,training.estate_group_user,1,0,0,0
+training.access_estate_property_tag_user,access_estate_property_tag,training.model_estate_property_tag,training.estate_group_user,1,0,0,0
+training.access_estate_property_offers_user,access_estate_property_offers,training.model_estate_property_offers,training.estate_group_user,1,1,1,0
+
+training.access_wizards_offers,access_wizards_offers,training.model_wizards_offers,base.group_user,1,1,1,1

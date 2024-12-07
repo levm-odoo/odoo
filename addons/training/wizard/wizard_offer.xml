@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="launch_the_wizard" model="ir.actions.act_window">
+        <field name="name">Launch the Wizard</field>
+        <field name="res_model">wizards.offers</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <!-- <field name="binding_model_id" ref="model_context_model_ref"/> -->
+    </record>
+    <record id="estate_propert_wizard_form" model="ir.ui.view">
+        <field name="name">estate.property.wizard.Form</field>
+        <field name="model">wizards.offers</field>
+        <field name="arch" type="xml">
+            <form>
+            <sheet>
+                <group>
+                    <field name='price'/>
+                    <field name='status'/>
+                    <field name="partner_id"/>
+                </group>
+            </sheet>
+                <footer>
+                    <button type="object" name="action_make_offer" class="btn btn-primary"
+                        string="Make_Offer"/>
+                    <button string="CANCEL" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

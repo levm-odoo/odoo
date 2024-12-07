@@ -1,0 +1,28 @@
+{
+    'name': 'estate',
+    'description':'about property',
+    'application' : True,
+    'website':'www.odoo.com',
+    'category': 'Real Estate/Brokerage',
+    'depends' : ['mail', 'website','web'],
+    'data':[
+        'security/security.xml',
+        'security/ir.model.access.csv',
+        'wizard/wizard_offer.xml',
+        'views/estate_property_views.xml',
+        'views/estate_menus.xml',
+        'views/estate_property_type_views.xml',
+        'views/estate_property_tag_views.xml',
+        'views/estate_property_offer_views.xml',
+        'views/res_user_views.xml',
+        'views/template.xml',
+        'report/estate_property_report.xml',
+        'report/estate_property_template.xml',
+    ],
+    'demo': [
+        'demo/estate.property.type.csv',
+        'demo/demo_data.xml',
+        'demo/estate_offer_demo.xml',
+    ],
+    'license': 'LGPL-3',
+}

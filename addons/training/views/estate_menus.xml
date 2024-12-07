@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menu -->
+
+    <menuitem id="menu_estate_property_root" name="Real Estate">
+
+        <menuitem id="estate_property_first_level_menu" name="Adversiments">
+         <menuitem id="estate_property_model_menu_action" name="Property"
+                action="action_estate_property" />
+        </menuitem>
+
+        <menuitem id="estate_property_second_level_menu" name="settings" groups="training.estate_group_manager">
+        <menuitem id="estate_property_type_model_menu_action" name="property types"
+            action="action_estate_property_type" />
+        <menuitem id="estate_property_tags_model_menu_action" name="property tags"
+            action="action_estate_property_tag" />
+        </menuitem>
+
+    </menuitem>
+</odoo>

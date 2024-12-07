@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="properties_grid_main_menu" model="website.menu">
+        <field name="name">Properties</field>
+        <field name="url">/properties</field>
+        <field name="parent_id" ref="website.main_menu"/>
+    </record>
+
+    <template id="index">
+        <t t-call="website.layout">
+            <div class="date_picker" style="margin:0 2rem 0 2rem">
+                <form>
+                    <input type="date" t-att-value="create_date" name="create_date"/>
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </form>
+            </div>
+            <div class="container mt-5 bg-dark">
+                <h1 class="text-center text-danger">Properties</h1>
+                <div class="row row-cols-2 row-cols-md-3">
+                    <t t-foreach="properties" t-as="property">
+                        <div class="col mb-4">
+                            <div class="card" style="width:300px;margin:30px;">
+                                <center>
+                                    <img t-if="property.image" class="card-img-top embed-responsive-item" t-att-src="'data:image/png;base64,'+property.image.decode('utf-8')" alt="Property Image" style="width: 100%;"/>
+                                </center>
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a t-attf-href="/properties/#{property.id}">
+                                            <t t-esc="property.name"/>
+                                        </a>
+                                    </h5>
+                                    <p class="card-text">
+                                        <t t-esc="property.description"/>
+                                    </p>
+                                    <center>
+                                        <a t-attf-href="/properties/#{property.id}" class="btn btn-outline-info btn-sm">
+                                            Get details
+                                        </a>
+                                    </center>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+                <div class="products_pager d-flex justify-content-center mt-6">
+                    <t t-call="website.pager"/>
+                </div>
+                <br/>
+                <hr class="border-600 s_hr_1px w-100 mx-auto s_hr_dotted"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="description">
+        <t t-call="website.layout">
+            <div class="oe_structure" />
+            <div class="oe_structure">
+                <div class="container mt-5">
+                    <t t-foreach="properties" t-as="property">
+                        <h1 class="text-center text-dark">
+                            <t t-esc="property.name" />
+                        </h1>
+                        <div style="display:flex">
+                            <table class="table" style="width:70%;">
+                                <tr>
+                                    <td>
+                                        <h3>
+                                            <t t-esc="property.name" />
+                                        </h3>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Description:</strong>
+                                        <t t-esc="property.description" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Expected Price:</strong>
+                                        <t t-esc="property.expected_price" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Selling Price:</strong>
+                                        <t t-esc="property.selling_price" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>State:</strong>
+                                        <t t-esc="property.state" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong>Date Availability:</strong>
+                                        <t t-esc="property.date_availability" />
+                                    </td>
+                                </tr>
+                            </table>
+                            <img t-attf-src="data:image/png;base64,#{property.image}" height="300px" width="400px" alt="Property Image" />
+                        </div>
+                    </t>
+                </div>
+            </div>
+            <div class="oe_structure" />
+        </t>
+    </template>
+</odoo>
