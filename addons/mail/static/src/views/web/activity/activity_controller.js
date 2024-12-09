@@ -69,24 +69,24 @@ export class ActivityController extends Component {
         return { comparision, context, domain, groupBy, orderBy };
     }
 
-    scheduleActivity() {
-        this.dialog.add(
-            SelectCreateDialog,
-            {
-                resModel: this.props.resModel,
-                searchViewId: this.env.searchModel.searchViewId,
-                domain: this.model.originalDomain,
-                title: _t("Search: %s", this.props.archInfo.title),
-                multiSelect: false,
-                context: this.props.context,
-                onSelected: async (resIds) => {
-                    await this.store.scheduleActivity(this.props.resModel, resIds);
-                },
+    get selectCreateDialogProps() {
+        return {
+            resModel: this.props.resModel,
+            searchViewId: this.env.searchModel.searchViewId,
+            domain: this.model.originalDomain,
+            title: _t("Search: %s", this.props.archInfo.title),
+            multiSelect: false,
+            context: this.props.context,
+            onSelected: async (resIds) => {
+                await this.store.scheduleActivity(this.props.resModel, resIds);
             },
-            {
-                onClose: () => this.model.load(this.getSearchProps()),
-            }
-        );
+        };
+    }
+
+    scheduleActivity() {
+        this.dialog.add(SelectCreateDialog, this.selectCreateDialogProps, {
+            onClose: () => this.model.load(this.getSearchProps()),
+        });
     }
 
     openActivityFormView(resId, activityTypeId) {
