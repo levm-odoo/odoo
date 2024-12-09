@@ -36,7 +36,7 @@
                     </t>
                 </t>
                 <t t-set="current" t-value=""/>
-                <t t-foreach="getEmojis()" t-as="emoji" t-key="emoji_index">
+                <t t-foreach="getEmojis()" t-as="emoji" t-key="emoji_index + '_' + state.activeEmojiIndex">
                     <t t-if="!searchTerm and current !== emoji.category">
                         <t t-set="current" t-value="emoji.category"/>
                         <t t-set="category" t-value="categories.find(c => c.name === current)"/>
@@ -77,7 +77,7 @@
 </t>
 
 <t t-name="web.EmojiPicker.emoji">
-    <span class="o-Emoji cursor-pointer d-flex justify-content-center rounded-3 align-items-center" t-att-class="{ 'o-active': state.activeEmojiIndex === itemIndex, 'fs-2': !ui.isSmall, 'fs-1': ui.isSmall }" t-att-title="emoji.name" t-att-data-codepoints="emoji.codepoints" t-att-data-index="itemIndex" t-att-data-category="inRecent ? recentCategory.sortId : categories.find(c => c.name === emoji.category).sortId" t-on-click="selectEmoji">
+    <span class="o-Emoji cursor-pointer d-flex justify-content-center rounded-3 align-items-center" t-ref="{{state.activeEmojiIndex === itemIndex ? 'activeEmoji' : 'voidRef'}}" t-att-class="{ 'o-active': state.activeEmojiIndex === itemIndex, 'fs-2': !ui.isSmall, 'fs-1': ui.isSmall }" t-att-title="emoji.name" t-att-data-codepoints="emoji.codepoints" t-att-data-index="itemIndex" t-att-data-category="inRecent ? recentCategory.sortId : categories.find(c => c.name === emoji.category).sortId" t-on-click="selectEmoji">
         <span t-esc="emoji.codepoints"/>
     </span>
 </t>

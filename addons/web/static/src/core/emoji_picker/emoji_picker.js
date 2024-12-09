@@ -100,6 +100,7 @@ export class EmojiPicker extends Component {
             searchTerm: "",
         });
         this.frequentEmojiService = useState(useService("web.frequent.emoji"));
+        this.activeEmojiRef = useRef("activeEmoji");
         useAutofocus();
         onWillStart(async () => {
             const { categories, emojis } = await loadEmoji();
@@ -121,6 +122,17 @@ export class EmojiPicker extends Component {
         useEffect(
             () => this.updateEmojiPickerRepr(),
             () => [this.state.categoryId, this.state.searchTerm]
+        );
+        useEffect(
+            (el) => {
+                if (!isElementVisible(this.activeEmojiRef.el, this.gridRef?.el)) {
+                    this.activeEmojiRef.el?.scrollIntoView({
+                        block: "center",
+                        behavior: "instant",
+                    });
+                }
+            },
+            () => [this.activeEmojiRef.el, this.gridRef?.el]
         );
         onMounted(() => {
             if (this.emojis.length === 0) {
@@ -357,7 +369,6 @@ export class EmojiPicker extends Component {
             return;
         }
         this.state.categoryId = parseInt(res.dataset.category);
-        console.log(this.state.categoryId);
     }
 }
 
@@ -537,4 +548,14 @@ class PickerMobileInDialog extends PickerMobile {
             { capture: true }
         );
     }
+}
+
+function isElementVisible(el, holder) {
+    const offset = 20;
+    holder = holder || document.body;
+    const { top, bottom, height } = el.getBoundingClientRect();
+    let { top: holderTop, bottom: holderBottom } = holder.getBoundingClientRect();
+    holderTop += offset;
+    holderBottom -= offset;
+    return top - offset <= holderTop ? holderTop - top <= height : bottom - holderBottom <= height;
 }
