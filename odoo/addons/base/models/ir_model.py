@@ -539,7 +539,8 @@ class IrModelFields(models.Model):
                         help="The technical name of the model this field belongs to")
     relation = fields.Char(string='Related Model',
                            help="For relationship fields, the technical name of the target model")
-    relation_field = fields.Char(help="For one2many fields, the field on the target model that implement the opposite many2one relationship")
+    relation_field = fields.Char(help="For one2many fields, the field on the target model that implement the opposite many2one relationship",
+                                 string="Reverse field")
     relation_field_id = fields.Many2one('ir.model.fields', compute='_compute_relation_field_id',
                                         store=True, ondelete='cascade', string='Relation field')
     model_id = fields.Many2one('ir.model', string='Model', required=True, index=True, ondelete='cascade',
@@ -1185,12 +1186,13 @@ class IrModelFields(models.Model):
             model = self.env[model_name]
             by_label = {}
             for field in model._fields.values():
-                if field.string in by_label:
-                    other = by_label[field.string]
+                field_string = field.string.strip().lower()
+                other = by_label.get(field_string)
+                if other and not (field.related_field == other or other.related_field == field):
                     _logger.warning('Two fields (%s, %s) of %s have the same label: %s. [Modules: %s and %s]',
                                     field.name, other.name, model, field.string, field._module, other._module)
-                else:
-                    by_label[field.string] = field
+                if not other:
+                    by_label[field_string] = field
 
         # determine expected and existing rows
         rows = []
