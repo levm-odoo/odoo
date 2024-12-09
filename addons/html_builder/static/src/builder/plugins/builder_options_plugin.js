@@ -13,7 +13,10 @@ export class BuilderOptionsPlugin extends Plugin {
 
     setup() {
         // todo: use resources instead of registry
-        this.builderOptions = registry.category("sidebar-element-option").getAll();
+        this.builderOptions = registry
+            .category("sidebar-element-option")
+            .getEntries()
+            .map(([id, option]) => ({ id, ...option }));
         this.builderOptions.sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
         this.addDomListener(this.editable, "pointerup", (e) => {
             if (!this.dependencies.selection.getEditableSelection().isCollapsed) {
@@ -39,20 +42,20 @@ export class BuilderOptionsPlugin extends Plugin {
         this.changeSidebarTarget(selectionNode);
     }
 
-    getMapOptions() {
-        const map = new Map();
+    getCurrentOptionsByElement() {
+        const optionsByElement = new Map();
         for (const option of this.builderOptions) {
             const { selector } = option;
             const elements = getClosestElements(this.currentSelectedElement, selector);
             for (const element of elements) {
-                if (map.has(element)) {
-                    map.get(element).push(option);
+                if (optionsByElement.has(element)) {
+                    optionsByElement.get(element).push(option);
                 } else {
-                    map.set(element, [option]);
+                    optionsByElement.set(element, [option]);
                 }
             }
         }
-        return map;
+        return optionsByElement;
     }
 
     changeSidebarTarget(selectedElement) {
@@ -65,7 +68,7 @@ export class BuilderOptionsPlugin extends Plugin {
     }
 
     updateOptionContainers() {
-        const map = this.getMapOptions();
+        const optionsByElement = this.getCurrentOptionsByElement();
         const elementsWithContainer = new Set(
             this.currentOptionsContainers.map((optionsContainer) => optionsContainer.element)
         );
@@ -76,17 +79,21 @@ export class BuilderOptionsPlugin extends Plugin {
             }
         }
 
-        const elementsToAdd = [...map.keys()].filter((el) => !elementsWithContainer.has(el));
+        const elementsToAdd = [...optionsByElement.keys()].filter(
+            (el) => !elementsWithContainer.has(el)
+        );
         for (const element of elementsToAdd) {
-            const options = map.get(element);
+            const options = optionsByElement.get(element);
             this.currentOptionsContainers.push({
                 id: uniqueId(),
-                options: this.getOptions(options),
+                options: this.getProcessOptions(options),
                 element,
             });
         }
 
-        const elementsToRemove = [...elementsWithContainer].filter((el) => !map.has(el));
+        const elementsToRemove = [...elementsWithContainer].filter(
+            (el) => !optionsByElement.has(el)
+        );
         for (const element of elementsToRemove) {
             const index = this.currentOptionsContainers.findIndex(
                 (container) => element === container.element
@@ -99,7 +106,7 @@ export class BuilderOptionsPlugin extends Plugin {
         }
     }
 
-    getOptions(options) {
+    getProcessOptions(options) {
         const optionsSet = new Set(options);
         return this.builderOptions.map((option) => ({
             ...option,
