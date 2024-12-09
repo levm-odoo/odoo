@@ -118,7 +118,6 @@ class AccountMoveLine(models.Model):
     )
     amount_currency = fields.Monetary(
         string='Amount in Currency',
-        group_operator=None,
         compute='_compute_amount_currency', inverse='_inverse_amount_currency', store=True, readonly=False, precompute=True,
         help="The amount expressed in an optional other currency if it is a multi-currency entry.")
     currency_id = fields.Many2one(
@@ -1333,6 +1332,15 @@ class AccountMoveLine(models.Model):
             if move_ids:
                 self.env['account.move'].browse(move_ids).invalidate_recordset()
         return super().invalidate_recordset(fnames=fnames, flush=flush)
+
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        # Hide total amount_currency from read_group when view is not grouped by currency_id. Avoids mix of currencies
+        res = super().read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
+        if 'currency_id' not in groupby and 'amount_currency' in fields:
+            for group_line in res:
+                group_line['amount_currency'] = False
+        return res
 
     @api.model
     def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
