@@ -1,4 +1,4 @@
-import { Component, useState } from "@odoo/owl";
+import { Component, useEffect, useState } from "@odoo/owl";
 import { isMobileOS } from "@web/core/browser/feature_detection";
 
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
@@ -44,6 +44,17 @@ export class AttachmentList extends Component {
         this.fileViewer = useFileViewer();
         this.actionsMenuState = useDropdownState();
         this.isMobileOS = isMobileOS;
+        useEffect(
+            () => {
+                console.log("activateMultiSelect changed:", this.props.activateMultiSelect);
+            },
+            () => [this.props.activateMultiSelect]
+        );
+    }
+
+    testhere(ev) {
+        console.log("testhere", ev);
+        ev.preventDefault();
     }
 
     /**

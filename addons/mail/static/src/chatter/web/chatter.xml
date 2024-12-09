@@ -120,15 +120,24 @@
                             attachments="attachments"
                             unlinkAttachment.bind="unlinkAttachment"
                             imagesHeight="100"
+                            activateMultiSelect="state.activateMultiSelect"
                         />
-                        <FileUploader multiUpload="true" fileUploadClass="'o-mail-Chatter-fileUploader'" onUploaded.bind="onUploaded" onClick="(ev) => this.onClickAttachFile(ev)">
-                            <t t-set-slot="toggler">
-                                <button class="btn btn-link" type="button" t-att-disabled="!state.thread.hasWriteAccess">
-                                    <i class="fa fa-plus-square"/>
-                                    Attach files
-                                </button>
-                            </t>
-                        </FileUploader>
+                        <div class="d-flex justify-content-center">
+                            <FileUploader multiUpload="true" fileUploadClass="'o-mail-Chatter-fileUploader'" onUploaded.bind="onUploaded" onClick="(ev) => this.onClickAttachFile(ev)">
+                                <t t-set-slot="toggler">
+                                    <button class="btn btn-link" type="button" t-att-disabled="!state.thread.hasWriteAccess">
+                                        <i class="fa fa-plus-square"/>
+                                        Attach files
+                                    </button>
+                                </t>
+                            </FileUploader>
+                            <button class="btn btn-link" t-on-click="handleMulticlick">
+                                <span>
+                                    <i class="fa fa-paperclip"/>
+                                    Select Multi
+                                </span>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <SearchMessageResult t-if="messageSearch.searching or messageSearch.searched" thread="state.thread"  messageSearch="messageSearch" onClickJump.bind="closeSearch"/>

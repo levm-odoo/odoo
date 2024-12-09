@@ -85,6 +85,7 @@ patch(Chatter.prototype, {
             showActivities: true,
             showAttachmentLoading: false,
             showScheduledMessages: true,
+            activateMultiSelect: false,
         });
         this.messageSearch = useMessageSearch();
         this.attachmentUploader = useAttachmentUploader(
@@ -222,6 +223,10 @@ patch(Chatter.prototype, {
 
     get unfollowText() {
         return _t("Unfollow");
+    },
+
+    handleMulticlick() {
+        this.state.activateMultiSelect = !this.state.activateMultiSelect; // Toggle state
     },
 
     changeThread(threadModel, threadId) {
