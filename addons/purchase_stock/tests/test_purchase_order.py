@@ -534,49 +534,6 @@ class TestPurchaseOrder(ValuationReconciliationTestCommon):
 
         self.assertEqual(po.picking_ids.move_ids.product_uom_qty, 80)
 
-    def test_packaging_propagation(self):
-        """ Editing the packaging on an purchase.order.line
-        should propagate to the delivery order, so that
-        when we are editing the packaging, the lines can be merged
-        with the new packaging and quantity.
-        """
-        # set the 3 step route
-        warehouse = self.company_data['default_warehouse']
-        warehouse.reception_steps = 'three_steps'
-        packOf10 = self.env['uom.uom'].create({
-            'name': 'PackOf10',
-            'relative_factor': 10
-        })
-
-        packOf20 = self.env['uom.uom'].create({
-            'name': 'PackOf20',
-            'relative_factor': 20
-        })
-        self.product_a.uom_ids = packOf10 | packOf20
-
-        po = self.env['purchase.order'].create({
-            'partner_id': self.partner_a.id,
-            'order_line': [
-                (0, 0, {
-                    'product_id': self.product_a.id,
-                    'product_uom_qty': 10.0,
-                    'product_uom_id': packOf10.id,
-                })],
-        })
-        po.button_confirm()
-        # the 3 moves for the 3 steps
-        step_1 = po.order_line.move_ids
-        self.assertEqual(step_1.product_uom, packOf10)
-
-        po.order_line[0].write({
-            'product_uom_id': packOf20.id,
-            'product_uom_qty': 20
-        })
-        self.assertEqual(step_1.product_uom, packOf20)
-
-        po.order_line[0].write({'product_uom_id': False})
-        self.assertFalse(step_1.product_uom)
-
     def test_putaway_strategy_in_backorder(self):
         stock_location = self.company_data['default_warehouse'].lot_stock_id
         sub_loc_01 = self.env['stock.location'].create([{

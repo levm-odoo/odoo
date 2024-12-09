@@ -392,7 +392,7 @@ class PurchaseOrderLine(models.Model):
             )['total_void']
             price_unit = price_unit / qty
         if self.product_uom_id.id != self.product_id.uom_id.id:
-            price_unit *= self.product_uom_id.factor / self.product_id.uom_id.factor
+            price_unit *= self.product_id.uom_id.factor / self.product_uom_id.factor
         return price_unit
 
     def action_add_from_catalog(self):

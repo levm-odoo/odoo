@@ -202,10 +202,10 @@ class TestPurchaseStockReports(TestReportsCommon):
     def test_vendor_delay_report_with_uom(self):
         """
         PO 12 units x P
-        Receive 1 pack_of_6 x P
+        Receive 2 pack_of_6 x P
         -> 100% received
         """
-        uom_12 = self.env.ref('uom.product_uom_pack_6')
+        uom_6 = self.env.ref('uom.product_uom_pack_6')
 
         po_form = Form(self.env['purchase.order'])
         po_form.partner_id = self.partner
@@ -222,8 +222,8 @@ class TestPurchaseStockReports(TestReportsCommon):
             'location_id': receipt_move.location_id.id,
             'location_dest_id': receipt_move.location_dest_id.id,
             'product_id': self.product.id,
-            'product_uom_id': uom_12.id,
-            'quantity': 1,
+            'product_uom_id': uom_6.id,
+            'quantity': 2,
             'picking_id': receipt.id,
         })]
         receipt.move_ids.picked = True
