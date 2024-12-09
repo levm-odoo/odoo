@@ -73,9 +73,22 @@ export class BuilderOptionsPlugin extends Plugin {
             this.currentOptionsContainers.map((optionsContainer) => optionsContainer.element)
         );
 
+        const elementsToRemove = [...elementsWithContainer].filter(
+            (el) => !optionsByElement.has(el)
+        );
+        for (const element of elementsToRemove) {
+            const index = this.currentOptionsContainers.findIndex(
+                (container) => element === container.element
+            );
+            this.currentOptionsContainers.splice(index, 1);
+        }
+
         for (const optionContainer of this.currentOptionsContainers) {
+            const visibleOptionIds = new Set(
+                optionsByElement.get(optionContainer.element).map((option) => option.id)
+            );
             for (const option of optionContainer.options) {
-                option.isVisible = optionContainer.element.matches(option.selector);
+                option.isVisible = visibleOptionIds.has(option.id);
             }
         }
 
@@ -89,16 +102,6 @@ export class BuilderOptionsPlugin extends Plugin {
                 options: this.getProcessOptions(options),
                 element,
             });
-        }
-
-        const elementsToRemove = [...elementsWithContainer].filter(
-            (el) => !optionsByElement.has(el)
-        );
-        for (const element of elementsToRemove) {
-            const index = this.currentOptionsContainers.findIndex(
-                (container) => element === container.element
-            );
-            this.currentOptionsContainers.splice(index, 1);
         }
 
         if (elementsToAdd.length) {
