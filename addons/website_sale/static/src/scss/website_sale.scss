@@ -825,6 +825,17 @@ a.no-decoration {
 }
 
 .o_website_sale_checkout {
+    #cart_products {
+
+        .o_cart_product_info {
+            min-width: 0;
+        }
+
+        .o_description_line {
+            @include o-line-clamp(2);
+        }
+    }
+
     .o_total_card {
         // The accordion have to mimick the styling of a card
         background-color: $card-bg;
@@ -840,6 +851,11 @@ a.no-decoration {
         // to offset the summary regarding the tallest header (Magazine)
         @include media-breakpoint-up(lg) {
             top: 9rem;
+
+            // Truncate descriptions_lines < lg
+            .o_cart_line_product_link .text-truncate {
+                text-wrap: wrap;
+            }
         }
 
         @include media-breakpoint-down(lg) {
