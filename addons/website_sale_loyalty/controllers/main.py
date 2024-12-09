@@ -126,3 +126,8 @@ class WebsiteSale(main.WebsiteSale):
             else:
                 order._remove_delivery_line()
         return True
+
+    @route('/topup/pay', type='http', methods=['GET', 'POST'], auth='user', website=True, sitemap=False)
+    def topup_pay(self, **kwargs):
+        self.cart_update(product_id=int(kwargs['trigger_product_id']))
+        return request.redirect('/shop/cart')
