@@ -53,7 +53,7 @@ class MailActivitySchedule(models.TransientModel):
     plan_has_user_on_demand = fields.Boolean(related="plan_id.has_user_on_demand")
     plan_summary = fields.Html(compute='_compute_plan_summary')
     plan_on_demand_user_id = fields.Many2one(
-        'res.users', 'Assigned To',
+        'res.users', 'Assigned To (on demand)',
         help='Choose assignation for activities with on demand assignation.',
         default=lambda self: self.env.user)
     plan_date = fields.Date(

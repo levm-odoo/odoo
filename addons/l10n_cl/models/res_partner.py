@@ -14,7 +14,7 @@ class ResPartner(models.Model):
             ('3', 'End Consumer'),
             ('4', 'Foreigner'),
         ],
-        string='Taxpayer Type',
+        string='Chile Taxpayer Type',
         index='btree_not_null',
         help='1 - VAT Affected (1st Category) (Most of the cases)\n'
              '2 - Fees Receipt Issuer (Applies to suppliers who issue fees receipt)\n'

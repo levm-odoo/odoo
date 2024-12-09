@@ -45,7 +45,7 @@ class PosConfig(models.Model):
     )
     self_ordering_default_language_id = fields.Many2one(
         "res.lang",
-        string="Default Language",
+        string="PoS Default Language",
         help="Default language for the kiosk mode",
         default=lambda self: self.env["res.lang"].search(
             [("code", "=", self.env.lang)], limit=1

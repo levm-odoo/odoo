@@ -14,7 +14,7 @@ class AccountMove(models.Model):
         ("2", "Data Entry Mistake"),
         ("3", "Order Cancelled"),
         ("4", "Others"),
-        ], string="Cancel reason", copy=False)
+        ], string="India Cancel Reason", copy=False)
     l10n_in_edi_cancel_remarks = fields.Char("Cancel remarks", copy=False)
     l10n_in_edi_show_cancel = fields.Boolean(compute="_compute_l10n_in_edi_show_cancel", string="E-invoice(IN) is sent?")
 

@@ -46,7 +46,7 @@ class MailMessage(models.Model):
     )
     account_audit_log_company_id = fields.Many2one(
         comodel_name='res.company',
-        string="Company ",
+        string="Company (accounting audit log)",
         compute="_compute_account_audit_log_company_id",
         search="_search_account_audit_log_company_id",
     )

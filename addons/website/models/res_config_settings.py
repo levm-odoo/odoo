@@ -39,7 +39,7 @@ class ResConfigSettings(models.TransientModel):
         related='website_id.language_ids',
         readonly=False)
     website_language_count = fields.Integer(
-        string='Number of languages',
+        string='Website languages count',
         related='website_id.language_count',
         readonly=True)
     website_default_lang_id = fields.Many2one(
