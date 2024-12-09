@@ -28,6 +28,7 @@ import { addLoadingEffect as addButtonLoadingEffect } from "@web/core/utils/ui";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { useSetupAction } from "@web/search/action_hook";
 import { closestElement } from "@html_editor/utils/dom_traversal";
+import { SnippetPlugin } from "./plugins/snippet_plugin";
 
 const BUILDER_PLUGIN = [
     BuilderOptionsPlugin,
@@ -36,6 +37,7 @@ const BUILDER_PLUGIN = [
     MediaWebsitePlugin,
     SetupEditorPlugin,
     HandleDirtyElementPlugin,
+    SnippetPlugin,
 ];
 
 function onIframeLoaded(iframe, callback) {

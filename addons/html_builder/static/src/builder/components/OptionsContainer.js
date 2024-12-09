@@ -21,4 +21,8 @@ export class OptionsContainer extends Component {
     get title() {
         return this.env.getEditingElement().dataset.name;
     }
+
+    onClickRemove() {
+        this.env.editor.shared.snippet.remove(this.env.editingElement);
+    }
 }
