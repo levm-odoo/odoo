@@ -80,17 +80,17 @@
     },
     {
         content: "Click for edit address",
-        trigger: 'a:contains("Edit") i',
+        trigger: '.all_delivery a:contains(Edit)',
         run: "click",
     },
     {
-        content: "Billing address is not same as delivery address",
-        trigger: '#use_delivery_as_billing',
-        run: "click",
+        content: "Check for delivery step",
+        trigger: ".o_wizard:has(.o_wizard_step_active:contains(delivery))",
     },
     {
         content: "Add a billing address",
-        trigger: '.all_billing a[href^="/shop/address"]:contains("Add address")',
+        trigger:
+            ".alert-warning:contains(be aware):contains(delivery and billing) a:contains(new address)",
         run: "click",
     },
     {
@@ -139,13 +139,8 @@
         trigger: '#billing_address_row:contains(17, SO1 Billing Road):contains(SO1BillingCity):contains(Afghanistan)',
     },
     {
-        content: "Click for edit address",
-        trigger: 'a:contains("Edit") i',
-        run: "click",
-    },
-    {
         content: "Click for edit billing address",
-        trigger: '.all_billing .js_edit_address:first',
+        trigger: ".all_billing div[name=address_card]:first a:contains(edit)",
         run: "click",
     },
     {
@@ -261,29 +256,35 @@
     },
     {
         content: "Configuration Settings for 'Tax Included' and sign up 'On Invitation'",
-        trigger: '#wrapwrap',
-        run: function () {
-            var def1 = rpc(`/web/dataset/call_kw/res.config.settings/create`, {
+        trigger: "#wrapwrap",
+        async run() {
+            const resId = await rpc(`/web/dataset/call_kw/res.config.settings/create`, {
                 model: "res.config.settings",
                 method: "create",
-                args: [{
-                    'auth_signup_uninvited': 'b2b',
-                    'show_line_subtotals_tax_selection': 'tax_included',
-                }],
+                args: [
+                    {
+                        auth_signup_uninvited: "b2b",
+                        show_line_subtotals_tax_selection: "tax_included",
+                    },
+                ],
                 kwargs: {},
             });
-            var def2 = def1.then(function (resId) {
-                return rpc(`/web/dataset/call_kw/res.config.settings/execute`, {
+            if (resId > 0) {
+                await rpc(`/web/dataset/call_kw/res.config.settings/execute`, {
                     model: "res.config.settings",
                     method: "execute",
                     args: [[resId]],
                     kwargs: {},
                 });
-            });
-            def2.then(function () {
-                window.location.href = '/web/session/logout?redirect=/shop?search=Storage Box Test';
-            });
+            } else {
+                console.error(`error with call rpc: resId not found`);
+            }
         },
+    },
+    {
+        content: "redirect", 
+        trigger: "#wrapwrap",
+        run: "goToUrl /web/session/logout?redirect=/shop?search=Storage Box Test",
     },
     // Testing b2b with Tax-Included Prices
     {
@@ -374,6 +375,7 @@
         trigger: '.oe_cart .btn:contains("Save address")',
         run: "click",
     },
+        tourUtils.confirmOrder(),
     {
         content: "Select `Wire Transfer` payment method",
         trigger: 'input[name="o_payment_radio"][data-payment-method-code="wire_transfer"]',
@@ -494,15 +496,50 @@
         trigger: '#add_to_cart',
         run: "click",
     },
-        tourUtils.goToCart(),
-        tourUtils.goToCheckout(),
     {
-        content: "Click on 'Continue checkout' button",
-        trigger: '.oe_cart .btn:contains("Continue checkout")',
+        content: "Go to cart",
+        trigger: `nav a:has(i.fa-shopping-cart):has(sup:contains(1))`,
         run: "click",
     },
-    ...tourUtils.payWithTransfer(),
     {
-        content: "Check payment status confirmation window",
-        trigger: ".oe_website_sale_tx_status[data-order-tracking-info]",
-    }]});
+        trigger: ".o_wizard:has(.o_wizard_step_active:contains(review order))",
+    },
+    {
+        trigger: "body h3:contains(order overview)",
+    },
+    {
+        trigger: ".o_total_card a:contains(checkout)",
+        run: "click",
+    },
+    {
+        trigger: ".o_wizard:has(.o_wizard_step_active:contains(delivery))",
+    },
+    {
+        trigger: ".o_total_card a:contains(confirm)",
+        run: "click",
+    },
+    {
+        trigger: ".o_wizard:has(.o_wizard_step_active:contains(extra info))",
+    },
+    {
+        content: "Click on 'Continue checkout' button",
+        trigger: ".s_website_form_submit a:contains(continue checkout)",
+        run: "click",
+    },
+    {
+        trigger: ".o_wizard:has(.o_wizard_step_active:contains(payment))",
+    },
+    {
+        content: "Select `Wire Transfer` payment method",
+        trigger: 'input[name="o_payment_radio"][data-payment-method-code="wire_transfer"]',
+        run: "check",
+    },
+    {
+        content: 'Pay',
+        trigger: 'button:contains(pay now)',
+        run: "click",
+    },
+    {
+        trigger: '.oe_website_sale_tx_status:contains("Please use the following transfer details")',
+    },
+]});

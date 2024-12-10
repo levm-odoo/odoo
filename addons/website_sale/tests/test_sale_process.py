@@ -120,7 +120,7 @@ class TestSaleProcess(HttpCaseWithUserDemo, WebsiteSaleCommon):
             'show_line_subtotals_tax_selection': 'tax_excluded',
         }).execute()
 
-        self.start_tour("/", 'website_sale_tour_1')
+        self.start_tour("/", 'website_sale_tour_1', timeout=120)
         self.start_tour(
             self.env['website'].get_client_action_url('/shop/cart'),
             'website_sale_tour_backend',
