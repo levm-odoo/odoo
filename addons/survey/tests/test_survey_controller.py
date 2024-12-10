@@ -30,7 +30,7 @@ class TestSurveyController(common.TestSurveyCommon, HttpCase):
             {'value': 'Yes', 'answer_score': 0.5, 'is_correct': True},
             {'value': 'No', 'answer_score': 0.2},
         ])
-        q1, q2, q3 = self.env['survey.question'].create([{
+        q1, q2, q3 = self.env['survey.question'].with_context(force_sequence=True).create([{
             'survey_id': survey.id,
             'title': 'What is a word?',
             'sequence': 2,
@@ -77,7 +77,7 @@ class TestSurveyController(common.TestSurveyCommon, HttpCase):
             with self.subTest(case_index=case_index, layout=layout):
                 survey.questions_layout = layout
                 if layout == 'page_per_section':
-                    page0, _ = self.env['survey.question'].create(pages)
+                    page0, _ = self.env['survey.question'].with_context(force_sequence=True).create(pages)
 
                 response = self._access_start(survey)
                 user_input = self.env['survey.user_input'].search([('access_token', '=', response.url.split('/')[-1])])

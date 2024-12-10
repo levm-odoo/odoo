@@ -417,7 +417,7 @@ class TestSurveyInternals(common.TestSurveyCommon, MailCase):
         (q_1 | q_2).invalidate_recordset()
 
         # Clone the survey
-        cloned_survey = self.survey.copy()
+        cloned_survey = self.survey.with_context(force_sequence=True).copy()
 
         # Check that the sequence of the questions are the same as the original survey
         self.assertEqual(get_question_by_title(cloned_survey, 'Q1').sequence, q_1.sequence)
@@ -690,6 +690,29 @@ class TestSurveyInternals(common.TestSurveyCommon, MailCase):
                 'notified_partner_ids': self.survey_user.partner_id
             },
         )
+
+    def test_question_creation_sequence(self):
+        """Checks that questions are created at the end of the survey"""
+        test_survey = self.env['survey.survey'].create({
+            'title': 'Test Survey',
+        })
+        q1 = self.env['survey.question'].create({
+            'survey_id': test_survey.id,
+            'title': 'First question',
+        })
+        q2 = self.env['survey.question'].create({
+            'survey_id': test_survey.id,
+            'title': 'Second question',
+            'sequence': 3,
+        })
+        q3 = self.env['survey.question'].with_context(force_sequence=True).create({
+            'survey_id': test_survey.id,
+            'title': 'Very first question, sequence enforcing',
+            'sequence': 5,
+        })
+        self.assertEqual(q1.sequence, 10)
+        self.assertEqual(q2.sequence, 11)
+        self.assertEqual(q3.sequence, 5)
 
     def assertAnswerStatus(self, expected_answer_status, questions_statistics):
         """Assert counts for 'Correct', 'Partially', 'Incorrect', 'Unanswered' are 0, and 1 for our expected answer status"""

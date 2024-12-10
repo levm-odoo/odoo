@@ -123,7 +123,7 @@ class SurveyCase(common.TransactionCase):
         else:
             pass
         base_qvalues.update(kwargs)
-        question = self.env['survey.question'].create(base_qvalues)
+        question = self.env['survey.question'].with_context(force_sequence=True).create(base_qvalues)
         return question
 
     def _add_answer(self, survey, partner, **kwargs):

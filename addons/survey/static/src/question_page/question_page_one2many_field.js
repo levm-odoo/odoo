@@ -48,7 +48,10 @@ class QuestionPageOneToManyField extends X2ManyField {
         const saveRecord = async (record) => {
             await superSaveRecord(record);
             try {
+                const limit = this.list.config.limit;
+                const offset = (Math.ceil((this.list.count + 1) / limit) - 1) * limit;
                 await self.props.record.save();
+                await this.list.load({ limit: limit, offset: offset });
             } catch (error) {
                 // In case of error occurring when saving.
                 // Remove erroneous question row added to the embedded list

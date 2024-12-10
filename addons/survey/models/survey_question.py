@@ -371,6 +371,15 @@ class SurveyQuestion(models.Model):
             clone.triggering_answer_ids = self.triggering_answer_ids
         return clone
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if 'survey_id' in vals and self.env.context.get('force_sequence') is not True:
+                questions = self.env["survey.survey"].browse(vals['survey_id']).question_and_page_ids
+                if questions:
+                    vals["sequence"] = questions[-1].sequence + 1
+        return super().create(vals_list)
+
     # ------------------------------------------------------------
     # CRUD
     # ------------------------------------------------------------
