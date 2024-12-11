@@ -1127,7 +1127,7 @@ export class Record extends DataPoint {
         if (canProceed === false) {
             return;
         }
-        if (this.selected && this.model.multiEdit && !this._invalidFields.has(fieldName)) {
+        if (this.selected && !this.model.multiEdit && !this._invalidFields.has(fieldName)) {
             await this.model.dialog.add(AlertDialog, {
                 body: _t("No valid record to save"),
                 confirm: async () => {
