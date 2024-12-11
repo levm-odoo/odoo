@@ -37,6 +37,9 @@ import {
     convertCSSColorToRgba,
     normalizeCSSColor,
  } from '@web/core/utils/colors';
+ import {
+    rgbToHex,
+} from "@html_editor/utils/color";
 import { renderToElement } from "@web/core/utils/render";
 import { rpc } from "@web/core/network/rpc";
 
@@ -8339,8 +8342,9 @@ registry.BackgroundShape = SnippetOptionWidget.extend({
      * @override
      */
     updateUI({assetsChanged} = {}) {
-        if (this.rerender || assetsChanged) {
+        if (this.rerender || assetsChanged || this.$target[0].dataset.rerender == "true") {
             this.rerender = false;
+            this.$target[0].dataset.rerender = "false";
             return this._rerenderXML();
         }
         return this._super.apply(this, arguments);
@@ -8357,6 +8361,73 @@ registry.BackgroundShape = SnippetOptionWidget.extend({
             });
         }
     },
+    /**
+ 	* @override
+ 	*/
+	notify(name, data) {
+    	if (['bgColorChanged'].includes(name)) {
+            this._handlePreviewState(data.preview, () => {
+                const shape = this._getShapeData().shape;
+                return {colors: this._getImplicitColors(shape)};
+            });
+            this._updateShapeForNeighbor(data.preview, this.$target[0].nextElementSibling, true);
+            this._updateShapeForNeighbor(data.preview, this.$target[0].previousElementSibling, false);
+
+    	} else {
+        	this._super(...arguments);
+    	}
+	},
+
+    _updateShapeForNeighbor(previewMode, snippetEl, shouldBeFlip) {
+        let shapeData = undefined;
+        if (snippetEl) {
+            shapeData = this._getShapeData(snippetEl);
+        } else {
+            return
+        }
+        if (previewMode === true) {
+            //Store the actual value of the background image
+            const shapeEl = snippetEl.querySelector('.o_we_shape');
+            const currentBackgroundImage = window.getComputedStyle(shapeEl).getPropertyValue("background-image");
+            snippetEl.dataset.originalBackgroundImage = currentBackgroundImage; // Stocker la valeur actuelle
+        }
+        if (previewMode === false) {
+            snippetEl.dataset.rerender = true;
+            delete snippetEl.dataset.originalBackgroundImage;
+        }
+        if (previewMode === 'reset') {
+            //restore the stored value of the background image
+            const shapeEl = snippetEl.querySelector('.o_we_shape');
+            const originalBackgroundImage = snippetEl.dataset.originalBackgroundImage;
+            if (originalBackgroundImage) {
+                shapeEl.style.backgroundImage = originalBackgroundImage; // Restaurer la valeur stockée
+                delete snippetEl.dataset.originalBackgroundImage; // Nettoyer après restauration
+            }
+            return
+        }
+        const flipCheck = shouldBeFlip
+            ? shapeData.flip.includes("y")
+            : !shapeData.flip.includes("y")
+
+        if (!(shapeData.shape.includes("web_editor/Connections") && flipCheck)) {
+            return
+        }
+
+        let new_color = this._getConnectionsColors(shapeData.shape, snippetEl);
+        const shapeEl = snippetEl.querySelector('.o_we_shape');
+        let shapeBackgroundImage = window.getComputedStyle(shapeEl).getPropertyValue("background-image");
+        let urlMatch = shapeBackgroundImage.match(/url\(["']?(.*?)["']?\)/);
+        let url = urlMatch[1];
+        let [baseUrl, queryString] = url.split('?');
+        let urlParams = new URLSearchParams(queryString);
+        Object.entries(new_color).forEach(([key, value]) => {
+            urlParams.set(key, value);
+        });
+        shapeBackgroundImage = `url("${baseUrl}?${urlParams.toString()}")`;
+        shapeEl.style.backgroundImage = shapeBackgroundImage;
+        shapeData.colors = Object.assign(shapeData.colors, new_color);
+        snippetEl.dataset.oeShapeData = JSON.stringify(shapeData)
+    },
 
     //--------------------------------------------------------------------------
     // Options
@@ -8372,7 +8443,7 @@ registry.BackgroundShape = SnippetOptionWidget.extend({
             return {
                 shape: widgetValue,
                 colors: this._getImplicitColors(widgetValue, this._getShapeData().colors),
-                flip: [],
+                flip: this._getShapeData().flip,
                 animated: params.animated,
                 shapeAnimationSpeed: this._getShapeData().shapeAnimationSpeed,
             };
@@ -8391,6 +8462,9 @@ registry.BackgroundShape = SnippetOptionWidget.extend({
             const newColors = Object.assign(previousColors, {[colorName]: newColor});
             return {colors: newColors};
         });
+        if (!previewMode) {
+            this.rerender = true;
+        }
     },
     /**
      * Flips the shape on its x axis.
@@ -8407,6 +8481,13 @@ registry.BackgroundShape = SnippetOptionWidget.extend({
      */
     flipY(previewMode, widgetValue, params) {
         this._flipShape(previewMode, 'y');
+        this._handlePreviewState(previewMode, () => {
+            const shape = this._getShapeData().shape;
+            return {colors: this._getImplicitColors(shape)};
+        });
+        if (!previewMode) {
+            this.rerender = true;
+        }
     },
     /**
      * Shows/Hides the shape on mobile.
@@ -8505,6 +8586,9 @@ registry.BackgroundShape = SnippetOptionWidget.extend({
             }
         }
 
+        let colors = undefined;
+        let isFlippedY = undefined;
+
         uiFragment.querySelectorAll('we-select-pager we-button[data-shape]').forEach(btn => {
             const btnContent = document.createElement('div');
             btnContent.classList.add('o_we_shape_btn_content', 'position-relative', 'border-dark');
@@ -8521,7 +8605,24 @@ registry.BackgroundShape = SnippetOptionWidget.extend({
             const shapeClassName = `o_${shape.replace(/\//g, '_')}`;
             shapeEl.classList.add(shapeClassName);
             // Match current palette.
-            const shapeBackgroundImage = this._shapeBackgroundImagePerClass[`.o_we_shape.${shapeClassName}`];
+            let shapeBackgroundImage = this._shapeBackgroundImagePerClass[`.o_we_shape.${shapeClassName}`];
+
+            //For the connection shape, if one already exist then we just take the current color and flip and apply it to the options
+            if (!shape.includes("web_editor/Connections") || Object.keys(this._getShapeData().colors).length == 0) {
+                shapeEl.style.setProperty("background-image", shapeBackgroundImage);
+                btn.append(btnContent);
+                return
+            }
+            colors = this._getShapeData().colors;
+            isFlippedY = this._getShapeData().flip.includes("y");
+            let urlParams = Object.entries(colors)
+                .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+                .join('&');
+            if (isFlippedY) {
+                urlParams += "&flip=y";
+                shapeEl.style.setProperty("background-position", "50% 0%");
+            }
+            shapeBackgroundImage = `${shapeBackgroundImage.split('?')[0]}?${urlParams}`;
             shapeEl.style.setProperty("background-image", shapeBackgroundImage);
             btn.append(btnContent);
         });
@@ -8768,7 +8869,7 @@ registry.BackgroundShape = SnippetOptionWidget.extend({
         const shapeContainer = $shapeContainer[0];
         const shapeSrc = shapeContainer && getBgImageURL(shapeContainer);
         const url = new URL(shapeSrc, window.location.origin);
-        return Object.fromEntries(url.searchParams.entries());
+        return Object.fromEntries(url.searchParams.entries().filter(([key]) => key !== 'flip'));
     },
     /**
      * Returns the implicit colors for the currently selected shape.
@@ -8776,6 +8877,7 @@ registry.BackgroundShape = SnippetOptionWidget.extend({
      * The implicit colors are use upon shape selection. They are computed as:
      * - the default colors
      * - patched with each set of colors of previous siblings shape
+     * - Patched with the background colors of the next snippets if the shape is a Connections
      * - patched with the colors of the previously selected shape
      * - filtered to only keep the colors involved in the current shape
      *
@@ -8786,6 +8888,7 @@ registry.BackgroundShape = SnippetOptionWidget.extend({
     _getImplicitColors(shape, previousColors) {
         const defaultColors = this._getShapeDefaultColors(shape);
         let colors = previousColors || {};
+        colors = Object.assign(this._getConnectionsColors(shape), colors)
         let sibling = this.$target[0].previousElementSibling;
         while (sibling) {
             colors = Object.assign(this._getShapeData(sibling).colors || {}, colors);
@@ -8794,6 +8897,74 @@ registry.BackgroundShape = SnippetOptionWidget.extend({
         const defaultKeys = Object.keys(defaultColors);
         colors = Object.assign(defaultColors, colors);
         return pick(colors, ...defaultKeys);
+    },
+    /**
+     * Returns the computed colors for the currently selected Connections shape.
+     *
+     * The color is computed based on the bgcolor of the next snippet or on the bgcolor 
+     * of the previous if the shape flip on Y.
+     *
+     * @private
+     * @param {String} shape identifier of the selected shape
+     * @param {Object} previousColors colors of the shape before the computation
+     */
+    _getConnectionsColors(shape, $target = this.$target[0]) {
+        if (!shape.includes("web_editor/Connections/")) {
+            return {}
+        }
+        const defaultColor = this._getShapeDefaultColors(shape);
+        const defaultKey = Object.keys(defaultColor);
+        let nextElement = undefined;
+        const isFlippedY = this._getShapeData($target).flip.includes("y");
+        const isInFooter = $target.closest("footer");
+        const hasPreviousSibling = !!$target.previousElementSibling;
+
+        if (isFlippedY) {
+            nextElement = isInFooter
+                ? (hasPreviousSibling
+                    ? this.ownerDocument.body.querySelector("footer")
+                    : this.ownerDocument.body.querySelector("main > #wrap > section:last-child"))
+                : $target.previousElementSibling || this.ownerDocument.body.querySelector("nav");
+        } else {
+            nextElement = isInFooter
+                ? this.ownerDocument.body.querySelector("footer")
+                : $target.nextElementSibling || this.ownerDocument.body.querySelector("footer");
+        }
+        let nextElementBgColor = getComputedStyle(nextElement).backgroundColor;
+        let nextElementHexcolor = rgbToHex(nextElementBgColor)
+        let curBgColor = isInFooter 
+            ? getComputedStyle(this.ownerDocument.body.querySelector("footer")).backgroundColor 
+            : getComputedStyle($target).backgroundColor;
+        let color = undefined;
+        //We compare the HexColor to avoid comparing rgb and rgba together.
+        let curBgHexColor = rgbToHex(curBgColor);
+        if (curBgHexColor != nextElementHexcolor) {
+            color = Object.assign(defaultColor, {[defaultKey[0]]: nextElementHexcolor});
+        } else {
+            color = Object.assign(defaultColor, {[defaultKey[0]]: this._getContrastingColor(nextElementHexcolor)});
+        }
+        return color;
+    },
+    /**
+     * Compute the luminance of a color.
+     *
+     * @private
+     */
+    _getLuminance(hexColor) {
+        let r = parseInt(hexColor.substr(1, 2), 16);
+        let g = parseInt(hexColor.substr(3, 2), 16);
+        let b = parseInt(hexColor.substr(5, 2), 16);
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    },
+    /**
+     * Return the whitish or the blackish color of the current theme
+     * based on the luminance of the given color.
+     *
+     * @private
+     */
+    _getContrastingColor(color) {
+        let luminance = this._getLuminance(color);
+        return luminance > 128 ? weUtils.getCSSVariableValue('o-color-5') : weUtils.getCSSVariableValue('o-color-4');
     },
     /**
      * Toggles whether there is a shape or not, to be called from bg toggler.
@@ -9174,6 +9345,18 @@ registry.ColoredLevelBackground = registry.BackgroundToggler.extend({
     onBuilt: function () {
         this._markColorLevel();
     },
+    /**
+     * @override
+     */
+    selectStyle: async function (previewMode, widgetValue, params) {
+        await this._super(...arguments);
+        this.trigger_up('option_update', {
+        	optionName: 'BackgroundShape',
+        	name: 'bgColorChanged',
+            data: {"preview": previewMode}
+    	});
+    },
+
 
     //--------------------------------------------------------------------------
     // Private
