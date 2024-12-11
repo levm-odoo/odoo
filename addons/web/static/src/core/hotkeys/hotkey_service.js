@@ -276,7 +276,7 @@ export const hotkeyService = {
                 .split("+")
                 .filter((key) => !overlayModParts.includes(key))
                 .join("+");
-            const elems = getVisibleElements(activeElement, `[data-hotkey='${cleanHotkey}' i]`);
+            const elems = getVisibleElements(activeElement, `[data-hotkey='${cleanHotkey}' i]:not([class*="disabled"])`);
             return elems.map((el) => ({
                 hotkey,
                 activeElement,
