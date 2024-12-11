@@ -298,6 +298,8 @@ class AccountEdiFormat(models.Model):
                         'NombreRazon': com_partner.name[:120],
                     }
                 invoice_node['ClaveRegimenEspecialOTrascendencia'] = invoice.invoice_line_ids.tax_ids._l10n_es_get_regime_code()
+                if invoice.delivery_date and invoice.delivery_date != invoice.invoice_date:
+                    invoice_node['FechaOperaction'] = invoice.delivery_date.strftime('%d-%m-%Y')
             else:
                 if invoice._l10n_es_is_dua():
                     partner_info = self._l10n_es_edi_get_partner_info(invoice.company_id.partner_id)
