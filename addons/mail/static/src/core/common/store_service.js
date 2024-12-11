@@ -642,13 +642,8 @@ Store.register();
 export const storeService = {
     dependencies: ["bus_service", "ui"],
     stateful: true,
-    /**
-     * @param {import("@web/env").OdooEnv} env
-     * @param {import("services").ServiceFactories} services
-     * @returns {import("models").Store}
-     */
-    start(env, services) {
-        const store = makeStore(env);
+
+    async _initStore(store) {
         store.insert(session.storeData);
         /**
          * Add defaults for `self` and `settings` because in livechat there could be no user and no
@@ -658,8 +653,17 @@ export const storeService = {
          */
         store.self ??= { id: -1, type: "guest" };
         store.settings ??= {};
-        store.initialize();
+        await store.initialize();
         store.onStarted();
+    },
+    /**
+     * @param {import("@web/env").OdooEnv} env
+     * @param {import("services").ServiceFactories} services
+     * @returns {import("models").Store}
+     */
+    start(env, services) {
+        const store = makeStore(env);
+        env.bus.addEventListener("WEB_CLIENT_READY", () => this._initStore(store));
         return store;
     },
 };

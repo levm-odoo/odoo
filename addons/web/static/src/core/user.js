@@ -17,6 +17,7 @@ import { ensureArray } from "./utils/arrays";
  * @returns Object
  */
 export function _makeUser(session) {
+    debugger;
     // Retrieve user-related information from the session
     const {
         home_action_id: homeActionId,

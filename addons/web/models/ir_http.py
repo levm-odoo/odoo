@@ -99,38 +99,61 @@ class IrHttp(models.AbstractModel):
             mods = list(request.registry._init_modules) + mods
         is_internal_user = user._is_internal()
         session_info = {
-            "uid": session_uid,
-            "is_system": user._is_system() if session_uid else False,
+            # Linked to user directly assign and remove from session at addons/web/static/src/core/user.js
+            "home_action_id": user.action_id.id,
             "is_admin": user._is_admin() if session_uid else False,
-            "is_public": user._is_public(),
             "is_internal_user": is_internal_user,
+            "is_system": user._is_system() if session_uid else False,
+            "name": user.name,
+            "partner_id": user.partner_id.id if session_uid and user.partner_id else None,
+            "uid": session_uid,
+            "username": user.login,
             "user_context": user_context,
-            "db": self.env.cr.dbname,
             "user_settings": self.env['res.users.settings']._find_or_create_for_user(user)._res_users_settings_format(),
+            "partner_write_date": fields.Datetime.to_string(user.partner_id.write_date),
+
+            # inside the bus_service.subscribe("bus.bus/im_status_updated": addons/bus/static/src/im_status_service.js
+            # initialize method (call at service start): addons/portal/static/src/chatter/frontend/portal_chatter_service.js
+            # addons/web_tour/static/src/tour_service/tour_service.js
+            # Check if always false in backend
+            "is_public": user._is_public(),
+
+            # START UP WEB CLIENT // addons/web/static/src/start.js
+            "db": self.env.cr.dbname,
             "server_version": version_info.get('server_version'),
             "server_version_info": version_info.get('server_version_info'),
+
+            # addons/web/static/src/webclient/user_menu/user_menu_items.js
             "support_url": "https://www.odoo.com/buy",
-            "name": user.name,
-            "username": user.login,
-            "partner_write_date": fields.Datetime.to_string(user.partner_id.write_date),
-            "partner_display_name": user.partner_id.display_name,
-            "partner_id": user.partner_id.id if session_uid and user.partner_id else None,
-            "web.base.url": IrConfigSudo.get_param('web.base.url', default=''),
+
+            # can be deferred
+            # onValidateClick enterprise/data_cleaning/static/src/views/data_merge_list_view.js
+            # handler at addons/web/static/src/search/action_menus/action_menus.js
+            # modelParams
+            #   at addons/web/static/src/views/kanban/kanban_controller.js
+            #   at addons/web/static/src/views/kanban/list_controller.js
+            # other usage at test => osef
             "active_ids_limit": int(IrConfigSudo.get_param('web.active_ids_limit', default='20000')),
+
+            # profiling, not sure if we need to deferred it
             'profile_session': request.session.get('profile_session'),
             'profile_collectors': request.session.get('profile_collectors'),
             'profile_params': request.session.get('profile_params'),
-            "home_action_id": user.action_id.id,
+
             "cache_hashes": {
                 "translations": self.env['ir.http'].sudo().get_web_translations_hash(
                     mods, request.session.context['lang']
                 ) if session_uid else None,
             },
+
+            # addons/web/static/src/core/currency.js directly assign and remove from session
             "currencies": self.sudo().get_currencies(),
+
             'bundle_params': {
                 'lang': request.session.context['lang'],
             },
             'test_mode': bool(config['test_enable'] or config['test_file']),
+            # needed to load view to check with dam
             'view_info': self.env['ir.ui.view'].get_view_info(),
         }
         if request.session.debug:
