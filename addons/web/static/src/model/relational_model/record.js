@@ -6,6 +6,7 @@ import { x2ManyCommands } from "@web/core/orm_service";
 import { evaluateBooleanExpr } from "@web/core/py_js/py";
 import { escape } from "@web/core/utils/strings";
 import { DataPoint } from "./datapoint";
+import { FetchRecordError } from "./errors";
 import {
     createPropertyActiveField,
     getBasicEvalContext,
@@ -13,10 +14,12 @@ import {
     getFieldsSpec,
     parseServerValue,
 } from "./utils";
-import { FetchRecordError } from "./errors";
 
 export class Record extends DataPoint {
     static type = "Record";
+
+    /** @type {(() => any) | null} */
+    onInvalidFieldAlertClose = null;
 
     /**
      * @param {import("./relational_model").Config} config
@@ -40,7 +43,9 @@ export class Record extends DataPoint {
         this.dirty = false;
         this.selected = false;
 
+        /** @type {Set<string>} */
         this._invalidFields = new Set();
+        /** @type {Set<string>} */
         this._unsetRequiredFields = markRaw(new Set());
         this._closeInvalidFieldsNotification = () => {};
 
@@ -227,14 +232,20 @@ export class Record extends DataPoint {
         return this.model.mutex.exec(() => this._save(options));
     }
 
+    /**
+     * @param {string} fieldName
+     */
     async setInvalidField(fieldName) {
         this.dirty = true;
         return this._setInvalidField(fieldName);
     }
 
+    /**
+     * @param {string} fieldName
+     */
     async resetFieldValidity(fieldName) {
         this.dirty = true;
-        return this._resetFieldValidity(fieldName);
+        return this._removeInvalidFields(fieldName);
     }
 
     switchMode(mode) {
@@ -328,7 +339,7 @@ export class Record extends DataPoint {
 
         // mark changed fields as valid if they were not, and re-evaluate required attributes
         // for all fields, as some of them might still be unset but become valid with those changes
-        this._removeInvalidFields(Object.keys({ ...changes, ...serverChanges }));
+        this._removeInvalidFields(...Object.keys(changes), ...Object.keys(serverChanges));
         this._checkValidity({ removeInvalidOnly: true });
         return undoChanges;
     }
@@ -429,18 +440,13 @@ export class Record extends DataPoint {
             return !unsetRequiredFields.size;
         }
 
-        if (removeInvalidOnly) {
-            for (const fieldName of Array.from(this._unsetRequiredFields)) {
-                if (!unsetRequiredFields.has(fieldName)) {
-                    this._unsetRequiredFields.delete(fieldName);
-                    this._invalidFields.delete(fieldName);
-                }
-            }
-        } else {
-            for (const fieldName of Array.from(this._unsetRequiredFields)) {
+        for (const fieldName of this._unsetRequiredFields) {
+            if (!unsetRequiredFields.has(fieldName)) {
+                this._unsetRequiredFields.delete(fieldName);
                 this._invalidFields.delete(fieldName);
             }
-            this._unsetRequiredFields.clear();
+        }
+        if (!removeInvalidOnly) {
             for (const fieldName of unsetRequiredFields) {
                 this._unsetRequiredFields.add(fieldName);
                 this._setInvalidField(fieldName);
@@ -957,7 +963,10 @@ export class Record extends DataPoint {
         }
     }
 
-    _removeInvalidFields(fieldNames) {
+    /**
+     * @param {...string} fieldNames
+     */
+    _removeInvalidFields(...fieldNames) {
         for (const fieldName of fieldNames) {
             this._invalidFields.delete(fieldName);
         }
@@ -1130,30 +1139,34 @@ export class Record extends DataPoint {
         }
     }
 
+    /**
+     * @param {string} fieldName
+     */
     async _setInvalidField(fieldName) {
         const canProceed = this.model.hooks.onWillSetInvalidField(this, fieldName);
         if (canProceed === false) {
             return;
         }
-        if (
+        const showDialog =
             this.selected &&
             this.model.multiEdit &&
             this.model.root._recordToDiscard !== this &&
-            !this._invalidFields.has(fieldName)
-        ) {
-            await this.model.dialog.add(AlertDialog, {
-                body: _t("No valid record to save"),
-                confirm: async () => {
+            !this._invalidFields.has(fieldName);
+        this._invalidFields.add(fieldName);
+        if (showDialog) {
+            const onClose =
+                this.onInvalidFieldAlertClose ||
+                (async () => {
                     await this.discard();
                     this.switchMode("readonly");
-                },
+                });
+            this.onInvalidFieldAlertClose = null;
+            await this.model.dialog.add(AlertDialog, {
+                body: _t("No valid record to save"),
+                confirm: onClose,
+                dismiss: onClose,
             });
         }
-        this._invalidFields.add(fieldName);
-    }
-
-    _resetFieldValidity(fieldName) {
-        this._invalidFields.delete(fieldName);
     }
 
     _switchMode(mode) {

@@ -1,5 +1,4 @@
-import { Component, markup, onRendered, onWillStart, useRef, xml } from "@odoo/owl";
-import { expect, getFixture, test } from "@odoo/hoot";
+import { describe, expect, getFixture, test } from "@odoo/hoot";
 import {
     clear,
     click,
@@ -29,6 +28,11 @@ import {
     runAllTimers,
     tick,
 } from "@odoo/hoot-mock";
+import { Component, markup, onRendered, onWillStart, useRef, xml } from "@odoo/owl";
+import {
+    getPickerApplyButton,
+    getPickerCell,
+} from "@web/../tests/core/datetime/datetime_test_helpers";
 import {
     clickFieldDropdown,
     clickModalButton,
@@ -70,24 +74,22 @@ import {
     validateSearch,
     webModels,
 } from "@web/../tests/web_test_helpers";
-import {
-    getPickerApplyButton,
-    getPickerCell,
-} from "@web/../tests/core/datetime/datetime_test_helpers";
 
+import { buildSelector } from "@web/../tests/_framework/view_test_helpers";
 import { currencies } from "@web/core/currency";
-import { registry } from "@web/core/registry";
-import { RelationalModel } from "@web/model/relational_model/relational_model";
-import { WebClient } from "@web/webclient/webclient";
-import { ListController } from "@web/views/list/list_controller";
-import { floatField } from "@web/views/fields/float/float_field";
-import { session } from "@web/session";
 import { Domain } from "@web/core/domain";
+import { registry } from "@web/core/registry";
+import { user } from "@web/core/user";
+import { useBus } from "@web/core/utils/hooks";
+import { RelationalModel } from "@web/model/relational_model/relational_model";
+import { session } from "@web/session";
+import { floatField } from "@web/views/fields/float/float_field";
 import { Many2XAutocomplete } from "@web/views/fields/relational_utils";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
-import { useBus } from "@web/core/utils/hooks";
-import { user } from "@web/core/user";
-import { buildSelector } from "@web/../tests/_framework/view_test_helpers";
+import { ListController } from "@web/views/list/list_controller";
+import { WebClient } from "@web/webclient/webclient";
+
+describe.current.tags("desktop");
 
 const { ResCompany, ResPartner, ResUsers } = webModels;
 
@@ -1532,80 +1534,79 @@ test(`save a record with an invisible required field`, async () => {
     expect.verifySteps(["onchange", "web_save"]);
 });
 
-test.todo(
-    `multi_edit: edit a required field with invalid value and click 'Ok' of alert dialog`,
-    async () => {
-        Foo._fields.foo = fields.Char({ required: true });
+test(`multi_edit: edit a required field with invalid value and click 'Ok' of alert dialog`, async () => {
+    Foo._fields.foo.required = true;
 
-        stepAllNetworkCalls();
-        await mountView({
-            resModel: "foo",
-            type: "list",
-            arch: `
+    stepAllNetworkCalls();
+
+    await mountView({
+        resModel: "foo",
+        type: "list",
+        arch: `
             <list multi_edit="1">
                 <field name="foo"/>
                 <field name="int_field"/>
             </list>
         `,
-        });
-        expect(`.o_data_row`).toHaveCount(4);
-        expect.verifySteps([
-            "/web/webclient/translations",
-            "/web/webclient/load_menus",
-            "get_views",
-            "web_search_read",
-            "has_group",
-        ]);
+    });
+    expect(`.o_data_row`).toHaveCount(4);
+    expect.verifySteps([
+        "/web/webclient/translations",
+        "/web/webclient/load_menus",
+        "get_views",
+        "web_search_read",
+        "has_group",
+    ]);
 
-        await contains(`.o_data_row:eq(0) .o_list_record_selector input`).click();
-        await contains(`.o_data_row:eq(0) .o_data_cell[name='foo']`).click();
-        await contains(`.o_field_widget[name=foo] input`).clear();
-        expect(`.modal`).toHaveCount(1);
-        expect(`.modal .btn`).toHaveText("Ok");
+    await contains(`.o_data_row:first .o_list_record_selector input`).check();
+    await contains(`.o_data_row:first .o_data_cell[name='foo']`).click();
+    await contains(`.o_field_widget[name=foo] input`).clear();
 
-        await contains(`.modal .btn`).click();
-        expect(`.o_data_row:eq(0) .o_data_cell[name='foo']`).toHaveText("yop");
-        expect(`.o_data_row:eq(0)`).toHaveClass("o_data_row_selected");
-        expect.verifySteps([]);
-    }
-);
+    expect(".modal").toHaveCount(1);
 
-test.todo(
-    `multi_edit: edit a required field with invalid value and dismiss alert dialog`,
-    async () => {
-        Foo._fields.foo = fields.Char({ required: true });
+    await contains(`.modal .btn:contains(Ok)`).click();
 
-        stepAllNetworkCalls();
-        await mountView({
-            resModel: "foo",
-            type: "list",
-            arch: `
+    expect(`.o_data_row:first .o_data_cell[name='foo']`).toHaveText("yop");
+    expect(`.o_data_row:first`).toHaveClass("o_data_row_selected");
+    expect.verifySteps([]);
+});
+
+test(`multi_edit: edit a required field with invalid value and dismiss alert dialog`, async () => {
+    Foo._fields.foo = fields.Char({ required: true });
+
+    stepAllNetworkCalls();
+
+    await mountView({
+        resModel: "foo",
+        type: "list",
+        arch: `
             <list multi_edit="1">
                 <field name="foo"/>
                 <field name="int_field"/>
             </list>
         `,
-        });
-        expect(`.o_data_row`).toHaveCount(4);
-        expect.verifySteps([
-            "/web/webclient/translations",
-            "/web/webclient/load_menus",
-            "get_views",
-            "web_search_read",
-            "has_group",
-        ]);
+    });
+    expect(`.o_data_row`).toHaveCount(4);
+    expect.verifySteps([
+        "/web/webclient/translations",
+        "/web/webclient/load_menus",
+        "get_views",
+        "web_search_read",
+        "has_group",
+    ]);
 
-        await contains(`.o_data_row:eq(0) .o_list_record_selector input`).click();
-        await contains(`.o_data_row:eq(0) .o_data_cell[name='foo']`).click();
-        await contains(`.o_field_widget[name=foo] input`).clear();
-        expect(`.modal`).toHaveCount(1);
+    await contains(`.o_data_row:first .o_list_record_selector input`).click();
+    await contains(`.o_data_row:first .o_data_cell[name='foo']`).click();
+    await contains(`.o_field_widget[name=foo] input`).clear();
 
-        await contains(`.modal-header .btn-close`).click();
-        expect(`.o_data_row:eq(0) .o_data_cell[name='foo']`).toHaveText("yop");
-        expect(`.o_data_row:eq(0)`).toHaveClass("o_data_row_selected");
-        expect.verifySteps([]);
-    }
-);
+    expect(".modal").toHaveCount(1);
+
+    await contains(`.modal .btn-close`).click();
+
+    expect(`.o_data_row:first .o_data_cell[name='foo']`).toHaveText("yop");
+    expect(`.o_data_row:first`).toHaveClass("o_data_row_selected");
+    expect.verifySteps([]);
+});
 
 test.tags("desktop");
 test(`multi_edit: clicking on a readonly field switches the focus to the next editable field`, async () => {
@@ -10727,7 +10728,7 @@ test(`editable list view: multi edition cannot call onchanges`, async () => {
     expect.verifySteps(["write", "web_read"]);
 });
 
-test.todo(`editable list view: multi edition error and cancellation handling`, async () => {
+test(`editable list view: multi edition error and cancellation handling`, async () => {
     await mountView({
         resModel: "foo",
         type: "list",
@@ -10759,7 +10760,7 @@ test.todo(`editable list view: multi edition error and cancellation handling`, a
     expect(`.o_list_record_selector input:enabled`).toHaveCount(0);
 
     await contains(`.o_selected_row [name=int_field] input`).edit("hahaha", { confirm: "blur" });
-    expect(`.modal`).toHaveCount(1, { message: "there should be an opened modal" });
+    expect(`.modal`).toHaveCount(1);
 
     await contains(`.modal .btn-primary`).click();
     expect(queryAllTexts(`.o_data_row:eq(0) .o_data_cell`)).toEqual(["yop", "10"], {
@@ -10773,7 +10774,7 @@ test.todo(`editable list view: multi edition error and cancellation handling`, a
 
     await contains(`.o_selected_row [name=foo] input`).edit("", { confirm: false });
     await contains(`.o_control_panel`).click();
-    expect(`.modal`).toHaveCount(1, { message: "there should be an opened modal" });
+    expect(`.modal`).toHaveCount(1);
 
     await contains(`.modal .btn-primary`).click();
     expect(queryAllTexts(`.o_data_row:eq(0) .o_data_cell`)).toEqual(["yop", "10"], {
@@ -11027,7 +11028,7 @@ test(`multi edit list view: mousedown on "Discard" with invalid field`, async ()
 
     // mousedown on Discard and then mouseup also on Discard
     await contains(`.o_list_button_discard`).click();
-    expect(`.o_dialog`).toHaveCount(0, { message: "should not display an invalid field dialog" });
+    expect(`.o_dialog`).toHaveCount(0);
     expect(`.o_data_row:eq(0) .o_data_cell`).toHaveText("10");
 
     // edit again with an invalid value
@@ -11037,7 +11038,7 @@ test(`multi edit list view: mousedown on "Discard" with invalid field`, async ()
     // mousedown on Discard (simulate a mousemove) and mouseup somewhere else
     await pointerDown(".o_list_button_discard");
     await animationFrame();
-    expect(`.o_dialog`).toHaveCount(0, { message: "should not display an invalid field dialog" });
+    expect(`.o_dialog`).toHaveCount(0);
 
     // FIXME: Hoot incorrectly triggers"change" events *after* the blur instead of
     // *before*, causing the internals of the list controller/renderer to dispatch
@@ -11048,7 +11049,7 @@ test(`multi edit list view: mousedown on "Discard" with invalid field`, async ()
     });
     await pointerUp(".o_control_panel");
     await animationFrame();
-    expect(`.o_dialog`).toHaveCount(1, { message: "should display an invalid field dialog" });
+    expect(`.o_dialog`).toHaveCount(1);
 
     await contains(`.o_dialog .modal-footer .btn-primary`).click(); // click OK
     expect(`.o_data_row:eq(0) .o_data_cell`).toHaveText("10");
@@ -11418,33 +11419,30 @@ test(`editable readonly list view: navigation in grouped list`, async () => {
     expect.verifySteps(["resId: 3"]);
 });
 
-test.todo(
-    `editable readonly list view: single edition does not behave like a multi-edition`,
-    async () => {
-        await mountView({
-            resModel: "foo",
-            type: "list",
-            arch: `<list multi_edit="1"><field name="foo" required="1"/></list>`,
-        });
+test(`editable readonly list view: single edition does not behave like a multi-edition`, async () => {
+    await mountView({
+        resModel: "foo",
+        type: "list",
+        arch: `<list multi_edit="1"><field name="foo" required="1"/></list>`,
+    });
 
-        // select a record
-        await contains(`.o_data_row:eq(0) .o_list_record_selector input`).click();
-        // edit a field (invalid input)
-        await contains(`.o_data_row:eq(0) .o_data_cell:eq(0)`).click();
-        await clear({ confirm: "blur" });
-        await animationFrame();
-        expect(`.modal`).toHaveCount(1, { message: "should have a modal (invalid fields)" });
+    // select a record
+    await contains(`.o_data_row:eq(0) .o_list_record_selector input`).click();
+    // edit a field (invalid input)
+    await contains(`.o_data_row:eq(0) .o_data_cell:eq(0)`).click();
+    await clear({ confirm: "blur" });
+    await animationFrame();
+    expect(`.modal`).toHaveCount(1, { message: "should have a modal (invalid fields)" });
 
-        await contains(`.modal button.btn`).click();
-        // edit a field
-        await contains(`.o_data_row:eq(0) .o_data_cell:eq(0)`).click();
-        await contains(`.o_data_row [name=foo] input`).edit("bar");
-        expect(`.modal`).toHaveCount(0, { message: "should not have a modal" });
-        expect(`.o_data_row:eq(0) .o_data_cell`).toHaveText("bar", {
-            message: "the first row should be updated",
-        });
-    }
-);
+    await contains(`.modal button.btn`).click();
+    // edit a field
+    await contains(`.o_data_row:eq(0) .o_data_cell:eq(0)`).click();
+    await contains(`.o_data_row [name=foo] input`).edit("bar");
+    expect(`.modal`).toHaveCount(0, { message: "should not have a modal" });
+    expect(`.o_data_row:eq(0) .o_data_cell`).toHaveText("bar", {
+        message: "the first row should be updated",
+    });
+});
 
 test.tags("desktop");
 test(`non editable list view: multi edition`, async () => {
@@ -11497,7 +11495,7 @@ test(`non editable list view: multi edition`, async () => {
 
     await contains(`.o_data_row:eq(0) .o_data_cell:eq(1)`).click();
     await contains(`.o_data_row [name=int_field] input`).edit("666");
-    expect(`.modal`).toHaveCount(1, { message: "there should be an opened modal" });
+    expect(`.modal`).toHaveCount(1);
     expect(queryOne(".modal").innerText.includes("those 2 records")).toBe(true, {
         message: "the number of records should be correctly displayed",
     });
@@ -12892,7 +12890,7 @@ test(`pressing SHIFT-TAB in editable grouped list with create="0"`, async () => 
 });
 
 test.todo(`editing then pressing TAB in editable grouped list`, async () => {
-    stepAllNetworkCalls();
+    // stepAllNetworkCalls();
 
     await mountView({
         resModel: "foo",
@@ -12912,16 +12910,14 @@ test.todo(`editing then pressing TAB in editable grouped list`, async () => {
     await contains(`.o_data_row:eq(0) .o_data_cell`).click();
     expect(`.o_data_row:eq(0)`).toHaveClass("o_selected_row");
 
-    await edit("new value", { confirm: false });
-    await press("tab");
+    await edit("new value", { confirm: "tab" });
     await animationFrame();
     expect(`.o_data_row`).toHaveCount(5);
     expect(`.o_data_row:eq(1)`).toHaveClass("o_selected_row");
 
     // fill foo field for the new record and press 'tab' -> should create another record
     // FIXME: input field hook calls update, but in a mutex -> .dirty is not set when we call applyCellKeydownEditModeGroup
-    await edit("new record", { confirm: false });
-    await press("tab");
+    await edit("new record", { confirm: "tab" });
     await animationFrame();
     expect(`.o_data_row`).toHaveCount(6);
     expect(`.o_data_row:eq(2)`).toHaveClass("o_selected_row");
