@@ -146,9 +146,6 @@ class ResConfigSettings(models.TransientModel):
             if pos_config_id:
                 pos_fields_vals = {}
 
-                if vals.get('pos_cash_rounding'):
-                    vals['group_cash_rounding'] = True
-
                 if vals.get('pos_use_pricelist'):
                     vals['group_product_pricelist'] = True
 
@@ -190,7 +187,7 @@ class ResConfigSettings(models.TransientModel):
                 ('use_pricelist', '=', True)
             ]).use_pricelist = False
 
-        if not self.group_cash_rounding:
+        if not self.pos_cash_rounding:
             self.env['pos.config'].search([
                 ('cash_rounding', '=', True)
             ]).cash_rounding = False

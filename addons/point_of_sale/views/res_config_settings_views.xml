@@ -15,7 +15,6 @@
                     <field name="pos_cash_control" invisible="1"/>
                     <field name="pos_iface_print_via_proxy" invisible="1"/>
                     <field name="pos_company_has_template" invisible="1"/>
-                    <field name="group_cash_rounding" invisible="1"/>
                 </t>
 
                 <app data-string="Point of sale" string="Point of Sale" name="point_of_sale" groups="point_of_sale.group_pos_manager">
@@ -101,8 +100,7 @@
                                 </div>
                                 <div class="mt8">
                                     <button name="%(account.rounding_list_action)d" icon="oi-arrow-right"
-                                            type="action" string="Cash Roundings" class="btn-link"
-                                            invisible="not group_cash_rounding"/>
+                                            type="action" string="Cash Roundings" class="btn-link"/>
                                 </div>
                             </setting>
                             <setting help="Set a maximum difference allowed between the expected and counted money during the closing of the session">

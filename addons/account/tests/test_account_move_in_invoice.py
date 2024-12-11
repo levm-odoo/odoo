@@ -796,8 +796,6 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
         self.assertFalse(move.line_ids.filtered(lambda line: line.display_type == 'rounding'))
 
     def test_in_invoice_line_onchange_cash_rounding_1(self):
-        # Required for `invoice_cash_rounding_id` to be visible in the view
-        self.env.user.groups_id += self.env.ref('account.group_cash_rounding')
         # Test 'add_invoice_line' rounding
         move_form = Form(self.invoice)
         # Add a cash rounding having 'add_invoice_line'.

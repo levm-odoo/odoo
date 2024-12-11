@@ -75,13 +75,6 @@ class ResCompany(models.Model):
                     'loss_account_id': loss_account.id,
                 })
 
-            # Activate cash rounding on the company
-            res_config_id = self.env['res.config.settings'].create({
-                'company_id': company.id,
-                'group_cash_rounding': True,
-            })
-            res_config_id.execute()
-
     def _l10n_hu_edi_get_credentials_dict(self):
         self.ensure_one()
         credentials_dict = {

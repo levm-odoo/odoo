@@ -1424,7 +1424,7 @@
                                                domain="[('payment_type', '=', 'outbound'), ('company_id', '=', company_id)]"
                                                invisible="move_type in ('out_invoice', 'out_refund')"
                                         />
-                                        <field name="invoice_cash_rounding_id" groups="account.group_cash_rounding" readonly="state != 'draft'"/>
+                                        <field name="invoice_cash_rounding_id" readonly="state != 'draft'"/>
                                         <field name="invoice_source_email"
                                                widget="email"
                                                invisible="move_type not in ('in_invoice', 'in_refund') or not invoice_source_email"/>

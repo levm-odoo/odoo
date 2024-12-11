@@ -42,7 +42,6 @@ The generation of the QR-bill is automatic if you meet the previous criteria. Th
         'demo/demo_company.xml',
         'demo/res_partner_demo.xml',
     ],
-    'post_init_hook': 'post_init',
     'assets': {
         'web.report_assets_common': [
             'l10n_ch/static/src/scss/**/*',
