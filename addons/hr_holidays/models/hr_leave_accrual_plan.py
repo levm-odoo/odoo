@@ -40,6 +40,7 @@ class HrLeaveAccrualPlan(models.Model):
         ("start", "At the start of the accrual period"),
         ("end", "At the end of the accrual period")],
         default="end", required=True)
+    is_carryover = fields.Boolean(default=True, store=True, readonly=False)
     carryover_date = fields.Selection([
         ("year_start", "At the start of the year"),
         ("allocation", "At the allocation date"),
