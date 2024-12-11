@@ -150,5 +150,32 @@
             <field name="code">action = records.action_share()</field>
         </record>
 
+        <!-- Cash Rounding Method -->
+        <record id="cash_rounding_1_0" model="account.cash.rounding">
+            <field name="name">Rounding to 1</field>
+            <field name="rounding">1.0</field>
+            <field name="strategy">biggest_tax</field>
+        </record>
+        <record id="cash_rounding_0_1" model="account.cash.rounding">
+            <field name="name">Rounding to 0.1</field>
+            <field name="rounding">0.1</field>
+            <field name="strategy">biggest_tax</field>
+        </record>
+        <record id="cash_rounding_0_01" model="account.cash.rounding">
+            <field name="name">Rounding to 0.01</field>
+            <field name="rounding">0.01</field>
+            <field name="strategy">biggest_tax</field>
+        </record>
+        <record id="cash_rounding_0_05" model="account.cash.rounding">
+            <field name="name">Rounding to 0.05</field>
+            <field name="rounding">0.05</field>
+            <field name="strategy">biggest_tax</field>
+        </record>
+        <record id="cash_rounding_0_001" model="account.cash.rounding">
+            <field name="name">Rounding to 0.001</field>
+            <field name="rounding">0.001</field>
+            <field name="strategy">biggest_tax</field>
+        </record>
+
     </data>
 </odoo>

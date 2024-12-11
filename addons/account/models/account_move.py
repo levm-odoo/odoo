@@ -633,6 +633,10 @@ class AccountMove(models.Model):
     invoice_cash_rounding_id = fields.Many2one(
         comodel_name='account.cash.rounding',
         string='Cash Rounding Method',
+        compute="_compute_invoice_cash_rounding_id",
+        store=True,
+        readonly=False,
+        precompute=True,
         help='Defines the smallest coinage of the currency that can be used to pay by cash.',
     )
     sending_data = fields.Json(copy=False)
@@ -780,6 +784,13 @@ class AccountMove(models.Model):
     def _compute_journal_id(self):
         for move in self.filtered(lambda r: r.journal_id.type not in r._get_valid_journal_types()):
             move.journal_id = move._search_default_journal()
+
+    @api.depends('move_type', 'journal_id')
+    def _compute_invoice_cash_rounding_id(self):
+        for record in self:
+            if record.invoice_cash_rounding_id:
+                continue
+            record.invoice_cash_rounding_id = record.move_type != 'entry' and record.journal_id.account_cash_rounding_id
 
     def _get_valid_journal_types(self):
         if self.is_sale_document(include_receipts=True):
@@ -1532,7 +1543,7 @@ class AccountMove(models.Model):
                     base_lines=base_lines,
                     currency=move.currency_id,
                     company=move.company_id,
-                    cash_rounding=move.invoice_cash_rounding_id,
+                    cash_rounding=move.invoice_cash_rounding_id if _tax_lines else None,
                 )
                 move.tax_totals['display_in_company_currency'] = (
                     move.company_id.display_invoice_tax_company_currency
