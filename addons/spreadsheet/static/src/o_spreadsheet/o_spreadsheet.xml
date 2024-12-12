@@ -177,7 +177,7 @@
   </t>
 
   <t t-name="o-spreadsheet-Composer" owl="1">
-    <div class="o-composer-container">
+    <div class="o-composer-container" t-att-active="props.focus !== 'inactive'">
       <div
         t-att-class="{ 'o-composer': true, 'text-muted': env.model.getters.isReadonly(), 'unfocusable': env.model.getters.isReadonly() }"
         t-att-style="props.inputStyle"
@@ -3243,6 +3243,6 @@ https://fontawesome.com/license -->
 </odoo>
 <!--
   __info__.version = '16.0.55';
-  __info__.date = '2024-11-13T15:37:43.062Z';
-  __info__.hash = '6984990';
+  __info__.date = '2024-12-12T14:54:19.897Z';
+  __info__.hash = 'f535004';
 -->
