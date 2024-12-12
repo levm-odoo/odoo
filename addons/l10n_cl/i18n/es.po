@@ -124,6 +124,11 @@ msgid "<strong>Total</strong>"
 msgstr "<strong>Total</strong>"
 
 #. module: l10n_cl
+#: model_terms:ir.ui.view,arch_db:l10n_cl.tax_totals_widget
+msgid "<td><span>VAT </span><t t-esc=\"subtotal_amounts['vat_percent']\"/></td>"
+msgstr "<td><span>IVA </span><t t-esc=\"subtotal_amounts['vat_percent']\"/></td>"
+
+#. module: l10n_cl
 #: model:ir.model,name:l10n_cl.model_account_chart_template
 msgid "Account Chart Template"
 msgstr "Plantilla de Plan de Cuentas"
