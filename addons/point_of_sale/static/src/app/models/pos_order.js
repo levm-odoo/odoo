@@ -904,6 +904,8 @@ export class PosOrder extends Base {
     /* ---- Partner --- */
     // the partner related to the current order.
     set_partner(partner) {
+        // debugger
+        //getter setter method
         this.assert_editable();
         this.update({ partner_id: partner });
         this.updatePricelistAndFiscalPosition(partner);
@@ -911,6 +913,10 @@ export class PosOrder extends Base {
 
     get_partner() {
         return this.partner_id;
+    }
+
+    get_salesperson() {
+        return this.salesperson_id;
     }
 
     get_partner_name() {

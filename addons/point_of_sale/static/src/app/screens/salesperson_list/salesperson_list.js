@@ -2,18 +2,18 @@ import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
 import { fuzzyLookup } from "@web/core/utils/search";
 import { Dialog } from "@web/core/dialog/dialog";
-import { PartnerLine } from "@point_of_sale/app/pscreens/partner_list/partner_line/partner_line";
+import { SalespersonLine } from "@point_of_sale/app/screens/salesperson_list/salesperson_line/salesperson_line";
 import { usePos } from "@point_of_sale/app/store/pos_hook";
 import { Input } from "@point_of_sale/app/generic_components/inputs/input/input";
 import { Component, useState } from "@odoo/owl";
 import { useHotkey } from "@web/core/hotkeys/hotkey_hook";
 import { unaccent } from "@web/core/utils/strings";
 
-export class PartnerList extends Component {
-    static components = { PartnerLine, Dialog, Input };
-    static template = "point_of_sale.PartnerList";
+export class SalespersonList extends Component {
+    static components = { SalespersonLine, Dialog, Input };
+    static template = "point_of_sale.SalespersonList";
     static props = {
-        partner: {
+        salesperson: {
             optional: true,
             type: [{ value: null }, Object],
         },
@@ -32,100 +32,107 @@ export class PartnerList extends Component {
             previousQuery: "",
             currentOffset: 0,
         });
+
+        // Listen for the "Enter" key to initiate search
         useHotkey("enter", () => this.onEnter());
     }
-    async editPartner(p = false) {
-        const partner = await this.pos.editPartner(p);
-        if (partner) {
-            this.clickPartner(partner);
+
+    async editSalesperson(s = false) {
+        const salesperson = await this.pos.editSalesperson(s);
+        if (salesperson) {
+            this.clickSalesperson(salesperson);
         }
     }
+
     async onEnter() {
         if (!this.state.query) {
             return;
         }
-        const result = await this.searchPartner();
+        const result = await this.searchSalesperson();
         if (result.length > 0) {
             this.notification.add(
-                _t('%s customer(s) found for "%s".', result.length, this.state.query),
+                _t('%s salesperson(s) found for "%s".', result.length, this.state.query),
                 3000
             );
         } else {
-            this.notification.add(_t('No more customer found for "%s".', this.state.query));
+            this.notification.add(_t('No salesperson found for "%s".', this.state.query));
         }
     }
 
-    goToOrders(partner) {
+    goToOrders(salesperson) {
         this.props.close();
-        const partnerHasActiveOrders = this.pos
+        const salespersonHasActiveOrders = this.pos
             .get_open_orders()
-            .some((order) => order.partner?.id === partner.id);
+            .some((order) => order.salesperson?.id === salesperson.id);
         const stateOverride = {
             search: {
-                fieldName: "PARTNER",
-                searchTerm: partner.name,
+                fieldName: "SALESPERSON",
+                searchTerm: salesperson.name,
             },
-            filter: partnerHasActiveOrders ? "" : "SYNCED",
+            filter: salespersonHasActiveOrders ? "" : "SYNCED",
         };
         this.pos.showScreen("TicketScreen", { stateOverride });
     }
 
     confirm() {
-        this.props.resolve({ confirmed: true, payload: this.state.selectedPartner });
+        this.props.resolve({ confirmed: true, payload: this.state.selectedSalesperson });
         this.pos.closeTempScreen();
     }
-    getPartners() {
+
+    getSalespeople() {
         const searchWord = unaccent((this.state.query || "").trim(), false);
-        const partners = this.pos.models["res.partner"].getAll();
-        const exactMatches = partners.filter((partner) => partner.exactMatch(searchWord));
+        const salespeople = this.pos.models["res.users"].getAll(); // Assuming 'res.users' represents salespeople
+        const exactMatches = salespeople.filter((salesperson) => salesperson.exactMatch(searchWord));
 
         if (exactMatches.length > 0) {
             return exactMatches;
         }
 
-        const availablePartners = searchWord
-            ? fuzzyLookup(searchWord, partners, (partner) => unaccent(partner.searchString, false))
-            : partners
+        const availableSalespeople = searchWord
+            ? fuzzyLookup(searchWord, salespeople, (salesperson) => unaccent(salesperson.searchString, false))
+            : salespeople
                   .slice(0, 1000)
                   .toSorted((a, b) =>
-                      this.props.partner?.id === a.id
+                      this.props.salesperson?.id === a.id
                           ? -1
                           : (a.name || "").localeCompare(b.name || "")
                   );
 
-        return availablePartners;
+        return availableSalespeople;
     }
+
     get isBalanceDisplayed() {
         return false;
     }
-    clickPartner(partner) {
-        this.props.getPayload(partner);
+
+    clickSalesperson(salesperson) {
+        this.props.getPayload(salesperson);
         this.props.close();
     }
-    async searchPartner() {
+
+    async searchSalesperson() {
         if (this.state.previousQuery != this.state.query) {
             this.state.currentOffset = 0;
         }
-        const partner = await this.getNewPartners();
+        const salesperson = await this.getNewSalespeople();
 
         if (this.state.previousQuery == this.state.query) {
-            this.state.currentOffset += partner.length;
+            this.state.currentOffset += salesperson.length;
         } else {
             this.state.previousQuery = this.state.query;
-            this.state.currentOffset = partner.length;
+            this.state.currentOffset = salesperson.length;
         }
-        return partner;
+        return salesperson;
     }
-    async getNewPartners() {
+
+    async getNewSalespeople() {
         let domain = [];
         const limit = 30;
         if (this.state.query) {
             const search_fields = [
                 "name",
-                "parent_name",
-                "phone_mobile_search",
                 "email",
-                "barcode",
+                "phone",
             ];
             domain = [
                 ...Array(search_fields.length - 1).fill("|"),
@@ -133,7 +140,7 @@ export class PartnerList extends Component {
             ];
         }
 
-        const result = await this.pos.data.searchRead("res.partner", domain, [], {
+        const result = await this.pos.data.searchRead("res.users", domain, [], {
             limit: limit,
             offset: this.state.currentOffset,
         });

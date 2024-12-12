@@ -7,6 +7,8 @@ class PosOrder(models.Model):
     _inherit = "pos.order"
 
     employee_id = fields.Many2one('hr.employee', string="Cashier", help="The employee who uses the cash register.")
+    #this is the field
+    salesperson_id = fields.Many2one('hr.employee', string="Salesperson", help="Enter the name of the responsible salesperson for this order.")
     cashier = fields.Char(string="Cashier name", compute="_compute_cashier", store=True)
 
     @api.depends('employee_id', 'user_id')

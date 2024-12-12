@@ -4,7 +4,7 @@ import { useService } from "@web/core/utils/hooks";
 
 export class SelectPartnerButton extends Component {
     static template = "point_of_sale.SelectPartnerButton";
-    static props = ["partner?"];
+    static props = ["partner?", "salesperson?"];
     setup() {
         this.pos = usePos();
         this.ui = useState(useService("ui"));

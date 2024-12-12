@@ -1322,8 +1322,9 @@ export class PosStore extends Reactive {
         if (!this.selectedOrderUuid) {
             return undefined;
         }
-
-        return this.models["pos.order"].getBy("uuid", this.selectedOrderUuid);
+        
+        const a = this.models["pos.order"].getBy("uuid", this.selectedOrderUuid);
+        return a
     }
     get selectedOrder() {
         return this.get_order();
@@ -1828,6 +1829,7 @@ export class PosStore extends Reactive {
         await this.get_order().set_pricelist(pricelist);
     }
     async selectPartner() {
+        // this method is called when we select the partner
         // FIXME, find order to refund when we are in the ticketscreen.
         const currentOrder = this.get_order();
         if (!currentOrder) {
@@ -1857,6 +1859,41 @@ export class PosStore extends Reactive {
 
         return currentPartner;
     }
+
+    async selectSalesPerson() {
+        debugger
+        // this method is called when we select the partner
+        // FIXME, find order to refund when we are in the ticketscreen.
+        const currentOrder = this.get_order();
+        if (!currentOrder) {
+            return false;
+        }
+        const currentSalesperson = currentOrder.get_salesperson();
+        if (currentSalesperson && currentOrder.getHasRefundLines()) {
+            this.dialog.add(AlertDialog, {
+                title: _t("Can't change salesperson"),
+                body: _t(
+                    "This order already has refund lines for %s. We can't change the salesperson associated to it.",
+                    currentSalesperson.name
+                ),
+            });
+            return currentSalesperson;
+        }
+        const payload = await makeAwaitable(this.dialog, SalespersonList, {
+            salesperson: currentSalesperson,
+            getPayload: (newPartner) => currentOrder.set_partner(newPartner),
+        });
+
+        if (payload) {
+            currentOrder.set_partner(payload);
+        } else {
+            currentOrder.set_partner(false);
+        }
+
+        return currentSalesperson;
+    }
+
+    
     async editLots(product, packLotLinesToEdit) {
         const isAllowOnlyOneLot = product.isAllowOnlyOneLot();
         let canCreateLots = this.pickingType.use_create_lots || !this.pickingType.use_existing_lots;
