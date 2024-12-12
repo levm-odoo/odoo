@@ -149,25 +149,28 @@
                                 <field nolabel="1" class="oe_inline" name="accrued_gain_time" widget="selection"/>
                             </div>
                             <div colspan="2">
-                                <label for="accrued_gain_time" string="It is based on the worked time?" class="fw-bold me-2"/>
+                                <label for="is_based_on_worked_time" string="It is based on the worked time?" class="fw-bold me-2"/>
                                 <field nolabel="1" class="oe_inline" name="is_based_on_worked_time" widget="boolean_labeled" options="{'false_label': 'No, always consider accrual period as a whole', 'true_label': 'Yes, prorate based on the taken time offs on that period'}" readonly="accrued_gain_time == 'start'"/>
                             </div>
                             <div colspan="2">
-                                <label for="accrued_gain_time" string="Do you need a carry-over of the accrued days from one year to another ?" class="fw-bold me-2"/>
+                                <label for="is_carryover" string="Do you need a carry-over of the accrued days from one year to another?" class="fw-bold me-2"/>
                                 <field nolabel="1" class="oe_inline" name="is_carryover" widget="boolean_labeled" options="{'false_label': 'No', 'true_label': 'Yes'}"/>
                             </div>
-
-
-
-                            <field nolabel='1' name="carryover_date" widget="radio"/>
-                            <label for="carryover_month" string="Carry-Over Date" invisible="carryover_date != 'other'"/>
-                            <div name="carryover" invisible="carryover_date != 'other'">
-                                <field name="carryover_day" invisible="1"/>
-                                <field name="carryover_day_display" required="1" style="width: 4.75rem;"/>
-                                of
-                                <field name="carryover_month" required="1" style="width: 6rem;"/>
+                            <div colspan="2" invisible="not is_carryover">
+                                <label for="carryover_date" string="When do you want the accrued time left to be carried-over?" class="fw-bold me-2"/>
+                                <field nolabel="1" class="oe_inline" name="carryover_date" widget="selection"/>
+                                <div invisible="carryover_date != 'other'">
+                                    <label for="carryover_month" string="Carried-over on" class="fw-bold me-2"/>
+                                    <field name="carryover_day" invisible="1"/>
+                                    <field name="carryover_day_display" required="1" style="width: 4.75rem;"/>
+                                    of
+                                    <field name="carryover_month" required="1" style="width: 6rem;"/>
+                                </div>
                             </div>
-                            <field name="transition_mode" widget="radio" invisible="not show_transition_mode"/>
+                            <div colspan="2">
+                                <label for="transition_mode" string="Switch employees to the new accrual level :" class="fw-bold me-2"/>
+                                <field nolabel="1" class="oe_inline" name="transition_mode" widget="selection" invisible="not show_transition_mode"/>
+                            </div>
                         </group>
                         <group string="Summary">
                         <div colspan="2">
@@ -182,11 +185,18 @@
                     <span class="oe_grey" invisible="1">
                     </span>
                     <div class="o_hr_holidays_hierarchy">
-                        <div class="o_hr_holidays_title">Rules</div>
-                        <div class="o_hr_holidays_hierarchy_readonly" invisible="level_ids">
-                            <p>
-                                No rule has been set up for this accrual plan.
-                            </p>
+                        <div class="o_hr_holidays_title">Milestones</div>
+                        <div class="o_view_nocontent" style="position: relative;" invisible="level_ids">
+                            <div class="o_nocontent_help">
+                                <p class="o_view_nocontent_smiling_face">
+                                    No milestones on the plan yet. Let's create a new one
+                                </p>
+                                <p>
+                                    <button role="button" class="btn btn-primary">
+                                        Create a milestone
+                                    </button>
+                                </p>
+                            </div>
                         </div>
                         <field name="level_ids" mode="kanban" nolabel="1"
                             class="o_hr_holidays_plan_level_container"
