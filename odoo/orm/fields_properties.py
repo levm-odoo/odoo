@@ -584,8 +584,9 @@ class Properties(Field):
         fname, property_name = parse_field_expr(field_expr)
         if not property_name:
             raise ValueError(f"Missing property name for {self}")
-        raw_sql_field = model._field_to_sql(alias, fname, query)
-        sql_left = model._field_to_sql(alias, field_expr, query)
+        field = self._fields[fname]
+        raw_sql_field = field.to_sql(self, alias, query)
+        sql_left = self.property_to_sql(raw_sql_field, property_name, model, alias, query)
 
         if operator in ('=', '!='):
             operator = 'in' if operator == '=' else 'not in'

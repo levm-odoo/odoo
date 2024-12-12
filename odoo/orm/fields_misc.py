@@ -40,11 +40,11 @@ class Boolean(Field[bool]):
         return bool(value)
 
     def _condition_to_sql(self, field_expr: str, operator: str, value, model: BaseModel, alias: str, query: Query) -> SQL:
-        if operator not in ('in', 'not in', '=', '!='):
+        if operator not in ('in', 'not in', '=', '!=') or self.name != field_expr:
             return super()._condition_to_sql(field_expr, operator, value, model, alias, query)
 
         # get field and check access
-        sql_field = model._field_to_sql(alias, field_expr, query)
+        sql_field = self.to_sql(model, alias, query)
 
         # express all conditions as (field_expr, 'in', possible_values)
         possible_values = (

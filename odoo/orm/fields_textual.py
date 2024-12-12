@@ -288,8 +288,8 @@ class BaseString(Field[str | typing.Literal[False]]):
         # Maybe we can use Cache.update(records.with_context(cache_update_raw=True), self, new_translations_list, dirty=True)
         cache.update_raw(records, self, new_translations_list, dirty=True)
 
-    def to_sql(self, model: BaseModel, alias: str, flush: bool = True) -> SQL:
-        sql_field = super().to_sql(model, alias, flush)
+    def to_sql(self, model: BaseModel, alias: str, query: Query | None, flush: bool = True) -> SQL:
+        sql_field = super().to_sql(model, alias, query, flush)
         if self.translate:
             langs = self.get_translation_fallback_langs(model.env)
             sql_field_langs = [SQL("%s->>%s", sql_field, lang) for lang in langs]
@@ -298,11 +298,11 @@ class BaseString(Field[str | typing.Literal[False]]):
             return SQL("COALESCE(%s)", SQL(", ").join(sql_field_langs))
         return sql_field
 
-    def to_raw_sql(self, model: BaseModel, alias: str, flush: bool = True) -> SQL:
+    def to_raw_sql(self, model: BaseModel, alias: str, query: Query | None, flush: bool = True) -> SQL:
         """Return the `SQL` object that accesses directly the field.  In the
         case of translated fields, this returns the ``jsonb`` dictionary as a whole.
         """
-        return Field.to_sql(self, model, alias, flush)
+        return Field.to_sql(self, model, alias, query, flush)
 
     def condition_to_sql(self, field_expr: str, operator: str, value, model: BaseModel, alias: str, query: Query) -> SQL:
         # build the condition

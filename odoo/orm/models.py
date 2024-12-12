@@ -1930,7 +1930,7 @@ class BaseModel(metaclass=MetaModel):
         if func == 'recordset' and not (field.relational or fname == 'id'):
             raise ValueError(f"Aggregate method {func!r} can be only used on relational field (or id) (for {aggregate_spec!r}).")
 
-        sql_field = self._field_to_sql(self._table, fname, query)
+        sql_field = field.to_sql(self, self._table, query)
         return READ_GROUP_AGGREGATE[func](self._table, sql_field)
 
     def _read_group_groupby(self, groupby_spec: str, query: Query) -> SQL:
@@ -1956,7 +1956,7 @@ class BaseModel(metaclass=MetaModel):
         elif field.type == 'many2many':
             alias = self._table
             if field.related and not field.store:
-                _model, field, alias = self._traverse_related_sql(alias, field, query)
+                _model, field, alias = field._traverse_related_sql(self, alias, query)
 
             if not field.store:
                 raise ValueError(f"Group by non-stored many2many field: {groupby_spec!r}")
@@ -1986,7 +1986,7 @@ class BaseModel(metaclass=MetaModel):
             return SQL.identifier(rel_alias, field.column2)
 
         else:
-            sql_expr = self._field_to_sql(self._table, fname, query)
+            sql_expr = field.to_sql(self, self._table, query)
 
         if field.type in ('datetime', 'date') or (field.type == 'properties' and granularity):
             if not granularity:
@@ -2772,35 +2772,6 @@ class BaseModel(metaclass=MetaModel):
 
         return rows_dict
 
-    def _traverse_related_sql(self, alias: str, field: Field, query: Query) -> tuple[BaseModel, Field, str]:
-        """ Traverse the related `field` and add needed join to the `query`.
-
-        :returns: tuple ``(model, field, alias)``, where ``field`` is the last
-            field in the sequence, ``model`` is that field's model, and
-            ``alias`` is the model's table alias
-        """
-        assert field.related and not field.store
-        if not (self.env.su or field.compute_sudo or field.inherited):
-            raise ValueError(f'Cannot convert {field} to SQL because it is not a sudoed related or inherited field')
-
-        model = self.sudo(self.env.su or field.compute_sudo)
-        *path_fnames, last_fname = field.related.split('.')
-        for path_fname in path_fnames:
-            path_field = model._fields[path_fname]
-            if path_field.type != 'many2one':
-                raise ValueError(f'Cannot convert {field} (related={field.related}) to SQL because {path_fname} is not a Many2one')
-
-            comodel = model.env[path_field.comodel_name]
-            coalias = query.make_alias(alias, path_fname)
-            query.add_join('LEFT JOIN', coalias, comodel._table, SQL(
-                "%s = %s",
-                model._field_to_sql(alias, path_fname, query),
-                SQL.identifier(coalias, 'id'),
-            ))
-            model, alias = comodel, coalias
-
-        return model, model._fields[last_fname], alias
-
     def _field_to_sql(self, alias: str, field_expr: str, query: (Query | None) = None, flush: bool = True) -> SQL:
         """ Return an :class:`SQL` object that represents the value of the given
         field from the given table alias, in the context of the given query.
@@ -2813,19 +2784,13 @@ class BaseModel(metaclass=MetaModel):
         result to make method :meth:`~odoo.api.Environment.execute_query` flush
         the field before executing the query.
         """
+        warnings.warn("Deprecated since 19.0, use Field.to_sql directly", DeprecationWarning)
         fname, property_name = parse_field_expr(field_expr)
         field = self._fields.get(fname)
         if not field:
             raise ValueError(f"Invalid field {fname!r} on model {self._name!r}")
 
-        if field.related and not field.store:
-            model, field, alias = self._traverse_related_sql(alias, field, query)
-            related_expr = field.name if not property_name else f"{field.name}.{property_name}"
-            return model._field_to_sql(alias, related_expr, query)
-
-        self._check_field_access(field, 'read')
-
-        sql = field.to_sql(self, alias, flush)
+        sql = field.to_sql(self, alias, query, flush)
         if property_name:
             sql = field.property_to_sql(sql, property_name, self, alias, query)
         return sql
@@ -2834,7 +2799,7 @@ class BaseModel(metaclass=MetaModel):
         fname = field.name
         definition = self.get_property_definition(f"{fname}.{property_name}")
         property_type = definition.get('type')
-        sql_property = self._field_to_sql(self._table, f'{fname}.{property_name}', query)
+        sql_property = field.property_to_sql(field.to_sql(self, self._table, query), property_name, self, self._table, query)
 
         # JOIN on the JSON array
         if property_type in ('tags', 'many2many'):
@@ -3993,13 +3958,13 @@ class BaseModel(metaclass=MetaModel):
                 if field.type == 'binary' and (
                         context.get('bin_size') or context.get('bin_size_' + field.name)):
                     # PG 9.2 introduces conflicting pg_size_pretty(numeric) -> need ::cast
-                    sql = self._field_to_sql(self._table, field.name, query)
+                    sql = field.to_sql(self, self._table, query)
                     sql = SQL("pg_size_pretty(length(%s)::bigint)", sql)
                 elif field.translate and self.env.context.get('prefetch_langs'):
-                    sql = field.to_raw_sql(self, self._table)
+                    sql = field.to_raw_sql(self, self._table, query)
                 else:
                     # flushing is necessary to retrieve the en_US value of fields without a translation
-                    sql = self._field_to_sql(self._table, field.name, query, flush=field.translate)
+                    sql = field.to_sql(self, self._table, query, flush=field.translate)
                 sql_terms.append(sql)
 
             # select the given columns from the rows in the query
@@ -5419,12 +5384,13 @@ class BaseModel(metaclass=MetaModel):
             # figure out the applicable order_by for the m2o
             # special case: ordering by "x_id.id" doesn't recurse on x_id's comodel
             comodel = self.env[field.comodel_name]
+            sql_field = field.to_sql(self, alias, query)
             if property_name == 'id':
                 coorder = 'id'
-                sql_field = self._field_to_sql(alias, fname, query)
             else:
                 coorder = comodel._order
-                sql_field = self._field_to_sql(alias, field_name, query)
+                if property_name:
+                    sql_field = field.property_to_sql(sql_field, property_name, self, alias, query)
 
             if coorder == 'id':
                 if query.groupby:
@@ -5454,7 +5420,9 @@ class BaseModel(metaclass=MetaModel):
                 terms.append(term)
             return SQL(", ").join(terms)
 
-        sql_field = self._field_to_sql(alias, field_name, query)
+        sql_field = field.to_sql(self, alias, query)
+        if property_name:
+            sql_field = field.property_to_sql(sql_field, property_name, self, alias, query)
         if field.type == 'boolean':
             sql_field = SQL("COALESCE(%s, FALSE)", sql_field)
         if query.groupby:

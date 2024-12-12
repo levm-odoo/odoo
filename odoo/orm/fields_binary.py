@@ -230,7 +230,7 @@ class Binary(Field):
         if (operator in ('in', 'not in') and set(value) == {False}) or (operator in ('=', '!=') and not value):
             return SQL(
                 "%s%s(SELECT res_id FROM ir_attachment WHERE res_model = %s AND res_field = %s)",
-                model._field_to_sql(alias, 'id', query),
+                model._fields['id'].to_sql(model, alias, query),
                 SQL_OPERATORS['not in' if operator in ('in', '=') else 'in'],
                 model._name,
                 self.name,

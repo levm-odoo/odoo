@@ -18,7 +18,7 @@ from odoo.tools import Query, SQL, lazy_property, sql
 from odoo.tools.constants import PREFETCH_MAX
 from odoo.tools.misc import SENTINEL, Sentinel
 
-from .utils import COLLECTION_TYPES, SQL_OPERATORS, expand_ids
+from .utils import COLLECTION_TYPES, SQL_OPERATORS, expand_ids, parse_field_expr
 
 if typing.TYPE_CHECKING:
     from .models import BaseModel
@@ -269,6 +269,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
     compute = None                      # compute(recs) computes field on recs
     compute_sudo = False                # whether field should be recomputed as superuser
     precompute = False                  # whether field has to be computed before creation
+    compute_sql = None                  # compute_sql(model, alias, query, flush) that gets the SQL for the field
     inverse = None                      # inverse(recs) inverses field on recs
     search = None                       # search(recs, operator, value) searches on self
     related = None                      # sequence of field names, for related fields
@@ -620,6 +621,36 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
             corecord = record[name]
             record = next(iter(corecord), corecord)
         return record, self.related_field
+
+    def _traverse_related_sql(self, model: BaseModel, alias: str, query: Query) -> tuple[BaseModel, Field, str]:
+        """ Traverse the related `field` and add needed join to the `query`.
+
+        :returns: tuple ``(model, field, alias)``, where ``field`` is the last
+            field in the sequence, ``model`` is that field's model, and
+            ``alias`` is the model's table alias
+        """
+        assert self.related and not self.store
+        if not (model.env.su or self.compute_sudo or self.inherited):
+            raise ValueError(f'Cannot convert {self} to SQL because it is not a sudoed related or inherited field')
+
+        if self.compute_sudo:
+            model = model.sudo()
+        *path_fnames, last_fname = self.related.split('.')
+        for path_fname in path_fnames:
+            path_field = model._fields[path_fname]
+            if path_field.type != 'many2one':
+                raise ValueError(f'Cannot convert {self} (related={self.related}) to SQL because {path_fname} is not a Many2one')
+
+            comodel = model.env[path_field.comodel_name]
+            coalias = query.make_alias(alias, path_fname)
+            query.add_join('LEFT JOIN', coalias, comodel._table, SQL(
+                "%s = %s",
+                path_field.to_sql(model, alias, query),
+                SQL.identifier(coalias, 'id'),
+            ))
+            model, alias = comodel, coalias
+
+        return model, model._fields[last_fname], alias
 
     def _compute_related(self, records):
         """ Compute the related field ``self`` on ``records``. """
@@ -1113,7 +1144,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
     # SQL generation methods
     #
 
-    def to_sql(self, model: BaseModel, alias: str, flush: bool = True) -> SQL:
+    def to_sql(self, model: BaseModel, alias: str, query: Query | None, flush: bool = True) -> SQL:
         """ Return an :class:`SQL` object that represents the value of the given
         field from the given table alias.
 
@@ -1123,7 +1154,13 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
         result to make method :meth:`~odoo.api.Environment.execute_query` flush
         the field before executing the query.
         """
+        model._check_field_access(self, 'read')
+        if self.compute_sql:
+            return determine(self.compute_sql, model, alias, query, flush)
         if not self.store or not self.column_type:
+            if self.related:
+                model, field, alias = self._traverse_related_sql(model, alias, query)
+                return field.to_sql(model, alias, query, flush)
             raise ValueError(f"Cannot convert {self} to SQL because it is not stored")
         field_to_flush = self if flush else None
         sql_field = SQL.identifier(alias, self.name, to_flush=field_to_flush)
@@ -1171,7 +1208,11 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
         return sql_expr
 
     def _condition_to_sql(self, field_expr: str, operator: str, value, model: BaseModel, alias: str, query: Query) -> SQL:
-        sql_field = model._field_to_sql(alias, field_expr, query)
+        field_name, property_name = parse_field_expr(field_expr)
+        assert field_name == self.name, f"_condition_to_sql called with invalid field_expr {field_expr}"
+        sql_field = self.to_sql(model, alias, query)
+        if property_name:
+            sql_field = self.property_to_sql(sql_field, property_name, model, alias, query)
 
         def _value_to_column(v):
             return self.convert_to_column(v, model, validate=False)

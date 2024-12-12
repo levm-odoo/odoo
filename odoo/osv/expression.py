@@ -1155,7 +1155,7 @@ class expression(object):
                 right_ids = comodel._search(domain)
                 push((left, ANY_IN[operator], right_ids), model, alias)
 
-            elif not field.store:
+            elif not field.store and not (field.compute_sql and not field.search):
                 # Non-stored field should provide an implementation of search.
                 if not field.search:
                     # field does not support search!

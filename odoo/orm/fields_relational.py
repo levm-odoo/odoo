@@ -390,7 +390,7 @@ class Many2one(_Relational[M]):
         else:
             raise TypeError(f"condition_to_sql() 'any' operator accepts Domain, SQL or Query, got {value}")
 
-        sql_field = model._field_to_sql(alias, field_expr, query)
+        sql_field = self.to_sql(model, alias, query)
         sql = SQL(
             "%s%s%s",
             sql_field,

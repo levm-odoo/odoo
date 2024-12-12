@@ -46,9 +46,9 @@ class AccountAccount(models.Model):
         help="Forces all journal items in this account to have a specific currency (i.e. bank journals). If no currency is set, entries can use any currency.")
     company_currency_id = fields.Many2one('res.currency', compute='_compute_company_currency_id')
     company_fiscal_country_code = fields.Char(compute='_compute_company_fiscal_country_code')
-    code = fields.Char(string="Code", size=64, tracking=True, compute='_compute_code', search='_search_code', inverse='_inverse_code')
+    code = fields.Char(string="Code", size=64, tracking=True, compute='_compute_code', search='_search_code', inverse='_inverse_code', compute_sql='_compute_sql_code')
     code_store = fields.Char(company_dependent=True)
-    placeholder_code = fields.Char(string="Display code", compute='_compute_placeholder_code', search='_search_placeholder_code')
+    placeholder_code = fields.Char(string="Display code", compute='_compute_placeholder_code', search='_search_placeholder_code', compute_sql='_compute_sql_placeholder_code')
     deprecated = fields.Boolean(default=False, tracking=True)
     used = fields.Boolean(compute='_compute_used', search='_search_used')
     account_type = fields.Selection(
@@ -94,6 +94,7 @@ class AccountAccount(models.Model):
         string="Internal Group",
         compute="_compute_internal_group",
         search='_search_internal_group',
+        compute_sql='_compute_sql_interal_group',
     )
     reconcile = fields.Boolean(string='Allow Reconciliation', tracking=True,
         compute='_compute_reconcile', store=True, readonly=False, precompute=True,
@@ -141,47 +142,43 @@ class AccountAccount(models.Model):
     # Form view: show code mapping tab or not
     display_mapping_tab = fields.Boolean(default=lambda self: len(self.env.user.company_ids) > 1, store=False)
 
-    def _field_to_sql(self, alias: str, field_expr: str, query: (Query | None) = None, flush: bool = True) -> SQL:
-        if field_expr == 'internal_group':
-            return SQL("split_part(account_account.account_type, '_', 1)", to_flush=self._fields['account_type'])
-        if field_expr == 'code':
-            return self.with_company(self.env.company.root_id).sudo()._field_to_sql(alias, 'code_store', query, flush)
-        if field_expr == 'placeholder_code':
-            query.add_join(
-                'JOIN',
-                'account_first_company',
-                SQL(
-                    """(
-                        SELECT DISTINCT ON (rel.account_account_id)
-                               rel.account_account_id AS account_id,
-                               rel.res_company_id AS company_id,
-                               SPLIT_PART(res_company.parent_path, '/', 1) AS root_company_id,
-                               res_company.name AS company_name
-                          FROM account_account_res_company_rel rel
-                          JOIN res_company
-                            ON res_company.id = rel.res_company_id
-                         WHERE rel.res_company_id IN %(authorized_company_ids)s
-                      ORDER BY rel.account_account_id, company_id
-                    )""",
-                    authorized_company_ids=self.env.user._get_company_ids(),
-                ),
-                SQL('account_first_company.account_id = %(account_id)s', account_id=SQL.identifier(alias, 'id')),
-            )
+    def _compute_sql_code(self, alias, query, flush):
+        return self.with_company(self.env.company.root_id).sudo()._field_to_sql(alias, 'code_store', query, flush)
 
-            # Can't have spaces because of how stupidly the `Model._read_group_orderby` method is written
-            # see https://github.com/odoo/odoo/blob/2a3466e8f86bc08594391658e08ba3416fb8307b/odoo/models.py#L2222
-            return SQL(
-                "COALESCE("
-                "%(code_store)s->>%(active_company_root_id)s,"
-                "%(code_store)s->>%(account_first_company_root_id)s||'('||%(account_first_company_name)s||')'"
-                ")",
-                code_store=SQL.identifier(alias, 'code_store'),
-                active_company_root_id=self.env.company.root_id.id,
-                account_first_company_name=SQL.identifier('account_first_company', 'company_name'),
-                account_first_company_root_id=SQL.identifier('account_first_company', 'root_company_id'),
-            )
+    def _compute_sql_placeholder_code(self, alias, query, flush):
+        query.add_join(
+            'JOIN',
+            'account_first_company',
+            SQL(
+                """(
+                    SELECT DISTINCT ON (rel.account_account_id)
+                            rel.account_account_id AS account_id,
+                            rel.res_company_id AS company_id,
+                            SPLIT_PART(res_company.parent_path, '/', 1) AS root_company_id,
+                            res_company.name AS company_name
+                        FROM account_account_res_company_rel rel
+                        JOIN res_company
+                        ON res_company.id = rel.res_company_id
+                        WHERE rel.res_company_id IN %(authorized_company_ids)s
+                    ORDER BY rel.account_account_id, company_id
+                )""",
+                authorized_company_ids=self.env.user._get_company_ids(),
+            ),
+            SQL('account_first_company.account_id = %(account_id)s', account_id=SQL.identifier(alias, 'id')),
+        )
 
-        return super()._field_to_sql(alias, field_expr, query, flush)
+        # Can't have spaces because of how stupidly the `Model._read_group_orderby` method is written
+        # see https://github.com/odoo/odoo/blob/2a3466e8f86bc08594391658e08ba3416fb8307b/odoo/models.py#L2222
+        return SQL(
+            "COALESCE("
+            "%(code_store)s->>%(active_company_root_id)s,"
+            "%(code_store)s->>%(account_first_company_root_id)s||'('||%(account_first_company_name)s||')'"
+            ")",
+            code_store=SQL.identifier(alias, 'code_store'),
+            active_company_root_id=self.env.company.root_id.id,
+            account_first_company_name=SQL.identifier('account_first_company', 'company_name'),
+            account_first_company_root_id=SQL.identifier('account_first_company', 'root_company_id'),
+        )
 
     @api.constrains('reconcile', 'account_type', 'tax_ids')
     def _constrains_reconcile(self):
@@ -668,16 +665,8 @@ class AccountAccount(models.Model):
         for account in self:
             account.internal_group = account.account_type and account._get_internal_group(account.account_type)
 
-    def _search_internal_group(self, operator, value):
-        if operator not in ['=', 'in', '!=', 'not in']:
-            raise UserError(_('Operation not supported'))
-        domain = expression.OR([[('account_type', '=like', group)] for group in {
-            self._get_internal_group(v) + '%'
-            for v in (value if isinstance(value, (list, tuple)) else [value])
-        }])
-        if operator in ('!=', 'not in'):
-            return ['!'] + expression.normalize_domain(domain)
-        return domain
+    def _compute_sql_internal_group(self, alias, query, flush):
+        return SQL("split_part(%s, '_', 1)", self._field_to_sql(alias, 'account_type', query, flush))
 
     @api.depends('account_type')
     def _compute_reconcile(self):
