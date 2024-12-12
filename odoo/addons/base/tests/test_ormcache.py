@@ -120,6 +120,15 @@ class TestOrmCache(TransactionCase):
         self.registry.cache_invalidated.clear()
         registry = self.registry
         old_sequences = dict(registry.cache_sequences)
+        current_sequence = max(*old_sequences.values(), registry.registry_sequence)
+        # some basic checks to check that the test start with the right values
+        with self.env.registry.cursor() as cr:
+            for key, value in old_sequences.items():
+                    cr.execute('SELECT max(id) FROM base_signaling WHERE key = %s', (key,))
+                    self.assertEqual(cr.fetchone()[0], registry.cache_sequences[key], f"Registry sequence does not match database for key {key}")
+            cr.execute('SELECT last_value FROM base_signaling_id_seq')
+            self.assertEqual(cr.fetchone()[0], current_sequence, "Max sequence does not match database, this test may fail")
+
         with self.assertLogs('odoo.registry') as logs:
             registry.cache_invalidated.add('assets')
             self.assertEqual(registry.cache_invalidated, {'assets'})
@@ -133,9 +142,12 @@ class TestOrmCache(TransactionCase):
 
         for key, value in old_sequences.items():
             if key == 'assets':
-                self.assertEqual(value + 1, registry.cache_sequences[key], "Assets cache sequence should have changed")
+                self.assertEqual(current_sequence + 1, registry.cache_sequences[key], "Assets cache sequence should have changed")
             else:
                 self.assertEqual(value, registry.cache_sequences[key], "other registry sequence shouldn't have changed")
+            with self.env.registry.cursor() as cr:
+                cr.execute('SELECT max(id) FROM base_signaling WHERE key = %s', (key,))
+                self.assertEqual(cr.fetchone()[0], registry.cache_sequences[key], f"Registry sequence does not match database for key {key}")
 
         with self.assertNoLogs(None, None):  # the registry sequence should be up to date on the same worker
             registry.check_signaling()
@@ -156,6 +168,7 @@ class TestOrmCache(TransactionCase):
         self.registry.cache_invalidated.clear()
         registry = self.registry
         old_sequences = dict(registry.cache_sequences)
+        current_sequence = max(*old_sequences.values(), registry.registry_sequence)
         with self.assertLogs('odoo.registry') as logs:
             registry.cache_invalidated.add('assets')
             registry.cache_invalidated.add('default')
@@ -171,8 +184,10 @@ class TestOrmCache(TransactionCase):
         )
 
         for key, value in old_sequences.items():
-            if key in ('assets', 'default'):
-                self.assertEqual(value + 1, registry.cache_sequences[key], "Assets and default cache sequence should have changed")
+            if key == 'assets':
+                self.assertEqual(current_sequence + 1, registry.cache_sequences[key], "Assets cache sequence should have changed")
+            elif key == 'default':
+                self.assertEqual(current_sequence + 2, registry.cache_sequences[key], "Default cache sequence should have changed")
             else:
                 self.assertEqual(value, registry.cache_sequences[key], "other registry sequence shouldn't have changed")
 

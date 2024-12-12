@@ -96,7 +96,7 @@ class TestHttpRegistry(BaseCase):
 
         # invalidate the registry of the current db
         with Registry(get_db_name()).cursor() as cr:
-            cr.execute("select nextval('base_registry_signaling')")
+            cr.execute("INSERT INTO base_signaling (key) VALUES ('registry')")
 
         # the registry should rebuild itself just fine
         with self.assertLogs('odoo.registry', logging.INFO) as capture:
