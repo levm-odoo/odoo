@@ -647,6 +647,11 @@
                 }
             }
         }
+
+        &.o_field_many2many_tags,
+        &.o_field_many2many_tags_avatar {
+            --fieldWidget-display: inline;
+        }
     }
     .o_field_widget, .btn {
         .o_field_widget {

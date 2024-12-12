@@ -156,6 +156,7 @@
     // Many2OneAvatar
     &.o_field_many2one_avatar {
         .o_m2o_avatar > img, .o_m2o_avatar > .o_m2o_avatar_empty {
+            display: block;
             border-radius: 50%;
             width: 19px;
             height: 19px;
@@ -163,7 +164,6 @@
             margin-right: 4px;
         }
         .o_m2o_avatar_empty {
-            display: block;
             background: $o-black;
             opacity: .1;
         }

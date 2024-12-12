@@ -43,7 +43,6 @@
             @include o-text-overflow(inline-block);
             max-width: 200px;
             color: inherit;
-            line-height: 1.1;
         }
 
         .o_delete {
@@ -66,6 +65,13 @@
 
         .o_tag_badge_text {
             padding-left:2px;
+        }
+
+        .o_m2m_avatar + .o_tag_badge_text {
+            &, & + .o_delete {
+                padding-top: 0;
+                padding-bottom: 0;
+            }
         }
     }
 }
