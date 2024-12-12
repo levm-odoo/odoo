@@ -32,6 +32,7 @@ class ProductTemplate(models.Model):
             'task_in_project': 'set default',
             'project_only': 'set default',
         },
+        company_dependent=True,
     )
     project_id = fields.Many2one(
         'project.project', 'Project', company_dependent=True, copy=True,

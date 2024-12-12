@@ -70,7 +70,6 @@ class ProductTemplate(models.Model):
         string="Create on Order",
         default="no",
         compute="_compute_service_tracking",
-        required=True,
         store=True,
         readonly=False,
     )
