@@ -54,52 +54,8 @@ class PosOrder(models.Model):
     def _load_pos_data_domain(self, data):
         return [('state', '=', 'draft'), ('config_id', '=', data['pos.config'][0]['id'])]
 
-    @api.model
-    def _process_order(self, order, existing_order):
-        """Create or update an pos.order from a given dictionary.
-
-        :param dict order: dictionary representing the order.
-        :param existing_order: order to be updated or False.
-        :type existing_order: pos.order.
-        :returns: id of created/updated pos.order
-        :rtype: int
-        """
-        draft = True if order.get('state') == 'draft' else False
-        pos_session = self.env['pos.session'].browse(order['session_id'])
-        if pos_session.state == 'closing_control' or pos_session.state == 'closed':
-            order['session_id'] = self._get_valid_session(order).id
-
-        if order.get('partner_id'):
-            partner_id = self.env['res.partner'].browse(order['partner_id'])
-            if not partner_id.exists():
-                order.update({
-                    "partner_id": False,
-                    "to_invoice": False,
-                })
-
-        pos_order = False
-        combo_child_uuids_by_parent_uuid = self._prepare_combo_line_uuids(order)
-
-        if not existing_order:
-            pos_order = self.create({
-                **{key: value for key, value in order.items() if key != 'name'},
-            })
-            pos_order = pos_order.with_company(pos_order.company_id)
-        else:
-            pos_order = self.env['pos.order'].browse(order.get('id'))
-
-            # Save line before to avoid exception if a line is deleted
-            # when vals change the state to 'paid'
-            if order.get('lines'):
-                pos_order.write({'lines': order.get('lines')})
-                order['lines'] = []
-
-            pos_order.write(order)
-
-        pos_order._link_combo_items(combo_child_uuids_by_parent_uuid)
-        self = self.with_company(pos_order.company_id)
-        self._process_payment_lines(order, pos_order, pos_session, draft)
-        return pos_order._process_saved_order(draft)
+        # self._process_payment_lines(order, pos_order, pos_session, draft)
+        # return pos_order._process_saved_order(draft)
 
     def _prepare_combo_line_uuids(self, order_vals):
         acc = {}
@@ -493,6 +449,9 @@ class PosOrder(models.Model):
                         country=order.partner_id.country_id or self.env.company.country_id)
             if vals.get('has_deleted_line') is not None and self.has_deleted_line:
                 del vals['has_deleted_line']
+            if vals.get('partner_id') and not self.env['res.partner'].browse(vals['partner_id']).exists():
+                vals['to_invoice'] = False
+                vals['partner_id'] = False
 
         list_line = self._create_pm_change_log(vals)
         res = super().write(vals)
@@ -1000,47 +959,6 @@ class PosOrder(models.Model):
                 payment_receivables = payment_moves.mapped('line_ids').filtered(lambda line: line.account_id == receivable_account and line.partner_id)
                 (invoice_receivables | payment_receivables).sudo().with_company(self.company_id).reconcile()
         return payment_moves
-
-    @api.model
-    def sync_from_ui(self, orders):
-        """ Create and update Orders from the frontend PoS application.
-
-        Create new orders and update orders that are in draft status. If an order already exists with a status
-        different from 'draft' it will be discarded, otherwise it will be saved to the database. If saved with
-        'draft' status the order can be overwritten later by this function.
-
-        :param orders: dictionary with the orders to be created.
-        :type orders: dict.
-        :param draft: Indicate if the orders are meant to be finalized or temporarily saved.
-        :type draft: bool.
-        :Returns: list -- list of db-ids for the created and updated orders.
-        """
-        order_ids = []
-        session_ids = set({order.get('session_id') for order in orders})
-        for order in orders:
-            existing_order = self.env['pos.order'].search([('uuid', '=', order.get('uuid'))])
-            if existing_order and existing_order.state == 'draft':
-                order_ids.append(self._process_order(order, existing_order))
-            elif not existing_order:
-                order_ids.append(self._process_order(order, False))
-
-        # Sometime pos_orders_ids can be empty.
-        pos_order_ids = self.env['pos.order'].browse(order_ids)
-        config_id = pos_order_ids.config_id.ids[0] if pos_order_ids else False
-
-        for order in pos_order_ids:
-            order._ensure_access_token()
-
-        # If the previous session is closed, the order will get a new session_id due to _get_valid_session in _process_order
-        is_new_session = any(order.get('session_id') not in session_ids for order in orders)
-        return {
-            'pos.order': pos_order_ids.read(pos_order_ids._load_pos_data_fields(config_id), load=False) if config_id else [],
-            'pos.session': pos_order_ids.session_id._load_pos_data({}) if config_id and is_new_session else [],
-            'pos.payment': pos_order_ids.payment_ids.read(pos_order_ids.payment_ids._load_pos_data_fields(config_id), load=False) if config_id else [],
-            'pos.order.line': pos_order_ids.lines.read(pos_order_ids.lines._load_pos_data_fields(config_id), load=False) if config_id else [],
-            'pos.pack.operation.lot': pos_order_ids.lines.pack_lot_ids.read(pos_order_ids.lines.pack_lot_ids._load_pos_data_fields(config_id), load=False) if config_id else [],
-            "product.attribute.custom.value": pos_order_ids.lines.custom_attribute_value_ids.read(pos_order_ids.lines.custom_attribute_value_ids._load_pos_data_fields(config_id), load=False) if config_id else [],
-        }
 
     def _should_create_picking_real_time(self):
         return not self.session_id.update_stock_at_closing or (self.company_id.anglo_saxon_accounting and self.to_invoice)
