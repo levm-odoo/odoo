@@ -3,8 +3,8 @@
 <data>
     <!-- Survey: printable page view (all pages) -->
     <template id="survey_page_print" name="Survey: print page">
+        <t t-set="survey_form_readonly" t-value="true"/>
         <t t-call="survey.layout">
-            <t t-set="survey_form_readonly" t-value="true"/>
             <t t-if="answer.test_entry" t-call="survey.survey_button_form_view" />
             <div class="wrap">
                 <div class="o_survey_print o_container_small">

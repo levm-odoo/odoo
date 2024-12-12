@@ -10,9 +10,8 @@
                     </a>
                     <h4 class="my-0">Get A Booth</h4>
                 </div>
-                <t t-call="website_event_booth.event_booth_order_progress">
-                    <t t-set="step" t-value="'STEP_DETAILS_FORM'"/>
-                </t>
+                <t t-set="step" t-value="'STEP_DETAILS_FORM'"/>
+                <t t-call="website_event_booth.event_booth_order_progress"/>
             </div>
             <div class="oe_structure oe_empty" id="oe_structure_website_event_booth_registration_inner_1"/>
             <form method="post"

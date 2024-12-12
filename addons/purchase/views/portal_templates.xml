@@ -22,30 +22,28 @@
           <t t-set="portal_vendor_category_enable" t-value="True"/>
       </xpath>
       <div id="portal_vendor_category" position="inside">
-          <t t-call="portal.portal_docs_entry">
-              <t t-set="icon" t-value="'/web/static/img/rfq.svg'"/>
-              <t t-set="text">Follow your Requests for Quotation</t>
-              <t t-set="title">Requests for Quotation</t>
-              <t t-set="url" t-value="'/my/rfq'"/>
-              <t t-set="placeholder_count" t-value="'rfq_count'"/>
-          </t>
-          <t t-call="portal.portal_docs_entry">
-              <t t-set="icon" t-value="'/purchase/static/src/img/calculator.svg'"/>
-              <t t-set="text">Follow orders you have to fulfill</t>
-              <t t-set="title">Our Orders</t>
-              <t t-set="url" t-value="'/my/purchase'"/>
-              <t t-set="placeholder_count" t-value="'purchase_count'"/>
-          </t>
+          <t t-set="icon" t-value="'/web/static/img/rfq.svg'"/>
+          <t t-set="text">Follow your Requests for Quotation</t>
+          <t t-set="title">Requests for Quotation</t>
+          <t t-set="url" t-value="'/my/rfq'"/>
+          <t t-set="placeholder_count" t-value="'rfq_count'"/>
+          <t t-call="portal.portal_docs_entry"/>
+
+          <t t-set="icon" t-value="'/purchase/static/src/img/calculator.svg'"/>
+          <t t-set="text">Follow orders you have to fulfill</t>
+          <t t-set="title">Our Orders</t>
+          <t t-set="url" t-value="'/my/purchase'"/>
+          <t t-set="placeholder_count" t-value="'purchase_count'"/>
+          <t t-call="portal.portal_docs_entry"/>
       </div>
   </template>
 
   <template id="portal_my_purchase_rfqs" name="My Requests For Quotation">
+      <t t-set="breadcrumbs_searchbar" t-value="True"/>
       <t t-call="portal.portal_layout">
-          <t t-set="breadcrumbs_searchbar" t-value="True"/>
 
-          <t t-call="portal.portal_searchbar">
-              <t t-set="title" >Requests For Quotation</t>
-          </t>
+          <t t-set="title" >Requests For Quotation</t>
+          <t t-call="portal.portal_searchbar"/>
           <t t-if="not rfqs">
               <p class="alert alert-warning">There are currently no requests for quotation for your account.</p>
           </t>
@@ -77,12 +75,11 @@
   </template>
 
   <template id="portal_my_purchase_orders" name="My Purchase Orders">
+      <t t-set="breadcrumbs_searchbar" t-value="True"/>
       <t t-call="portal.portal_layout">
-          <t t-set="breadcrumbs_searchbar" t-value="True"/>
 
-          <t t-call="portal.portal_searchbar">
-              <t t-set="title">Purchase Orders</t>
-          </t>
+          <t t-set="title">Purchase Orders</t>
+          <t t-call="portal.portal_searchbar"/>
           <t t-if="not orders">
               <p class="alert alert-warning">There are currently no purchase orders for your account.</p>
           </t>
@@ -129,55 +126,52 @@
   <template id="portal_my_purchase_order" name="Purchase Order" inherit_id="portal.portal_sidebar" primary="True">
       <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
           <t t-set="o_portal_fullwidth_alert" groups="purchase.group_purchase_manager">
-              <t t-call="portal.portal_back_in_edit_mode">
-                  <t t-set="backend_url" t-value="'/odoo/action-purchase.purchase_rfq/%s' % (order.id)"/>
-              </t>
+              <t t-set="backend_url" t-value="'/odoo/action-purchase.purchase_rfq/%s' % (order.id)"/>
+              <t t-call="portal.portal_back_in_edit_mode"/>
           </t>
 
           <div class="row o_portal_purchase_sidebar">
               <!-- Sidebar -->
-              <t t-call="portal.portal_record_sidebar">
-                  <t t-set="classes" t-value="'col-lg-4 col-xxl-3 d-print-none'"/>
+              <t t-set="classes" t-value="'col-lg-4 col-xxl-3 d-print-none'"/>
+              <t t-set="title">
+                  <h2 t-field="order.amount_total" data-id="total_amount" class="mb-0 text-break"/>
+              </t>
+              <t t-set="entries">
+                <div t-if="not request.env.user._is_public() and order.state in ['sent']" class="flex-grow-1 d-flex gap-2">
+                    <div class="btn-group flex-grow-1 mb-1">
+                        <a t-if="not order.mail_reception_confirmed" t-att-href="order.get_confirm_url(confirm_type='reception')" target="_self" class="btn btn-secondary btn-block px-3" name="accept" title="Accept" style="background-color: #875A7B;">Accept</a>
+                        <a t-else="" href="#" class="btn btn-secondary btn-block px-3 disabled" style="background-color: #875A7B;" tabindex="-1" aria-disabled="true" name="accept" title="Accept">Accept</a>
+                    </div>
+                    <div class="btn-group flex-grow-1 mb-1">
+                        <a t-if="not order.mail_reception_declined" t-att-href="order.get_confirm_url(confirm_type='decline')" target="_self" class="btn btn-secondary btn-block px-3" name="decline" title="Decline">Decline</a>
+                        <a t-else="" href="#" class="btn btn-secondary btn-block px-3 disabled" tabindex="-1" aria-disabled="true" name="decline" title="Decline">Decline</a>
+                    </div>
+                </div>
 
-                  <t t-set="title">
-                      <h2 t-field="order.amount_total" data-id="total_amount" class="mb-0 text-break"/>
-                  </t>
-                  <t t-set="entries">
-                    <div t-if="not request.env.user._is_public() and order.state in ['sent']" class="flex-grow-1 d-flex gap-2">
-                        <div class="btn-group flex-grow-1 mb-1">
-                            <a t-if="not order.mail_reception_confirmed" t-att-href="order.get_confirm_url(confirm_type='reception')" target="_self" class="btn btn-secondary btn-block px-3" name="accept" title="Accept" style="background-color: #875A7B;">Accept</a>
-                            <a t-else="" href="#" class="btn btn-secondary btn-block px-3 disabled" style="background-color: #875A7B;" tabindex="-1" aria-disabled="true" name="accept" title="Accept">Accept</a>
-                        </div>
-                        <div class="btn-group flex-grow-1 mb-1">
-                            <a t-if="not order.mail_reception_declined" t-att-href="order.get_confirm_url(confirm_type='decline')" target="_self" class="btn btn-secondary btn-block px-3" name="decline" title="Decline">Decline</a>
-                            <a t-else="" href="#" class="btn btn-secondary btn-block px-3 disabled" tabindex="-1" aria-disabled="true" name="decline" title="Decline">Decline</a>
-                        </div>
+                <div class="d-flex flex-column gap-4 mt-3">
+                <a class="btn btn-secondary o_print_btn o_portal_invoice_print" t-att-href="order.get_portal_url(report_type='pdf')" id="print_invoice_report" title="View Details" role="button" target="_blank"><i class="fa fa-print me-1"/>Download / Print</a>
+                    <div class="navspy flex-grow-1 ps-0" t-ignore="true" role="complementary">
+                        <ul class="nav flex-column bs-sidenav"></ul>
+                    </div>
+                    <div t-if="order.user_id">
+                        <h6 class="small text-muted">Buyer</h6>
+                        <t t-set="_contactAvatar" t-value="image_data_uri(order.user_id.avatar_128)"/>
+                        <t t-set="_contactName" t-value="order.user_id.name"/>
+                        <t t-set="_contactLink" t-value="True"/>
+                        <t t-call="portal.portal_my_contact">
+                            <div t-field="order.user_id" t-options='{"widget": "contact", "fields": ["phone"], "no_marker": False}'/>
+                        </t>
                     </div>
 
-                      <div class="d-flex flex-column gap-4 mt-3">
-                        <a class="btn btn-secondary o_print_btn o_portal_invoice_print" t-att-href="order.get_portal_url(report_type='pdf')" id="print_invoice_report" title="View Details" role="button" target="_blank"><i class="fa fa-print me-1"/>Download / Print</a>
-                          <div class="navspy flex-grow-1 ps-0" t-ignore="true" role="complementary">
-                              <ul class="nav flex-column bs-sidenav"></ul>
-                          </div>
-                          <div t-if="order.user_id">
-                              <h6 class="small text-muted">Buyer</h6>
-                                <t t-call="portal.portal_my_contact">
-                                    <t t-set="_contactAvatar" t-value="image_data_uri(order.user_id.avatar_128)"/>
-                                    <t t-set="_contactName" t-value="order.user_id.name"/>
-                                    <t t-set="_contactLink" t-value="True"/>
-                                    <div t-field="order.user_id" t-options='{"widget": "contact", "fields": ["phone"], "no_marker": False}'/>
-                                </t>
-                          </div>
-
-                          <div>
-                            <button id="portal_connect_software_modal_btn" type="button" class="btn btn-primary"
-                            data-bs-toggle="modal" data-bs-target="#portal_connect_software_modal">
-                                Connect with your software!
-                            </button>
-                          </div>
-                      </div>
-                  </t>
+                    <div>
+                    <button id="portal_connect_software_modal_btn" type="button" class="btn btn-primary"
+                    data-bs-toggle="modal" data-bs-target="#portal_connect_software_modal">
+                        Connect with your software!
+                    </button>
+                    </div>
+                </div>
               </t>
+              <t t-call="portal.portal_record_sidebar"/>
 
               <div class="modal fade" id="portal_connect_software_modal" tabindex="-1" role="dialog" aria-hidden="true">
                 <div class="modal-dialog modal-lg" role="document">
@@ -431,10 +425,9 @@
 
   <template id="purchase_order_portal_content_totals_table">
       <table class="table table-sm">
-          <t t-call="purchase.document_tax_totals">
-                <t t-set="tax_totals" t-value="order.tax_totals"/>
-                <t t-set="currency" t-value="order.currency_id"/>
-          </t>
+          <t t-set="tax_totals" t-value="order.tax_totals"/>
+          <t t-set="currency" t-value="order.currency_id"/>
+          <t t-call="purchase.document_tax_totals"/>
       </table>
   </template>
 

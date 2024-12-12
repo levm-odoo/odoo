@@ -53,13 +53,13 @@
                 </div>
             </div>
             <div class="o_wevent_search d-flex w-100 w-lg-auto">
+                <t t-set="_classes" t-valuef="o_wevent_event_track_searchbar_form flex-grow-1"/>
+                <t t-set="search_type">track</t>
+                <t t-set="action" t-value="'/event/%s/track' % (slug(event))"/>
+                <t t-set="display_detail" t-valuef="false"/>
+                <t t-set="search" t-value="search or searches and searches['search']"/>
+                <t t-set="placeholder">Search a talk ...</t>
                 <t t-call="website.website_search_box_input">
-                    <t t-set="_classes" t-valuef="o_wevent_event_track_searchbar_form flex-grow-1"/>
-                    <t t-set="search_type">track</t>
-                    <t t-set="action" t-value="'/event/%s/track' % (slug(event))"/>
-                    <t t-set="display_detail" t-valuef="false"/>
-                    <t t-set="search" t-value="search or searches and searches['search']"/>
-                    <t t-set="placeholder">Search a talk ...</t>
                     <t t-foreach="searches" t-as="item">
                         <input t-if="item != 'search' and item_value != 'all'" type="hidden"
                             t-att-name="item" t-att-value="item_value"/>
@@ -221,17 +221,15 @@
         <div class="col-12">
             <h4>Live Now</h4>
         </div>
-        <t t-call="website_event_track.track_cards_section">
-            <t t-set="tracks" t-value="tracks_live"/>
-        </t>
+        <t t-set="tracks" t-value="tracks_live"/>
+        <t t-call="website_event_track.track_cards_section"/>
     </div>
     <div class="row mb-3" t-if="tracks_soon">
         <div class="col-12">
             <h4>Coming soon ...</h4>
         </div>
-        <t t-call="website_event_track.track_cards_section">
-            <t t-set="tracks" t-value="tracks_soon"/>
-        </t>
+        <t t-set="tracks" t-value="tracks_soon"/>
+        <t t-call="website_event_track.track_cards_section"/>
     </div>
 </template>
 
@@ -301,10 +299,9 @@
                                 <!-- reminder -->
                                 <div t-if="not event.is_done and (not track.date or today_tz &lt;= tracks_date) and option_track_wishlist"
                                     class="d-none d-md-block py-1">
-                                    <t t-call="website_event_track.track_widget_reminder">
-                                        <t t-set="reminder_small" t-value="False"/>
-                                        <t t-set="reminder_light" t-value="False"/>
-                                    </t>
+                                    <t t-set="reminder_small" t-value="False"/>
+                                    <t t-set="reminder_light" t-value="False"/>
+                                    <t t-call="website_event_track.track_widget_reminder"/>
                                 </div>
                             </div>
                             <!-- Main column: name, speaker -->
@@ -380,17 +377,15 @@
                 <div t-if="track.website_image_url" class="card-img-top"
                     t-attf-style="padding-top: 50%; background-image: url(#{track.website_image_url}); background-size: cover; background-position:center">
                     <span t-if="option_track_wishlist and not track.is_track_live" class="position-absolute h3 mt-2 me-2 text-white" style="right: 0; top: 0;">
-                        <t t-call="website_event_track.track_widget_reminder">
-                            <t t-set="reminder_light" t-value="True"/>
-                        </t>
+                        <t t-set="reminder_light" t-value="True"/>
+                        <t t-call="website_event_track.track_widget_reminder"/>
                     </span>
                 </div>
                 <div t-else="" class="o_wesession_gradient card-img-top position-relative"
                     style="padding-top: 50%;">
                     <span t-if="option_track_wishlist" class="position-absolute h3 mt-2 me-2" style="right: 0; top: 0;">
-                        <t t-call="website_event_track.track_widget_reminder">
-                            <t t-set="reminder_light" t-value="True"/>
-                        </t>
+                        <t t-set="reminder_light" t-value="True"/>
+                        <t t-call="website_event_track.track_widget_reminder"/>
                     </span>
                     <i class="fa fa-glass fa-2x mx-2 mb-3 position-absolute text-white-75" style="right:0; bottom: 0;"/>
                 </div>

@@ -6,13 +6,12 @@
             <t t-set="portal_vendor_category_enable" t-value="True"/>
         </xpath>
         <div id="portal_vendor_category" position="inside">
-            <t t-call="portal.portal_docs_entry">
-                <t t-set="icon" t-value="'/mrp_subcontracting/static/src/img/manufacturing.svg'"/>
-                <t t-set="title">Manufacturing Orders</t>
-                <t t-set="text">Follow manufacturing orders you have to fulfill</t>
-                <t t-set="url" t-value="'/my/productions'"/>
-                <t t-set="placeholder_count" t-value="'production_count'"/>
-            </t>
+            <t t-set="icon" t-value="'/mrp_subcontracting/static/src/img/manufacturing.svg'"/>
+            <t t-set="title">Manufacturing Orders</t>
+            <t t-set="text">Follow manufacturing orders you have to fulfill</t>
+            <t t-set="url" t-value="'/my/productions'"/>
+            <t t-set="placeholder_count" t-value="'production_count'"/>
+            <t t-call="portal.portal_docs_entry"/>
         </div>
     </template>
 
@@ -31,12 +30,11 @@
     </template>
 
     <template id="portal_my_productions" name="My Productions">
+        <t t-set="breadcrumbs_searchbar" t-value="True"/>
         <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs_searchbar" t-value="True"/>
 
-            <t t-call="portal.portal_searchbar">
-                <t t-set="title">Productions</t>
-            </t>
+            <t t-set="title">Productions</t>
+            <t t-call="portal.portal_searchbar"/>
 
             <t t-if="not pickings">
                 <p class="alert alert-warning">There are currently no productions for your account.</p>
@@ -68,10 +66,9 @@
     <template id="subcontracting_portal" name="Subcontracting View in Portal">
         <t t-call="portal.frontend_layout">
             <div class="o_portal container mt-3">
-                <t t-call="mrp_subcontracting.portal_my_home_menu_production">
-                    <t t-set="title" t-value="picking.name"/>
-                    <t t-set="breadcrumbs_url">/my/productions</t>
-                </t>
+                <t t-set="title" t-value="picking.name"/>
+                <t t-set="breadcrumbs_url">/my/productions</t>
+                <t t-call="mrp_subcontracting.portal_my_home_menu_production"/>
             </div>
             <div class="o_portal container mt-3 o_subcontracting_portal">
                 <div class="o_subcontracting_portal">
@@ -87,18 +84,17 @@
     </template>
 
     <template id="subcontracting_portal_embed" name="Subcontracting Portal">
-        <t t-call="web.layout">
-            <t t-set="head_subcontracting_portal">
-                <script type="text/javascript">
-                    odoo.__session_info__ = <t t-out="json.dumps(session_info)"/>;
-                </script>
-                <base target="_parent"/>
-                <t t-call-assets="mrp_subcontracting.webclient"/>
-                <t t-call="web.conditional_assets_tests"/>
-            </t>
-            <t t-set="head" t-value="head_subcontracting_portal + (head or '')"/>
-            <t t-set="body_classname" t-value="'o_web_client o_subcontracting_portal'"/>
+        <t t-set="head_subcontracting_portal">
+            <script type="text/javascript">
+                odoo.__session_info__ = <t t-out="json.dumps(session_info)"/>;
+            </script>
+            <base target="_parent"/>
+            <t t-call-assets="mrp_subcontracting.webclient"/>
+            <t t-call="web.conditional_assets_tests"/>
         </t>
+        <t t-set="head" t-value="head_subcontracting_portal + (head or '')"/>
+        <t t-set="body_classname" t-value="'o_web_client o_subcontracting_portal'"/>
+        <t t-call="web.layout"/>
     </template>
 
 </odoo>

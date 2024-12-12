@@ -25,8 +25,8 @@
     </template>
 
     <template id="mail_test_ticket_test_template">
+        <t t-set="o" t-value="res_company"/>
         <t t-call="web.html_container">
-            <t t-set="o" t-value="res_company"/>
             <t t-call="web.external_layout">
                 <div class="page">
                     <p>This is a sample of an external report.</p>
@@ -36,8 +36,8 @@
     </template>
 
     <template id="mail_test_ticket_test_template_2">
+        <t t-set="o" t-value="res_company"/>
         <t t-call="web.html_container">
-            <t t-set="o" t-value="res_company"/>
             <t t-call="web.external_layout">
                 <div class="page">
                     <p>This is another sample of an external report.</p>

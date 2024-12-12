@@ -34,9 +34,7 @@
            xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
             <cac:DeliveryParty>
                 <t t-set="accounting_delivery_vals" t-value="vals.get('accounting_delivery_party_vals', {})"/>
-                <t t-call="{{PartyType_template}}">
-                    <t t-set="vals" t-value="accounting_delivery_vals"/>
-                </t>
+                <t t-call="{{PartyType_template}}" t-arg-vals="accounting_delivery_vals"/>
             </cac:DeliveryParty>
         </t>
     </template>

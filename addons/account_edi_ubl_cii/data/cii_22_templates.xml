@@ -171,10 +171,9 @@
                         <!-- Seller. -->
                         <ram:SellerTradeParty>
                             <!-- Address. -->
-                            <t t-call="account_edi_ubl_cii.account_invoice_partner_facturx_export_22">
-                                <t t-set="partner" t-value="record.company_id.partner_id"/>
-                                <t t-set="specified_legal_organization_val" t-value="seller_specified_legal_organization"/>
-                            </t>
+                            <t t-set="partner" t-value="record.company_id.partner_id"/>
+                            <t t-set="specified_legal_organization_val" t-value="seller_specified_legal_organization"/>
+                            <t t-call="account_edi_ubl_cii.account_invoice_partner_facturx_export_22"/>
 
                             <!-- VAT. -->
                             <ram:SpecifiedTaxRegistration t-if="record.company_id.vat">
@@ -185,10 +184,9 @@
                         <!-- Customer. -->
                         <ram:BuyerTradeParty>
                             <!-- Address. -->
-                            <t t-call="account_edi_ubl_cii.account_invoice_partner_facturx_export_22">
-                                <t t-set="partner" t-value="record.partner_id"/>
-                                <t t-set="specified_legal_organization_val" t-value="buyer_specified_legal_organization"/>
-                            </t>
+                            <t t-set="partner" t-value="record.partner_id"/>
+                            <t t-set="specified_legal_organization_val" t-value="buyer_specified_legal_organization"/>
+                            <t t-call="account_edi_ubl_cii.account_invoice_partner_facturx_export_22"/>
 
                             <!-- VAT. -->
                             <ram:SpecifiedTaxRegistration t-if="record.commercial_partner_id.vat">
@@ -210,11 +208,9 @@
                     <!-- Delivery -->
                     <ram:ApplicableHeaderTradeDelivery>
                         <ram:ShipToTradeParty>
-                            <t t-call="account_edi_ubl_cii.account_invoice_partner_facturx_export_22">
-                                <t t-set="partner"
-                                   t-value="ship_to_trade_party"/>
-                                <t t-set="hide_dtc" t-value="document_context_id == 'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.2'"/>
-                            </t>
+                            <t t-set="partner" t-value="ship_to_trade_party"/>
+                            <t t-set="hide_dtc" t-value="document_context_id == 'urn:cen.eu:en16931:2017#compliant#urn:xoev-de:kosit:standard:xrechnung_2.2'"/>
+                            <t t-call="account_edi_ubl_cii.account_invoice_partner_facturx_export_22"/>
                         </ram:ShipToTradeParty>
 
                         <ram:ActualDeliverySupplyChainEvent t-if="scheduled_delivery_time">

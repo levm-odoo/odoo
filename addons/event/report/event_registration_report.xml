@@ -55,10 +55,9 @@
         <t t-call="web.html_container">
             <t t-call="web.internal_layout">
                 <t t-foreach="docs.grouped('event_id').items()" t-as="group">
-                    <t t-call="event.attendee_list">
-                        <t t-set="event" t-value="group[0].with_context(tz=group[0].date_tz)"/>
-                        <t t-set="attendees" t-value="group[1]"/>
-                    </t>
+                    <t t-set="event" t-value="group[0].with_context(tz=group[0].date_tz)"/>
+                    <t t-set="attendees" t-value="group[1]"/>
+                    <t t-call="event.attendee_list"/>
                 </t>
             </t>
         </t>
@@ -68,10 +67,9 @@
         <t t-call="web.html_container">
             <t t-call="web.internal_layout">
                 <t t-foreach="docs" t-as="event">
-                    <t t-call="event.attendee_list">
-                        <t t-set="event" t-value="event.with_context(tz=event.date_tz)"/>
-                        <t t-set="attendees" t-value="event.registration_ids"/>
-                    </t>
+                    <t t-set="event" t-value="event.with_context(tz=event.date_tz)"/>
+                    <t t-set="attendees" t-value="event.registration_ids"/>
+                    <t t-call="event.attendee_list"/>
                 </t>
             </t>
         </t>

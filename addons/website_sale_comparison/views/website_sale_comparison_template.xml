@@ -65,9 +65,8 @@
                                                 <tr class="d-flex">
                                                     <td class="w-25 d-flex align-items-center"><span>Tags</span></td>
                                                     <td class="w-75 text-muted">
-                                                        <t t-call="website_sale.product_tags">
-                                                            <t t-set="all_product_tags" t-value="product.product_variant_ids.all_product_tag_ids"/>
-                                                        </t>
+                                                        <t t-set="all_product_tags" t-value="product.product_variant_ids.all_product_tag_ids"/>
+                                                        <t t-call="website_sale.product_tags"/>
                                                     </td>
                                                 </tr>
                                             </t>
@@ -112,9 +111,8 @@
                             data-bs-parent="#product_accordion"
                         >
                             <div class="accordion-body pt-0">
-                                <t t-call="website_sale_comparison.specifications_table">
-                                    <t t-set="is_accordion" t-value="True"/>
-                                </t>
+                                <t t-set="is_accordion" t-value="True"/>
+                                <t t-call="website_sale_comparison.specifications_table"/>
                             </div>
                         </div>
                     </div>
@@ -172,8 +170,8 @@
     </template>
 
     <template id="product_compare" name="Comparator Page">
+        <t t-set="additional_title">Shop Comparator</t>
         <t t-call="website.layout">
-            <t t-set="additional_title">Shop Comparator</t>
             <div id="wrap" class="js_sale">
                 <div class="oe_structure oe_empty" id="oe_structure_website_sale_comparison_product_compare_1"/>
                 <div class="container oe_website_sale pt-3">
@@ -276,11 +274,9 @@
                                         <td><span>Tags</span></td>
                                         <td t-foreach="products" t-as="product">
                                             <div class="d-flex justify-content-center">
-                                                <t t-call="website_sale.product_tags">
-                                                    <t t-set="all_product_tags" t-value="product.all_product_tag_ids"/>
-                                                </t>
+                                                <t t-set="all_product_tags" t-value="product.all_product_tag_ids"/>
+                                                <t t-call="website_sale.product_tags"/>
                                             </div>
-
                                         </td>
                                     </tr>
                                 </t>

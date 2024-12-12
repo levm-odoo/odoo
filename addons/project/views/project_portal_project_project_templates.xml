@@ -43,30 +43,27 @@
             <t t-set="portal_service_category_enable" t-value="True"/>
         </xpath>
         <div id="portal_service_category" position="inside">
-            <t t-call="portal.portal_docs_entry">
-                <t t-set="icon" t-value="'/web/static/img/folder.svg'"/>
-                <t t-set="title">Projects</t>
-                <t t-set="url" t-value="'/my/projects'"/>
-                <t t-set="text">Follow the evolution of your projects</t>
-                <t t-set="placeholder_count" t-value="'project_count'"/>
-            </t>
-            <t t-call="portal.portal_docs_entry">
-                <t t-set="icon" t-value="'/project/static/src/img/tasks.svg'"/>
-                <t t-set="title">Tasks</t>
-                <t t-set="url" t-value="'/my/tasks'"/>
-                <t t-set="text">Follow and comments tasks of your projects</t>
-                <t t-set="placeholder_count" t-value="'task_count'"/>
-            </t>
+            <t t-set="icon" t-value="'/web/static/img/folder.svg'"/>
+            <t t-set="title">Projects</t>
+            <t t-set="url" t-value="'/my/projects'"/>
+            <t t-set="text">Follow the evolution of your projects</t>
+            <t t-set="placeholder_count" t-value="'project_count'"/>
+            <t t-call="portal.portal_docs_entry"/>
+            <t t-set="icon" t-value="'/project/static/src/img/tasks.svg'"/>
+            <t t-set="title">Tasks</t>
+            <t t-set="url" t-value="'/my/tasks'"/>
+            <t t-set="text">Follow and comments tasks of your projects</t>
+            <t t-set="placeholder_count" t-value="'task_count'"/>
+            <t t-call="portal.portal_docs_entry"/>
         </div>
     </template>
 
     <template id="portal_my_projects" name="My Projects">
+        <t t-set="breadcrumbs_searchbar" t-value="True"/>
         <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs_searchbar" t-value="True"/>
 
-            <t t-call="portal.portal_searchbar">
-                <t t-set="title">Projects</t>
-            </t>
+            <t t-set="title">Projects</t>
+            <t t-call="portal.portal_searchbar"/>
             <t t-if="not projects">
                 <div class="alert alert-warning" role="alert">
                     There are no projects.
@@ -89,17 +86,15 @@
     </template>
 
     <template id="portal_my_project" name="My Project">
+        <t t-set="title" t-value="project.name"/>
+        <t t-set="o_portal_fullwidth_alert" groups="project.group_project_user">
+            <t t-set="backend_url" t-value="'/odoo/project.project/%s' % (project.id)"/>
+            <t t-call="portal.portal_back_in_edit_mode"/>
+        </t>
         <t t-call="portal.portal_layout">
-            <t t-set="title" t-value="project.name"/>
-            <t t-set="o_portal_fullwidth_alert" groups="project.group_project_user">
-                <t t-call="portal.portal_back_in_edit_mode">
-                    <t t-set="backend_url" t-value="'/odoo/project.project/%s' % (project.id)"/>
-                </t>
-            </t>
 
-            <t t-call="portal.portal_searchbar">
-                <t t-set="title">Tasks</t>
-            </t>
+            <t t-set="title">Tasks</t>
+            <t t-call="portal.portal_searchbar"/>
             <t t-if="not grouped_tasks">
                 <div class="alert alert-warning" role="alert">
                     There are no tasks.

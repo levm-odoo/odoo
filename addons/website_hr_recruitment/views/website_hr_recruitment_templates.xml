@@ -86,9 +86,8 @@
                     </div>
                     <!-- Pager -->
                     <div class='navbar mb-3 w-100'>
-                        <t t-call="website.pager">
-                            <t t-set="classname" t-valuef="mx-auto"/>
-                        </t>
+                        <t t-set="classname" t-valuef="mx-auto"/>
+                        <t t-call="website.pager"/>
                     </div>
                 </div>
             </div>
@@ -175,9 +174,8 @@
 
 <!-- Apply -->
 <template id="apply">
+    <t t-set="additional_title">Apply Job</t>
     <t t-call="website.layout">
-        <t t-set="additional_title">Apply Job</t>
-
         <div id="wrap"  class="container">
             <nav aria-label="breadcrumb" class="mt-5">
                 <ol class="breadcrumb ps-0 mb-0 pb-1">
@@ -874,11 +872,11 @@
 <!-- Search Bar -->
 <template id="job_search_bar" inherit_id="website_hr_recruitment.topbar_customizations" active="True">
     <xpath expr="//div[hasclass('o_jobs_topbar_search_bar')]" position="inside">
+        <t t-set="_form_classes" t-valuef="w-100"/>
+        <t t-set="_classes" t-valuef="my-1"/>
+        <t t-set="search_type" t-valuef="jobs"/>
+        <t t-set="display_description" t-valuef="true"/>
         <t t-call="website.website_search_box_input">
-            <t t-set="_form_classes" t-valuef="w-100"/>
-            <t t-set="_classes" t-valuef="my-1"/>
-            <t t-set="search_type" t-valuef="jobs"/>
-            <t t-set="display_description" t-valuef="true"/>
             <input t-if="country_id" type="hidden" name="country_id" t-att-value="country_id.id"/>
             <input t-if="office_id" type="hidden" name="office_id" t-att-value="office_id.id"/>
             <input t-if="department_id" type="hidden" name="department_id" t-att-value="department_id.id"/>

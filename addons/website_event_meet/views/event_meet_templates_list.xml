@@ -2,8 +2,8 @@
 <odoo>
 
 <template id="event_meet" name="Meeting Rooms">
+    <t t-set="hide_submenu" t-value="True"/>
     <t t-call="website_event.layout">
-        <t t-set="hide_submenu" t-value="True"/>
         <div class="o_wevent_online o_wemeet_index h-100">
             <!-- Navigation-->
             <t t-call="website_event.navbar"/>
@@ -45,9 +45,10 @@
         </div>
         <p class="lead">Choose a topic that interests you and start talking with the community. <br/> Don't forget to setup your camera and microphone.</p>
         <div class="d-flex flex-column justify-content-start align-items-start">
-            <t t-as="meeting_room" t-call="website_event_meet.meeting_room_card" t-foreach="meeting_rooms">
+            <t t-as="meeting_room" t-foreach="meeting_rooms">
                 <t t-set="meeting_room" t-value="meeting_room"/>
                 <t t-set="opened" t-value="int(meeting_room.id == open_room_id)"/>
+                <t t-call="website_event_meet.meeting_room_card"/>
             </t>
             <div t-if="not meeting_rooms" class="m-auto text-center text-muted">
                 <h3 class="mt8">No Room Open</h3>

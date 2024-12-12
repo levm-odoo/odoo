@@ -185,8 +185,8 @@
                                 <div t-if="event.address_id" class="col-md-6 col-12 mb-3 mb-md-0 o_event_full_page_ticket_column">
                                     <div class="d-flex">
                                         <i class="fa fa-map-marker fa-2x fa-fw me-2 mt-1"/>
+                                        <t t-set="multi_line_address" t-value="True"/>
                                         <div t-call="event.event_report_template_formatted_event_address">
-                                            <t t-set="multi_line_address" t-value="True"/>
                                         </div>
                                     </div>
                                 </div>
@@ -265,10 +265,10 @@
 
 <template id="event_registration_report_template_full_page_ticket">
     <t t-foreach="docs" t-as="attendee">
+        <t t-set="event" t-value="attendee.event_id._set_tz_context()"/>
+        <t t-set="main_object" t-value="attendee"/>
+        <t t-set="responsive_html" t-value="False"/>
         <t t-call="web.html_container">
-            <t t-set="event" t-value="attendee.event_id._set_tz_context()"/>
-            <t t-set="main_object" t-value="attendee"/>
-            <t t-set="responsive_html" t-value="False"/>
             <t t-call="event.event_report_full_page_ticket_layout">
                 <t t-call="event.event_report_template_full_page_ticket" t-lang="event.lang or attendee.env.lang"/>
             </t>
@@ -278,10 +278,10 @@
 
 <template id="event_event_report_template_full_page_ticket">
     <t t-foreach="docs" t-as="event">
+        <t t-set="event" t-value="event._set_tz_context()"/>
+        <t t-set="main_object" t-value="event"/>
+        <t t-set="responsive_html" t-value="False"/>
         <t t-call="web.html_container">
-            <t t-set="event" t-value="event._set_tz_context()"/>
-            <t t-set="main_object" t-value="event"/>
-            <t t-set="responsive_html" t-value="False"/>
             <t t-call="event.event_report_full_page_ticket_layout">
                 <t t-call="event.event_report_template_full_page_ticket" t-lang="event.lang or event.env.lang"/>
             </t>
@@ -293,10 +293,10 @@
 
 <template id="event_registration_report_template_responsive_html_ticket">
     <t t-foreach="docs" t-as="attendee">
+        <t t-set="event" t-value="attendee.event_id._set_tz_context()"/>
+        <t t-set="main_object" t-value="attendee"/>
+        <t t-set="responsive_html" t-value="True"/>
         <t t-call="web.html_container">
-            <t t-set="event" t-value="attendee.event_id._set_tz_context()"/>
-            <t t-set="main_object" t-value="attendee"/>
-            <t t-set="responsive_html" t-value="True"/>
             <t t-call="event.event_report_full_page_ticket_layout">
                 <t t-call="event.event_report_template_full_page_ticket" t-lang="event.lang or attendee.env.lang"/>
             </t>
@@ -328,9 +328,8 @@
                     t-options='{"widget": "datetime", "time_only": True, "tz_name": event.date_tz, "hide_seconds": True}'/>
             </div>
             <div t-if="event.address_id" class="o_event_badge_font_faded o_event_badge_font_small text-center">
-                <t t-call="event.event_report_template_formatted_event_address">
-                    <t t-set="use_map_marker" t-value="True"/>
-                </t>
+                <t t-set="use_map_marker" t-value="True"/>
+                <t t-call="event.event_report_template_formatted_event_address"/>
             </div>
             <div t-attf-class="text-center py-2 #{'o_event_badge_ticket_center_vertically position-absolute w-100' if not event.use_barcode or event.badge_format == 'A4_french_fold' else 'mt-2'}">
                 <h2 class="mb-0" t-if="attendee" t-field="attendee.name"/>

@@ -62,18 +62,17 @@
     </template>
 
     <template id="card_campaign_crawler" name="Share campaign Crawler View">
-        <t t-call="web.frontend_layout">
-            <t t-set="head">
-                <meta name="twitter:card" content="summary_large_image"/>
-                <meta property="og:image" t-att-content="image_url"/>
-                <meta property="og:image:alt" t-attf-content="{{ target_name }}"/>
-                <meta property="og:title" t-att-content="target_name"/>
-                <meta property="og:type" content="website"/>
-                <meta property="og:description" t-att-content="post_suggestion"/>
-            </t>
-            <t t-set="title" t-value="target_name"/>
-            <t t-set="no_header" t-value="1"/>
-            <t t-set="no_footer" t-value="1"/>
+        <t t-set="head">
+            <meta name="twitter:card" content="summary_large_image"/>
+            <meta property="og:image" t-att-content="image_url"/>
+            <meta property="og:image:alt" t-attf-content="{{ target_name }}"/>
+            <meta property="og:title" t-att-content="target_name"/>
+            <meta property="og:type" content="website"/>
+            <meta property="og:description" t-att-content="post_suggestion"/>
         </t>
+        <t t-set="title" t-value="target_name"/>
+        <t t-set="no_header" t-value="1"/>
+        <t t-set="no_footer" t-value="1"/>
+        <t t-call="web.frontend_layout"/>
     </template>
 </odoo>

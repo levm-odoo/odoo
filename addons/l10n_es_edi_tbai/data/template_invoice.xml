@@ -131,21 +131,18 @@
             </DatosFactura>
             <TipoDesglose t-if="is_emission">
                 <DesgloseFactura t-if="'DesgloseFactura' in invoice_info">
-                    <t t-call="l10n_es_edi_tbai.template_invoice_desglose">
-                        <t t-set="desglose" t-value="invoice_info['DesgloseFactura']"/>
-                    </t>
+                    <t t-set="desglose" t-value="invoice_info['DesgloseFactura']"/>
+                    <t t-call="l10n_es_edi_tbai.template_invoice_desglose"/>
                 </DesgloseFactura>
                 <DesgloseTipoOperacion t-else="">
                     <t t-set="invoice_info" t-value="invoice_info['DesgloseTipoOperacion']"/>
                     <PrestacionServicios t-if="invoice_info.get('PrestacionServicios')">
-                        <t t-call="l10n_es_edi_tbai.template_invoice_desglose">
-                            <t t-set="desglose" t-value="invoice_info['PrestacionServicios']"/>
-                        </t>
+                        <t t-set="desglose" t-value="invoice_info['PrestacionServicios']"/>
+                        <t t-call="l10n_es_edi_tbai.template_invoice_desglose"/>
                     </PrestacionServicios>
                     <Entrega t-if="invoice_info.get('Entrega')">
-                        <t t-call="l10n_es_edi_tbai.template_invoice_desglose">
-                            <t t-set="desglose" t-value="invoice_info['Entrega']"/>
-                        </t>
+                        <t t-set="desglose" t-value="invoice_info['Entrega']"/>
+                        <t t-call="l10n_es_edi_tbai.template_invoice_desglose"/>
                     </Entrega>
                 </DesgloseTipoOperacion>
             </TipoDesglose>

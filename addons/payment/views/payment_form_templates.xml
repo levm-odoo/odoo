@@ -77,11 +77,8 @@
                                 t-att-class="'list-group-item d-flex flex-column gap-2 py-3'
                                              + (' o_outline' if allow_token_selection else '')"
                             >
-                                <t t-call="payment.token_form">
-                                    <t t-set="is_selected"
-                                       t-value="token_sudo.id == selected_token_id"
-                                    />
-                                </t>
+                                <t t-set="is_selected" t-value="token_sudo.id == selected_token_id"/>
+                                <t t-call="payment.token_form"/>
                             </li>
                         </t>
                     </ul>
@@ -103,11 +100,8 @@
                             <li name="o_payment_option"
                                 class="list-group-item d-flex flex-column gap-2 py-3 o_outline"
                             >
-                                <t t-call="payment.method_form">
-                                    <t t-set="is_selected"
-                                       t-value="pm_sudo.id == selected_method_id"
-                                    />
-                                </t>
+                                <t t-set="is_selected" t-value="pm_sudo.id == selected_method_id"/>
+                                <t t-call="payment.method_form"/>
                             </li>
                         </t>
                     </ul>
@@ -186,16 +180,18 @@
                             />
                             <div class="d-flex flex-nowrap gap-2">
                                 <!-- === "Unpublished" icon === -->
-                                <t t-if="is_unpublished" t-call="payment.form_icon">
+                                <t t-if="is_unpublished">
                                     <t t-set="icon_name" t-value="'eye-slash'"/>
                                     <t t-set="color_name" t-value="'danger'"/>
                                     <t t-set="title" t-value="'Unpublished'"/>
+                                    <t t-call="payment.form_icon"/>
                                 </t>
                                 <!-- === "Test mode" icon === -->
-                                <t t-if="is_test" t-call="payment.form_icon">
+                                <t t-if="is_test">
                                     <t t-set="icon_name" t-value="'exclamation-triangle'"/>
                                     <t t-set="color_name" t-value="'warning'"/>
                                     <t t-set="title" t-value="'Test mode'"/>
+                                    <t t-call="payment.form_icon"/>
                                 </t>
                             </div>
                         </div>
@@ -225,9 +221,8 @@
                 </div>
             </div>
             <!-- === Payment method logo === -->
-            <div t-call="payment.form_logo">
-                <t t-set="logo_pm_sudo" t-value="token_sudo.payment_method_id"/>
-            </div>
+            <t t-set="logo_pm_sudo" t-value="token_sudo.payment_method_id"/>
+            <div t-call="payment.form_logo"/>
         </div>
         <!-- === Inline form === -->
         <div t-if="inline_form_xml_id"
@@ -288,16 +283,18 @@
                         />
                         <div class="d-flex flex-nowrap gap-2 mt-1">
                             <!-- === "Unpublished" icon === -->
-                            <t t-if="is_unpublished" t-call="payment.form_icon">
+                            <t t-if="is_unpublished">
                                 <t t-set="icon_name" t-value="'eye-slash'"/>
                                 <t t-set="color_name" t-value="'danger'"/>
                                 <t t-set="title" t-value="'Unpublished'"/>
+                                <t t-call="payment.form_icon"/>
                             </t>
                             <!-- === "Test mode" icon === -->
-                            <t t-if="is_test" t-call="payment.form_icon">
+                            <t t-if="is_test">
                                 <t t-set="icon_name" t-value="'exclamation-triangle'"/>
                                 <t t-set="color_name" t-value="'warning'"/>
                                 <t t-set="title" t-value="'Test mode'"/>
+                                <t t-call="payment.form_icon"/>
                             </t>
                         </div>
                     </div>
@@ -305,8 +302,9 @@
                         <!-- === Payment method logos === -->
                         <t t-set="pm_index" t-value="0"/>
                         <t t-foreach="pms_to_display_sudo" t-as="pm_to_display_sudo">
-                            <t t-if="pm_index &lt; 4" t-call="payment.form_logo">
+                            <t t-if="pm_index &lt; 4">
                                 <t t-set="logo_pm_sudo" t-value="pm_to_display_sudo"/>
+                                <t t-call="payment.form_logo"/>
                             </t>
                             <t t-set="pm_index" t-value="pm_index + 1"/>
                         </t>
@@ -324,10 +322,9 @@
         <div name="o_payment_inline_form" class="position-relative d-none">
             <t t-if="inline_form_xml_id and provider_sudo._should_build_inline_form(
                          is_validation=mode == 'validation'
-                     )"
-               t-call="{{inline_form_xml_id}}"
-            >
+                     )">
                 <t t-set="provider_id" t-value="provider_sudo.id"/>
+                <t t-call="{{inline_form_xml_id}}"/>
             </t>
             <div class="d-flex flex-column flex-md-row align-md-items-center justify-content-between
                         gap-2 mt-2"
@@ -484,13 +481,12 @@
         >
             <h4 class="fs-6 text-uppercase fw-bolder"> Availability report </h4>
                 <h6 class="mt-3 text-uppercase fw-normal fs-6"> Payment providers </h6>
-                <t t-call="payment.availability_report_records">
-                    <t t-set="records" t-value="availability_report.get('providers')"/>
-                </t>
+                <t t-set="records" t-value="availability_report.get('providers')"/>
+                <t t-call="payment.availability_report_records"/>
+
                 <h6 class="mt-3 text-uppercase fw-normal fs-6"> Payment methods </h6>
-                <t t-call="payment.availability_report_records">
-                    <t t-set="records" t-value="availability_report.get('payment_methods')"/>
-                </t>
+                <t t-set="records" t-value="availability_report.get('payment_methods')"/>
+                <t t-call="payment.availability_report_records"/>
         </div>
     </template>
 

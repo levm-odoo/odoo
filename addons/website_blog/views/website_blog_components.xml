@@ -81,12 +81,12 @@
                 </t>
             </div>
             <!-- 'Search Box' -->
-            <t t-call="website.website_search_box_input">
-                <t t-set="_form_classes" t-valuef="#{not len(blogs) &gt; 1 and 'ms-auto'} flex-grow-1 flex-lg-grow-0"/>
-                <t t-set="search_type" t-valuef="blogs"/>
-                <t t-set="action" t-value="blog_url(tag=tag,search=search)"/>
-                <t t-set="display_description" t-valuef="true"/>
-                <t t-set="display_detail" t-valuef="false"/>
+            <t t-call="website.website_search_box_input"
+                    t-argf-_form_classes="#{not len(blogs) &gt; 1 and 'ms-auto'} flex-grow-1 flex-lg-grow-0"
+                    t-argf-search_type="blogs"
+                    t-arg-action="blog_url(tag=tag,search=search)"
+                    t-argf-display_description="true"
+                    t-argf-display_detail="false">
                 <input type="hidden" name="tag" t-att-value="tag"/>
                 <input type="hidden" name="date_begin" t-att-value="date_begin"/>
                 <input type="hidden" name="date_end" t-att-value="date_end"/>
@@ -200,11 +200,10 @@ Options:
                 <a t-if="website.social_tiktok" t-att-href="website.social_tiktok" t-att-class="classes"><i class="fa fa-tiktok text-tiktok" aria-label="TikTok" title="TikTok"/></a>
                 <a t-if="blog" t-att-href="'/blog/%s/feed' % slug(blog)" t-att-class="classes"><i class="fa fa-rss-square" aria-label="RSS" title="RSS"/></a>
             </div>
-            <t t-call="website_mail.follow" t-if="blog">
-                <t t-set="email" t-value="user_id.email"/>
-                <t t-set="object" t-value="blog"/>
-                <t t-set="div_class" t-value="'pt-2'"/>
-            </t>
+            <t t-call="website_mail.follow" t-if="blog"
+                t-arg-email="user_id.email"
+                t-arg-object="blog"
+                t-arg-div_class="'pt-2'"/>
         </div>
         <div class="oe_structure" id="oe_structure_blog_sidebar_index_3"/>
     </xpath>
@@ -230,18 +229,16 @@ Options:
             <h6 class="text-uppercase pb-2 mb-4 border-bottom fw-bold">Tags</h6>
             <div class="h5">
                 <t t-foreach="tag_category" t-as="nav_tag_category">
-                    <t t-call="website_blog.tags_list">
-                        <t t-set='categ_title' t-value="nav_tag_category.name"/>
-                        <t t-set='tags' t-value='nav_tag_category.tag_ids' />
-                        <t t-set="showInactive" t-value="True"/>
-                    </t>
+                    <t t-call="website_blog.tags_list"
+                        t-arg-categ_title="nav_tag_category.name"
+                        t-arg-tags='nav_tag_category.tag_ids' 
+                        t-arg-showInactive="True"/>
                 </t>
-                <t t-call="website_blog.tags_list">
-                    <t t-set='hide_title' t-value='not len(tag_category)' />
-                    <t t-set='categ_title'>Others</t>
-                    <t t-set='tags' t-value='other_tags'/>
-                    <t t-set="showInactive" t-value="True"/>
-                </t>
+                <t t-set='categ_title'>Others</t>
+                <t t-call="website_blog.tags_list"
+                    t-arg-hide_title='not len(tag_category)' 
+                    t-arg-tags='other_tags'
+                    t-arg-showInactive="True"/>
             </div>
         </div>
 
@@ -268,9 +265,8 @@ Display a sidebar beside the post content.
 <template id="opt_blog_post_author_avatar_display" name="Author" inherit_id="website_blog.blog_post_sidebar" active="True" priority="1">
     <xpath expr="//div[@id='o_wblog_post_sidebar']" position="inside">
         <div class="o_wblog_sidebar_block pb-5">
-            <t t-call="website_blog.post_author">
-                <t t-set="additionnal_classes" t-value="'h5 d-flex align-items-center'"/>
-            </t>
+            <t t-call="website_blog.post_author"
+                t-arg-additionnal_classes="'h5 d-flex align-items-center'"/>
         </div>
         <div class="oe_structure" id="oe_structure_blog_post_sidebar_2"/>
     </xpath>

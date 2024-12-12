@@ -32,9 +32,7 @@
                 <cbc:Name t-out="vals.get('party_name')" />
             </cac:PartyName>
             <cac:PostalAddress>
-                <t t-call="purchase_edi_ubl_bis3.bis3_AddressType">
-                    <t t-set="vals" t-value="vals.get('postal_address_vals', {})" />
-                </t>
+                <t t-call="purchase_edi_ubl_bis3.bis3_AddressType" t-arg-vals="vals.get('postal_address_vals', {})"/>
             </cac:PostalAddress>
             <cac:PartyTaxScheme t-if="vals.get('party_tax_scheme_vals')">
                 <t t-set="party_tax_scheme_vals" t-value="vals.get('party_tax_scheme_vals')" />
@@ -49,16 +47,11 @@
                 <cbc:RegistrationName t-out="party_legal_entity_vals['registration_name']" />
                 <cbc:CompanyID t-out="party_legal_entity_vals['company_id']" />
                 <cac:RegistrationAddress t-if="'registration_address' in party_legal_entity_vals">
-                    <t t-call="purchase_edi_ubl_bis3.bis3_AddressType">
-                        <t t-set="vals"
-                            t-value="party_legal_entity_vals['registration_address_vals']" />
-                    </t>
+                    <t t-call="purchase_edi_ubl_bis3.bis3_AddressType" t-arg-vals="party_legal_entity_vals['registration_address_vals']"/>
                 </cac:RegistrationAddress>
             </cac:PartyLegalEntity>
             <cac:Contact t-if="vals.get('contact_vals')">
-                <t t-call="purchase_edi_ubl_bis3.bis3_ContactType">
-                    <t t-set="vals" t-value="vals.get('contact_vals')" />
-                </t>
+                <t t-call="purchase_edi_ubl_bis3.bis3_ContactType" t-arg-vals="vals.get('contact_vals')"/>
             </cac:Contact>
         </t>
     </template>
@@ -107,14 +100,10 @@
                     <cbc:Name t-out="vals.get('party_name')"/>
                 </cac:PartyName>
                 <cac:PostalAddress>
-                    <t t-call="purchase_edi_ubl_bis3.bis3_AddressType">
-                        <t t-set="vals" t-value="vals.get('postal_address_vals')" />
-                    </t>
+                    <t t-call="purchase_edi_ubl_bis3.bis3_AddressType" t-arg-vals="vals.get('postal_address_vals')"/>
                 </cac:PostalAddress>
                 <cac:Contact t-if="vals.get('contact_vals')">
-                    <t t-call="purchase_edi_ubl_bis3.bis3_ContactType">
-                        <t t-set="vals" t-value="vals.get('contact_vals')" />
-                    </t>
+                    <t t-call="purchase_edi_ubl_bis3.bis3_ContactType" t-arg-vals="vals.get('contact_vals')"/>
                 </cac:Contact>
             </cac:DeliveryParty>
         </t>
@@ -149,9 +138,7 @@
                 <cbc:ID t-out="vals.get('standard_item_identification')" />
             </cac:StandardItemIdentification>
             <cac:ClassifiedTaxCategory t-if="vals.get('classified_tax_category_vals')" >
-                <t t-call="purchase_edi_ubl_bis3.bis3_TaxCategoryType">
-                    <t t-set="vals" t-value="vals.get('classified_tax_category_vals')" />
-                </t>
+                <t t-call="purchase_edi_ubl_bis3.bis3_TaxCategoryType" t-arg-vals="vals.get('classified_tax_category_vals')"/>
             </cac:ClassifiedTaxCategory>
             <cac:AdditionalItemProperty t-foreach="vals.get('variant_info')" t-as="variant">
                 <cbc:Name t-out="variant.get('name')" />
@@ -171,9 +158,7 @@
                 t-att-currencyID="vals.get('currency_id')"
                 t-out="vals.get('line_extension_amount')" />
             <cac:AllowanceCharge t-if="vals.get('allowance_charge_vals')">
-                <t t-call="purchase_edi_ubl_bis3.bis3_AllowanceChargeType">
-                    <t t-set="vals" t-value="vals.get('allowance_charge_vals')"/>
-                </t>
+                <t t-call="purchase_edi_ubl_bis3.bis3_AllowanceChargeType" t-arg-vals="vals.get('allowance_charge_vals')"/>
             </cac:AllowanceCharge>
             <cac:Price>
                 <t t-set="price_vals" t-value="vals.get('price')" />
@@ -185,9 +170,7 @@
                     t-out="price_vals.get('base_quantity')" />
             </cac:Price>
             <cac:Item>
-                <t t-call="purchase_edi_ubl_bis3.bis3_ItemType">
-                    <t t-set="vals" t-value="vals.get('item')" />
-                </t>
+                <t t-call="purchase_edi_ubl_bis3.bis3_ItemType" t-arg-vals="vals.get('item')"/>
             </cac:Item>
         </t>
     </template>
@@ -209,31 +192,23 @@
             <cbc:DocumentCurrencyCode t-out="vals.get('document_currency_code')" />
             <cac:BuyerCustomerParty>
                 <cac:Party>
-                    <t t-call="purchase_edi_ubl_bis3.bis3_PartyType">
-                        <t t-set="vals" t-value="vals.get('customer_party_vals')" />
-                    </t>
+                    <t t-call="purchase_edi_ubl_bis3.bis3_PartyType" t-arg-vals="vals.get('customer_party_vals')"/>
                 </cac:Party>
             </cac:BuyerCustomerParty>
             <cac:SellerSupplierParty>
                 <cac:Party>
-                    <t t-call="purchase_edi_ubl_bis3.bis3_PartyType">
-                        <t t-set="vals" t-value="vals.get('supplier_party_vals')" />
-                    </t>
+                    <t t-call="purchase_edi_ubl_bis3.bis3_PartyType" t-arg-vals="vals.get('supplier_party_vals')"/>
                 </cac:Party>
             </cac:SellerSupplierParty>
             <cac:Delivery t-if="vals.get('delivery_party_vals')">
-                <t t-call="purchase_edi_ubl_bis3.bis3_DeliveryType">
-                    <t t-set="vals" t-value="vals.get('delivery_party_vals')" />
-                </t>
+                <t t-call="purchase_edi_ubl_bis3.bis3_DeliveryType" t-arg-vals="vals.get('delivery_party_vals')"/>
             </cac:Delivery>
             <cac:PaymentTerms t-if="vals.get('payment_terms_vals')">
                 <t t-set="payment_terms_vals" t-value="vals.get('payment_terms_vals')" />
                 <cbc:Note t-out="payment_terms_vals.get('note')" />
             </cac:PaymentTerms>
             <cac:AllowanceCharge>
-                <t t-call="purchase_edi_ubl_bis3.bis3_AllowanceChargeType">
-                    <t t-set="vals" t-value="vals.get('allowance_charge_vals', {})" />
-                </t>
+                <t t-call="purchase_edi_ubl_bis3.bis3_AllowanceChargeType" t-arg-vals="vals.get('allowance_charge_vals', {})"/>
             </cac:AllowanceCharge>
             <cac:TaxTotal>
                 <cbc:TaxAmount
@@ -241,15 +216,11 @@
                     t-out="vals.get('tax_amount')" />
             </cac:TaxTotal>
             <cac:AnticipatedMonetaryTotal>
-                <t t-call="purchase_edi_ubl_bis3.bis3_AnticipatedMonetaryTotalType">
-                    <t t-set="vals" t-value="vals.get('anticipated_monetary_total_vals')" />
-                </t>
+                <t t-call="purchase_edi_ubl_bis3.bis3_AnticipatedMonetaryTotalType" t-arg-vals="vals.get('anticipated_monetary_total_vals')"/>
             </cac:AnticipatedMonetaryTotal>
             <cac:OrderLine t-foreach="vals.get('order_lines')" t-as="line_vals">
                 <cac:LineItem>
-                    <t t-call="purchase_edi_ubl_bis3.bis3_LineItemType">
-                        <t t-set="vals" t-value="line_vals" />
-                    </t>
+                    <t t-call="purchase_edi_ubl_bis3.bis3_LineItemType" t-arg-vals="line_vals"/>
                 </cac:LineItem>
             </cac:OrderLine>
         </Order>

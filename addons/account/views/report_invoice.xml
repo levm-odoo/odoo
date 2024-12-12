@@ -2,9 +2,9 @@
 <odoo>
     <data>
         <template id="report_invoice_document">
+            <t t-set="o" t-value="o.with_context(lang=lang)" />
+            <t t-set="forced_vat" t-value="o.fiscal_position_id.foreign_vat"/> <!-- So that it appears in the footer of the report instead of the company VAT if it's set -->
             <t t-call="web.external_layout">
-                <t t-set="o" t-value="o.with_context(lang=lang)" />
-                <t t-set="forced_vat" t-value="o.fiscal_position_id.foreign_vat"/> <!-- So that it appears in the footer of the report instead of the company VAT if it's set -->
                 <div class="row">
                     <t t-if="o.partner_shipping_id and (o.partner_shipping_id != o.partner_id)">
                         <div class="col-6">
@@ -191,9 +191,10 @@
                                         <table class="o_total_table table table-borderless avoid-page-break-inside">
 
                                             <!-- Tax totals summary (invoice currency) -->
-                                            <t t-if="o.tax_totals" t-call="account.document_tax_totals">
+                                            <t t-if="o.tax_totals">
                                                 <t t-set="tax_totals" t-value="o.tax_totals"/>
                                                 <t t-set="currency" t-value="o.currency_id"/>
+                                                <t t-call="account.document_tax_totals"/>
                                             </t>
 
                                             <!--Payments-->
@@ -469,9 +470,8 @@
         </template>
 
         <template id="report_invoice_with_payments">
-            <t t-call="account.report_invoice">
-                <t t-set="print_with_payments" t-value="True"/>
-            </t>
+            <t t-set="print_with_payments" t-value="True"/>
+            <t t-call="account.report_invoice"/>
         </template>
 
         <!--We need to create the following empty report template for the action report

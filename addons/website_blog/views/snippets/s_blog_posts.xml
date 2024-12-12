@@ -2,11 +2,11 @@
 <odoo>
 <!-- Snippet -->
 <template id="s_blog_posts" name="Blog Posts">
-    <t t-call="website.s_dynamic_snippet_template">
-        <t t-set="snippet_name" t-value="'s_blog_posts'"/>
-        <t t-set="snippet_classes" t-value="'s_dynamic_snippet_blog_posts s_blog_post_big_picture s_blog_posts_effect_marley s_blog_posts_post_picture_size_default'"/>
-        <t t-set="custom_template_data" t-valuef='{"blog_posts_post_author_active":true, "blog_posts_post_teaser_active":true, "blog_posts_post_date_active":true}'/>
-        <t t-call="website_blog.s_dynamic_snippet_blog_posts_preview_data"/>
+    <t t-call="website_blog.s_dynamic_snippet_blog_posts_preview_data"
+            t-arg-snippet_name="'s_blog_posts'"
+            t-arg-snippet_classes="'s_dynamic_snippet_blog_posts s_blog_post_big_picture s_blog_posts_effect_marley s_blog_posts_post_picture_size_default'"
+            t-argf-custom_template_data='{"blog_posts_post_author_active":true, "blog_posts_post_teaser_active":true, "blog_posts_post_date_active":true}'>
+        <t t-call="website.s_dynamic_snippet_template"/>
     </t>
 </template>
 
@@ -33,11 +33,10 @@
     <div t-foreach="records" t-as="data" class="s_blog_posts_post position-relative w-100" data-extra-classes="g-3" data-column-classes="col-12 col-sm-6 col-lg-4">
         <t t-set="record" t-value="data['_record']"/>
         <a class="s_blog_posts_post_cover position-relative d-block h-100 rounded shadow-sm overflow-hidden text-decoration-none text-reset ratio ratio-1x1" t-att-title="'Read ' + data['name']" t-att-href="data['call_to_action_url']">
-            <t t-call="website.record_cover">
-                <t t-set="_record" t-value="record"/>
-                <t t-set="use_filters" t-value="True"/>
-                <t t-set="additionnal_classes" t-value="'h-100 w-100 bg-600 position-absolute'"/>
-
+            <t t-call="website.record_cover"
+                    t-arg-_record="record"
+                    t-arg-use_filters="True"
+                    t-arg-additionnal_classes="'h-100 w-100 bg-600 position-absolute'">
                 <div class="s_blog_post_big_picture_infos position-absolute top-0 start-0 w-100 h-100 text-white">
                     <div class="s_blog_posts_post_cover_header d-flex flex-column justify-content-end w-100">
                         <div t-if="is_sample" class="h5 o_ribbon_right bg-primary text-uppercase">Sample</div>
@@ -61,10 +60,9 @@
                 <div class="s_blog_posts_post_cover_col col mb-2 mb-md-0">
                     <a class="d-block h-100 text-decoration-none" t-att-href="data['call_to_action_url']" t-att-title="'Read ' + data['name']">
                         <div class="s_blog_posts_post_cover h-100">
-                            <t t-call="website.record_cover">
-                                <t t-set="_record" t-value="record"/>
-                                <t t-set="additionnal_classes" t-value="'h-100 rounded-3 overflow-hidden'"/>
-                            </t>
+                            <t t-call="website.record_cover"
+                                t-arg-_record="record"
+                                t-arg-additionnal_classes="'h-100 rounded-3 overflow-hidden'"/>
                         </div>
                     </a>
                 </div>
@@ -93,10 +91,9 @@
         <div class="card h-100">
             <a class="text-decoration-none text-reset" t-att-href="data['call_to_action_url']" t-att-title="'Read ' + data['name']">
                 <div class="s_blog_posts_post_cover o_not_editable card-img-top ratio ratio-16x9">
-                    <t t-call="website.record_cover">
-                        <t t-set="_record" t-value="record"/>
-                        <t t-set="additionnal_classes" t-value="'position-absolute w-100 h-100 bg-600'"/>
-                    </t>
+                    <t t-call="website.record_cover"
+                        t-arg-_record="record"
+                        t-arg-additionnal_classes="'position-absolute w-100 h-100 bg-600'"/>
                 </div>
                 <div class="card-body">
                     <div t-if="is_sample" class="h5 o_ribbon_right bg-primary text-uppercase">Sample</div>
@@ -136,10 +133,9 @@
 <!-- Options -->
 <template id="s_blog_posts_options" inherit_id="website.snippet_options">
     <xpath expr="." position="inside">
-        <t t-call="website_blog.s_dynamic_snippet_options_template">
-            <t t-set="snippet_name" t-value="'dynamic_snippet_blog_posts'"/>
-            <t t-set="snippet_selector" t-value="'.s_dynamic_snippet_blog_posts'"/>
-        </t>
+        <t t-call="website_blog.s_dynamic_snippet_options_template"
+            t-arg-snippet_name="'dynamic_snippet_blog_posts'"
+            t-arg-snippet_selector="'.s_dynamic_snippet_blog_posts'"/>
     </xpath>
 </template>
 

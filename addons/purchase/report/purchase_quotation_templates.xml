@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 <template id="report_purchasequotation_document">
+    <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)"/>
+    <t t-set="forced_vat" t-value="o.fiscal_position_id.foreign_vat"/> <!-- So that it appears in the footer of the report instead of the company VAT if it's set -->
+    <t t-set="address">
+        <div t-field="o.partner_id"
+                t-options='{"widget": "contact", "fields": ["address", "name", "phone", "vat"], "no_marker": True, "phone_icons": True}'/>
+    </t>
+    <t t-if="o.dest_address_id">
+        <t t-set="information_block">
+            <strong>Shipping address:</strong>
+            <div t-field="o.dest_address_id"
+                t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}' name="purchase_shipping_address"/>
+        </t>
+    </t>
     <t t-call="web.external_layout">
-        <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)"/>
-        <t t-set="forced_vat" t-value="o.fiscal_position_id.foreign_vat"/> <!-- So that it appears in the footer of the report instead of the company VAT if it's set -->
-        <t t-set="address">
-            <div t-field="o.partner_id"
-                 t-options='{"widget": "contact", "fields": ["address", "name", "phone", "vat"], "no_marker": True, "phone_icons": True}'/>
-        </t>
-        <t t-if="o.dest_address_id">
-            <t t-set="information_block">
-                <strong>Shipping address:</strong>
-                <div t-field="o.dest_address_id"
-                    t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}' name="purchase_shipping_address"/>
-            </t>
-        </t>
         <div class="page">
             <div class="oe_structure"/>
             <t t-set="layout_document_title">

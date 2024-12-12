@@ -43,9 +43,8 @@
                 <form class="oe_signup_form" role="form" method="post" t-if="not message" data-captcha="signup">
                   <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 
-                    <t t-call="auth_signup.fields">
-                        <t t-set="only_passwords" t-value="bool(token and not invalid_token)"/>
-                    </t>
+                    <t t-set="only_passwords" t-value="bool(token and not invalid_token)"/>
+                    <t t-call="auth_signup.fields"/>
 
                     <p class="alert alert-danger" t-if="error" role="alert">
                         <t t-esc="error"/>
@@ -74,9 +73,8 @@
                   <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 
                     <t t-if="token and not invalid_token">
-                        <t t-call="auth_signup.fields">
-                            <t t-set="only_passwords" t-value="1"/>
-                        </t>
+                        <t t-set="only_passwords" t-value="1"/>
+                        <t t-call="auth_signup.fields"/>
                     </t>
 
                     <t t-if="not token">

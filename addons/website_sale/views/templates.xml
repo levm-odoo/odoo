@@ -33,145 +33,134 @@
 
     <template id="template_header_mobile" inherit_id="website.template_header_mobile">
         <xpath expr="//ul[hasclass('o_header_mobile_buttons_wrap')]//li" position="before">
-            <t t-call="website_sale.header_cart_link">
-                <t t-set="_icon" t-value="True"/>
-                <t t-set="_link_class" t-value="'o_navlink_background_hover btn position-relative rounded-circle border-0 p-1 text-reset'"/>
-                <t t-set="_badge_class" t-value="'position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill'"/>
-            </t>
+            <t t-call="website_sale.header_cart_link"
+                t-arg-_icon="True"
+                t-arg-_link_class="'o_navlink_background_hover btn position-relative rounded-circle border-0 p-1 text-reset'"
+                t-arg-_badge_class="'position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill'"/>
         </xpath>
     </template>
 
     <template id="template_header_default" inherit_id="website.template_header_default">
         <xpath expr="//t[@t-call='website.placeholder_header_search_box']" position="before">
-            <t t-call="website_sale.header_cart_link">
-                <t t-set="_icon" t-value="True"/>
-                <t t-set="_link_class" t-value="'o_navlink_background btn position-relative rounded-circle p-1 text-center text-reset'"/>
-                <t t-set="_badge_class" t-value="'position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill'"/>
-            </t>
+            <t t-call="website_sale.header_cart_link"
+                t-arg-_icon="True"
+                t-arg-_link_class="'o_navlink_background btn position-relative rounded-circle p-1 text-center text-reset'"
+                t-arg-_badge_class="'position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill'"/>
         </xpath>
     </template>
 
     <template id="template_header_hamburger" inherit_id="website.template_header_hamburger">
         <xpath expr="//t[@t-call='portal.placeholder_user_sign_in']" position="before">
-            <t t-call="website_sale.header_cart_link">
-                <t t-set="_icon" t-value="True"/>
-                <t t-set="_link_class" t-value="'o_navlink_background_hover btn position-relative rounded-pill p-1 text-reset'"/>
-                <t t-set="_badge_class" t-value="'position-absolute top-0 end-0 mt-n1 me-n1 rounded'"/>
-            </t>
+            <t t-call="website_sale.header_cart_link"
+                t-arg-_icon="True"
+                t-arg-_link_class="'o_navlink_background_hover btn position-relative rounded-pill p-1 text-reset'"
+                t-arg-_badge_class="'position-absolute top-0 end-0 mt-n1 me-n1 rounded'"/>
         </xpath>
     </template>
 
     <template id="template_header_stretch" inherit_id="website.template_header_stretch">
         <xpath expr="//t[@t-call='website.placeholder_header_social_links']" position="before">
-            <t t-call="website_sale.header_cart_link">
-                <t t-set="_icon" t-value="True"/>
-                <t t-set="_item_class" t-value="'border-start o_border_contrast'"/>
-                <t t-set="_link_class" t-value="'o_navlink_background_hover btn position-relative d-flex align-items-center h-100 rounded-0 p-2 text-reset'"/>
-                <t t-set="_badge_class" t-value="'rounded'"/>
-            </t>
+            <t t-call="website_sale.header_cart_link"
+                t-arg-_icon="True"
+                t-arg-_item_class="'border-start o_border_contrast'"
+                t-arg-_link_class="'o_navlink_background_hover btn position-relative d-flex align-items-center h-100 rounded-0 p-2 text-reset'"
+                t-arg-_badge_class="'rounded'"/>
         </xpath>
     </template>
 
     <template id="template_header_vertical" inherit_id="website.template_header_vertical">
         <xpath expr="//t[@t-call='portal.placeholder_user_sign_in']" position="before">
-            <t t-call="website_sale.header_cart_link">
-                <t t-set="_icon" t-value="True"/>
-                <t t-set="_link_class" t-value="'o_navlink_background btn position-relative rounded-circle p-1 text-reset'"/>
-                <t t-set="_badge_class" t-value="'position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill'"/>
-            </t>
+            <t t-call="website_sale.header_cart_link"
+                t-arg-_icon="True"
+                t-arg-_link_class="'o_navlink_background btn position-relative rounded-circle p-1 text-reset'"
+                t-arg-_badge_class="'position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill'"/>
         </xpath>
     </template>
 
     <template id="template_header_search" inherit_id="website.template_header_search">
         <xpath expr="//t[@t-call='portal.placeholder_user_sign_in']" position="before">
-            <t t-call="website_sale.header_cart_link">
-                <t t-set="_text" t-value="True"/>
-                <t t-set="_item_class" t-value="'border-start o_border_contrast'"/>
-                <t t-set="_link_class" t-value="'o_navlink_background_hover btn btn-sm d-flex align-items-center gap-1 h-100 rounded-0 p-2 text-reset'"/>
-                <t t-set="_badge_class" t-value="'rounded'"/>
-            </t>
+            <t t-call="website_sale.header_cart_link"
+                t-arg-_text="True"
+                t-arg-_item_class="'border-start o_border_contrast'"
+                t-arg-_link_class="'o_navlink_background_hover btn btn-sm d-flex align-items-center gap-1 h-100 rounded-0 p-2 text-reset'"
+                t-arg-_badge_class="'rounded'"/>
         </xpath>
     </template>
 
     <template id="template_header_sales_one" inherit_id="website.template_header_sales_one">
         <xpath expr="//t[@t-call='portal.user_dropdown']" position="before">
-            <t t-call="website_sale.header_cart_link">
-                <t t-set="_icon" t-value="True"/>
-                <t t-set="_link_class" t-value="'btn position-relative rounded-circle p-1 text-reset o_navlink_background'"/>
-                <t t-set="_badge_class" t-value="'position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill'"/>
-            </t>
+            <t t-call="website_sale.header_cart_link"
+                t-arg-_icon="True"
+                t-arg-_link_class="'btn position-relative rounded-circle p-1 text-reset o_navlink_background'"
+                t-arg-_badge_class="'position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill'"/>
         </xpath>
     </template>
 
     <template id="template_header_sales_two" inherit_id="website.template_header_sales_two">
         <xpath expr="//t[@t-call='portal.placeholder_user_sign_in']" position="before">
-            <t t-call="website_sale.header_cart_link">
-                <t t-set="_icon" t-value="True"/>
-                <t t-set="_text" t-value="True"/>
-                <t t-set="_icon_wrap_class" t-value="'position-relative me-2 rounded-circle border p-2 bg-o-color-3 o_border_contrast'"/>
-                <t t-set="_link_class" t-value="'btn d-flex align-items-center fw-bold text-reset o_navlink_background_hover'"/>
-                <t t-set="_badge_class" t-value="'position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill'"/>
-                <t t-set="_text_class" t-value="'small'"/>
-            </t>
+            <t t-call="website_sale.header_cart_link"
+                t-arg-_icon="True"
+                t-arg-_text="True"
+                t-arg-_icon_wrap_class="'position-relative me-2 rounded-circle border p-2 bg-o-color-3 o_border_contrast'"
+                t-arg-_link_class="'btn d-flex align-items-center fw-bold text-reset o_navlink_background_hover'"
+                t-arg-_badge_class="'position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill'"
+                t-arg-_text_class="'small'"/>
         </xpath>
     </template>
 
     <template id="template_header_sales_three" inherit_id="website.template_header_sales_three">
         <xpath expr="//t[@t-call='website.placeholder_header_language_selector']" position="before">
-            <t t-call="website_sale.header_cart_link">
-                <t t-set="_text" t-value="True"/>
-                <t t-set="_item_class" t-value="'position-relative'"/>
-                <t t-set="_link_class" t-value="'nav-link d-flex flex-row-reverse align-items-center text-uppercase fw-bold'"/>
-                <t t-set="_icon_wrap_class" t-value="'d-contains'"/>
-                <t t-set="_badge_class" t-value="'top-0 d-block ms-2'"/>
-            </t>
+            <t t-call="website_sale.header_cart_link"
+                t-arg-_text="True"
+                t-arg-_item_class="'position-relative'"
+                t-arg-_link_class="'nav-link d-flex flex-row-reverse align-items-center text-uppercase fw-bold'"
+                t-arg-_icon_wrap_class="'d-contains'"
+                t-arg-_badge_class="'top-0 d-block ms-2'"/>
         </xpath>
     </template>
 
     <template id="template_header_sales_four" inherit_id="website.template_header_sales_four">
         <xpath expr="//t[@t-call='website.placeholder_header_call_to_action']" position="before">
-            <t t-call="website_sale.header_cart_link">
-                <t t-set="_icon" t-value="True"/>
-                <t t-set="_link_class" t-value="'o_navlink_background_hover btn position-relative rounded-pill p-1 text-reset'"/>
-                <t t-set="_badge_class" t-value="'position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill'"/>
-            </t>
+            <t t-call="website_sale.header_cart_link"
+                t-arg-_icon="True"
+                t-arg-_link_class="'o_navlink_background_hover btn position-relative rounded-pill p-1 text-reset'"
+                t-arg-_badge_class="'position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill'"/>
         </xpath>
     </template>
 
     <template id="template_header_sidebar" inherit_id="website.template_header_sidebar">
         <xpath expr="//t[@t-call='website.placeholder_header_brand']" position="after">
             <div class="d-flex ms-auto mb-0">
-                <t t-call="website_sale.header_cart_link">
-                    <t t-set="_icon" t-value="True"/>
-                    <t t-set="_link_class" t-value="'o_navlink_background_hover btn position-relative p-1 rounded-circle text-reset'"/>
-                    <t t-set="_badge_class" t-value="'position-absolute top-0 end-0 rounded-pill mt-n1 me-n1'"/>
-                </t>
+                <t t-call="website_sale.header_cart_link"
+                    t-arg-_icon="True"
+                    t-arg-_link_class="'o_navlink_background_hover btn position-relative p-1 rounded-circle text-reset'"
+                    t-arg-_badge_class="'position-absolute top-0 end-0 rounded-pill mt-n1 me-n1'"/>
             </div>
         </xpath>
     </template>
 
     <template id="template_header_boxed" inherit_id="website.template_header_boxed">
         <xpath expr="//t[@t-call='website.placeholder_header_search_box']" position="before">
-            <t t-call="website_sale.header_cart_link">
-                <t t-set="_icon" t-value="True"/>
-                <t t-set="_link_class" t-value="'o_navlink_background btn position-relative rounded-circle p-1 text-center text-reset'"/>
-                <t t-set="_badge_class" t-value="'position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill'"/>
-            </t>
+            <t t-call="website_sale.header_cart_link"
+                t-arg-_icon="True"
+                t-arg-_link_class="'o_navlink_background btn position-relative rounded-circle p-1 text-center text-reset'"
+                t-arg-_badge_class="'position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill'"/>
         </xpath>
     </template>
 
     <!-- Search Bar input-group template -->
     <template id="search" name="Search Box" active="True">
-        <t t-call="website.website_search_box_input">
-            <t t-set="_form_classes" t-valuef="o_wsale_products_searchbar_form me-auto flex-grow-1 {{_form_classes}}"/>
-            <t t-set="_submit_classes" t-valuef="btn btn-{{navClass}}"/>
-            <t t-set="_input_classes" t-valuef="border-0 text-bg-{{navClass}}"/>
-            <t t-set="search_type" t-valuef="products"/>
-            <t t-set="action" t-value="keep('/shop'+ ('/category/'+slug(category)) if category else None, search=0) or '/shop'"/>
-            <t t-set="display_image" t-valuef="true"/>
-            <t t-set="display_description" t-valuef="true"/>
-            <t t-set="display_extra_link" t-valuef="true"/>
-            <t t-set="display_detail" t-valuef="true"/>
+        <t t-call="website.website_search_box_input"
+            t-argf-_form_classes="o_wsale_products_searchbar_form me-auto flex-grow-1 {{_form_classes}}"
+            t-argf-_submit_classes="btn btn-{{navClass}}"
+            t-argf-_input_classes="border-0 text-bg-{{navClass}}"
+            t-argf-search_type="products"
+            t-arg-action="keep('/shop'+ ('/category/'+slug(category)) if category else None, search=0) or '/shop'"
+            t-argf-display_image="true"
+            t-argf-display_description="true"
+            t-argf-display_extra_link="true"
+            t-argf-display_detail="true">
+
             <t t-if="attrib_values">
                 <t t-foreach="attrib_values" t-as="a">
                     <input type="hidden" name="attribute_value" t-att-value="'%s-%s' % (a[0], a[1])" />
@@ -314,33 +303,33 @@
 
     <!-- /shop product listing -->
     <template id="products" name="Products">
+        <t t-set="additional_title" t-value="category.name"/>
+        <t t-set="grid_block_name">Grid</t>
+        <t t-set="product_block_name">Product</t>
+
+        <!-- Qweb variable defining the class suffix for navbar items.
+                Change accordingly to the derired visual result (eg. `primary`, `dark`...)-->
+        <t t-set="navClass" t-valuef="light"/>
+
+        <!-- Check for active options: the stored value may be used in sub-templates too  -->
+        <t t-set="opt_wsale_categories" t-value="is_view_active('website_sale.products_categories')"/>
+        <t t-set="opt_wsale_attributes" t-value="is_view_active('website_sale.products_attributes')"/>
+        <t t-set="opt_wsale_filter_price" t-value="is_view_active('website_sale.filter_products_price')"/>
+        <t t-set="opt_wsale_filter_tags" t-value="is_view_active('website_sale.filter_products_tags')"/>
+
+        <t t-set="opt_wsale_categories_top" t-value="is_view_active('website_sale.products_categories_top')"/>
+        <t t-set="opt_wsale_attributes_top" t-value="is_view_active('website_sale.products_attributes_top')"/>
+
+        <t t-set="website_sale_pricelists" t-value="website.get_pricelist_available(show_visible=True)" />
+        <t t-set="website_sale_sortable" t-value="website._get_product_sort_mapping()"/>
+
+        <t t-set="hasLeftColumn" t-value="opt_wsale_categories or opt_wsale_attributes"/>
+
+        <t t-set="isFilteringByPrice" t-if="opt_wsale_filter_price" t-value="float_round(available_min_price, 2) != float_round(min_price, 2) or float_round(available_max_price, 2) != float_round(max_price, 2)"/>
+        <t t-set="hasPricelistDropdown" t-value="website_sale_pricelists and len(website_sale_pricelists)&gt;1"/>
+        <t t-set="isSortingBy" t-value="[sort for sort in website_sale_sortable if sort[0]==request.params.get('order', '')]"/>
+
         <t t-call="website.layout">
-            <t t-set="additional_title" t-value="category.name"/>
-            <t t-set="grid_block_name">Grid</t>
-            <t t-set="product_block_name">Product</t>
-
-            <!-- Qweb variable defining the class suffix for navbar items.
-                 Change accordingly to the derired visual result (eg. `primary`, `dark`...)-->
-            <t t-set="navClass" t-valuef="light"/>
-
-            <!-- Check for active options: the stored value may be used in sub-templates too  -->
-            <t t-set="opt_wsale_categories" t-value="is_view_active('website_sale.products_categories')"/>
-            <t t-set="opt_wsale_attributes" t-value="is_view_active('website_sale.products_attributes')"/>
-            <t t-set="opt_wsale_filter_price" t-value="is_view_active('website_sale.filter_products_price')"/>
-            <t t-set="opt_wsale_filter_tags" t-value="is_view_active('website_sale.filter_products_tags')"/>
-
-            <t t-set="opt_wsale_categories_top" t-value="is_view_active('website_sale.products_categories_top')"/>
-            <t t-set="opt_wsale_attributes_top" t-value="is_view_active('website_sale.products_attributes_top')"/>
-
-            <t t-set="website_sale_pricelists" t-value="website.get_pricelist_available(show_visible=True)" />
-            <t t-set="website_sale_sortable" t-value="website._get_product_sort_mapping()"/>
-
-            <t t-set="hasLeftColumn" t-value="opt_wsale_categories or opt_wsale_attributes"/>
-
-            <t t-set="isFilteringByPrice" t-if="opt_wsale_filter_price" t-value="float_round(available_min_price, 2) != float_round(min_price, 2) or float_round(available_max_price, 2) != float_round(max_price, 2)"/>
-            <t t-set="hasPricelistDropdown" t-value="website_sale_pricelists and len(website_sale_pricelists)&gt;1"/>
-            <t t-set="isSortingBy" t-value="[sort for sort in website_sale_sortable if sort[0]==request.params.get('order', '')]"/>
-
             <div id="wrap" class="js_sale o_wsale_products_page">
                 <div class="oe_structure oe_empty oe_structure_not_nearest" id="oe_structure_website_sale_products_1"/>
                 <div class="container oe_website_sale pt-2">
@@ -374,9 +363,8 @@
                         </aside>
                         <div id="products_grid"
                              t-attf-class="#{'o_wsale_layout_list' if layout_mode == 'list' else ''} {{'col-lg-9' if hasLeftColumn else 'col-12'}}">
-                            <t t-call="website_sale.products_breadcrumb">
-                                <t t-set="_classes" t-valuef="d-none d-lg-flex w-100 p-0 small"/>
-                            </t>
+                            <t t-call="website_sale.products_breadcrumb"
+                                t-argf-_classes="d-none d-lg-flex w-100 p-0 small"/>
 
                             <h1 t-if="category">
                                 <t t-esc="category.name"/>
@@ -397,18 +385,17 @@
                                t-call="website_sale.filmstrip_categories"/>
 
                             <div class="products_header btn-toolbar flex-nowrap align-items-center justify-content-between gap-3 mb-3">
-                                <t t-if="is_view_active('website_sale.search')" t-call="website_sale.search">
-                                    <t t-set="search" t-value="original_search or search"/>
-                                    <t t-set="_form_classes" t-valuef="d-lg-inline {{'d-inline' if not category else 'd-none'}}"/>
-                                </t>
+                                <t t-if="is_view_active('website_sale.search')"
+                                    t-call="website_sale.search"
+                                    t-arg-search="original_search or search"
+                                    t-argf-_form_classes="d-lg-inline {{'d-inline' if not category else 'd-none'}}"/>
 
-                                <t t-call="website_sale.pricelist_list">
-                                    <t t-set="_classes" t-valuef="d-none d-lg-inline"/>
-                                </t>
+                                <t t-call="website_sale.pricelist_list"
+                                    t-argf-_classes="d-none d-lg-inline"/>
 
-                                <t t-if="is_view_active('website_sale.sort')" t-call="website_sale.sort">
-                                    <t t-set="_classes" t-valuef="d-none me-auto d-lg-inline-block"/>
-                                </t>
+                                <t t-if="is_view_active('website_sale.sort')"
+                                    t-call="website_sale.sort"
+                                    t-argf-_classes="d-none me-auto d-lg-inline-block"/>
 
                                 <div t-if="category" class="d-flex align-items-center d-lg-none me-auto">
                                     <t t-if="not category.parent_id" t-set="backUrl" t-valuef="/shop"/>
@@ -420,8 +407,9 @@
                                     <h4 t-out="category.name" class="mb-0 me-auto"/>
                                 </div>
 
-                                <t t-if="is_view_active('website_sale.add_grid_or_list_option')" t-call="website_sale.add_grid_or_list_option">
-                                    <t t-set="_classes" t-valuef="d-flex"/>
+                                <t t-if="is_view_active('website_sale.add_grid_or_list_option')">
+                                    <t t-call="website_sale.add_grid_or_list_option"
+                                        t-argf-_classes="d-flex"/>
                                 </t>
 
                                 <button t-if="is_view_active('website_sale.sort') or opt_wsale_categories or opt_wsale_attributes or opt_wsale_attributes_top"
@@ -474,10 +462,8 @@
                                                     t-att-data-name="product_block_name"
                                                 >
                                                     <div t-attf-class="o_wsale_product_grid_wrapper position-relative h-100 o_wsale_product_grid_wrapper_#{td_product['x']}_#{td_product['y']}">
-                                                        <t t-call="website_sale.products_item">
-                                                            <t t-set="product"
-                                                               t-value="td_product['product']"/>
-                                                        </t>
+                                                        <t t-call="website_sale.products_item"
+                                                            t-arg-product="td_product['product']"/>
                                                     </div>
                                                 </div>
                                             </t>
@@ -629,10 +615,9 @@
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"/>
             </div>
             <div t-if="category" class="offcanvas-body d-lg-none flex-grow-0 overflow-visible">
-                <t t-call="website_sale.search">
-                    <t t-set="search" t-value="original_search or search"/>
-                    <t t-set="_s_searchbar_autocomplete_classes" t-valuef="bg-primary"> </t>
-                </t>
+                <t t-call="website_sale.search"
+                    t-arg-search="original_search or search"
+                    t-argf-_s_searchbar_autocomplete_classes="bg-primary"/>
             </div>
             <div id="o_wsale_offcanvas_content" class="accordion accordion-flush flex-grow-1 overflow-auto">
                 <div class="d-block d-lg-none accordion-item" t-if="hasPricelistDropdown">
@@ -725,11 +710,10 @@
                          class="accordion-collapse collapse"
                          aria-labelledby="o_wsale_offcanvas_categories_header">
                         <div class="accordion-body pt-0">
-                            <t t-call="website_sale.products_categories_list">
-                                <t t-set="isOffcanvas" t-value="true"/>
-                                <t t-set="_titleClasses" t-valuef="d-none"/>
-                                <t t-set="_radioGroup" t-valuef="_offcanvas"/>
-                            </t>
+                            <t t-call="website_sale.products_categories_list"
+                                t-arg-isOffcanvas="true"
+                                t-argf-_titleClasses="d-none"
+                                t-argf-_radioGroup="_offcanvas"/>
                         </div>
                     </div>
                 </div>
@@ -809,9 +793,8 @@
                             >
                                 <div class="accordion-body pt-0">
                                     <div class="list-group list-group-flush">
-                                        <t t-call="website_sale.filter_products_tags_list">
-                                            <t t-set="all_tags" t-value="all_tags"/>
-                                        </t>
+                                        <t t-call="website_sale.filter_products_tags_list"
+                                            t-arg-all_tags="all_tags"/>
                                     </div>
                                 </div>
                             </div>
@@ -819,14 +802,11 @@
                     </t>
                 </form>
 
-                <t t-if="opt_wsale_filter_price and (opt_wsale_attributes or opt_wsale_attributes_top)"
-                   t-call="website_sale.filter_products_price">
-                    <t
-                        t-set="_classes"
-                        t-valuef="o_wsale_offcanvas_title accordion accordion-flush px-4"
-                    />
-                    <t t-set="_classes_title" t-valuef="ms-n1 pt-3 pb-2"/>
-                    <t t-set="isOffcanvas" t-value="True"/>
+                <t t-if="opt_wsale_filter_price and (opt_wsale_attributes or opt_wsale_attributes_top)">
+                    <t t-call="website_sale.filter_products_price"
+                        t-argf-_classes="o_wsale_offcanvas_title accordion accordion-flush px-4"
+                        t-argf-_classes_title="ms-n1 pt-3 pb-2"
+                        t-arg-isOffcanvas="True"/>
                 </t>
             </div>
             <div class="offcanvas-body d-flex justify-content-between flex-grow-0 border-top overflow-hidden">
@@ -1090,10 +1070,9 @@
                             </div>
                         </t>
                     </t>
-                    <t t-if="opt_wsale_filter_tags and opt_wsale_attributes"
-                       t-call="website_sale.filter_products_tags"
-                    >
-                        <t t-set="all_tags" t-value="all_tags"/>
+                    <t t-if="opt_wsale_filter_tags and opt_wsale_attributes">
+                        <t t-call="website_sale.filter_products_tags"
+                            t-arg-all_tags="all_tags"/>
                     </t>
                 </form>
             </div>
@@ -1202,9 +1181,8 @@
                 <b>Tags</b>
             </h6>
             <div class="flex-column mb-3">
-                <t t-call="website_sale.filter_products_tags_list">
-                    <t t-set="all_tags" t-value="all_tags"/>
-                </t>
+                <t t-call="website_sale.filter_products_tags_list"
+                    t-arg-all_tags="all_tags"/>
             </div>
         </div>
     </template>
@@ -1245,8 +1223,8 @@
         <t t-set="combination_info" t-value="product._get_combination_info()"/>
         <t t-set="product_variant" t-value="product.env['product.product'].browse(combination_info['product_id'])"/>
 
+        <t t-set="additional_title" t-value="product.name" />
         <t t-call="website.layout">
-            <t t-set="additional_title" t-value="product.name" />
             <div itemscope="itemscope" itemtype="http://schema.org/Product" id="wrap" class="js_sale o_wsale_product_page">
                 <t t-set="editor_message">DROP BUILDING BLOCKS HERE TO MAKE THEM AVAILABLE ACROSS ALL PRODUCTS</t>
                 <div class="oe_structure oe_empty oe_structure_not_nearest" id="oe_structure_website_sale_product_1" t-att-data-editor-message="editor_message"/>
@@ -1291,14 +1269,14 @@
                         </div>
                         <div class="col-lg-4 d-flex align-items-center">
                             <div class="d-flex justify-content-between w-100">
-                                <t t-if="is_view_active('website_sale.search')" t-call="website_sale.search">
-                                    <t t-set="search" t-value="False"/>
-                                    <t t-set="_form_classes" t-valuef="mb-4 mb-lg-0"/>
-                                    <t t-set="_classes" t-value="'me-sm-2'"/>
+                                <t t-if="is_view_active('website_sale.search')">
+                                    <t t-call="website_sale.search"
+                                        t-arg-search="False"
+                                        t-argf-_form_classes="mb-4 mb-lg-0"
+                                        t-arg-_classes="'me-sm-2'"/>
                                 </t>
-                                <t t-call="website_sale.pricelist_list">
-                                    <t t-set="_classes" t-valuef="d-lg-inline ms-2"/>
-                                </t>
+                                <t t-call="website_sale.pricelist_list"
+                                    t-argf-_classes="d-lg-inline ms-2"/>
                             </div>
                         </div>
                     </div>
@@ -1320,12 +1298,11 @@
                             <span itemprop="image" style="display:none;" t-esc="base_url + website.image_url(product, 'image_1920')" />
                             <t t-if="is_view_active('website_sale.product_comment')">
                                 <a href="#o_product_page_reviews" class="o_product_page_reviews_link text-decoration-none">
-                                    <t t-call="portal_rating.rating_widget_stars_static">
-                                        <t t-set="rating_avg" t-value="product.rating_avg"/>
-                                        <t t-set="trans_text_plural">%s reviews</t>
-                                        <t t-set="trans_text_singular">%s review</t>
-                                        <t t-set="rating_count" t-value="(trans_text_plural if product.rating_count > 1 else trans_text_singular) % product.rating_count"/>
-                                    </t>
+                                    <t t-set="trans_text_plural">%s reviews</t>
+                                    <t t-set="trans_text_singular">%s review</t>
+                                    <t t-call="portal_rating.rating_widget_stars_static"
+                                        t-arg-rating_avg="product.rating_avg"
+                                        t-arg-rating_count="(trans_text_plural if product.rating_count > 1 else trans_text_singular) % product.rating_count"/>
                                 </a>
                             </t>
                             <div t-field="product.description_ecommerce" class="oe_structure"
@@ -1365,11 +1342,10 @@
                                             name="product_type"
                                             t-att-value="product.type"
                                         />
-                                        <t t-call="website_sale.variants">
-                                            <t t-set="ul_class" t-valuef="flex-column" />
-                                            <t t-set="parent_combination" t-value="None" />
-                                            <t t-set="combination" t-value="combination_info['combination']"/>
-                                        </t>
+                                        <t t-call="website_sale.variants"
+                                            t-argf-ul_class="flex-column" 
+                                            t-arg-parent_combination="None" 
+                                            t-arg-combination="combination_info['combination']"/>
                                     </t>
                                     <p class="css_not_available_msg alert alert-warning">
                                         This combination does not exist.
@@ -1663,12 +1639,11 @@
                         <i class="fa align-self-start"/>
                     </a>
                     <div id="o_product_page_reviews_content" class="collapse">
-                        <t t-call="portal.message_thread">
-                            <t t-set="object" t-value="product"/>
-                            <t t-set="display_rating" t-value="True"/>
-                            <t t-set="message_per_page" t-value="5"/>
-                            <t t-set="two_columns" t-value="true"/>
-                        </t>
+                        <t t-call="portal.message_thread"
+                            t-arg-object="product"
+                            t-arg-display_rating="True"
+                            t-arg-message_per_page="5"
+                            t-arg-two_columns="true"/>
                     </div>
                 </section>
             </div>
@@ -1799,25 +1774,23 @@
     </template>
 
     <template id="wizard_checkout" name="Wizard Checkout">
-        <t t-call="website.step_wizard">
-            <t t-set="wizard_step" t-value="website._get_checkout_steps()"/>
-        </t>
+        <t t-call="website.step_wizard"
+            t-arg-wizard_step="website._get_checkout_steps()"/>
     </template>
 
     <!-- /shop/extra_info route -->
     <template id="extra_info" name="Checkout Extra Info" active="False">
+        <t t-set="show_navigation_button" t-value="False"/>
+        <t t-set="redirect" t-valuef="/shop/extra_info"/>
+        <t t-set="oe_structure">
+            <!-- This is the drag-and-drop area for website building blocs at the end of each
+                    checkout page. This is append at the of the page in `checkout_layout`. The
+                    templates created in the database to store blocs are hooked using XPath on the
+                    `oe_struture` element ID. Therefore, we can't use dynamic IDs (like with
+                    t-att-id) and each template needs to define a div element. -->
+            <div class="oe_structure" id="oe_structure_website_sale_extra_info_1"/>
+        </t>
         <t t-call="website_sale.checkout_layout">
-            <t t-set="show_navigation_button" t-value="False"/>
-            <t t-set="redirect" t-valuef="/shop/extra_info"/>
-            <t t-set="oe_structure">
-                <!-- This is the drag-and-drop area for website building blocs at the end of each
-                     checkout page. This is append at the of the page in `checkout_layout`. The
-                     templates created in the database to store blocs are hooked using XPath on the
-                     `oe_struture` element ID. Therefore, we can't use dynamic IDs (like with
-                     t-att-id) and each template needs to define a div element. -->
-                <div class="oe_structure" id="oe_structure_website_sale_extra_info_1"/>
-            </t>
-
             <h3 class="mb-4">Extra info</h3>
             <section class="s_website_form" data-vcss="001" data-snippet="s_website_form">
                 <div class="container">
@@ -2026,16 +1999,14 @@
                                      t-out="line._get_displayed_unit_price() * line.product_uom_qty"
                                      t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
                             </t>
-                            <t t-set="product_price" t-value="line._get_cart_display_price()"/>
-                            <t t-call="website_sale.cart_product_price"/>
+                            <t t-call="website_sale.cart_product_price"
+                                t-arg-product_price="line._get_cart_display_price()"/>
                             <small t-if="not line._is_not_sellable_line() and line.product_id.base_unit_price"
                                    class="cart_product_base_unit_price d-block text-muted"
                                    groups="website_sale.group_show_uom_price">
-                                <t t-call='website_sale.base_unit_price'>
-                                    <t t-set='product' t-value='line.product_id'/>
-                                    <t t-set='combination_info'
-                                       t-value="{'base_unit_price': product._get_base_unit_price(product_price/line.product_uom_qty)}"/>
-                                </t>
+                                <t t-call='website_sale.base_unit_price'
+                                    t-arg-product='line.product_id'
+                                    t-arg-combination_info="{'base_unit_price': product._get_base_unit_price(product_price/line.product_uom_qty)}"/>
                             </small>
                         </div>
                     </div>
@@ -2084,18 +2055,17 @@
 
     <!-- /shop/cart route -->
     <template id="cart" name="Shopping Cart">
+        <t t-set="show_shorter_cart_summary" t-value="True"/>
+        <t t-set="show_footer" t-value="True"/>
+        <t t-set="oe_structure">
+            <!-- This is the drag-and-drop area for website building blocs at the end of each
+                    checkout page. This is append at the of the page in `checkout_layout`. The
+                    templates created in the database to store blocs are hooked using XPath on the
+                    `oe_struture` element ID. Therefore, we can't use dynamic IDs (like with
+                    t-att-id) and each template needs to define a div element. -->
+            <div class="oe_structure" id="oe_structure_website_sale_cart_2"/>
+        </t>
         <t t-call="website_sale.checkout_layout">
-            <t t-set="show_shorter_cart_summary" t-value="True"/>
-            <t t-set="show_footer" t-value="True"/>
-            <t t-set="oe_structure">
-                <!-- This is the drag-and-drop area for website building blocs at the end of each
-                     checkout page. This is append at the of the page in `checkout_layout`. The
-                     templates created in the database to store blocs are hooked using XPath on the
-                     `oe_struture` element ID. Therefore, we can't use dynamic IDs (like with
-                     t-att-id) and each template needs to define a div element. -->
-                <div class="oe_structure" id="oe_structure_website_sale_cart_2"/>
-            </t>
-
             <div class="col" id="shop_cart">
                 <h3 class="mb-4">Order overview</h3>
                 <div t-if="abandoned_proceed or access_token" class="alert alert-info mt8 mb8" role="alert"> <!-- abandoned cart choices -->
@@ -2223,9 +2193,8 @@
                                    name="csrf_token"
                                    t-att-value="request.csrf_token()"
                                    t-nocache="The csrf token must always be up to date."/>
-                            <t t-if="not hide_payment_button" t-call="payment.submit_button">
-                                <t t-set="submit_button_label">Confirm Order</t>
-                            </t>
+                            <t t-set="submit_button_label">Confirm Order</t>
+                            <t t-if="not hide_payment_button" t-call="payment.submit_button"/>
                         </form>
                     </div>
                     <t t-elif="not hide_payment_button" t-call="payment.submit_button"/>
@@ -2253,33 +2222,28 @@
 
     <!-- /shop/checkout route -->
     <template id="checkout">
-        <t t-call="website_sale.checkout_layout">
-            <t t-set="additional_title">Shop - Checkout</t>
-            <t t-set="redirect" t-valuef="/shop/checkout"/>
-            <t t-set="same_shipping" t-value="bool(order.partner_shipping_id==order.partner_invoice_id or only_services)" />
+        <t t-set="additional_title">Shop - Checkout</t>
+        <t t-call="website_sale.checkout_layout"
+            t-argf-redirect="/shop/checkout"
+            t-arg-same_shipping="bool(order.partner_shipping_id==order.partner_invoice_id or only_services)">
+
             <div id="shop_checkout">
                 <!-- When delivery address is enabled. -->
                 <t
                     t-if="order._has_deliverable_products()"
                     groups="account.group_delivery_invoice_address"
                 >
-                    <t t-call="website_sale.delivery_address_row">
-                        <t t-set="addresses" t-value="delivery_addresses"/>
-                    </t>
-                    <t t-call="website_sale.delivery_form">
-                        <t t-set="selected_dm_id" t-value="order.carrier_id.id"/>
-                    </t>
+                    <t t-call="website_sale.delivery_address_row"
+                        t-arg-addresses="delivery_addresses"/>
+                    <t t-call="website_sale.delivery_form"
+                        t-arg-selected_dm_id="order.carrier_id.id"/>
                 </t>
-                <t t-call="website_sale.billing_address_row">
-                    <t t-set="addresses" t-value="billing_addresses"/>
-                </t>
+                <t t-call="website_sale.billing_address_row"
+                    t-arg-addresses="billing_addresses"/>
                 <!-- When delivery address is disabled. -->
-                <t
-                    groups="!account.group_delivery_invoice_address"
+                <t groups="!account.group_delivery_invoice_address"
                     t-call="website_sale.delivery_form"
-                >
-                    <t t-set="selected_dm_id" t-value="order.carrier_id.id"/>
-                </t>
+                    t-arg-selected_dm_id="order.carrier_id.id"/>
             </div>
         </t>
     </template>
@@ -2287,11 +2251,10 @@
     <template id="delivery_address_row">
         <div id="delivery_address_row" class="mb-4">
             <h4 class="text-uppercase small fs-6 fw-bold">Delivery address</h4>
-            <t t-call="website_sale.address_row">
-                <t t-set="is_invoice" t-value="False"/>
-                <t t-set="addresses" t-value="delivery_addresses"/>
-                <t t-set="selected_address" t-value="order.partner_shipping_id"/>
-            </t>
+            <t t-call="website_sale.address_row"
+                t-arg-is_invoice="False"
+                t-arg-addresses="delivery_addresses"
+                t-arg-selected_address="order.partner_shipping_id"/>
         </div>
     </template>
 
@@ -2329,11 +2292,10 @@
                 t-attf-class="{{'d-none' if use_delivery_as_billing and has_delivery else ''}}"
                 t-att-data-delivery-address-disabled="delivery_address_disabled"
             >
-                <t t-call="website_sale.address_row">
-                    <t t-set="is_invoice" t-value="True"/>
-                    <t t-set="addresses" t-value="billing_addresses"/>
-                    <t t-set="selected_address" t-value="order.partner_invoice_id"/>
-                </t>
+                <t t-call="website_sale.address_row"
+                    t-arg-is_invoice="True"
+                    t-arg-addresses="billing_addresses"
+                    t-arg-selected_address="order.partner_invoice_id"/>
             </div>
         </div>
     </template>
@@ -2343,10 +2305,9 @@
                           + ' row row-cols-md-2 row-cols-lg-3 g-3 flex-nowrap flex-md-wrap'"
         >
             <div t-foreach="addresses" t-as="addr" class="one_kanban col-md">
-                <t t-call="website_sale.address_kanban">
-                    <t t-set="contact" t-value="addr"/>
-                    <t t-set="selected" t-value="addr == selected_address"/>
-                </t>
+                <t t-call="website_sale.address_kanban"
+                    t-arg-contact="addr"
+                    t-arg-selected="addr == selected_address"/>
             </div>
             <div
                 t-if="is_invoice or not order.website_id.is_public_user()" class="one_kanban col-md"
@@ -2676,17 +2637,17 @@
 
     <!-- /shop/payment route -->
     <template id="payment" name="Payment">
+        <t t-set="additional_title">Shop - Select Payment Method</t>
+        <t t-set='redirect' t-valuef="/shop/payment"/>
+        <t t-set="oe_structure">
+            <!-- This is the drag-and-drop area for website building blocs at the end of each
+                    checkout page. This is append at the of the page in `checkout_layout`. The
+                    templates created in the database to store blocs are hooked using XPath on the
+                    `oe_struture` element ID. Therefore, we can't use dynamic IDs (like with
+                    t-att-id) and each template needs to define a div element. -->
+            <div class="oe_structure" id="oe_structure_website_sale_payment_2"/>
+        </t>
         <t t-call="website_sale.checkout_layout">
-            <t t-set="additional_title">Shop - Select Payment Method</t>
-            <t t-set='redirect' t-valuef="/shop/payment"/>
-            <t t-set="oe_structure">
-                <!-- This is the drag-and-drop area for website building blocs at the end of each
-                     checkout page. This is append at the of the page in `checkout_layout`. The
-                     templates created in the database to store blocs are hooked using XPath on the
-                     `oe_struture` element ID. Therefore, we can't use dynamic IDs (like with
-                     t-att-id) and each template needs to define a div element. -->
-                <div class="oe_structure" id="oe_structure_website_sale_payment_2"/>
-            </t>
             <div class="col-12" t-if="errors">
                 <t t-set="hide_payment_button" t-value="True"/>
                 <t t-foreach="errors" t-as="error">
@@ -2744,10 +2705,11 @@
             - redirect: The route to redirect to when a customer enters a coupon; default: `None`.
             - website_sale_order: The current order.
         -->
+        <t t-set="no_footer" t-value="True if show_footer is None else not show_footer"/>
+        <t t-set="show_navigation_button" t-value="True if show_navigation_button is None else show_navigation_button"/>
+        <t t-set="show_wizard_checkout" t-value="True if show_wizard_checkout is None else show_wizard_checkout"/>
+
         <t t-call="website.layout">
-            <t t-set="no_footer" t-value="True if show_footer is None else not show_footer"/>
-            <t t-set="show_navigation_button" t-value="True if show_navigation_button is None else show_navigation_button"/>
-            <t t-set="show_wizard_checkout" t-value="True if show_wizard_checkout is None else show_wizard_checkout"/>
             <div id="wrap">
                 <div class="oe_website_sale o_website_sale_checkout container py-2">
                     <div t-attf-class="row #{show_navigation_button and 'position-relative'} #{not show_wizard_checkout and 'mt32'} mb32">
@@ -2834,12 +2796,8 @@
                                                         </t>
                                                         <td t-attf-class="#{o_cart_sum_padding_top} td-price pe-0 text-end"
                                                             name="website_sale_cart_summary_line_price">
-                                                            <t t-call="website_sale.cart_product_price">
-                                                                <t
-                                                                    t-set="product_price"
-                                                                    t-value="line._get_cart_display_price()"
-                                                                />
-                                                            </t>
+                                                            <t t-call="website_sale.cart_product_price"
+                                                                t-arg-product_price="line._get_cart_display_price()"/>
                                                         </td>
                                                     </tr>
                                                 </tbody>
@@ -2852,9 +2810,8 @@
                                             </div>
                                         </t>
                                     </div>
-                                    <t t-call="website_sale.total">
-                                        <t t-set="_cart_total_classes" t-valuef="border-top pt-3"/>
-                                    </t>
+                                    <t t-call="website_sale.total"
+                                        t-argf-_cart_total_classes="border-top pt-3"/>
                                     <div t-if="show_navigation_button" class="o_cta_navigation_container position-absolute position-lg-static start-0 top-100 col-12">
                                         <t t-call="website_sale.navigation_buttons"/>
                                     </div>
@@ -2877,21 +2834,20 @@
 
     <!-- /shop/confirmation route -->
     <template id="confirmation">
+        <t t-set="show_wizard_checkout" t-value="False"/>
+        <t t-set="show_navigation_button" t-value="False"/>
+        <t t-set="show_footer" t-value="True"/>
+        <t t-set="additional_title">Shop - Confirmed</t>
+        <t t-set="hide_promotions" t-value="True"/>
+        <t t-set="oe_structure">
+            <!-- This is the drag-and-drop area for website building blocs at the end of each
+                    checkout page. This is append at the of the page in `checkout_layout`. The
+                    templates created in the database to store blocs are hooked using XPath on the
+                    `oe_struture` element ID. Therefore, we can't use dynamic IDs (like with
+                    t-att-id) and each template needs to define a div element. -->
+            <div class="oe_structure" id="oe_structure_website_sale_confirmation_3"/>
+        </t>
         <t t-call="website_sale.checkout_layout">
-            <t t-set="show_wizard_checkout" t-value="False"/>
-            <t t-set="show_navigation_button" t-value="False"/>
-            <t t-set="show_footer" t-value="True"/>
-            <t t-set="additional_title">Shop - Confirmed</t>
-            <t t-set="hide_promotions" t-value="True"/>
-            <t t-set="oe_structure">
-                <!-- This is the drag-and-drop area for website building blocs at the end of each
-                     checkout page. This is append at the of the page in `checkout_layout`. The
-                     templates created in the database to store blocs are hooked using XPath on the
-                     `oe_struture` element ID. Therefore, we can't use dynamic IDs (like with
-                     t-att-id) and each template needs to define a div element. -->
-                <div class="oe_structure" id="oe_structure_website_sale_confirmation_3"/>
-            </t>
-
             <t t-set="tx_sudo" t-value="order.get_portal_last_transaction()"/>
             <div t-if="tx_sudo.state in ['pending', 'done']" class="d-flex justify-content-between align-items-center">
                 <h3>Thank you for your order.</h3>
@@ -3079,12 +3035,11 @@
 
     <template id="website_sale.brand_promotion" inherit_id="website.brand_promotion">
         <xpath expr="//t[@t-call='web.brand_promotion_message']" position="replace">
-            <t t-call="web.brand_promotion_message">
-                <t t-set="_message">
-                    The #1 <a target="_blank" href="http://www.odoo.com/app/ecommerce?utm_source=db&amp;utm_medium=website">Open Source eCommerce</a>
-                </t>
-                <t t-set="_utm_medium" t-valuef="website"/>
+            <t t-set="_message">
+                The #1 <a target="_blank" href="http://www.odoo.com/app/ecommerce?utm_source=db&amp;utm_medium=website">Open Source eCommerce</a>
             </t>
+            <t t-call="web.brand_promotion_message"
+                t-argf-_utm_medium="website"/>
         </xpath>
     </template>
 
@@ -3104,12 +3059,12 @@
 
     <!-- Product page images -->
     <template id="website_sale.shop_product_images" name="Shop Product Images">
-        <t t-set="product_images" t-value="product_variant._get_images() if product_variant else product._get_images()"/>
-        <t t-set="ribbon" t-value="product_variant.sudo().variant_ribbon_id or product.sudo().website_ribbon_id"/>
-        <t t-set="bg_color" t-value="ribbon['bg_color'] or ''"/>
-        <t t-set="text_color" t-value="ribbon['text_color']"/>
-        <t t-set="bg_class" t-value="ribbon._get_position_class()"/>
-        <t t-call="website_sale.shop_product_#{website.product_page_image_layout}"/>
+        <t t-call="website_sale.shop_product_#{website.product_page_image_layout}"
+            t-arg-product_images="product_variant._get_images() if product_variant else product._get_images()"
+            t-arg-ribbon="product_variant.sudo().variant_ribbon_id or product.sudo().website_ribbon_id"
+            t-arg-bg_color="ribbon['bg_color'] or ''"
+            t-arg-text_color="ribbon['text_color']"
+            t-arg-bg_class="ribbon._get_position_class()"/>
     </template>
 
     <template id="website_sale.shop_product_image">
@@ -3243,17 +3198,15 @@
 
     <template id="carousel_product_indicators_bottom" inherit_id="website_sale.shop_product_carousel" name="Carousel Product Indicators Bottom">
         <xpath expr="//div[hasclass('o_carousel_product_outer')]" position="after">
-            <t t-call="website_sale.carousel_product_indicators">
-                <t t-set="indicators_div_class" t-value="'pt-2 overflow-hidden'"/>
-            </t>
+            <t t-call="website_sale.carousel_product_indicators"
+                t-arg-indicators_div_class="'pt-2 overflow-hidden'"/>
         </xpath>
     </template>
 
     <template id="carousel_product_indicators_left" inherit_id="website_sale.shop_product_carousel" name="Carousel Product Indicators Left" active="False">
         <xpath expr="//div[hasclass('o_carousel_product_outer')]" position="before">
-            <t t-call="website_sale.carousel_product_indicators">
-                <t t-set="indicators_list_class" t-value="'d-flex d-lg-block pe-2'"/>
-            </t>
+            <t t-call="website_sale.carousel_product_indicators"
+                t-arg-indicators_list_class="'d-flex d-lg-block pe-2'"/>
         </xpath>
         <xpath expr="//div[@id='o-carousel-product']" position="attributes">
             <attribute name="t-attf-class" add="o_carousel_product_left_indicators d-flex" separator=" "/>

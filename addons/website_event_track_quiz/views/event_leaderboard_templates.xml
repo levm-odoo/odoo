@@ -8,7 +8,7 @@
             <div class="container mt32">
                 <div t-if="not search" class="row mb-3">
                     <div class="col-md-4 d-flex flex-grow-1" t-foreach="top3_visitors" t-as="visitor">
-                        <t t-call="website_event_track_quiz.top3_visitor_card"></t>
+                        <t t-call="website_event_track_quiz.top3_visitor_card"/>
                     </div>
                 </div>
                 <table class="table table-sm">

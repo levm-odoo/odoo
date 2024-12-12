@@ -55,13 +55,9 @@
             <attribute name="t-value" add="dm.delivery_type=='in_store'" separator=" or "/>
         </xpath>
         <div name="o_pickup_location" position="after">
-            <t t-if="dm.delivery_type=='in_store' and order.carrier_id.id==dm.id">
-                <t
-                    t-if="unavailable_order_lines"
-                    t-call="website_sale_collect.unavailable_products_warning"
-                >
-                    <t t-set="wh_name" t-value="order.pickup_location_data.get('name')"/>
-                </t>
+            <t t-if="dm.delivery_type=='in_store' and order.carrier_id.id==dm.id and unavailable_order_lines">
+                <t t-set="wh_name" t-value="order.pickup_location_data.get('name')"/>
+                <t t-call="website_sale_collect.unavailable_products_warning"/>
             </t>
         </div>
     </template>

@@ -38,18 +38,14 @@
         <xpath expr="//*[local-name()='LineExtensionAmount']" position="after">
             <t xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2">
                 <cac:InvoicePeriod t-foreach="vals.get('invoice_period_vals_list', [])" t-as="foreach_vals">
-                    <t t-call="{{InvoicePeriodType_template}}">
-                        <t t-set="vals" t-value="foreach_vals"/>
-                    </t>
+                    <t t-call="{{InvoicePeriodType_template}}" t-arg-vals="foreach_vals"/>
                 </cac:InvoicePeriod>
             </t>
         </xpath>
         <xpath expr="//*[local-name()='TaxTotal']" position="after">
             <t xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2">
                 <cac:AllowanceCharge t-foreach="vals.get('allowance_charge_vals', [])" t-as="foreach_vals">
-                    <t t-call="{{AllowanceChargeType_template}}">
-                        <t t-set="vals" t-value="foreach_vals"/>
-                    </t>
+                    <t t-call="{{AllowanceChargeType_template}}" t-arg-vals="foreach_vals"/>
                 </cac:AllowanceCharge>
             </t>
         </xpath>
@@ -59,9 +55,7 @@
         <xpath expr="//*[local-name()='TaxTotal']" position="after">
             <t xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2">
                 <cac:AllowanceCharge t-foreach="vals.get('allowance_charge_vals', [])" t-as="foreach_vals">
-                    <t t-call="{{AllowanceChargeType_template}}">
-                        <t t-set="vals" t-value="foreach_vals"/>
-                    </t>
+                    <t t-call="{{AllowanceChargeType_template}}" t-arg-vals="foreach_vals"/>
                 </cac:AllowanceCharge>
             </t>
         </xpath>
@@ -85,9 +79,7 @@
         <xpath expr="//*[local-name()='LegalMonetaryTotal']" position="before">
             <t xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2">
                 <cac:WithholdingTaxTotal t-foreach="vals.get('withholding_tax_total_vals_list', [])" t-as="foreach_vals">
-                    <t t-call="{{TaxTotalType_template}}">
-                        <t t-set="vals" t-value="foreach_vals"/>
-                    </t>
+                    <t t-call="{{TaxTotalType_template}}" t-arg-vals="foreach_vals"/>
                 </cac:WithholdingTaxTotal>
             </t>
         </xpath>
@@ -97,18 +89,14 @@
         <xpath expr="//*[local-name()='TaxTotal']" position="after">
             <t xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2">
                 <cac:WithholdingTaxTotal t-foreach="vals.get('withholding_tax_total_vals_list', [])" t-as="foreach_vals">
-                    <t t-call="{{TaxTotalType_template}}">
-                        <t t-set="vals" t-value="foreach_vals"/>
-                    </t>
+                    <t t-call="{{TaxTotalType_template}}" t-arg-vals="foreach_vals"/>
                 </cac:WithholdingTaxTotal>
             </t>
         </xpath>
         <xpath expr="//*[local-name()='FreeOfChargeIndicator']" position="after">
             <t xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2">
                 <cac:InvoicePeriod t-foreach="vals.get('invoice_period_vals_list', [])" t-as="foreach_vals">
-                    <t t-call="{{InvoicePeriodType_template}}">
-                        <t t-set="vals" t-value="foreach_vals"/>
-                    </t>
+                    <t t-call="{{InvoicePeriodType_template}}" t-arg-vals="foreach_vals"/>
                 </cac:InvoicePeriod>
             </t>
         </xpath>
@@ -134,19 +122,13 @@
         <xpath expr="//*[local-name()='PaymentExchangeRate']" position="before">
             <t xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2">
                 <cac:Delivery t-foreach="vals.get('delivery_vals_list', [])" t-as="foreach_vals">
-                    <t t-call="{{DeliveryType_template}}">
-                        <t t-set="vals" t-value="foreach_vals"/>
-                    </t>
+                    <t t-call="{{DeliveryType_template}}" t-arg-vals="foreach_vals"/>
                 </cac:Delivery>
                 <cac:PaymentMeans t-foreach="vals.get('payment_means_vals_list', [])" t-as="foreach_vals">
-                    <t t-call="{{PaymentMeansType_template}}">
-                        <t t-set="vals" t-value="foreach_vals"/>
-                    </t>
+                    <t t-call="{{PaymentMeansType_template}}" t-arg-vals="foreach_vals"/>
                 </cac:PaymentMeans>
                 <cac:PaymentTerms t-foreach="vals.get('payment_terms_vals', [])" t-as="foreach_vals">
-                    <t t-call="{{PaymentTermsType_template}}">
-                        <t t-set="vals" t-value="foreach_vals"/>
-                    </t>
+                    <t t-call="{{PaymentTermsType_template}}" t-arg-vals="foreach_vals"/>
                 </cac:PaymentTerms>
             </t>
         </xpath>
@@ -165,24 +147,16 @@
         <xpath expr="//*[local-name()='TaxTotal']" position="before">
             <t xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2">
                 <cac:AllowanceCharge t-foreach="vals.get('allowance_charge_vals', [])" t-as="foreach_vals">
-                    <t t-call="{{AllowanceChargeType_template}}">
-                        <t t-set="vals" t-value="foreach_vals"/>
-                    </t>
+                    <t t-call="{{AllowanceChargeType_template}}" t-arg-vals="foreach_vals"/>
                 </cac:AllowanceCharge>
                 <cac:Delivery t-foreach="vals.get('delivery_vals_list', [])" t-as="foreach_vals">
-                    <t t-call="{{DeliveryType_template}}">
-                        <t t-set="vals" t-value="foreach_vals"/>
-                    </t>
+                    <t t-call="{{DeliveryType_template}}" t-arg-vals="foreach_vals"/>
                 </cac:Delivery>
                 <cac:PaymentMeans t-foreach="vals.get('payment_means_vals_list', [])" t-as="foreach_vals">
-                    <t t-call="{{PaymentMeansType_template}}">
-                        <t t-set="vals" t-value="foreach_vals"/>
-                    </t>
+                    <t t-call="{{PaymentMeansType_template}}" t-arg-vals="foreach_vals"/>
                 </cac:PaymentMeans>
                 <cac:PaymentTerms t-foreach="vals.get('payment_terms_vals', [])" t-as="foreach_vals">
-                    <t t-call="{{PaymentTermsType_template}}">
-                        <t t-set="vals" t-value="foreach_vals"/>
-                    </t>
+                    <t t-call="{{PaymentTermsType_template}}" t-arg-vals="foreach_vals"/>
                 </cac:PaymentTerms>
             </t>
         </xpath>

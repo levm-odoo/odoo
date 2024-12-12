@@ -8,7 +8,7 @@
 <!-- website_forum.layout removes the access right check for wysiwyg bundle -->
 <template id="layout" inherit_id="website.layout" name="Forum Layout" primary="True">
     <xpath expr="//div[@id='wrapwrap']" position="before">
-        <t t-set="pageName" t-value="'website_forum'"/>
+        <t t-set="pageName" t-valuef="website_forum"/>
     </xpath>
     <xpath expr="//div[@id='wrapwrap']" position="attributes">
         <attribute name="t-att-data-forum_id">forum and forum.id</attribute>
@@ -60,10 +60,11 @@
                                 data-bs-placement="top"
                                 title="Favorite"/>
                         </a>
-                        <t t-if="question.state == 'active'" t-call="website_forum.follow">
+                        <t t-if="question.state == 'active'">
                             <t t-set="object" t-value="question"/>
                             <t t-set="icons_design" t-value="True"/>
                             <t t-set="btn_classes" t-value="'opacity-50 opacity-100-hover' "/>
+                            <t t-call="website_forum.follow"/>
                         </t>
                     </div>
                 </div>
@@ -160,7 +161,7 @@
                     </div>
                 </div>
                 <!-- 'Search Box' -->
-                <t t-if="question_count or tags" t-call="website.website_search_box_input">
+                <t t-if="question_count or tags">
                     <t t-if="_page_name == 'tags'">
                         <t t-set="search_type" t-value="'forum_tags_only'"/>
                         <t t-set="action" t-value="'/forum/%s/tag' % (_forum_slug)"/>
@@ -174,9 +175,11 @@
                     <t t-set="_form_classes" t-valuef="flex-grow-1"/>
                     <t t-set="_input_classes" t-valuef="border-0 bg-light"/>
                     <t t-set="_submit_classes" t-valuef="btn-light"/>
-                    <input t-if="filters" type="hidden" name="filters" t-att-value="filters"/>
-                    <input t-if="my" type="hidden" name="my" t-att-value="my"/>
-                    <input t-if="sorting" type="hidden" name="sorting" t-att-value="sorting"/>
+                    <t t-call="website.website_search_box_input">
+                        <input t-if="filters" type="hidden" name="filters" t-att-value="filters"/>
+                        <input t-if="my" type="hidden" name="my" t-att-value="my"/>
+                        <input t-if="sorting" type="hidden" name="sorting" t-att-value="sorting"/>
+                    </t>
                 </t>
                 <t t-if="_page_name == 'list_questions'">
                     <t t-set="popover_title">You already have a pending post</t>
@@ -200,15 +203,15 @@
 </template>
 
 <template id="header" name="Forum Index">
-    <t t-call="website_forum.layout">
-        <t t-if="forum and not forum.active">
-            <t t-set="head">
-                <meta name="robots" content="noindex, nofollow" />
-            </t>
-            <div class="text-center text-muted">
-                <p class="css_editable_hidden"><h2>This forum has been archived.</h2></p>
-            </div>
+    <t t-if="forum and not forum.active">
+        <t t-set="head">
+            <meta name="robots" content="noindex, nofollow" />
         </t>
+    </t>
+    <t t-call="website_forum.layout">
+        <div t-if="forum and not forum.active" class="text-center text-muted">
+            <p class="css_editable_hidden"><h2>This forum has been archived.</h2></p>
+        </div>
         <t t-else="">
             <div class="oe_structure" id="oe_structure_website_forum_header_1"/>
             <div id="wrap" t-attf-class="o_wforum_wrapper position-relative container row mx-auto px-0 #{ 'h-100' if forum_welcome_message else ''} #{website_forum_action}">
@@ -218,11 +221,10 @@
                 <t t-call="website_forum.user_sidebar_mobile"/>
                 <div class="o_wforum_content_wrapper col-lg-9">
                     <div class="o_wprofile_email_validation_container d-flex flex-column justify-content-center mb-3 mb-lg-5 pt-2 pt-lg-3">
-                        <t t-call="website_profile.email_validation_banner">
-                            <t t-set="redirect_url" t-value="'/forum/%s' % forum.id if forum else '/forum/all/'"/>
-                            <t t-set="additional_validation_email_message"> and join this Forum</t>
-                            <t t-set="additional_validated_email_message"> You may now participate in our forums.</t>
-                        </t>
+                        <t t-set="redirect_url" t-value="'/forum/%s' % forum.id if forum else '/forum/all/'"/>
+                        <t t-set="additional_validation_email_message"> and join this Forum</t>
+                        <t t-set="additional_validated_email_message"> You may now participate in our forums.</t>
+                        <t t-call="website_profile.email_validation_banner"/>
                         <t t-call="website_forum.forum_model_nav"/>
                         <t t-out="0"/>
                     </div>

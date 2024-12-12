@@ -11,9 +11,8 @@
             <ul t-if="delivery_methods" id="o_delivery_methods" class="list-group">
                 <t t-foreach="delivery_methods" t-as="dm">
                     <li name="o_delivery_method" class="list-group-item text-muted o_outline">
-                        <t t-call="website_sale.delivery_method">
-                            <t t-set="is_selected" t-value="dm.id == selected_dm_id"/>
-                        </t>
+                        <t t-call="website_sale.delivery_method"
+                            t-arg-is_selected="dm.id == selected_dm_id"/>
                     </li>
                 </t>
             </ul>

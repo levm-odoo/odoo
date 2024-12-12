@@ -80,10 +80,9 @@
                t-call="sale_loyalty.used_gift_card"/>
         </xpath>
         <xpath expr="//div[@id='total']" position="after">
-            <t t-call="sale_loyalty.sale_purchased_gift_card">
-                <t t-set="order" t-value="sale_order"/>
-                <t t-set="hide_intro" t-value="1"/>
-            </t>
+            <t t-set="order" t-value="sale_order"/>
+            <t t-set="hide_intro" t-value="1"/>
+            <t t-call="sale_loyalty.sale_purchased_gift_card"/>
         </xpath>
         <xpath expr="//div[@id='total']/*" position="after">
             <t t-call="sale_loyalty.sale_order_portal_loyalty_content" />

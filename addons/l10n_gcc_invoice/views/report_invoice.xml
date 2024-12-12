@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="arabic_english_invoice">
+        <t t-set="o" t-value="o.with_context(lang=lang)" />
+        <t t-set="forced_vat" t-value="o.fiscal_position_id.foreign_vat"/> <!-- So that it appears in the footer of the report instead of the company VAT if it's set -->
+        <t t-set="address">
+            <address t-field="o.partner_id" t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}' style="text-align: right"/>
+            <div t-if="o.partner_id.vat" class="mt16" style="text-align: right">
+                <t t-if="o.company_id.account_fiscal_country_id.vat_label" t-out="o.company_id.account_fiscal_country_id.vat_label" id="inv_tax_id_label"/>
+                <t t-else="">Tax ID</t>: <span t-field="o.partner_id.vat"/></div>
+        </t>
+        <t t-set="o_sec" t-value="o.with_context(lang=o.env['res.lang']._get_code('ar_001'))"/>
+        <t t-set="o" t-value="o.with_context(lang='en_US')"/>
+
         <t t-call="web.external_layout">
-            <t t-set="o" t-value="o.with_context(lang=lang)" />
-            <t t-set="forced_vat" t-value="o.fiscal_position_id.foreign_vat"/> <!-- So that it appears in the footer of the report instead of the company VAT if it's set -->
-            <t t-set="address">
-                <address t-field="o.partner_id" t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}' style="text-align: right"/>
-                <div t-if="o.partner_id.vat" class="mt16" style="text-align: right">
-                    <t t-if="o.company_id.account_fiscal_country_id.vat_label" t-out="o.company_id.account_fiscal_country_id.vat_label" id="inv_tax_id_label"/>
-                    <t t-else="">Tax ID</t>: <span t-field="o.partner_id.vat"/></div>
-            </t>
-
-            <t t-set="o_sec" t-value="o.with_context(lang=o.env['res.lang']._get_code('ar_001'))"/>
-            <t t-set="o" t-value="o.with_context(lang='en_US')"/>
-
             <div class="page">
                 <h3>
                     <div class="row">

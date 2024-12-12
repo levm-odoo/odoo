@@ -106,22 +106,22 @@
 
     <template id="report_invoice_wizard_preview">
         <t t-call="web.html_preview_container">
+            <t t-set="address">
+                <address class="mb-0" itemscope="itemscope"
+                        itemtype="http://schema.org/Organization">
+                    <div>
+                        <span itemprop="name">Deco Addict</span>
+                    </div>
+                    <div itemprop="address" itemscope="itemscope"
+                        itemtype="http://schema.org/PostalAddress">
+                        <div class="d-flex align-items-baseline">
+                            <span class="w-100 o_force_ltr" itemprop="streetAddress">77 Santa Barbara
+                                Rd<br/>Pleasant Hill CA 94523<br/>United States</span>
+                        </div>
+                    </div>
+                </address>
+            </t>
            <t t-call="web.external_layout">
-                   <t t-set="address">
-                       <address class="mb-0" itemscope="itemscope"
-                                itemtype="http://schema.org/Organization">
-                           <div>
-                               <span itemprop="name">Deco Addict</span>
-                           </div>
-                           <div itemprop="address" itemscope="itemscope"
-                                itemtype="http://schema.org/PostalAddress">
-                               <div class="d-flex align-items-baseline">
-                                   <span class="w-100 o_force_ltr" itemprop="streetAddress">77 Santa Barbara
-                                       Rd<br/>Pleasant Hill CA 94523<br/>United States</span>
-                               </div>
-                           </div>
-                       </address>
-                   </t>
                    <div class="page">
                        <t t-set="layout_document_title">
                            <span>Invoice</span>
@@ -717,9 +717,8 @@
              t-att-data-oe-id="o and o.id"
              t-att-data-oe-lang="o and o.env.context.get('lang')">
             <div t-att-class="not information_block and 'd-flex justify-content-between align-items-end'">
-                <t t-call="web.address_layout">
-                    <t t-set="custom_layout_address" t-value="true"/>
-                </t>
+                <t t-set="custom_layout_address" t-value="true"/>
+                <t t-call="web.address_layout"/>
                 <h2 t-attf-class="{{not information_block and 'mb-4'}} text-end" t-out="layout_document_title"/>
             </div>
             <t t-out="0"/>
@@ -800,8 +799,8 @@
     </template>
 
     <template id="basic_layout">
+        <t t-if="not o" t-set="o" t-value="doc"/>
         <t t-call="web.html_container">
-            <t t-if="not o" t-set="o" t-value="doc"/>
             <div class="article" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')">
                 <t t-out="0"/>
             </div>
@@ -812,8 +811,8 @@
     <!-- Demo reports definition -->
     <template id="preview_internalreport">
         <t t-set="company" t-value="env.company"/>
+        <t t-set="o" t-value="res_company"/>
         <t t-call="web.html_container">
-            <t t-set="o" t-value="res_company"/>
             <t t-call="web.internal_layout">
                 <div class="page">
                     <p>This is a sample of an internal report.</p>
@@ -823,8 +822,8 @@
     </template>
     <template id="preview_externalreport">
         <t t-set="company" t-value="env.company"/>
+        <t t-set="o" t-value="res_company"/>
         <t t-call="web.html_container">
-            <t t-set="o" t-value="res_company"/>
             <t t-call="web.external_layout">
                 <div class="page">
                     <p>This is a sample of an external report.</p>
@@ -835,8 +834,8 @@
 
     <template id="preview_layout_report">
         <t t-set="company" t-value="env.company"/>
+        <t t-set="o" t-value="res_company"/>
         <t t-call="web.html_container">
-            <t t-set="o" t-value="res_company"/>
             <t t-call="web.report_invoice_wizard_preview"/>
         </t>
     </template>

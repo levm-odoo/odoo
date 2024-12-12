@@ -255,10 +255,9 @@
 </template>
 
 <template id="snippet_options_border_widgets">
-    <t t-call="mass_mailing.snippet_options_border_line_widgets">
-        <t t-set="label">Border</t>
-        <t t-set="with_bs_class" t-value="True"/>
-    </t>
+    <t t-set="label">Border</t>
+    <t t-call="mass_mailing.snippet_options_border_line_widgets"
+        t-arg-with_bs_class="True"/>
     <we-input string="Round Corners"
             t-att-data-apply-to="apply_to"
             t-att-data-dependencies="not so_rounded_no_dependencies and 'border_width_opt,bg_color_opt'"
@@ -295,10 +294,9 @@
                 <we-button data-select-class="float-end" title="Align Right">Right</we-button>
             </we-select>
 
-            <t t-call="mass_mailing.snippet_options_border_line_widgets">
-                <t t-set="label">Border</t>
-                <t t-set="with_bs_class" t-value="True"></t>
-            </t>
+            <t t-set="label">Border</t>
+            <t t-call="mass_mailing.snippet_options_border_line_widgets"
+                t-arg-with_bs_class="True"/>
 
             <we-input string="Round Corners"
             data-select-style="0" data-css-property="border-radius"
@@ -458,12 +456,11 @@
     </div>
 
     <!-- Allow changing background images in Masonry and Cover -->
-    <t t-call="mass_mailing.snippet_options_background_options">
-        <t t-set="selector" t-value="'.s_masonry_block .row > div, .s_cover .oe_img_bg'"/>
-        <t t-set="with_images" t-value="True"/>
-        <t t-set="with_videos" t-value="false"/>
-        <t t-set="with_shapes" t-value="false"/>
-    </t>
+    <t t-call="mass_mailing.snippet_options_background_options"
+        t-arg-selector="'.s_masonry_block .row > div, .s_cover .oe_img_bg'"
+        t-arg-with_images="True"
+        t-arg-with_videos="false"
+        t-arg-with_shapes="false"/>
 
     <!-- COLOR | .s_three_columns | .s_comparisons | .s_event  -->
     <div data-js="Box"
@@ -479,16 +476,14 @@
     <div data-js="Box"
          data-selector=".s_three_columns .row > div, .s_comparisons .row > div, .s_mail_block_event .row > div"
          data-target=".card">
-        <t t-call="mass_mailing.snippet_options_border_widgets">
-            <t t-set="so_rounded_no_dependencies" t-value="True"/>
-        </t>
+        <t t-call="mass_mailing.snippet_options_border_widgets"
+            t-arg-so_rounded_no_dependencies="True"/>
     </div>
     <!-- COLOR, BORDER | .o_mail_block_discount2 -->
     <div data-js="Box"
          data-selector=".o_mail_block_discount2"
          data-target="table">
-        <t t-call="mass_mailing.snippet_options_border_widgets">
-        </t>
+        <t t-call="mass_mailing.snippet_options_border_widgets"/>
     </div>
 
     <!--  Vertical Alignment -->

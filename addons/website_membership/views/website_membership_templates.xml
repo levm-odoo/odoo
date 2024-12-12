@@ -2,8 +2,8 @@
 <odoo>
 
 <template id="index" name="Members">
+    <t t-set="additional_title">Members</t>
     <t t-call="website.layout">
-        <t t-set="additional_title">Members</t>
         <div id="wrap">
             <div class="oe_structure">
                 <section>
@@ -34,13 +34,11 @@
             </div>
             <div class="col-lg-8" id="ref_content">
                 <div class='d-flex m-2'>
-                    <t t-call="website.pager">
-                       <t t-set="classname" t-valuef="float-start"/>
-                    </t>
+                    <t t-set="classname" t-valuef="float-start"/>
+                    <t t-call="website.pager"/>
                     <form action="" method="get" class="navbar-search ms-auto pagination">
-                        <t t-call="website.website_search_box">
-                            <t t-set="search" t-value="post.get('search', '')"/>
-                        </t>
+                        <t t-set="search" t-value="post.get('search', '')"/>
+                        <t t-call="website.website_search_box"/>
                     </form>
                 </div>
                 <div>

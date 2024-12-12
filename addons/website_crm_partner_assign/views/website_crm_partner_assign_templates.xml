@@ -3,8 +3,8 @@
 
 <!-- Page -->
 <template id="layout" name="Partners Layout">
+    <t t-set="additional_title">Resellers</t>
     <t t-call="website.layout">
-        <t t-set="additional_title">Resellers</t>
         <div id="wrap">
             <t t-set="editor_message">DROP BUILDING BLOCKS HERE TO MAKE THEM AVAILABLE ACROSS ALL RESELLERS</t>
             <div class="oe_structure oe_empty" id="oe_structure_website_crm_partner_assign_layout_1" t-att-data-editor-message="editor_message"/>
@@ -149,10 +149,9 @@
                 <t t-if="last_grade != partner.grade_id.id">
                     <h5 class="mt-4 mb-2 col-12">
                         <span t-field="partner.grade_id"/> Resellers
-                        <t t-call="website.publish_management">
-                            <t t-set="object" t-value="partner.grade_id"/>
-                            <t t-set="publish_edit" t-value="True"/>
-                        </t>
+                        <t t-set="object" t-value="partner.grade_id"/>
+                        <t t-set="publish_edit" t-value="True"/>
+                        <t t-call="website.publish_management"/>
                     </h5>
                     <t t-set="last_grade" t-value="partner.grade_id.id"/>
                 </t>
@@ -182,9 +181,8 @@
                 </div>
             </t>
             <div class="navbar">
-                <t t-call="website.pager">
-                   <t t-set="classname" t-valuef="mx-auto"/>
-                </t>
+                <t t-set="classname" t-valuef="mx-auto"/>
+                <t t-call="website.pager"/>
             </div>
         </div>
     </t>
@@ -236,11 +234,10 @@
         <div t-if="not edit_page" class="mb-3">
             <a t-attf-href="/partners#{current_grade and '/grade/%s' % slug(current_grade)}#{current_country and '/country/%s' % slug(current_country)}" aria-label="Back to resellers list"><i class="fa fa-chevron-left me-2"/>Back to resellers</a>
         </div>
-        <t t-call="website_partner.partner_detail">
-            <t t-set="right_column">
-                <div id="right_column"><t t-call="website_crm_partner_assign.references_block"/></div>
-            </t>
+        <t t-set="right_column">
+            <div id="right_column"><t t-call="website_crm_partner_assign.references_block"/></div>
         </t>
+        <t t-call="website_partner.partner_detail"/>
     </t>
 </template>
 
@@ -302,31 +299,28 @@
             <t t-set="portal_vendor_category_enable" t-value="True"/>
         </xpath>
         <div id="portal_vendor_category" position="inside">
-            <t t-call="portal.portal_docs_entry">
-                <t t-set="icon" t-value="'/website_crm_partner_assign/static/src/img/leads.svg'"/>
-                <t t-set="text">Follow and convert your leads</t>
-                <t t-set="title">Leads</t>
-                <t t-set="url" t-value="'/my/leads'"/>
-                <t t-set="placeholder_count" t-value="'lead_count'"/>
-            </t>
-            <t t-call="portal.portal_docs_entry">
-                <t t-set="icon" t-value="'/website_crm_partner_assign/static/src/img/quotation.svg'"/>
-                <t t-set="text">Follow and convert your opportunities</t>
-                <t t-set="title">Opportunities</t>
-                <t t-set="url" t-value="'/my/opportunities'"/>
-                <t t-set="placeholder_count" t-value="'opp_count'"/>
-                <t t-set="config_card" t-value="request.env.user.partner_id.grade_id or request.env.user.commercial_partner_id.grade_id"/>
-            </t>
+            <t t-set="icon" t-value="'/website_crm_partner_assign/static/src/img/leads.svg'"/>
+            <t t-set="text">Follow and convert your leads</t>
+            <t t-set="title">Leads</t>
+            <t t-set="url" t-value="'/my/leads'"/>
+            <t t-set="placeholder_count" t-value="'lead_count'"/>
+            <t t-call="portal.portal_docs_entry"/>
+            <t t-set="icon" t-value="'/website_crm_partner_assign/static/src/img/quotation.svg'"/>
+            <t t-set="text">Follow and convert your opportunities</t>
+            <t t-set="title">Opportunities</t>
+            <t t-set="url" t-value="'/my/opportunities'"/>
+            <t t-set="placeholder_count" t-value="'opp_count'"/>
+            <t t-set="config_card" t-value="request.env.user.partner_id.grade_id or request.env.user.commercial_partner_id.grade_id"/>
+            <t t-call="portal.portal_docs_entry"/>
         </div>
     </template>
 
     <template id="portal_my_leads" name="My Leads">
+        <t t-set="breadcrumbs_searchbar" t-value="True"/>
         <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs_searchbar" t-value="True"/>
 
-            <t t-call="portal.portal_searchbar">
-                <t t-set="title">Leads</t>
-            </t>
+            <t t-set="title">Leads</t>
+            <t t-call="portal.portal_searchbar"/>
             <div t-if="not leads" class="alert alert-warning" role="alert">
                 There are no leads.
             </div>
@@ -356,12 +350,11 @@
     </template>
 
     <template id="portal_my_opportunities" name="My Opportunities">
+        <t t-set="breadcrumbs_searchbar" t-value="True"/>
+        <t t-set="title">Opportunities</t>
         <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs_searchbar" t-value="True"/>
 
             <t t-call="portal.portal_searchbar">
-                <t t-set="title">Opportunities</t>
-
                 <div t-if="request.env.user.partner_id.grade_id or request.env.user.commercial_partner_id.grade_id">
                     <button class="btn btn-primary" name='new_opp' data-bs-toggle="modal" data-bs-target=".modal_new_opp" title="Add an opportunity" aria-label="Add an opportunity">
                         Create Opportunity
@@ -601,9 +594,8 @@
             <div>
                 <h3>Communication history</h3>
                 <div>
-                    <t t-call="portal.message_thread">
-                        <t t-set="object" t-value="lead"/>
-                    </t>
+                    <t t-set="object" t-value="lead"/>
+                    <t t-call="portal.message_thread"/>
                 </div>
             </div>
         </t>
@@ -904,9 +896,8 @@
             <div>
                 <h3>Communication history</h3>
                 <div>
-                    <t t-call="portal.message_thread">
-                        <t t-set="object" t-value="opportunity"/>
-                    </t>
+                    <t t-set="object" t-value="opportunity"/>
+                    <t t-call="portal.message_thread"/>
                 </div>
             </div>
         </t>

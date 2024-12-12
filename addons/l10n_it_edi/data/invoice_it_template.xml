@@ -81,10 +81,9 @@
                 </Anagrafica>
                 <RegimeFiscale t-out="regime_fiscale"/>
             </DatiAnagrafici>
-            <t t-call="l10n_it_edi.account_invoice_it_FatturaPA_sede">
-                <t t-set="partner" t-value="seller"/>
-                <t t-set="partner_info" t-value="seller_info"/>
-            </t>
+            <t t-set="partner" t-value="seller"/>
+            <t t-set="partner_info" t-value="seller_info"/>
+            <t t-call="l10n_it_edi.account_invoice_it_FatturaPA_sede"/>
             <IscrizioneREA t-if="not is_self_invoice and company.l10n_it_has_eco_index">
                 <Ufficio t-out="company.l10n_it_eco_index_office.code"/>
                 <NumeroREA t-out="format_alphanumeric(company.l10n_it_eco_index_number)"/>
@@ -128,10 +127,9 @@
                     </t>
                 </Anagrafica>
             </DatiAnagrafici>
-            <t t-call="l10n_it_edi.account_invoice_it_FatturaPA_sede">
-                <t t-set="partner" t-value="buyer"/>
-                <t t-set="partner_info" t-value="buyer_info"/>
-            </t>
+            <t t-set="partner" t-value="buyer"/>
+            <t t-set="partner_info" t-value="buyer_info"/>
+            <t t-call="l10n_it_edi.account_invoice_it_FatturaPA_sede"/>
         </CessionarioCommittente>
     </FatturaElettronicaHeader>
     <FatturaElettronicaBody>

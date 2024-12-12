@@ -43,10 +43,9 @@
                             <Nome t-out="format_alphanumeric(seller_info['first_name'], 60)"/>
                             <Cognome t-out="format_alphanumeric(seller_info['last_name'], 60)"/>
                         </t>
-                        <t t-call="l10n_it_edi.account_invoice_it_FatturaPA_sede">
-                            <t t-set="partner" t-value="seller"/>
-                            <t t-set="partner_info" t-value="seller_info"/>
-                        </t>
+                        <t t-set="partner" t-value="seller"/>
+                        <t t-set="partner_info" t-value="seller_info"/>
+                        <t t-call="l10n_it_edi.account_invoice_it_FatturaPA_sede"/>
                         <RappresentanteFiscale t-if="seller.l10n_it_has_tax_representative">
                             <IdFiscaleIVA>
                                 <IdPaese t-out="representative_info['country_code']"/>

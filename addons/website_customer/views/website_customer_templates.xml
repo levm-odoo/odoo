@@ -154,9 +154,8 @@
                     </t>
                 </div>
                 <div class="navbar">
-                    <t t-call="website.pager">
-                        <t t-set="classname" t-value="'mx-auto'"/>
-                    </t>
+                    <t t-set="classname" t-value="'mx-auto'"/>
+                    <t t-call="website.pager"/>
                 </div>
             </div>
         </div>
@@ -260,11 +259,10 @@
                 <div class="mb-3" t-if="not edit_page">
                     <a t-attf-href="/customers" aria-label="Back to references list"><i class="fa fa-chevron-left me-2"/>Back to references</a>
                 </div>
-                <t t-call="website_partner.partner_detail">
-                    <t t-set="right_column">
-                        <div id="right_column"><t t-call="website_customer.references_block"/></div>
-                    </t>
+                <t t-set="right_column">
+                    <div id="right_column"><t t-call="website_customer.references_block"/></div>
                 </t>
+                <t t-call="website_partner.partner_detail"/>
             </div>
         </div>
         <div class="oe_structure oe_empty" id="oe_structure_website_customer_details_2" t-att-data-editor-message="editor_message"/>

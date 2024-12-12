@@ -269,9 +269,7 @@
             <xpath expr="//*[local-name()='CreditNoteLine']" position="replace">
                 <t xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2">
                     <cac:InvoiceLine t-foreach="vals.get('line_vals', [])" t-as="foreach_vals">
-                        <t t-call="{{InvoiceLineType_template}}">
-                            <t t-set="vals" t-value="foreach_vals"/>
-                        </t>
+                        <t t-call="{{InvoiceLineType_template}}" t-arg-vals="foreach_vals"/>
                     </cac:InvoiceLine>
                 </t>
             </xpath>
@@ -327,9 +325,7 @@
             <xpath expr="//*[local-name()='DebitNoteLine']" position="replace">
                 <t xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2">
                     <cac:InvoiceLine t-foreach="vals.get('line_vals', [])" t-as="foreach_vals">
-                        <t t-call="{{InvoiceLineType_template}}">
-                            <t t-set="vals" t-value="foreach_vals"/>
-                        </t>
+                        <t t-call="{{InvoiceLineType_template}}" t-arg-vals="foreach_vals"/>
                     </cac:InvoiceLine>
                 </t>
             </xpath>
@@ -337,9 +333,7 @@
             <xpath expr="//*[local-name()='RequestedMonetaryTotal']" position="replace">
                 <t xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2">
                     <cac:LegalMonetaryTotal>
-                        <t t-call="{{MonetaryTotalType_template}}">
-                            <t t-set="vals" t-value="vals.get('monetary_total_vals', {})"/>
-                        </t>
+                        <t t-call="{{MonetaryTotalType_template}}" t-arg-vals="vals.get('monetary_total_vals', {})"/>
                     </cac:LegalMonetaryTotal>
                 </t>
             </xpath>

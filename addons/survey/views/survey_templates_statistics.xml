@@ -323,8 +323,8 @@
                             </td>
                             <td><span t-esc="common_line[1]"></span></td>
                             <td t-if="question.is_scored_question">
+                                <t t-set="value_to_format" t-value="question.answer_score"/>
                                 <span t-if="right_answer" t-call="survey.survey_remove_unnecessary_decimals">
-                                    <t t-set="value_to_format" t-value="question.answer_score"/>
                                 </span>
                                 <span t-else="">0</span>
                             </td>
@@ -405,8 +405,8 @@
                         <tr t-foreach="table_data" t-as="choice_data">
                             <td>
                                 <p class="text-nowrap my-0">
+                                    <t t-set="value_to_format" t-value="choice_data['value']"/>
                                     <span t-if="question.question_type == 'numerical_box'" t-call="survey.survey_remove_unnecessary_decimals">
-                                        <t t-set="value_to_format" t-value="choice_data['value']"/>
                                     </span>
                                     <span t-else="" t-esc="choice_data['value']"/>
                                     <i t-if="question.is_scored_question and choice_data['suggested_answer'].is_correct" class="fa fa-check"/>
@@ -425,8 +425,8 @@
                                     data-model-short-key="A" t-att-data-record-id="choice_data['suggested_answer'].id"
                                     role="img" aria-label="Filter surveys" title="Only show survey results having selected this answer"/>
                             </td>
+                            <t t-set="value_to_format" t-value="choice_data['suggested_answer'].answer_score"/>
                             <td t-if="question.is_scored_question" t-call="survey.survey_remove_unnecessary_decimals">
-                                <t t-set="value_to_format" t-value="choice_data['suggested_answer'].answer_score"/>
                             </td>
                         </tr>
                     </tbody>
