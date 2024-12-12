@@ -13,6 +13,7 @@ class IrActionsServer(models.Model):
     _description = 'Server Action'
     _inherit = ['ir.actions.server']
 
+    warning_msg = fields.Text(string='Warning Message', help="Warning message to display to the user.", compute='_compute_warning_msg')
     state = fields.Selection(
         selection_add=[
             ('next_activity', 'Create Activity'),
@@ -187,6 +188,28 @@ class IrActionsServer(models.Model):
                 action.activity_user_type = 'specific'
             if not action.activity_user_field_name:
                 action.activity_user_field_name = 'user_id'
+
+    @api.depends('followers_partner_field_name', 'activity_user_field_name')
+    def _compute_warning_msg(self):
+        to_check = self.filtered(
+            lambda act: act.followers_partner_field_name or act.activity_user_field_name
+        )
+        self.warning_msg = False
+        for action in to_check:
+            if action.state in ('followers', 'remove_followers'):
+                fields, field_chain_str = action._get_relation_chain("followers_partner_field_name")
+                if fields and fields[-1].comodel_name != "res.partner":
+                    action.warning_msg = _(
+                        "The field '%(field_chain_str)s' is not a partner field.",
+                        field_chain_str=field_chain_str,
+                    )
+            elif action.state == 'next_activity':
+                fields, field_chain_str = action._get_relation_chain("activity_user_field_name")
+                if fields and fields[-1].comodel_name != "res.users":
+                    action.warning_msg = _(
+                        "The field '%(field_chain_str)s' is not a user field.",
+                        field_chain_str=field_chain_str,
+                    )
 
     @api.constrains('activity_date_deadline_range')
     def _check_activity_date_deadline_range(self):
