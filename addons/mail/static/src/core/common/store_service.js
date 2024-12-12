@@ -357,10 +357,6 @@ export class Store extends BaseStore {
                 }
             });
             return true;
-        } else if (ev.target.closest(".o_mail_redirect") && id) {
-            ev.preventDefault();
-            this.openChat({ partnerId: id });
-            return true;
         } else if (ev.target.tagName === "A" && model && id) {
             ev.preventDefault();
             Promise.resolve(
