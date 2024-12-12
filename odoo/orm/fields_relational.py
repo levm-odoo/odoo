@@ -66,9 +66,9 @@ class _Relational(Field[M], typing.Generic[M]):
         """
         raise NotImplementedError
 
-    def setup_nonrelated(self, model):
-        super().setup_nonrelated(model)
-        if self.comodel_name not in model.pool:
+    def setup_nonrelated(self, model_class):
+        super().setup_nonrelated(model_class)
+        if self.comodel_name not in model_class._register_pool:
             _logger.warning("Field %s with unknown comodel_name %r", self, self.comodel_name)
             self.comodel_name = '_unknown'
 
@@ -179,16 +179,16 @@ class Many2one(_Relational[M]):
         if self.delegate:
             self.auto_join = True
 
-    def setup_nonrelated(self, model):
-        super().setup_nonrelated(model)
+    def setup_nonrelated(self, model_class):
+        super().setup_nonrelated(model_class)
         # 3 cases:
         # 1) The ondelete attribute is not defined, we assign it a sensible default
         # 2) The ondelete attribute is defined and its definition makes sense
         # 3) The ondelete attribute is explicitly defined as 'set null' for a required m2o,
         #    this is considered a programming error.
         if not self.ondelete:
-            comodel = model.env[self.comodel_name]
-            if model.is_transient() and not comodel.is_transient():
+            comodel = model_class._register_pool[self.comodel_name]
+            if model_class.is_transient() and not comodel.is_transient():
                 # Many2one relations from TransientModel Model are annoying because
                 # they can block deletion due to foreign keys. So unless stated
                 # otherwise, we default them to ondelete='cascade'.
@@ -199,11 +199,11 @@ class Many2one(_Relational[M]):
             raise ValueError(
                 "The m2o field %s of model %s is required but declares its ondelete policy "
                 "as being 'set null'. Only 'restrict' and 'cascade' make sense."
-                % (self.name, model._name)
+                % (self.name, model_class._name)
             )
         if self.ondelete == 'restrict' and self.comodel_name in IR_MODELS:
             raise ValueError(
-                f"Field {self.name} of model {model._name} is defined as ondelete='restrict' "
+                f"Field {self.name} of model {model_class._name} is defined as ondelete='restrict' "
                 f"while having {self.comodel_name} as comodel, the 'restrict' mode is not "
                 f"supported for this type of field as comodel."
             )
@@ -642,11 +642,12 @@ class One2many(_RelationalMulti[M]):
             **kwargs
         )
 
-    def setup_nonrelated(self, model):
-        super(One2many, self).setup_nonrelated(model)
+    def setup_nonrelated(self, model_class):
+        super().setup_nonrelated(model_class)
         if self.inverse_name:
             # link self to its inverse field and vice-versa
-            comodel = model.env[self.comodel_name]
+            pool = model_class._register_pool
+            comodel = pool[self.comodel_name]
             try:
                 invf = comodel._fields[self.inverse_name]
             except KeyError:
@@ -654,8 +655,8 @@ class One2many(_RelationalMulti[M]):
             if isinstance(invf, (Many2one, Many2oneReference)):
                 # setting one2many fields only invalidates many2one inverses;
                 # integer inverses (res_model/res_id pairs) are not supported
-                model.pool.field_inverses.add(self, invf)
-            comodel.pool.field_inverses.add(invf, self)
+                pool.field_inverses.add(self, invf)
+            pool.field_inverses.add(invf, self)
 
     _description_relation_field = property(attrgetter('inverse_name'))
 
@@ -964,8 +965,8 @@ class Many2many(_RelationalMulti[M]):
             **kwargs
         )
 
-    def setup_nonrelated(self, model):
-        super().setup_nonrelated(model)
+    def setup_nonrelated(self, model_class):
+        super().setup_nonrelated(model_class)
         # 2 cases:
         # 1) The ondelete attribute is defined and its definition makes sense
         # 2) The ondelete attribute is explicitly defined as 'set null' for a m2m,
@@ -974,23 +975,23 @@ class Many2many(_RelationalMulti[M]):
             raise ValueError(
                 "The m2m field %s of model %s declares its ondelete policy "
                 "as being %r. Only 'restrict' and 'cascade' make sense."
-                % (self.name, model._name, self.ondelete)
+                % (self.name, model_class._name, self.ondelete)
             )
         if self.store:
             if not (self.relation and self.column1 and self.column2):
                 if not self.relation:
                     self._explicit = False
                 # table name is based on the stable alphabetical order of tables
-                comodel = model.env[self.comodel_name]
+                comodel = model_class._register_pool[self.comodel_name]
                 if not self.relation:
-                    tables = sorted([model._table, comodel._table])
+                    tables = sorted([model_class._table, comodel._table])
                     assert tables[0] != tables[1], \
                         "%s: Implicit/canonical naming of many2many relationship " \
                         "table is not possible when source and destination models " \
                         "are the same" % self
                     self.relation = '%s_%s_rel' % tuple(tables)
                 if not self.column1:
-                    self.column1 = '%s_id' % model._table
+                    self.column1 = '%s_id' % model_class._table
                 if not self.column2:
                     self.column2 = '%s_id' % comodel._table
             # check validity of table name
@@ -999,7 +1000,8 @@ class Many2many(_RelationalMulti[M]):
             self.relation = self.column1 = self.column2 = None
 
         if self.relation:
-            m2m = model.pool._m2m
+            pool = model_class._register_pool
+            m2m = pool._m2m
 
             # check whether other fields use the same schema
             fields = m2m[(self.relation, self.column1, self.column2)]
@@ -1010,7 +1012,7 @@ class Many2many(_RelationalMulti[M]):
                     self._explicit and field._explicit
                 ) or (  # different models: one model must be _auto=False
                     self.model_name != field.model_name and
-                    not (model._auto and model.env[field.model_name]._auto)
+                    not (model_class._auto and pool[field.model_name]._auto)
                 ):
                     continue
                 msg = "Many2many fields %s and %s use the same table and columns"
@@ -1019,8 +1021,8 @@ class Many2many(_RelationalMulti[M]):
 
             # retrieve inverse fields, and link them in field_inverses
             for field in m2m[(self.relation, self.column2, self.column1)]:
-                model.pool.field_inverses.add(self, field)
-                model.pool.field_inverses.add(field, self)
+                pool.field_inverses.add(self, field)
+                pool.field_inverses.add(field, self)
 
     def update_db(self, model, columns):
         cr = model._cr

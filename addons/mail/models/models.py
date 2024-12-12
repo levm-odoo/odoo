@@ -18,10 +18,11 @@ class Base(models.AbstractModel):
     _inherit = 'base'
     _mail_defaults_to_email = False
 
-    def _valid_field_parameter(self, field, name):
+    @classmethod
+    def _valid_field_parameter(cls, field, name):
         # allow tracking on abstract models; see also 'mail.thread'
         return (
-            name == 'tracking' and self._abstract
+            (name == 'tracking' and cls._abstract)
             or super()._valid_field_parameter(field, name)
         )
 

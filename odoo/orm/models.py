@@ -204,16 +204,35 @@ class MetaModel(api.Meta):
     """ The metaclass of all model classes.
         Its main purpose is to register the models per module.
     """
-    module_to_models = defaultdict(list)
+    module_to_models: defaultdict[str, list[MetaModel]] = defaultdict(list)
+
+    _name: str
+    _inherit: Sequence[str]
+    _module: str
+    _abstract: bool
+
+    _register: bool
+    _register_pool: Registry | None
+    """Reference to the registry for registry classes, otherwise it is a definition class."""
+
+    __base_classes: tuple[MetaModel, ...]
+
+    _fields: dict[str, Field]
 
     def __new__(meta, name, bases, attrs):
+        if not all(isinstance(base, MetaModel) or base is object for base in bases):
+            raise TypeError(f"All superclasses of {name!r} must be a sub-type of Model")
+
         # this prevents assignment of non-fields on recordsets
         attrs.setdefault('__slots__', ())
         # this collects the fields defined on the class (via Field.__set_name__())
         attrs.setdefault('_field_definitions', [])
         # this collects the table object definitions on the class (via TableObject.__set_name__())
         attrs.setdefault('_table_object_definitions', [])
+        # the class is a definition class until it is registered
+        attrs.setdefault('_register_pool', None)
 
+        # _register is used for base classes that are not visible in the registry
         if attrs.get('_register', True):
             # determine '_module'
             if '_module' not in attrs:
@@ -226,7 +245,9 @@ class MetaModel(api.Meta):
             if _inherit and isinstance(_inherit, str):
                 # TODO: add an exception: TypeError(f"'_inherit' property of model {name!r} should be a list: {_inherit!r}.")
                 attrs.setdefault('_name', _inherit)
-                attrs['_inherit'] = [_inherit]
+                attrs['_inherit'] = (_inherit,)
+            elif not _inherit:
+                attrs['_inherit'] = ()
 
             if not attrs.get('_name'):
                 attrs['_name'] = class_name_to_model_name(name)
@@ -271,6 +292,380 @@ class MetaModel(api.Meta):
                     'res.users', string='Last Updated by', readonly=True))
                 add_default('write_date', Datetime(
                     string='Last Updated on', readonly=True))
+
+    #
+    # Goal: try to apply inheritance at the instantiation level and
+    #       put objects in the pool var
+    #
+    def _build_model(cls, pool: Registry, cr):
+        """ Instantiate a given model in the registry.
+
+        This method creates or extends a "registry" class for the given model.
+        This "registry" class carries inferred model metadata, and inherits (in
+        the Python sense) from all classes that define the model, and possibly
+        other registry classes.
+        """
+        if hasattr(cls, '_constraints'):
+            _logger.warning("Model attribute '_constraints' is no longer supported, "
+                            "please use @api.constrains on methods instead.")
+        if hasattr(cls, '_sql_constraints'):
+            _logger.warning("Model attribute '_sql_constraints' is no longer supported, "
+                            "please define model.Constraint on the model.")
+
+        # all models except 'base' implicitly inherit from 'base'
+        name = cls._name
+        if name == 'base':
+            parents = cls._inherit
+        else:
+            parents = (*cls._inherit, 'base')
+
+        # create or retrieve the model's class
+        if name in parents:
+            if name not in pool:
+                raise TypeError("Model %r does not exist in registry." % name)
+            ModelClass = pool[name]
+            ModelClass._build_model_check_base(cls)
+            check_parent = ModelClass._build_model_check_parent
+        else:
+            ModelClass = type(name, (cls,), {
+                '_name': name,
+                '_register': False,
+                '_original_module': cls._module,
+                '_inherit_module': {},                  # map parent to introducing module
+                '_inherit_children': OrderedSet(),      # names of children models
+                '_inherits_children': set(),            # names of children models
+                '_fields': {},                          # populated in _setup_base()
+                '_table_objects': frozendict(),         # populated in _setup_base()
+            })
+            check_parent = cls._build_model_check_parent
+
+        # determine all the classes the model should inherit from
+        bases = LastOrderedSet([cls])
+        for parent in parents:
+            if parent not in pool:
+                raise TypeError("Model %r inherits from non-existing model %r." % (name, parent))
+            parent_class = pool[parent]
+            if parent == name:
+                for base in parent_class.__base_classes:
+                    bases.add(base)
+            else:
+                check_parent(cls, parent_class)
+                bases.add(parent_class)
+                ModelClass._inherit_module[parent] = cls._module
+                parent_class._inherit_children.add(name)
+
+        # ModelClass.__bases__ must be assigned those classes; however, this
+        # operation is quite slow, so we do it once in method _prepare_setup()
+        ModelClass.__base_classes = tuple(bases)
+
+        # determine the attributes of the model's class
+        ModelClass._build_model_attributes(pool)
+
+        check_pg_name(ModelClass._table)
+
+        # Transience
+        if ModelClass._transient:
+            assert ModelClass._log_access, (
+                "TransientModels must have log_access turned on, "
+                "in order to implement their vacuum policy"
+            )
+
+        # link the class to the registry, and update the registry
+        ModelClass._register_pool = pool
+        pool[name] = ModelClass
+
+        return ModelClass
+
+    def _build_model_check_base(model_class, cls):
+        """ Check whether ``model_class`` can be extended with ``cls``. """
+        if model_class._abstract and not cls._abstract:
+            msg = ("%s transforms the abstract model %r into a non-abstract model. "
+                   "That class should either inherit from AbstractModel, or set a different '_name'.")
+            raise TypeError(msg % (cls, model_class._name))
+        if model_class._transient != cls._transient:
+            if model_class._transient:
+                msg = ("%s transforms the transient model %r into a non-transient model. "
+                       "That class should either inherit from TransientModel, or set a different '_name'.")
+            else:
+                msg = ("%s transforms the model %r into a transient model. "
+                       "That class should either inherit from Model, or set a different '_name'.")
+            raise TypeError(msg % (cls, model_class._name))
+
+    def _build_model_check_parent(model_class, cls, parent_class):
+        """ Check whether ``model_class`` can inherit from ``parent_class``. """
+        if model_class._abstract and not parent_class._abstract:
+            msg = ("In %s, the abstract model %r cannot inherit from the non-abstract model %r.")
+            raise TypeError(msg % (cls, model_class._name, parent_class._name))
+
+    def _build_model_attributes(cls, pool):
+        """ Initialize base model attributes. """
+        cls._description = cls._name
+        cls._table = cls._name.replace('.', '_')
+        cls._log_access = cls._auto
+        inherits = {}
+        depends = {}
+
+        for base in reversed(cls.__base_classes):
+            if base._register_pool is None:
+                # the following attributes are not taken from registry classes
+                if cls._name not in base._inherit and not base._description:
+                    _logger.warning("The model %s has no _description", cls._name)
+                cls._description = base._description or cls._description
+                cls._table = base._table or cls._table
+                cls._log_access = getattr(base, '_log_access', cls._log_access)
+
+            inherits.update(base._inherits)
+
+            for mname, fnames in base._depends.items():
+                depends.setdefault(mname, []).extend(fnames)
+
+        # avoid assigning an empty dict to save memory
+        if inherits:
+            cls._inherits = inherits
+        if depends:
+            cls._depends = depends
+
+        # update _inherits_children of parent models
+        for parent_name in cls._inherits:
+            pool[parent_name]._inherits_children.add(cls._name)
+
+        # recompute attributes of _inherit_children models
+        for child_name in cls._inherit_children:
+            child_class = pool[child_name]
+            child_class._build_model_attributes(pool)
+
+    def _add_field(cls, name, field):
+        """ Add the given ``field`` under the given ``name`` in the class """
+
+        # Assert the name is an existing field in the model, or any model in the _inherits
+        # or a custom field (starting by `x_`)
+        pool = cls._register_pool
+        is_class_field = any(
+            isinstance(getattr(model, name, None), Field)
+            for model in [cls] + [pool[inherit] for inherit in cls._inherits]
+        )
+        if not (is_class_field or pool['ir.model.fields']._is_manual_name(name)):
+            raise ValidationError(  # pylint: disable=missing-gettext
+                f"The field `{name}` is not defined in the `{cls._name}` Python class and does not start with 'x_'"
+            )
+
+        # Assert the attribute to assign is a Field
+        if not isinstance(field, Field):
+            raise ValidationError("You can only add `fields.Field` objects to a model fields")  # pylint: disable=missing-gettext
+
+        if not isinstance(getattr(cls, name, field), Field):
+            _logger.warning("In model %r, field %r overriding existing value", cls._name, name)
+        setattr(cls, name, field)
+        field._toplevel = True
+        field.__set_name__(cls, name)
+        cls._fields[name] = field
+
+    def _pop_field(cls, name):
+        """ Remove the field with the given ``name`` from the model.
+            This method should only be used for manual fields.
+        """
+        assert cls._fields[name].manual, "Can only be used for manual fields"
+        field = cls._fields.pop(name, None)
+        discardattr(cls, name)
+        if cls._rec_name == name:
+            # fixup _rec_name and display_name's dependencies
+            cls._rec_name = None
+            field_depends = cls._register_pool.field_depends
+            if cls.display_name in field_depends:
+                field_depends[cls.display_name] = tuple(
+                    dep for dep in field_depends[cls.display_name] if dep != name
+                )
+        return field
+
+    def _add_inherited_fields(cls):
+        """ Determine inherited fields. """
+        if cls._abstract or not cls._inherits:
+            return
+        pool = cls._register_pool
+
+        # determine which fields can be inherited
+        to_inherit = {
+            name: (parent_fname, field)
+            for parent_model_name, parent_fname in cls._inherits.items()
+            for name, field in pool[parent_model_name]._fields.items()
+        }
+
+        # add inherited fields that are not redefined locally
+        for name, (parent_fname, field) in to_inherit.items():
+            if name not in cls._fields:
+                # inherited fields are implemented as related fields, with the
+                # following specific properties:
+                #  - reading inherited fields should not bypass access rights
+                #  - copy inherited fields iff their original field is copied
+                Field = type(field)
+                cls._add_field(name, Field(
+                    inherited=True,
+                    inherited_field=field,
+                    related=f"{parent_fname}.{name}",
+                    related_sudo=False,
+                    copy=field.copy,
+                    readonly=field.readonly,
+                    export_string_translation=field.export_string_translation,
+                ))
+
+    def _inherits_check(cls):
+        pool = cls._register_pool
+        for table, field_name in cls._inherits.items():
+            field = cls._fields.get(field_name)
+            if not field:
+                _logger.info('Missing many2one field definition for _inherits reference "%s" in "%s", using default one.', field_name, cls._name)
+                from .fields import Many2one  # noqa: PLC0415
+                field = Many2one(table, string="Automatically created field to link to parent %s" % table, required=True, ondelete="cascade")
+                cls._add_field(field_name, field)
+            elif not (field.required and (field.ondelete or "").lower() in ("cascade", "restrict")):
+                _logger.warning('Field definition for _inherits reference "%s" in "%s" must be marked as "required" with ondelete="cascade" or "restrict", forcing it to required + cascade.', field_name, cls._name)
+                field.required = True
+                field.ondelete = "cascade"
+            field.delegate = True
+
+        # reflect fields with delegate=True in dictionary self._inherits
+        for field in cls._fields.values():
+            if field.type == 'many2one' and not field.related and field.delegate:
+                if not field.required:
+                    _logger.warning("Field %s with delegate=True must be required.", field)
+                    field.required = True
+                if field.ondelete.lower() not in ('cascade', 'restrict'):
+                    field.ondelete = 'cascade'
+                pool[cls._name]._inherits = {**cls._inherits, field.comodel_name: field.name}
+                pool[field.comodel_name]._inherits_children.add(cls._name)
+
+    def _prepare_setup(cls):
+        """ Prepare the setup of the model. """
+        assert cls._register_pool is not None
+        cls._setup_done = False
+
+        # changing base classes is costly, do it only when necessary
+        if cls.__bases__ != cls.__base_classes:
+            cls.__bases__ = cls.__base_classes
+
+        # reset those attributes on the model's class for _setup_fields() below
+        for attr in ('_rec_name', '_active_name'):
+            discardattr(cls, attr)
+
+    def _setup_base(cls, env: Environment):
+        """ Determine the inherited and custom fields of the model. """
+        if cls._setup_done:
+            return
+        pool = cls._register_pool
+        assert pool is env.registry
+
+        # the classes that define this model, i.e., the ones that are not
+        # registry classes; the purpose of this attribute is to behave as a
+        # cache which is heavily used in function fields.resolve_mro()
+        cls._model_classes = tuple(c for c in cls.mro() if c is not object and c._register_pool is None)
+
+        # 1. determine the proper fields of the model: the fields defined on the
+        # class and magic fields, not the inherited or custom ones
+
+        # retrieve fields from parent classes, and duplicate them on cls to
+        # avoid clashes with inheritance between different models
+        for name in cls._fields:
+            discardattr(cls, name)
+        cls._fields.clear()
+
+        # collect the definitions of each field (base definition + overrides)
+        definitions = defaultdict(list)
+        for klass in reversed(cls._model_classes):
+            for field in klass._field_definitions:
+                definitions[field.name].append(field)
+        for name, fields_ in definitions.items():
+            if f'{cls._name}.{name}' in pool._database_translated_fields:
+                # the field is currently translated in the database; ensure the
+                # field is translated to avoid converting its column to varchar
+                # and losing data
+                translate = next((
+                    field.args['translate'] for field in reversed(fields_) if 'translate' in field.args
+                ), False)
+                if not translate:
+                    # patch the field definition by adding an override
+                    _logger.debug("Patching %s.%s with translate=True", cls._name, name)
+                    fields_.append(type(fields_[0])(translate=True))
+            if len(fields_) == 1 and fields_[0]._direct and fields_[0].model_name == cls._name:
+                cls._fields[name] = fields_[0]
+            else:
+                Field = type(fields_[-1])
+                cls._add_field(name, Field(_base_fields=fields_))
+
+        # 2. add manual fields
+        if pool._init_modules:
+            env['ir.model.fields']._add_manual_fields(cls)
+
+        # 3. make sure that parent models determine their own fields, then add
+        # inherited fields to cls
+        cls._inherits_check()
+        for parent in cls._inherits:
+            pool[parent]._setup_base(env)
+        cls._add_inherited_fields()
+
+        # 4. initialize more field metadata
+        cls._setup_done = True
+
+        for field in cls._fields.values():
+            field.prepare_setup()
+
+        # 5. determine and validate rec_name
+        if cls._rec_name:
+            assert cls._rec_name in cls._fields, \
+                "Invalid _rec_name=%r for model %r" % (cls._rec_name, cls._name)
+        elif 'name' in cls._fields:
+            cls._rec_name = 'name'
+        elif cls._custom and 'x_name' in cls._fields:
+            cls._rec_name = 'x_name'
+
+        # 6. determine and validate active_name
+        if cls._active_name:
+            assert (cls._active_name in cls._fields
+                    and cls._active_name in ('active', 'x_active')), \
+                ("Invalid _active_name=%r for model %r; only 'active' and "
+                "'x_active' are supported and the field must be present on "
+                "the model") % (cls._active_name, cls._name)
+        elif 'active' in cls._fields:
+            cls._active_name = 'active'
+        elif 'x_active' in cls._fields:
+            cls._active_name = 'x_active'
+
+        # 7. determine table objects
+        assert not cls._table_object_definitions, "cls is a registry model"
+        cls._table_objects = frozendict({
+            cons.full_name(cls): cons
+            for klass in reversed(cls._model_classes)
+            if isinstance(klass, MetaModel)
+            for cons in klass._table_object_definitions
+        })
+
+    def _setup_fields(cls, env):
+        """ Setup the fields, except for recomputation triggers. """
+        pool = cls._register_pool
+        assert pool is env.registry
+        # set up fields
+        bad_fields = []
+        many2one_company_dependents = pool.many2one_company_dependents
+        for name, field in cls._fields.items():
+            try:
+                field.setup(cls)
+            except Exception:
+                if field.base_field.manual:
+                    # Something goes wrong when setup a manual field.
+                    # This can happen with related fields using another manual many2one field
+                    # that hasn't been loaded because the comodel does not exist yet.
+                    # This can also be a manual function field depending on not loaded fields yet.
+                    bad_fields.append(name)
+                    continue
+                raise
+            if field.type == 'many2one' and field.company_dependent:
+                many2one_company_dependents.add(field.comodel_name, field)
+
+        for name in bad_fields:
+            cls._pop_field(name)
+
+    def _setup_complete(cls):
+        """ Setup recomputation triggers, and complete the model setup. """
+        cls._reset_cached_properties()
 
 
 # special columns automatically created by the ORM
@@ -416,15 +811,6 @@ READ_GROUP_DISPLAY_FORMAT = {
 # we add them on definition classes that define a model without extending it.
 # This increases the number of fields that are shared across registries.
 
-def is_definition_class(cls):
-    """ Return whether ``cls`` is a model definition class. """
-    return isinstance(cls, MetaModel) and getattr(cls, 'pool', None) is None
-
-
-def is_registry_class(cls):
-    """ Return whether ``cls`` is a model registry class. """
-    return getattr(cls, 'pool', None) is not None
-
 
 class BaseModel(metaclass=MetaModel):
     """Base class for Odoo models.
@@ -456,12 +842,6 @@ class BaseModel(metaclass=MetaModel):
     """
     __slots__ = ['env', '_ids', '_prefetch_ids']
 
-    env: Environment
-    id: IdType | typing.Literal[False]
-    display_name: str | typing.Literal[False]
-    pool: Registry
-
-    _fields: dict[str, Field]
     _auto = False
     """Whether a database table should be created.
     If set to ``False``, override :meth:`~odoo.models.BaseModel.init`
@@ -577,204 +957,10 @@ class BaseModel(metaclass=MetaModel):
         search='_search_display_name',
     )
 
-    def _valid_field_parameter(self, field, name):
+    @classmethod
+    def _valid_field_parameter(cls, field, name):
         """ Return whether the given parameter name is valid for the field. """
         return name == 'related_sudo'
-
-    @api.model
-    def _add_field(self, name, field):
-        """ Add the given ``field`` under the given ``name`` in the class """
-        cls = self.env.registry[self._name]
-
-        # Assert the name is an existing field in the model, or any model in the _inherits
-        # or a custom field (starting by `x_`)
-        is_class_field = any(
-            isinstance(getattr(model, name, None), Field)
-            for model in [cls] + [self.env.registry[inherit] for inherit in cls._inherits]
-        )
-        if not (is_class_field or self.env['ir.model.fields']._is_manual_name(name)):
-            raise ValidationError(  # pylint: disable=missing-gettext
-                f"The field `{name}` is not defined in the `{cls._name}` Python class and does not start with 'x_'"
-            )
-
-        # Assert the attribute to assign is a Field
-        if not isinstance(field, Field):
-            raise ValidationError("You can only add `fields.Field` objects to a model fields")  # pylint: disable=missing-gettext
-
-        if not isinstance(getattr(cls, name, field), Field):
-            _logger.warning("In model %r, field %r overriding existing value", cls._name, name)
-        setattr(cls, name, field)
-        field._toplevel = True
-        field.__set_name__(cls, name)
-        # add field as an attribute and in cls._fields (for reflection)
-        cls._fields[name] = field
-
-    @api.model
-    def _pop_field(self, name):
-        """ Remove the field with the given ``name`` from the model.
-            This method should only be used for manual fields.
-        """
-        cls = self.env.registry[self._name]
-        field = cls._fields.pop(name, None)
-        discardattr(cls, name)
-        if cls._rec_name == name:
-            # fixup _rec_name and display_name's dependencies
-            cls._rec_name = None
-            if cls.display_name in cls.pool.field_depends:
-                cls.pool.field_depends[cls.display_name] = tuple(
-                    dep for dep in cls.pool.field_depends[cls.display_name] if dep != name
-                )
-        return field
-
-    #
-    # Goal: try to apply inheritance at the instantiation level and
-    #       put objects in the pool var
-    #
-    @classmethod
-    def _build_model(cls, pool, cr):
-        """ Instantiate a given model in the registry.
-
-        This method creates or extends a "registry" class for the given model.
-        This "registry" class carries inferred model metadata, and inherits (in
-        the Python sense) from all classes that define the model, and possibly
-        other registry classes.
-        """
-        if hasattr(cls, '_constraints'):
-            _logger.warning("Model attribute '_constraints' is no longer supported, "
-                            "please use @api.constrains on methods instead.")
-        if hasattr(cls, '_sql_constraints'):
-            _logger.warning("Model attribute '_sql_constraints' is no longer supported, "
-                            "please define model.Constraint on the model.")
-
-        # all models except 'base' implicitly inherit from 'base'
-        name = cls._name
-        parents = list(cls._inherit)
-        if name != 'base':
-            parents.append('base')
-
-        # create or retrieve the model's class
-        if name in parents:
-            if name not in pool:
-                raise TypeError("Model %r does not exist in registry." % name)
-            ModelClass = pool[name]
-            ModelClass._build_model_check_base(cls)
-            check_parent = ModelClass._build_model_check_parent
-        else:
-            ModelClass = type(name, (cls,), {
-                '_name': name,
-                '_register': False,
-                '_original_module': cls._module,
-                '_inherit_module': {},                  # map parent to introducing module
-                '_inherit_children': OrderedSet(),      # names of children models
-                '_inherits_children': set(),            # names of children models
-                '_fields': {},                          # populated in _setup_base()
-                '_table_objects': frozendict(),         # populated in _setup_base()
-            })
-            check_parent = cls._build_model_check_parent
-
-        # determine all the classes the model should inherit from
-        bases = LastOrderedSet([cls])
-        for parent in parents:
-            if parent not in pool:
-                raise TypeError("Model %r inherits from non-existing model %r." % (name, parent))
-            parent_class = pool[parent]
-            if parent == name:
-                for base in parent_class.__base_classes:
-                    bases.add(base)
-            else:
-                check_parent(cls, parent_class)
-                bases.add(parent_class)
-                ModelClass._inherit_module[parent] = cls._module
-                parent_class._inherit_children.add(name)
-
-        # ModelClass.__bases__ must be assigned those classes; however, this
-        # operation is quite slow, so we do it once in method _prepare_setup()
-        ModelClass.__base_classes = tuple(bases)
-
-        # determine the attributes of the model's class
-        ModelClass._build_model_attributes(pool)
-
-        check_pg_name(ModelClass._table)
-
-        # Transience
-        if ModelClass._transient:
-            assert ModelClass._log_access, \
-                "TransientModels must have log_access turned on, " \
-                "in order to implement their vacuum policy"
-
-        # link the class to the registry, and update the registry
-        ModelClass.pool = pool
-        pool[name] = ModelClass
-
-        return ModelClass
-
-    @classmethod
-    def _build_model_check_base(model_class, cls):
-        """ Check whether ``model_class`` can be extended with ``cls``. """
-        if model_class._abstract and not cls._abstract:
-            msg = ("%s transforms the abstract model %r into a non-abstract model. "
-                   "That class should either inherit from AbstractModel, or set a different '_name'.")
-            raise TypeError(msg % (cls, model_class._name))
-        if model_class._transient != cls._transient:
-            if model_class._transient:
-                msg = ("%s transforms the transient model %r into a non-transient model. "
-                       "That class should either inherit from TransientModel, or set a different '_name'.")
-            else:
-                msg = ("%s transforms the model %r into a transient model. "
-                       "That class should either inherit from Model, or set a different '_name'.")
-            raise TypeError(msg % (cls, model_class._name))
-
-    @classmethod
-    def _build_model_check_parent(model_class, cls, parent_class):
-        """ Check whether ``model_class`` can inherit from ``parent_class``. """
-        if model_class._abstract and not parent_class._abstract:
-            msg = ("In %s, the abstract model %r cannot inherit from the non-abstract model %r.")
-            raise TypeError(msg % (cls, model_class._name, parent_class._name))
-
-    @classmethod
-    def _build_model_attributes(cls, pool):
-        """ Initialize base model attributes. """
-        cls._description = cls._name
-        cls._table = cls._name.replace('.', '_')
-        cls._log_access = cls._auto
-        inherits = {}
-        depends = {}
-
-        for base in reversed(cls.__base_classes):
-            if is_definition_class(base):
-                # the following attributes are not taken from registry classes
-                if cls._name not in base._inherit and not base._description:
-                    _logger.warning("The model %s has no _description", cls._name)
-                cls._description = base._description or cls._description
-                cls._table = base._table or cls._table
-                cls._log_access = getattr(base, '_log_access', cls._log_access)
-
-            inherits.update(base._inherits)
-
-            for mname, fnames in base._depends.items():
-                depends.setdefault(mname, []).extend(fnames)
-
-        # avoid assigning an empty dict to save memory
-        if inherits:
-            cls._inherits = inherits
-        if depends:
-            cls._depends = depends
-
-        # update _inherits_children of parent models
-        for parent_name in cls._inherits:
-            pool[parent_name]._inherits_children.add(cls._name)
-
-        # recompute attributes of _inherit_children models
-        for child_name in cls._inherit_children:
-            child_class = pool[child_name]
-            child_class._build_model_attributes(pool)
-
-    @classmethod
-    def _init_constraints_onchanges(cls):
-        # reset properties memoized on cls
-        cls._constraint_methods = BaseModel._constraint_methods
-        cls._ondelete_methods = BaseModel._ondelete_methods
-        cls._onchange_methods = BaseModel._onchange_methods
 
     @property
     def _table_sql(self) -> SQL:
@@ -883,6 +1069,12 @@ class BaseModel(metaclass=MetaModel):
         # optimization: memoize result on cls, it will not be recomputed
         cls._onchange_methods = methods
         return methods
+
+    @classmethod
+    def _reset_cached_properties(cls):
+        cls._constraint_methods = BaseModel._constraint_methods
+        cls._ondelete_methods = BaseModel._ondelete_methods
+        cls._onchange_methods = BaseModel._onchange_methods
 
     def _is_an_ordinary_table(self):
         return self.pool.is_an_ordinary_table(self)
@@ -3277,209 +3469,6 @@ class BaseModel(metaclass=MetaModel):
 
         # fallback
         return tools.exception_to_unicode(exc)
-
-    #
-    # Update objects that use this one to update their _inherits fields
-    #
-
-    @api.model
-    def _add_inherited_fields(self):
-        """ Determine inherited fields. """
-        if self._abstract or not self._inherits:
-            return
-
-        # determine which fields can be inherited
-        to_inherit = {
-            name: (parent_fname, field)
-            for parent_model_name, parent_fname in self._inherits.items()
-            for name, field in self.env[parent_model_name]._fields.items()
-        }
-
-        # add inherited fields that are not redefined locally
-        for name, (parent_fname, field) in to_inherit.items():
-            if name not in self._fields:
-                # inherited fields are implemented as related fields, with the
-                # following specific properties:
-                #  - reading inherited fields should not bypass access rights
-                #  - copy inherited fields iff their original field is copied
-                Field = type(field)
-                self._add_field(name, Field(
-                    inherited=True,
-                    inherited_field=field,
-                    related=f"{parent_fname}.{name}",
-                    related_sudo=False,
-                    copy=field.copy,
-                    readonly=field.readonly,
-                    export_string_translation=field.export_string_translation,
-                ))
-
-    @api.model
-    def _inherits_check(self):
-        for table, field_name in self._inherits.items():
-            field = self._fields.get(field_name)
-            if not field:
-                _logger.info('Missing many2one field definition for _inherits reference "%s" in "%s", using default one.', field_name, self._name)
-                from .fields import Many2one
-                field = Many2one(table, string="Automatically created field to link to parent %s" % table, required=True, ondelete="cascade")
-                self._add_field(field_name, field)
-            elif not (field.required and (field.ondelete or "").lower() in ("cascade", "restrict")):
-                _logger.warning('Field definition for _inherits reference "%s" in "%s" must be marked as "required" with ondelete="cascade" or "restrict", forcing it to required + cascade.', field_name, self._name)
-                field.required = True
-                field.ondelete = "cascade"
-            field.delegate = True
-
-        # reflect fields with delegate=True in dictionary self._inherits
-        for field in self._fields.values():
-            if field.type == 'many2one' and not field.related and field.delegate:
-                if not field.required:
-                    _logger.warning("Field %s with delegate=True must be required.", field)
-                    field.required = True
-                if field.ondelete.lower() not in ('cascade', 'restrict'):
-                    field.ondelete = 'cascade'
-                self.pool[self._name]._inherits = {**self._inherits, field.comodel_name: field.name}
-                self.pool[field.comodel_name]._inherits_children.add(self._name)
-
-    @api.model
-    def _prepare_setup(self):
-        """ Prepare the setup of the model. """
-        cls = self.env.registry[self._name]
-        cls._setup_done = False
-
-        # changing base classes is costly, do it only when necessary
-        if cls.__bases__ != cls.__base_classes:
-            cls.__bases__ = cls.__base_classes
-
-        # reset those attributes on the model's class for _setup_fields() below
-        for attr in ('_rec_name', '_active_name'):
-            discardattr(cls, attr)
-
-    @api.model
-    def _setup_base(self):
-        """ Determine the inherited and custom fields of the model. """
-        cls = self.env.registry[self._name]
-        if cls._setup_done:
-            return
-
-        # the classes that define this model, i.e., the ones that are not
-        # registry classes; the purpose of this attribute is to behave as a
-        # cache of [c for c in cls.mro() if not is_registry_class(c))], which
-        # is heavily used in function fields.resolve_mro()
-        cls._model_classes = tuple(c for c in cls.mro() if getattr(c, 'pool', None) is None)
-
-        # 1. determine the proper fields of the model: the fields defined on the
-        # class and magic fields, not the inherited or custom ones
-
-        # retrieve fields from parent classes, and duplicate them on cls to
-        # avoid clashes with inheritance between different models
-        for name in cls._fields:
-            discardattr(cls, name)
-        cls._fields.clear()
-
-        # collect the definitions of each field (base definition + overrides)
-        definitions = defaultdict(list)
-        for klass in reversed(cls._model_classes):
-            # this condition is an optimization of is_definition_class(klass)
-            if isinstance(klass, MetaModel):
-                for field in klass._field_definitions:
-                    definitions[field.name].append(field)
-        for name, fields_ in definitions.items():
-            if f'{cls._name}.{name}' in cls.pool._database_translated_fields:
-                # the field is currently translated in the database; ensure the
-                # field is translated to avoid converting its column to varchar
-                # and losing data
-                translate = next((
-                    field.args['translate'] for field in reversed(fields_) if 'translate' in field.args
-                ), False)
-                if not translate:
-                    # patch the field definition by adding an override
-                    _logger.debug("Patching %s.%s with translate=True", cls._name, name)
-                    fields_.append(type(fields_[0])(translate=True))
-            if len(fields_) == 1 and fields_[0]._direct and fields_[0].model_name == cls._name:
-                cls._fields[name] = fields_[0]
-            else:
-                Field = type(fields_[-1])
-                self._add_field(name, Field(_base_fields=fields_))
-
-        # 2. add manual fields
-        if self.pool._init_modules:
-            self.env['ir.model.fields']._add_manual_fields(self)
-
-        # 3. make sure that parent models determine their own fields, then add
-        # inherited fields to cls
-        self._inherits_check()
-        for parent in self._inherits:
-            self.env[parent]._setup_base()
-        self._add_inherited_fields()
-
-        # 4. initialize more field metadata
-        cls._setup_done = True
-
-        for field in cls._fields.values():
-            field.prepare_setup()
-
-        # 5. determine and validate rec_name
-        if cls._rec_name:
-            assert cls._rec_name in cls._fields, \
-                "Invalid _rec_name=%r for model %r" % (cls._rec_name, cls._name)
-        elif 'name' in cls._fields:
-            cls._rec_name = 'name'
-        elif cls._custom and 'x_name' in cls._fields:
-            cls._rec_name = 'x_name'
-
-        # 6. determine and validate active_name
-        if cls._active_name:
-            assert (cls._active_name in cls._fields
-                    and cls._active_name in ('active', 'x_active')), \
-                ("Invalid _active_name=%r for model %r; only 'active' and "
-                "'x_active' are supported and the field must be present on "
-                "the model") % (cls._active_name, cls._name)
-        elif 'active' in cls._fields:
-            cls._active_name = 'active'
-        elif 'x_active' in cls._fields:
-            cls._active_name = 'x_active'
-
-        # 7. determine table objects
-        assert not cls._table_object_definitions, "cls is a registry model"
-        cls._table_objects = frozendict({
-            cons.full_name(self): cons
-            for klass in reversed(cls._model_classes)
-            if isinstance(klass, MetaModel)
-            for cons in klass._table_object_definitions
-        })
-
-    @api.model
-    def _setup_fields(self):
-        """ Setup the fields, except for recomputation triggers. """
-        cls = self.env.registry[self._name]
-
-        # set up fields
-        bad_fields = []
-        many2one_company_dependents = self.env.registry.many2one_company_dependents
-        for name, field in cls._fields.items():
-            try:
-                field.setup(self)
-            except Exception:
-                if field.base_field.manual:
-                    # Something goes wrong when setup a manual field.
-                    # This can happen with related fields using another manual many2one field
-                    # that hasn't been loaded because the comodel does not exist yet.
-                    # This can also be a manual function field depending on not loaded fields yet.
-                    bad_fields.append(name)
-                    continue
-                raise
-            if field.type == 'many2one' and field.company_dependent:
-                many2one_company_dependents.add(field.comodel_name, field)
-
-        for name in bad_fields:
-            self._pop_field(name)
-
-    @api.model
-    def _setup_complete(self):
-        """ Setup recomputation triggers, and complete the model setup. """
-        cls = self.env.registry[self._name]
-
-        # register constraints and onchange methods
-        cls._init_constraints_onchanges()
 
     @api.model
     def fields_get(self, allfields=None, attributes=None):
@@ -6018,7 +6007,7 @@ class BaseModel(metaclass=MetaModel):
     #  - the global cache is only an index to "resolve" a record 'id'.
     #
 
-    def __init__(self, env: api.Environment, ids: tuple[IdType, ...], prefetch_ids: Reversible[IdType]):
+    def __init__(self, env: Environment, ids: tuple[IdType, ...], prefetch_ids: Reversible[IdType]):
         """ Create a recordset instance.
 
         :param env: an environment
@@ -6065,6 +6054,8 @@ class BaseModel(metaclass=MetaModel):
     _cr = property(lambda self: self.env.cr)
     _uid = property(lambda self: self.env.uid)
     _context = property(lambda self: self.env.context)
+    pool = property(lambda self: self.env.registry)
+    # TODO deprecate the properties above
 
     #
     # Conversion methods

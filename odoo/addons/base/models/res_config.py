@@ -146,10 +146,11 @@ class ResConfigSettings(models.TransientModel):
     """
     _description = 'Config Settings'
 
-    def _valid_field_parameter(self, field, name):
+    @classmethod
+    def _valid_field_parameter(cls, field, name):
         return (
             name in ('default_model', 'config_parameter')
-            or field.type in ('boolean', 'selection') and name in ('group', 'implied_group')
+            or (field.type in ('boolean', 'selection') and name in ('group', 'implied_group'))
             or super()._valid_field_parameter(field, name)
         )
 

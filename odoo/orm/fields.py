@@ -21,7 +21,7 @@ from odoo.tools.misc import SENTINEL, Sentinel
 from .utils import COLLECTION_TYPES, SQL_OPERATORS, expand_ids
 
 if typing.TYPE_CHECKING:
-    from .models import BaseModel
+    from .models import BaseModel, MetaModel
 T = typing.TypeVar("T")
 
 IR_MODELS = (
@@ -80,7 +80,7 @@ class MetaField(type):
     by_type = {}
 
     def __init__(cls, name, bases, attrs):
-        super(MetaField, cls).__init__(name, bases, attrs)
+        super().__init__(name, bases, attrs)
         if not hasattr(cls, 'type'):
             return
 
@@ -100,7 +100,7 @@ class MetaField(type):
 _global_seq = iter(itertools.count())
 
 
-class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
+class Field(typing.Generic[T], metaclass=MetaField):
     """The field descriptor contains the field definition, and manages accesses
     and assignments of the corresponding field on records. The following
     attributes may be provided when instantiating a field:
@@ -351,7 +351,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
         assert isinstance(owner, _models.MetaModel)
         self.model_name = owner._name
         self.name = name
-        if getattr(owner, 'pool', None) is None:  # models.is_definition_class(owner)
+        if owner._register_pool is None:  # definition classes
             # only for fields on definition classes, not registry classes
             self._module = owner._module
             owner._field_definitions.append(self)
@@ -481,12 +481,12 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
     def prepare_setup(self):
         self._setup_done = False
 
-    def setup(self, model):
+    def setup(self, model_class: MetaModel):
         """ Perform the complete setup of a field. """
         if not self._setup_done:
             # validate field params
             for key in self._extra_keys:
-                if not model._valid_field_parameter(self, key):
+                if not model_class._valid_field_parameter(self, key):
                     _logger.warning(
                         "Field %s: unknown parameter %r, if this is an actual"
                         " parameter you may want to override the method"
@@ -495,9 +495,9 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
                         self, key
                     )
             if self.related:
-                self.setup_related(model)
+                self.setup_related(model_class)
             else:
-                self.setup_nonrelated(model)
+                self.setup_nonrelated(model_class)
 
             if not isinstance(self.required, bool):
                 warnings.warn(f'Property {self}.required should be a boolean ({self.required}).', stacklevel=1)
@@ -511,7 +511,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
     # Setup of non-related fields
     #
 
-    def setup_nonrelated(self, model):
+    def setup_nonrelated(self, model_class: MetaModel):
         """ Determine the dependencies and inverse field(s) of ``self``. """
         pass
 
@@ -552,20 +552,21 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
     # Setup of related fields
     #
 
-    def setup_related(self, model):
+    def setup_related(self, model_class: MetaModel):
         """ Setup the attributes of a related field. """
         assert isinstance(self.related, str), self.related
 
         # determine the chain of fields, and make sure they are all set up
         model_name = self.model_name
         for name in self.related.split('.'):
-            field = model.pool[model_name]._fields.get(name)
+            related_model = model_class._register_pool[model_name]
+            field = related_model._fields.get(name)
             if field is None:
                 raise KeyError(
                     f"Field {name} referenced in related field definition {self} does not exist."
                 )
             if not field._setup_done:
-                field.setup(model.env[model_name])
+                field.setup(related_model)
             model_name = field.comodel_name
 
         self.related_field = field
@@ -595,7 +596,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
                 setattr(self, attr, getattr(field, prop))
 
         for attr in field._extra_keys:
-            if not hasattr(self, attr) and model._valid_field_parameter(self, attr):
+            if not hasattr(self, attr) and model_class._valid_field_parameter(self, attr):
                 setattr(self, attr, getattr(field, attr))
 
         # special cases of inherited fields
@@ -606,7 +607,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
             # add modules from delegate and target fields; the first one ensures
             # that inherited fields introduced via an abstract model (_inherits
             # being on the abstract model) are assigned an XML id
-            delegate_field = model._fields[self.related.split('.')[0]]
+            delegate_field = model_class._fields[self.related.split('.')[0]]
             self._modules = tuple({*self._modules, *delegate_field._modules, *field._modules})
 
         if self.store and self.translate:
@@ -803,7 +804,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
                     yield tuple(field_seq)
 
                 if field.type == 'one2many':
-                    for inv_field in Model.pool.field_inverses[field]:
+                    for inv_field in Model._register_pool.field_inverses[field]:
                         yield tuple(field_seq) + (inv_field,)
 
                 if check_precompute and field.type == 'many2one':

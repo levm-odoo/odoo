@@ -78,10 +78,10 @@ class AccountChartTemplate(models.AbstractModel):
         cls._template_register = template_register
         return template_register
 
-    def _setup_complete(self):
-        super()._setup_complete()
-        self.env.registry[self._name]._template_register = AccountChartTemplate._template_register
-
+    @classmethod
+    def _reset_cached_properties(cls):
+        super()._reset_cached_properties()
+        cls._template_register = AccountChartTemplate._template_register
 
     # --------------------------------------------------------------------------------
     # Template selection

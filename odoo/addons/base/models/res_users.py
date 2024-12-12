@@ -1014,7 +1014,7 @@ class ResUsers(models.Model):
             # empty passwords disallowed for obvious security reasons
             raise AccessDenied()
 
-        with contextlib.closing(cls.pool.cursor()) as cr:
+        with contextlib.closing(cls._register_pool.cursor()) as cr:
             self = api.Environment(cr, uid, {})[cls._name]
             with self._assert_can_auth(user=uid):
                 if not self.env.user.active:

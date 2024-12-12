@@ -340,14 +340,14 @@ class Registry(Mapping[str, type["BaseModel"]]):
         # we must setup ir.model before adding manual fields because _add_manual_models may
         # depend on behavior that is implemented through overrides, such as is_mail_thread which
         # is implemented through an override to env['ir.model']._instanciate
-        env['ir.model']._prepare_setup()
+        self['ir.model']._prepare_setup()
 
         # add manual models
         if self._init_modules:
             env['ir.model']._add_manual_models()
 
         # prepare the setup on all models
-        models = list(env.values())
+        models = list(self.values())
         for model in models:
             model._prepare_setup()
 
@@ -358,11 +358,11 @@ class Registry(Mapping[str, type["BaseModel"]]):
 
         # do the actual setup
         for model in models:
-            model._setup_base()
+            model._setup_base(env)
 
         self._m2m: defaultdict[tuple[str, str, str], list[Field]] = defaultdict(list)
         for model in models:
-            model._setup_fields()
+            model._setup_fields(env)
         del self._m2m
 
         for model in models:
@@ -370,8 +370,9 @@ class Registry(Mapping[str, type["BaseModel"]]):
 
         # determine field_depends and field_depends_context
         for model in models:
+            model_instance = env[model._name]
             for field in model._fields.values():
-                depends, depends_context = field.get_depends(model)
+                depends, depends_context = field.get_depends(model_instance)
                 self.field_depends[field] = tuple(depends)
                 self.field_depends_context[field] = tuple(depends_context)
 

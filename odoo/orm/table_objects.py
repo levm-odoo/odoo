@@ -10,7 +10,7 @@ if typing.TYPE_CHECKING:
     import psycopg2.extensions
 
     from .environments import Environment
-    from .models import BaseModel
+    from .models import BaseModel, MetaModel
 
     ConstraintMessageType = (
         str
@@ -38,7 +38,7 @@ class TableObject:
         # and this avoid having them in the middle of the fields when listing members
         assert name.startswith('_'), "Names of SQL objects in a model must start with '_'"
         self.name = name[1:]
-        if getattr(owner, 'pool', None) is None:  # models.is_definition_class(owner)
+        if owner._register_pool is None:  # definition classes
             # only for fields on definition classes, not registry classes
             self._module = owner._module
             owner._table_object_definitions.append(self)
@@ -47,9 +47,9 @@ class TableObject:
     def definition(self) -> str:
         raise NotImplementedError
 
-    def full_name(self, model: BaseModel) -> str:
+    def full_name(self, model_class: MetaModel) -> str:
         assert self.name, f"The table object is not named ({self.definition})"
-        name = f"{model._table}_{self.name}"
+        name = f"{model_class._table}_{self.name}"
         return sql.make_identifier(name)
 
     def get_error_message(self, model: BaseModel, diagnostics=None) -> str:
@@ -104,7 +104,7 @@ class Constraint(TableObject):
 
     def apply_to_database(self, model: BaseModel):
         cr = model.env.cr
-        conname = self.full_name(model)
+        conname = self.full_name(model.__class__)
         definition = self.definition
         current_definition = sql.constraint_definition(cr, model._table, conname)
         if current_definition == definition:
@@ -143,7 +143,7 @@ class Index(TableObject):
 
     def apply_to_database(self, model: BaseModel):
         cr = model.env.cr
-        conname = self.full_name(model)
+        conname = self.full_name(model.__class__)
         definition = self.definition
         current_definition = sql.index_definition(cr, conname)
         if current_definition == definition:

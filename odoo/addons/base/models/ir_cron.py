@@ -405,7 +405,7 @@ class IrCron(models.Model):
         """
         timed_out_counter = job['timed_out_counter']
 
-        with cls.pool.cursor() as job_cr:
+        with cls._register_pool.cursor() as job_cr:
             env = api.Environment(job_cr, job['user_id'], {
                 'lastcall': job['lastcall'],
                 'cron_id': job['id'],

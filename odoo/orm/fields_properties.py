@@ -85,8 +85,8 @@ class Properties(Field):
             self._depends = (self.definition_record, )
             self.compute = self._compute
 
-    def setup_related(self, model):
-        super().setup_related(model)
+    def setup_related(self, model_class):
+        super().setup_related(model_class)
         if self.inherited_field and not self.definition:
             self.definition = self.inherited_field.definition
             self._setup_definition_attrs()

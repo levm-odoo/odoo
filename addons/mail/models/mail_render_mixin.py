@@ -86,7 +86,8 @@ class MailRenderMixin(models.AbstractModel):
     # ORM
     # ------------------------------------------------------------
 
-    def _valid_field_parameter(self, field, name):
+    @classmethod
+    def _valid_field_parameter(cls, field, name):
         # allow specifying rendering options directly from field when using the render mixin
         return name in ['render_engine', 'render_options'] or super()._valid_field_parameter(field, name)
 

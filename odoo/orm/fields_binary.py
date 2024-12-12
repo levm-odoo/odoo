@@ -263,9 +263,9 @@ class Image(Binary):
     max_height = 0
     verify_resolution = True
 
-    def setup(self, model):
-        super().setup(model)
-        if not model._abstract and not model._log_access:
+    def setup(self, model_class):
+        super().setup(model_class)
+        if not model_class._abstract and not model_class._log_access:
             warnings.warn(f"Image field {self} requires the model to have _log_access = True", stacklevel=1)
 
     def create(self, record_values):

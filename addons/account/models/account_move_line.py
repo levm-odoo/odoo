@@ -1593,7 +1593,8 @@ class AccountMoveLine(models.Model):
 
         return result
 
-    def _valid_field_parameter(self, field, name):
+    @classmethod
+    def _valid_field_parameter(cls, field, name):
         # EXTENDS models
         return name == 'tracking' or super()._valid_field_parameter(field, name)
 

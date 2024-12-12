@@ -18,7 +18,8 @@ class PaymentProvider(models.Model):
     _order = 'module_state, state desc, sequence, name'
     _check_company_auto = True
 
-    def _valid_field_parameter(self, field, name):
+    @classmethod
+    def _valid_field_parameter(cls, field, name):
         return name == 'required_if_provider' or super()._valid_field_parameter(field, name)
 
     # Configuration fields

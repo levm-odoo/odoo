@@ -61,12 +61,12 @@ class Selection(Field[str | typing.Literal[False]]):
         super(Selection, self).__init__(selection=selection, string=string, **kwargs)
         self._selection = dict(selection) if isinstance(selection, list) else None
 
-    def setup_nonrelated(self, model):
-        super().setup_nonrelated(model)
+    def setup_nonrelated(self, model_class):
+        super().setup_nonrelated(model_class)
         assert self.selection is not None, "Field %s without selection" % self
 
-    def setup_related(self, model):
-        super().setup_related(model)
+    def setup_related(self, model_class):
+        super().setup_related(model_class)
         # selection must be computed on related field
         field = self.related_field
         self.selection = lambda model: field._description_selection(model.env)

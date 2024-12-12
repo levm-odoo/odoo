@@ -474,8 +474,8 @@ class IrModel(models.Model):
 
         return CustomModel
 
-    @api.model
-    def _is_manual_name(self, name):
+    @classmethod
+    def _is_manual_name(cls, name):
         return name.startswith('x_')
 
     @api.model
@@ -1329,24 +1329,26 @@ class IrModelFields(models.Model):
     def _instanciate(self, field_data):
         """ Return a field instance corresponding to parameters ``field_data``. """
         attrs = self._instanciate_attrs(field_data)
-        if attrs:
-            return fields.Field.by_type[field_data['ttype']](**attrs)
+        if not attrs:
+            return None
+        return fields.Field.by_type[field_data['ttype']](**attrs)
 
-    @api.model
-    def _is_manual_name(self, name):
+    @classmethod
+    def _is_manual_name(cls, name):
         return name.startswith('x_')
 
-    def _add_manual_fields(self, model):
+    def _add_manual_fields(self, model_class: models.MetaModel):
         """ Add extra fields on model. """
-        fields_data = self._get_manual_field_data(model._name)
+        fields_data = self._get_manual_field_data(model_class._name)
+        pool = self.env.registry
         for name, field_data in fields_data.items():
-            if name not in model._fields and field_data['state'] == 'manual':
+            if name not in model_class._fields and field_data['state'] == 'manual':
                 try:
                     field = self._instanciate(field_data)
                     if field:
-                        model._add_field(name, field)
+                        pool[model_class._name]._add_field(name, field)
                 except Exception:
-                    _logger.exception("Failed to load field %s.%s: skipped", model._name, field_data['name'])
+                    _logger.exception("Failed to load field %s.%s: skipped", model_class._name, field_data['name'])
 
     @api.model
     @tools.ormcache_context('model_name', keys=('lang',))
@@ -1409,7 +1411,8 @@ class IrModelInherit(models.Model):
             model = self.env[model_name]
 
             for cls in reversed(type(model).mro()):
-                if not models.is_definition_class(cls):
+                # check only definition classes
+                if cls is object or cls._register_pool is not None:
                     continue
 
                 items = [
@@ -2443,7 +2446,7 @@ class IrModelData(models.Model):
                         # the field is shared across registries; don't modify it
                         Field = type(field)
                         field_ = Field(_base_fields=[field, Field(prefetch=False)])
-                        self.env[ir_field.model]._add_field(ir_field.name, field_)
+                        self.env.registry[ir_field.model]._add_field(ir_field.name, field_)
                         field_.setup(model)
                         has_shared_field = True
         if has_shared_field:

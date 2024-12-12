@@ -468,7 +468,8 @@ class MailThread(models.AbstractModel):
             check_operation = operation
         return check_operation
 
-    def _valid_field_parameter(self, field, name):
+    @classmethod
+    def _valid_field_parameter(cls, field, name):
         # allow tracking on models inheriting from 'mail.thread'
         return name == 'tracking' or super()._valid_field_parameter(field, name)
 
