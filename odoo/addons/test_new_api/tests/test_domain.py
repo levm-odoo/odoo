@@ -455,7 +455,7 @@ class TestDomainOptimize(TransactionCase):
         domain = Domain('id', 'in', range(5)).optimize(model)
         self.assertIsInstance(domain.value, OrderedSet)
         domain = Domain('id', 'in', [9, 99]).optimize(model)
-        self.assertIsInstance(domain.value, list)
+        self.assertIsInstance(domain.value, OrderedSet)
         self.assertIs(domain.optimize(model), domain, "Idempotent")
 
         self.assertEqual(
@@ -711,6 +711,67 @@ class TestDomainOptimize(TransactionCase):
                 Domain('number', '<', 99),
             ]),
             "Optimization sorts by field and operator",
+        )
+
+    def test_nary_optimize_in(self):
+        model = self.env['test_new_api.mixed']
+
+        def domain(op, values):
+            if not values:
+                return Domain('number', op, values).optimize(model)
+            return Domain('number', op, OrderedSet(values))
+
+        left = OrderedSet([1, 2, 3])
+        right = OrderedSet([3, 4, 5])
+        other = OrderedSet([99, 100])
+        sets = [left, right, other, OrderedSet([])]
+        for a, b in list(combinations(sets, 2)) + list(combinations(reversed(sets), 2)):
+            self.assertEqual(
+                (domain('in', a) | domain('in', b)).optimize(model),
+                domain('in', a | b), f"in: {a} | {b}"
+            )
+            self.assertEqual(
+                (domain('in', a) & domain('in', b)).optimize(model),
+                domain('in', a & b), f"in: {a} & {b}"
+            )
+            self.assertEqual(
+                (domain('not in', a) | domain('not in', b)).optimize(model),
+                domain('not in', a & b), f"not in {a} | not in {b}"
+            )
+            self.assertEqual(
+                (domain('not in', a) & domain('not in', b)).optimize(model),
+                domain('not in', a | b), f"not in {a} & not in {b}"
+            )
+            self.assertEqual(
+                (domain('in', a) | domain('not in', b)).optimize(model),
+                domain('not in', b - a), f"in {a} | not in {b}"
+            )
+            self.assertEqual(
+                (domain('in', a) & domain('not in', b)).optimize(model),
+                domain('in', a - b), f"in {a} & not in {b}"
+            )
+
+        self.assertEqual(
+            (domain('in', left) | domain('not in', other) | domain('in', right)).optimize(model),
+            domain('not in', other)
+        )
+        self.assertEqual(
+            (domain('in', left) & domain('not in', right) & domain('in', [1])).optimize(model),
+            domain('in', [1])
+        )
+
+        self.assertEqual(
+            (~(domain('in', left) | domain('in', right))).optimize(model),
+            domain('not in', left | right)
+        )
+        self.assertEqual(
+            (~(domain('in', left) & domain('in', right))).optimize(model),
+            domain('not in', left & right)
+        )
+
+        self.assertIsInstance(
+            (Domain('number', 'in', [1]) | Domain('number', 'in', [2])).optimize(model).value,
+            OrderedSet, "Check we can optimize something else than OrderedSet"
         )
 
     def test_nary_optimize_any(self):
