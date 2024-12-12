@@ -1046,6 +1046,37 @@ class Website(Home):
 
         return request.redirect('/')
 
+    # Enable the footer template and its corresponding copyright template.
+    # The goal is to ensure that the content width of the copyright aligns with the footer.
+    @http.route(['/website/update_footer_template'], type='jsonrpc', auth='user', website=True)
+    def update_footer_template(self, template_key, possible_values):
+
+        # 1 . Get the content width of the new footer template.
+        new_template = self._get_customize_data([template_key], is_view_data=True)
+        if not new_template or not new_template[0].arch:
+            return
+
+        # 2. Define the footer template views to enable/disable
+        views_enable = [template_key]
+        views_disable = self.theme_customize_data_get(possible_values, is_view_data=True)
+
+        # 3. Define the copyright template views to enable/disable
+        tree = etree.HTML(new_template[0].arch)
+        res = tree.xpath("//div[contains(@class, 'container')]")
+        if res:
+            classes = res[0].get('class').split()
+            width = next((c for c in ['container', 'container-fluid', 'o_container_small'] if c in classes), False)
+            views = {'container-fluid': 'website.footer_copyright_content_width_fluid',
+                     'o_container_small': 'website.footer_copyright_content_width_small'}
+            views_enable += [views.get(width)]
+            views_disable += [v for k, v in views.items() if k != width]
+
+        # 4. Activate/Deactivate the computed views
+        self.theme_customize_data(is_view_data=True,
+                                  enable=views_enable,
+                                  disable=views_disable,
+                                  reset_view_arch=False)
+
 
 class WebsiteSession(Session):
 
