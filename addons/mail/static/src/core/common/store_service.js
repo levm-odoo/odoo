@@ -357,10 +357,6 @@ export class Store extends BaseStore {
                 }
             });
             return true;
-        } else if (ev.target.closest(".o_mail_redirect") && id) {
-            ev.preventDefault();
-            this.openChat({ partnerId: id });
-            return true;
         } else if (ev.target.tagName === "A" && model && id) {
             ev.preventDefault();
             Promise.resolve(
@@ -446,8 +442,14 @@ export class Store extends BaseStore {
      * Get the parameters to pass to the message post route.
      */
     async getMessagePostParams({ body, postData, thread }) {
-        const { attachments, cannedResponseIds, emailAddSignature, isNote, mentionedChannels, mentionedPartners } =
-            postData;
+        const {
+            attachments,
+            cannedResponseIds,
+            emailAddSignature,
+            isNote,
+            mentionedChannels,
+            mentionedPartners,
+        } = postData;
         const subtype = isNote ? "mail.mt_note" : "mail.mt_comment";
         const validMentions = this.getMentionsFromText(body, {
             mentionedChannels,
