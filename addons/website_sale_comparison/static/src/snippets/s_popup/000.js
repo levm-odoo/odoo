@@ -7,21 +7,6 @@ const CookiesBar = publicWidget.registry.cookies_bar;
 CookiesBar.include({
 
     //--------------------------------------------------------------------------
-    // Handlers
-    //--------------------------------------------------------------------------
-
-    /**
-     * @private
-     *
-     * Remove the custom css for `--move-cookie-over-modal`, to position the
-     * compare button at the bottom.
-     */
-    _onHideModal() {
-        this._super(...arguments);
-        document.querySelector(".o_product_feature_panel")?.style.removeProperty("--move-cookie-over-modal");
-    },
-
-    //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------
 
@@ -35,20 +20,41 @@ CookiesBar.include({
     _showPopup() {
         this._super(...arguments);
         const productCompareButtonEl = document.querySelector(".o_product_feature_panel");
+
         if (productCompareButtonEl) {
-            const popoverBottomFixedEl = this.el.querySelector(".s_popup_bottom");
-            const cookieModalDialogEl = popoverBottomFixedEl.querySelector(".modal-dialog");
-            const isNoBackdrop = popoverBottomFixedEl.classList.contains("s_popup_no_backdrop");
-            const isBottomCookie =
-                popoverBottomFixedEl.classList.contains("o_cookies_classic")
-                || popoverBottomFixedEl.classList.contains("o_cookies_discrete");
+            const cookieModelEl = this.el.querySelector(".modal");
+
+            if (cookieModelEl.classList.contains("o_cookies_popup") || !cookieModelEl.classList.contains("s_popup_no_backdrop")) {
+                return;
+            }
+
+            const cookieModalDialogEl = cookieModelEl.querySelector(".modal-dialog");
             const isCookiebarLarge = cookieModalDialogEl.classList.contains("s_popup_size_full");
-            if (isNoBackdrop && isBottomCookie && isCookiebarLarge) {
+
+            if (isCookiebarLarge) {
                 const bottom = cookieModalDialogEl.querySelector(".modal-content").offsetHeight
-                ? `${cookieModalDialogEl.querySelector(".modal-content").offsetHeight}px`
-                : "";
+                    ? `${cookieModalDialogEl.querySelector(".modal-content").offsetHeight}px`
+                    : "";
                 productCompareButtonEl?.style.setProperty("--move-cookie-over-modal", bottom);
             }
+        }
+    },
+
+    //--------------------------------------------------------------------------
+    // Handlers
+    //--------------------------------------------------------------------------
+
+    /**
+     * @private
+     *
+     * Remove the custom css for `--move-cookie-over-modal`, to position the
+     * compare button at the bottom.
+     */
+    _onHideModal() {
+        this._super(...arguments);
+        const productPanelEl = document.querySelector(".o_product_feature_panel");
+        if (productPanelEl) {
+            productPanelEl.style.removeProperty("--move-cookie-over-modal");
         }
     },
 });

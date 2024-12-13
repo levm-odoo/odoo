@@ -7,6 +7,7 @@ import VariantMixin from "@website_sale/js/sale_variant_mixin";
 import website_sale_utils from "@website_sale/js/website_sale_utils";
 import { _t } from "@web/core/l10n/translation";
 import { renderToString } from "@web/core/utils/render";
+import { debounce } from "@web/core/utils/timing";
 
 const cartHandlerMixin = website_sale_utils.cartHandlerMixin;
 
@@ -36,6 +37,11 @@ var ProductComparison = publicWidget.Widget.extend(VariantMixin, {
      */
     start: function () {
         var self = this;
+        // TODO: Adapt code in Vanilla JS in master.
+        this.scrollingElement = $().getScrollingElement()[0];
+        this.scrollingTarget = $().getScrollingTarget(this.scrollingElement)[0];
+        this.__hideCompareButtonPopoverScroll = debounce(() => this._hideCompareButtonPopoverScroll(), 100);
+        this.scrollingTarget.addEventListener("scroll", this.__hideCompareButtonPopoverScroll);
 
         self._loadProducts(this.comparelist_product_ids).then(function () {
             self._updateContent('hide');
@@ -79,6 +85,7 @@ var ProductComparison = publicWidget.Widget.extend(VariantMixin, {
      */
     destroy: function () {
         this._super.apply(this, arguments);
+        this.scrollingTarget.removeEventListener("scroll", this.__hideCompareButtonPopoverScroll);
         $(document.body).off('.product_comparaison_widget');
     },
 
@@ -112,8 +119,6 @@ var ProductComparison = publicWidget.Widget.extend(VariantMixin, {
                 if (!productId) {
                     return;
                 }
-                // To display the hidden popover behind the model
-                self.el.classList.remove("o_bottom_fixed_element_hidden");
                 self._addNewProducts(productId).then(function () {
                     website_sale_utils.animateClone(
                         $('#comparelist .o_product_panel_header'),
@@ -125,7 +130,6 @@ var ProductComparison = publicWidget.Widget.extend(VariantMixin, {
             });
         } else {
             this.$('.o_comparelist_limit_warning').show();
-            this.el.classList.remove("o_bottom_fixed_element_hidden");
             $('#comparelist .o_product_panel_header').popover('show');
         }
     },
@@ -134,6 +138,15 @@ var ProductComparison = publicWidget.Widget.extend(VariantMixin, {
     // Private
     //--------------------------------------------------------------------------
 
+    /**
+     * @private
+     *
+     * To hide popover on scroll.
+     */
+    _hideCompareButtonPopoverScroll() {
+        const panelHeaderEl = document.querySelector("#comparelist .o_product_panel_header");
+        Popover.getOrCreateInstance(panelHeaderEl).hide();
+    },
     /**
      * @private
      */
