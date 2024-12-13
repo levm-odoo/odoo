@@ -1058,6 +1058,7 @@ class ChromeBrowser:
         self._result = Future()
         self.error_checker = None
         self.had_failure = False
+        self.chrome_profiler_active = False
         # maps request_id to Futures
         self._responses = {}
         # maps frame ids to callbacks
@@ -1067,6 +1068,8 @@ class ChromeBrowser:
             'Runtime.exceptionThrown': self._handle_exception,
             'Page.frameStoppedLoading': self._handle_frame_stopped_loading,
             'Page.screencastFrame': self._handle_screencast_frame,
+            'Profiler.consoleProfileFinished': self._handle_console_profile_finished,
+            'Profiler.consoleProfileStarted': self._handle_console_profile_started,
         }
         self._receiver = threading.Thread(
             target=self._receive,
@@ -1425,6 +1428,14 @@ class ChromeBrowser:
                     )
         elif message == self.success_signal:
             @run
+            def _get_profing_info():
+                if self.chrome_profiler_active:
+                    self.chrome_profiler_active = False
+                    self._logger.info('Stop Chrome Profiler')
+                    data = yield self._websocket_send('Profiler.stop', with_future=True)
+                    self.save_profiling(data.get('profile'))
+
+            @run
             def _get_heap():
                 yield self._websocket_send("HeapProfiler.collectGarbage", with_future=True)
                 r = yield self._websocket_send("Runtime.getHeapUsage", with_future=True)
@@ -1515,6 +1526,13 @@ which leads to stray network requests and inconsistencies."""
         except FileNotFoundError:
             self._logger.debug('Useless screencast frame skipped: %s', outfile)
 
+    def _handle_console_profile_finished(self, id, location, profile, title):
+        self._logger.info(f'Stop profiling (inline)')
+        self.save_profiling(profile)
+
+    def _handle_console_profile_started(self, id, location, title):
+        self._logger.info(f'Start profiling (inline)')
+
     _TO_LEVEL = {
         'debug': logging.DEBUG,
         'log': logging.INFO,
@@ -1598,6 +1616,31 @@ which leads to stray network requests and inconsistencies."""
 
     def stop_screencast(self):
         self._websocket_send('Page.stopScreencast')
+
+    def enable_profiler(self):
+        self._logger.info('Enable Chrome Profiler')
+        self._websocket_send('Profiler.enable')
+
+    def set_sampling_interval(self, ms):
+        self._logger.info('Set Chrome Profiler sampling interval to %s ms', ms)
+        self._websocket_send('Profiler.setSamplingInterval', params={'interval': ms})
+
+    def start_profiler(self):
+        self._logger.info('Start Chrome Profiler')
+        self._websocket_send('Profiler.start')
+        self.chrome_profiler_active = True
+
+    def save_profiling(self, content, date_format="%Y%m%d_%H%M%S_%f"):
+        test_name = type(self.test_case).__name__
+        now = datetime.now().strftime(date_format)
+        data_dir = pathlib.Path('/tmp/odoo') / get_db_name() / 'profiling'
+        data_dir.mkdir(parents=True, exist_ok=True)
+        fname = f'{test_name}_{now}.json'
+        full_path = data_dir / fname
+
+        with full_path.open('w') as f:
+            json.dump(content, f)
+        self._logger.runbot(f'Profiling save in: {full_path}')
 
     def set_cookie(self, name, value, path, domain):
         params = {'name': name, 'value': value, 'path': path, 'domain': domain}

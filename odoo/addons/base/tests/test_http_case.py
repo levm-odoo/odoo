@@ -85,3 +85,20 @@ class TestChromeBrowser(HttpCase):
         code = "setTimeout(() => console.log('test successful'), 2000); setInterval(() => document.body.innerText = (new Date()).getTime(), 100);"
         self.browser._wait_code_ok(code, 10)
         self.browser._save_screencast()
+
+    def test_profiler(self):
+        self.browser.enable_profiler()
+        self.browser.set_sampling_interval(1000)
+        self.browser.start_profiler()
+        self.browser.navigate_to('about:blank')
+        self.browser._wait_ready()
+        code = "setTimeout(() => console.log('test successful'), 2000); setInterval(() => document.body.innerText = (new Date()).getTime(), 100);"
+        self.browser._wait_code_ok(code, 10)
+
+    def test_profiler_console(self):
+        self.browser.enable_profiler()
+        self.browser.set_sampling_interval(1000)
+        self.browser.navigate_to('about:blank')
+        self.browser._wait_ready()
+        code = "console.profile('test'); setTimeout(() => console.log('test successful'), 2000); setInterval(() => document.body.innerText = (new Date()).getTime(), 100); console.profileEnd('test');"
+        self.browser._wait_code_ok(code, 10)
