@@ -5,6 +5,8 @@ from odoo.http import request
 from odoo.osv import expression
 from odoo.tools.translate import LazyTranslate, _
 
+from odoo.addons.website.tools import text_from_html
+
 
 _lt = LazyTranslate(__name__)
 
@@ -672,7 +674,7 @@ class Website(models.Model):
             ],
         }
         if product_template.description_ecommerce:
-            seo_data['description'] = product_template.description_ecommerce
+            seo_data['description'] = text_from_html(product_template.description_ecommerce)
         return seo_data
 
     def _get_json_ld_product(self, product_or_template):
@@ -698,7 +700,7 @@ class Website(models.Model):
             },
         }
         if product_or_template.description_ecommerce:
-            seo_data['description'] = product_or_template.description_ecommerce
+            seo_data['description'] = text_from_html(product_or_template.description_ecommerce)
         if product_or_template.rating_count:
             seo_data['aggregateRating'] = {
                 '@type': 'AggregateRating',
