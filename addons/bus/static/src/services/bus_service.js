@@ -9,6 +9,9 @@ import { user } from "@web/core/user";
 
 // List of worker events that should not be broadcasted.
 const INTERNAL_EVENTS = new Set(["initialized", "outdated", "log_debug", "notification"]);
+// Slightly delay the reconnection when coming back online as the network is not
+// ready yet and the exponential backoff would delay the reconnection by a lot.
+const BACK_ONLINE_RECONNECT_DELAY = 5000;
 /**
  * Communicate with a SharedWorker in order to provide a single websocket
  * connection shared across multiple tabs.
@@ -195,7 +198,7 @@ export const busService = {
         });
         browser.addEventListener("online", () => {
             if (isActive) {
-                send("start");
+                browser.setTimeout(() => send("start"), BACK_ONLINE_RECONNECT_DELAY);
             }
         });
         browser.addEventListener("offline", () => send("stop"));
