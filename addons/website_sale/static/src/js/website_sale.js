@@ -249,7 +249,9 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, cartHandlerM
                     const zoomOdoo = image.dataset.zoomOdoo;
                     if (zoomOdoo) {
                         zoomOdoo.hide();
-                        image.removeEventListener();
+                        // Common way to remove all event listeners is to replace the element with a clone of itself
+                        const newElement = image.cloneNode(true); // Deep clone (includes child nodes)
+                        image.parentNode.replaceChild(newElement, image);
                     }
                 });
                 if (image.complete) {
