@@ -656,11 +656,21 @@ import wUtils from '@website/js/utils';
                 value = '';
             }
 
+            // Convert value and comparable to arrays if they are strings.
+            if (["contains", "!contains"].includes(comparator)) {
+                if (typeof value === "string") {
+                    value = value.split(",");
+                }
+                if (typeof comparable === "string") {
+                    comparable = comparable.split(",");
+                }
+            }
+
             switch (comparator) {
                 case 'contains':
-                    return value.includes(comparable);
+                    return value && value.some(val => comparable.some(comp => val.includes(comp)));
                 case '!contains':
-                    return !value.includes(comparable);
+                    return value && value.every(val => comparable.every(comp => !val.includes(comp)));
                 case 'equal':
                 case 'selected':
                     return value === comparable;
