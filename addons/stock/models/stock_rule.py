@@ -542,7 +542,7 @@ class ProcurementGroup(models.Model):
         res = self.env['stock.rule']
         if route_ids:
             res = Rule.search(expression.AND([[('route_id', 'in', route_ids.ids)], domain]), order='route_sequence, sequence', limit=1)
-        if not res and packaging_uom_id and packaging_uom_id.package_type_id.route_ids:
+        if not res and packaging_uom_id:
             packaging_routes = packaging_uom_id.package_type_id.route_ids
             if packaging_routes:
                 res = Rule.search(expression.AND([[('route_id', 'in', packaging_routes.ids)], domain]), order='route_sequence, sequence', limit=1)
@@ -572,7 +572,7 @@ class ProcurementGroup(models.Model):
         # Get a mapping (location_id, route_id) -> warehouse_id -> rule_id
         rule_dict = self._search_rule_for_warehouses(
             values.get("route_ids", False),
-            values.get("uom_id", False),
+            values.get("packaging_uom_id", False),
             product_id,
             values.get("warehouse_id", locations.warehouse_id),
             domain,
@@ -621,7 +621,7 @@ class ProcurementGroup(models.Model):
                 result = get_rule_for_routes(
                     rule_dict,
                     values.get("route_ids", self.env['stock.route']),
-                    values.get("uom_id", self.env['uom.uom']),
+                    values.get("packaging_uom_id", self.env['uom.uom']),
                     product_id,
                     values.get("warehouse_id", candidate_location.warehouse_id),
                     candidate_location,
@@ -667,7 +667,7 @@ class ProcurementGroup(models.Model):
             domain = [('location_src_id', '=', location.id), ('action', 'in', ('push', 'pull_push'))]
             if values.get('domain'):
                 domain = expression.AND([domain, values['domain']])
-            found_rule = self._search_rule(values.get('route_ids'), values.get('uom_id'), product_id, values.get('warehouse_id'), domain)
+            found_rule = self._search_rule(values.get('route_ids'), values.get('packaging_uom_id'), product_id, values.get('warehouse_id'), domain)
             location = location.location_id
         return found_rule
 

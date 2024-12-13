@@ -37,13 +37,14 @@
                                     <span t-field="order_line.name"/>
                                 </td>
                                 <td class="text-center">
-                                    <span t-field="order_line.date_planned"/>
+                                    <span t-field="order_line.date_planned" t-options="{'widget': 'date', 'format': 'dd/MM/YYYY'}"/>
                                 </td>
                                 <td class="text-end">
                                     <span t-field="order_line.product_qty"/>
                                     <span t-field="order_line.product_uom_id" groups="uom.group_uom"/>
-                                    <span t-if="order_line.product_uom_id != order_line.product_id.uom_id">
-                                        (<span t-field="order_line.product_uom_qty" t-options="{'widget': 'float', 'decimal_precision': 'Product Unit of Measure'}"/> <span t-field="order_line.product_id.uom_id"/>)
+                                    <span t-if="order_line.product_uom_id != order_line.product_id.uom_id" class="text-muted small">
+                                    <br/>
+                                        <span t-field="order_line.product_uom_qty" t-options="{'widget': 'float', 'decimal_precision': 'Product Unit of Measure'}"/> <span t-field="order_line.product_id.uom_id"/>
                                     </span>
                                 </td>
                             </t>
