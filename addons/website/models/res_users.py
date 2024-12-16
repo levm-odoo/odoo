@@ -13,27 +13,11 @@ class ResUsers(models.Model):
 
     website_id = fields.Many2one('website', related='partner_id.website_id', store=True, related_sudo=False, readonly=False)
 
-    _login_key = models.Constraint(
-        'unique (login, website_id)',
+    _login_website_key = models.UniqueIndex(
+        '(login, website_id) NULLS NOT DISTINCT',
         'You can not have two users with the same login!',
     )
-
-    @api.constrains('login', 'website_id')
-    def _check_login(self):
-        """ Do not allow two users with the same login without website """
-        self.flush_model(['login', 'website_id'])
-        self.env.cr.execute(
-            """SELECT login
-                 FROM res_users
-                WHERE login IN (SELECT login FROM res_users WHERE id IN %s AND website_id IS NULL)
-                  AND website_id IS NULL
-             GROUP BY login
-               HAVING COUNT(*) > 1
-            """,
-            (tuple(self.ids),)
-        )
-        if self.env.cr.rowcount:
-            raise ValidationError(_('You can not have two users with the same login!'))
+    _login_key = models.Constraint("CHECK (TRUE)")  # disable constraint, replaced by unique index
 
     @api.model
     def _get_login_domain(self, login):
