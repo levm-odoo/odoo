@@ -4,10 +4,6 @@
 
 .numpad-4-cols {
   grid-template-columns: repeat(4, 1fr);
-
-  .numpad-button:nth-child(4n) {
-    margin-left: map-get($spacers, 2) !important;
-  }
 }
 
 .modal-body .numpad-button {
@@ -20,13 +16,17 @@
   @include media-breakpoint-down(xl) {
     padding: 0;
   }
+
+  &.active {
+    color: $o-action;
+  } 
+
+  &:disabled {
+    opacity: 1;
+    background-color: $o-gray-200
+  }
 }
 
 .numpad-3-cols {
   grid-template-columns: repeat(3, 1fr);
-}
-
-.numpad-discount.active {
-  border-bottom: $border-width solid $o-component-active-border !important;
-  border-top: $border-width solid $o-component-active-border !important;
 }

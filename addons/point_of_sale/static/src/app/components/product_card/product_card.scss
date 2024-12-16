@@ -30,6 +30,10 @@
         -webkit-line-clamp: 7;
         aspect-ratio: 4 / 3;
     }
+
+    > .qty {
+        min-width: 3rem;
+    }
 }
 
 @media screen and (max-width: 768px) {

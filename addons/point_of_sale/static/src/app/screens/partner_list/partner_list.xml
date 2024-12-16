@@ -2,7 +2,7 @@
 <templates id="template" xml:space="preserve">
 
     <t t-name="point_of_sale.PartnerList">
-        <Dialog bodyClass="'partner-list overflow-y-auto'" contentClass="'h-100'">
+        <Dialog bodyClass="'partner-list overflow-y-auto p-0'" contentClass="'h-100'">
             <t t-set-slot="header">
                 <button t-if="!ui.isSmall and this.pos.cashier._role !== 'minimal'" class="btn btn-primary btn-lg lh-lg" role="img" aria-label="Add a customer"
                         t-on-click="() => this.editPartner()"
@@ -18,15 +18,6 @@
                     debounceMillis="100" />
             </t>
             <table class="table table-hover">
-                <thead t-if="!ui.isSmall">
-                    <tr>
-                        <th class="py-2">Name</th>
-                        <th class="py-2">Address</th>
-                        <th class="partner-line-email py-2">Contact</th>
-                        <th class="pos-right-align py-2" t-if="isBalanceDisplayed">Balance</th>
-                        <th class="py-2"></th>
-                    </tr>
-                </thead>
                 <tbody>
                     <t t-foreach="getPartners()" t-as="partner" t-key="partner.id">
                         <PartnerLine

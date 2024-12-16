@@ -1,6 +1,6 @@
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
-import { formatDateTime, parseDateTime } from "@web/core/l10n/dates";
+import { formatDateTime, formatDate, parseDateTime } from "@web/core/l10n/dates";
 import { parseFloat } from "@web/views/fields/parsers";
 import { _t } from "@web/core/l10n/translation";
 import { AlertDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
@@ -25,6 +25,7 @@ import { useTrackedAsync } from "@point_of_sale/app/hooks/hooks";
 import { OrderDisplay } from "@point_of_sale/app/components/order_display/order_display";
 
 const NBR_BY_PAGE = 30;
+const { DateTime } = luxon;
 
 export class TicketScreen extends Component {
     static storeOnOrder = false;
@@ -380,7 +381,15 @@ export class TicketScreen extends Component {
         }
     }
     getDate(order) {
-        return formatDateTime(parseUTCString(order.date_order));
+        const todayTs = DateTime.now().startOf("day").ts;
+        if (DateTime.fromSQL(order.date_order).startOf("day").ts === todayTs) {
+            return _t("Today");
+        } else {
+            return formatDate(parseUTCString(order.date_order));
+        }
+    }
+    getTime(order) {
+        return parseUTCString(order.date_order).toFormat("hh:mm");
     }
     getTotal(order) {
         return this.env.utils.formatCurrency(order.getTotalWithTax());

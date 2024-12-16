@@ -481,7 +481,7 @@ export class PosStore extends WithLazyGetterTrap {
     get productListViewMode() {
         const viewMode = this.productListView && this.ui.isSmall ? this.productListView : "grid";
         if (viewMode === "grid") {
-            return "d-grid gap-2";
+            return "d-grid gap-1 gap-lg-2";
         } else {
             return "";
         }

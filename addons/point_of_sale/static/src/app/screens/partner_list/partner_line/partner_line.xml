@@ -3,7 +3,7 @@
 
     <t t-name="point_of_sale.PartnerLine">
         <t t-if="ui.isSmall">
-            <div class="partner-info d-flex flex-column p-1 border-bottom" t-att-class="{'bg-primary-subtle': props.isSelected}" t-att-data-id="props.partner.id"
+            <div class="partner-info d-flex flex-column p-1 border-bottom" t-att-class="{'selected': props.isSelected}" t-att-data-id="props.partner.id"
                 t-on-click="() => this.props.onClickPartner(props.partner)">
                 <div class="d-flex justify-content-between align-items-center p-1">
                     <div>

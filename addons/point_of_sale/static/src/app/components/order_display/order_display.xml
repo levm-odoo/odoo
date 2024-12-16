@@ -35,7 +35,7 @@
                     </div>
                 </div>
                 <t t-set="taxTotals" t-value="order.taxTotals" />
-                <div t-if="taxTotals and props.mode !== 'receipt'" class="order-summary d-flex flex-column gap-1 px-3 py-2 border-top fw-bolder lh-sm">
+                <div t-if="taxTotals and props.mode !== 'receipt'" class="order-summary d-flex flex-column gap-1 p-2 border-top fw-bolder lh-sm">
                     <div t-if="taxTotals.has_tax_groups" class="tax-info subentry d-flex justify-content-between w-100 fs-6 text-muted ">
                         Taxes
                         <div id="order-widget-taxes">
