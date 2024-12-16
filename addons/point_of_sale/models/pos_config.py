@@ -63,7 +63,7 @@ class PosConfig(models.Model):
 
     def _get_default_tip_product(self):
         tip_product_id = self.env.ref("point_of_sale.product_product_tip", raise_if_not_found=False)
-        if not tip_product_id:
+        if not tip_product_id or (tip_product_id.sudo().company_id and tip_product_id.sudo().company_id != self.env.company):
             tip_product_id = self.env['product.product'].search([('default_code', '=', 'TIPS')], limit=1)
         return tip_product_id
 
@@ -726,6 +726,82 @@ class PosConfig(models.Model):
             'company_id': company_id,
         }).id
 
+<<<<<<< saas-18.1
+||||||| f78a2334d105c89497c6abcc55642fca6da9e0be
+    def get_limited_products_loading(self, fields):
+        query = self.env['product.product']._where_calc(
+            self._get_available_product_domain()
+        )
+        sql = SQL(
+            """
+            WITH pm AS (
+                  SELECT product_id,
+                         MAX(write_date) date
+                    FROM stock_move_line
+                GROUP BY product_id
+            )
+               SELECT product_product.id
+                 FROM %s
+            LEFT JOIN pm ON product_product.id=pm.product_id
+                WHERE %s
+             ORDER BY product_product__product_tmpl_id.is_favorite DESC,
+                      CASE WHEN product_product__product_tmpl_id.type = 'service' THEN 1 ELSE 0 END DESC,
+                      pm.date DESC NULLS LAST,
+                      product_product.write_date DESC
+                LIMIT %s
+            """,
+            query.from_clause,
+            query.where_clause or SQL("TRUE"),
+            self.get_limited_product_count(),
+        )
+        product_ids = [r[0] for r in self.env.execute_query(sql)]
+        product_ids.extend(self._get_special_products().ids)
+        products = self.env['product.product'].browse(product_ids)
+        product_combo = products.filtered(lambda p: p['type'] == 'combo')
+        product_in_combo = product_combo.combo_ids.combo_item_ids.product_id
+        products_available = products | product_in_combo
+        return products_available.read(fields, load=False)
+
+=======
+    def get_limited_products_loading(self, fields):
+        query = self.env['product.product']._where_calc(
+            self._get_available_product_domain()
+        )
+        sql = SQL(
+            """
+            WITH pm AS (
+                  SELECT product_id,
+                         MAX(write_date) date
+                    FROM stock_move_line
+                GROUP BY product_id
+            )
+               SELECT product_product.id
+                 FROM %s
+            LEFT JOIN pm ON product_product.id=pm.product_id
+                WHERE %s
+             ORDER BY product_product__product_tmpl_id.is_favorite DESC,
+                      CASE WHEN product_product__product_tmpl_id.type = 'service' THEN 1 ELSE 0 END DESC,
+                      pm.date DESC NULLS LAST,
+                      product_product.write_date DESC
+                LIMIT %s
+            """,
+            query.from_clause,
+            query.where_clause or SQL("TRUE"),
+            self.get_limited_product_count(),
+        )
+        product_ids = [r[0] for r in self.env.execute_query(sql)]
+        special_products = self._get_special_products().filtered(
+            lambda product: not product.sudo().company_id
+                            or product.sudo().company_id == self.company_id
+        )
+        product_ids.extend(special_products.ids)
+        products = self.env['product.product'].browse(product_ids)
+        product_combo = products.filtered(lambda p: p['type'] == 'combo')
+        product_in_combo = product_combo.combo_ids.combo_item_ids.product_id
+        products_available = products | product_in_combo
+        return products_available.read(fields, load=False)
+
+>>>>>>> fd93842b7afbce297a127fcde18153524c77a8f7
     def get_limited_product_count(self):
         default_limit = 5000
         config_param = self.env['ir.config_parameter'].sudo().get_param('point_of_sale.limited_product_count', default_limit)
