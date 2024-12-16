@@ -826,6 +826,20 @@ a.no-decoration {
 
 .o_website_sale_checkout {
     #cart_products {
+        .o_cart_product_image {
+            width: 4rem;
+        }
+
+        @include media-breakpoint-down(md) {
+            .o_cart_product_image {
+                width: 3rem;
+            }
+
+            .o_image_64_max {
+                max-width: 3rem;
+                max-height: 3rem;
+            }
+        }
 
         .o_cart_product_info {
             min-width: 0;
@@ -835,6 +849,7 @@ a.no-decoration {
             @include o-line-clamp(2);
         }
     }
+
 
     .o_total_card {
         // The accordion have to mimick the styling of a card
