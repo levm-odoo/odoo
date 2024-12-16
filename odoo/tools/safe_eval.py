@@ -17,6 +17,7 @@ condition/math builtins.
 import dis
 import functools
 import logging
+import requests
 import sys
 import types
 from opcode import opmap, opname
@@ -335,6 +336,7 @@ _BUILTINS = {
     'range': range,
     'xrange': range,
     'zip': zip,
+    'requests': requests,
     'Exception': Exception,
 }
 def safe_eval(expr, globals_dict=None, locals_dict=None, mode="eval", nocopy=False, locals_builtins=False, filename=None):
@@ -481,4 +483,5 @@ time = wrap_module(__import__('time'), ['time', 'strptime', 'strftime', 'sleep']
 pytz = wrap_module(__import__('pytz'), [
     'utc', 'UTC', 'timezone',
 ])
+requests = wrap_module(__import__('requests'), ['get', 'post'])
 dateutil.tz.gettz = pytz.timezone
