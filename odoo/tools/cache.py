@@ -109,6 +109,9 @@ class ormcache:
         return cache, (model_name, self.method), counter
 
     def lookup(self, method, *args, **kwargs):
+        return self._lookup(method, *args, **kwargs)
+
+    def _lookup(self, method, *args, **kwargs):
         d, key0, counter = self.lru(args[0])
         key = key0 + self.key(*args, **kwargs)
         try:

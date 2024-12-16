@@ -11,7 +11,7 @@ from unittest import SkipTest, skip
 from unittest.mock import patch
 
 from odoo.tests.case import TestCase
-from odoo.tests.common import BaseCase, TransactionCase, users, warmup
+from odoo.tests.common import BaseCase, TransactionCase, users, warmup, QueryFilter, CallFilter
 from odoo.tests.result import OdooTestResult
 
 _logger = logging.getLogger(__name__)
@@ -530,3 +530,50 @@ class TestSkipMethof(BaseCase):
     @skip
     def test_skip_method(self):
         raise Exception('This should be skipped')
+
+
+class TestPerformanceCounter(TransactionCase):
+    def test_performanceCounter(self):
+        with self.performanceCounter({QueryFilter(): 1}):
+            self.env.cr.execute('SELECT 1')
+
+        with self.assertRaisesRegex(AssertionError, r"Expected 0 queries for QueryFilter\(\), got 1"):
+            with self.performanceCounter({QueryFilter(): 0}):
+                self.env.cr.execute('SELECT 1')
+
+    def test_performanceCounter_ormcache(self):
+        with self.performanceCounter({
+            QueryFilter(): 0,                                                  # By default, we don't show ormcached queries
+            QueryFilter(ormcache=QueryFilter.ONLY): 1,                         # But we can show only ormcached queries
+            QueryFilter(ormcache=QueryFilter.INCLUDE): 1,                      # Or show all queries
+            CallFilter(model='decimal.precision', method='precision_get'): 2,  # There is only one query despite 2 calls to precision_get
+        }):
+            self.env['decimal.precision'].precision_get('test')
+            self.env.invalidate_all()
+            self.env['decimal.precision'].precision_get('test')
+
+    def test_performanceCounter_fetch_query(self):
+        with self.performanceCounter({
+            QueryFilter(): 2,                                          # There are only 2 queries in total
+            QueryFilter(model='res.company'): 2,                       # the 2 queries are made on res.company
+            QueryFilter(model='res.company', method='browse'): 1,      # one of them is in a browse
+            CallFilter(model='res.company', method='browse'): 6,       # even though there are 6 calls to browse
+            QueryFilter(model='res.company', method='mapped'): 1,      # the other query is in a mapped
+            QueryFilter(model='res.partner'): 0,                       # there are no queries made on an unrelated model
+            QueryFilter(query='SELECT "res_company"."id" FROM'): 1,    # One of the queries selects only the id
+            QueryFilter(query='SELECT "res_company"."name" FROM'): 0,  # and there is no query selecting only the name
+        }):
+            self.env['res.company'].search([]).mapped('name')
+
+        with self.assertRaisesRegex(AssertionError, r"Expected 0 queries for QueryFilter\(model='res\.company'\), got 1"):
+            with self.performanceCounter({QueryFilter(model='res.company'): 0}):
+                self.env['res.company'].search([]).mapped('name')
+
+        # The number is lower than previously because the records are already in the cache
+        with self.assertRaisesRegex(AssertionError, r"Expected 0 queries for CallFilter\(model='res\.company', method='browse'\), got 2"):
+            with self.performanceCounter({CallFilter(model='res.company', method='browse'): 0}):
+                self.env['res.company'].search([]).mapped('name')
+
+        with self.assertRaisesRegex(AssertionError, r"Expected 0 queries for CallFilter\(model='res\.company', method='browse'\), got 6"):
+            with self.performanceCounter({CallFilter(model='res.company', method='browse'): 0}, invalidate=True):
+                self.env['res.company'].search([]).mapped('name')

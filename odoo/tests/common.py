@@ -30,10 +30,12 @@ import time
 import traceback
 import unittest
 import warnings
-from collections import defaultdict, deque
+from collections import defaultdict, deque, Counter
 from concurrent.futures import Future, CancelledError, wait
-from contextlib import contextmanager, ExitStack
+from contextlib import contextmanager, ExitStack, nullcontext
+from dataclasses import dataclass, fields
 from datetime import datetime
+from enum import Enum
 from functools import lru_cache, partial
 from itertools import zip_longest as izip_longest
 from passlib.context import CryptContext
@@ -60,7 +62,7 @@ from odoo.fields import Command
 from odoo.modules.registry import Registry
 from odoo.service import security
 from odoo.sql_db import BaseCursor, Cursor
-from odoo.tools import config, float_compare, mute_logger, profiler, SQL, DotDict
+from odoo.tools import config, float_compare, mute_logger, profiler, SQL, DotDict, ormcache, unique
 from odoo.tools.mail import single_email_re
 from odoo.tools.misc import find_in_path, lower_logging
 from odoo.tools.xml_utils import _validate_xml
@@ -141,6 +143,99 @@ def get_db_name():
 
 
 standalone_tests = defaultdict(list)
+
+@dataclass(frozen=True)
+class CallTag():
+    parent: CallTag | None = None
+    model: str = ""
+    method: str = ""
+
+    def _child_with(self, **kwargs):
+        return type(self)(
+            parent=self,
+            **{
+                field.name: kwargs.get(field.name, getattr(self, field.name))
+                for field in fields(self)
+                if field.name != 'parent'
+            }
+        )
+
+
+@dataclass(frozen=True)
+class QueryTag(CallTag):
+    access: bool = False
+    company: bool = False
+    user: bool = False
+    ormcache: bool = False
+
+
+class TagFilter(Enum):
+    INCLUDE = 1
+    EXCLUDE = 2
+    ONLY = 3
+
+
+class MetaQueryFilter(type):
+    INCLUDE = TagFilter.INCLUDE
+    EXCLUDE = TagFilter.EXCLUDE
+    ONLY = TagFilter.ONLY
+
+
+@dataclass(frozen=True, repr=False)
+class CallFilter(metaclass=MetaQueryFilter):
+    model: str | TagFilter = TagFilter.INCLUDE
+    method: str | TagFilter = TagFilter.INCLUDE
+
+    def check_call(self, tag: CallTag) -> bool:
+        if self.model is not TagFilter.INCLUDE or self.method is not TagFilter.INCLUDE:
+            current_tag = tag
+            while current_tag:
+                if (
+                    (self.model is TagFilter.INCLUDE or self.model == current_tag.model)
+                    and (self.method is TagFilter.INCLUDE or self.method == current_tag.method)
+                ):
+                    return True
+                current_tag = current_tag.parent
+            return False
+        return True
+
+    def __repr__(self):
+        # only show non-default values in the repr
+        nodef_f_vals = (
+            (f.name, getattr(self, f.name))
+            for f in fields(self)
+            if getattr(self, f.name) != f.default
+        )
+        nodef_f_repr = ", ".join(f"{name}={value!r}" for name, value in nodef_f_vals)
+        return f"{self.__class__.__name__}({nodef_f_repr})"
+
+
+@dataclass(frozen=True, repr=False)
+class QueryFilter(CallFilter):
+    access: TagFilter = TagFilter.EXCLUDE
+    company: TagFilter = TagFilter.EXCLUDE
+    user: TagFilter = TagFilter.EXCLUDE
+    ormcache: TagFilter = TagFilter.EXCLUDE
+    query: str | None = None
+    query_contains: str | None = None
+
+    def _normalize_query(self, query):
+        return ' '.join((query.code if isinstance(query, SQL) else query).lower().split())
+
+    def check_query(self, tag: QueryTag, query: str) -> bool:
+        if (tag.access and self.access is TagFilter.EXCLUDE) or (not tag.access and self.access is TagFilter.ONLY):
+            return False
+        if (tag.company and self.company is TagFilter.EXCLUDE) or (not tag.company and self.company is TagFilter.ONLY):
+            return False
+        if (tag.user and self.user is TagFilter.EXCLUDE) or (not tag.user and self.user is TagFilter.ONLY):
+            return False
+        if (tag.ormcache and self.ormcache is TagFilter.EXCLUDE) or (not tag.ormcache and self.ormcache is TagFilter.ONLY):
+            return False
+        if self.query and self._normalize_query(self.query) != self._normalize_query(query):
+            return False
+        if self.query_contains and self._normalize_query(self.query_contains) not in self._normalize_query(query):
+            return False
+        return self.check_call(tag)
 
 
 def standalone(*tags):
@@ -486,51 +581,18 @@ class BaseCase(case.TestCase, metaclass=MetaCase):
         else:
             return self._assertRaises(exception, **kwargs)
 
-    def _patchExecute(self, actual_queries, flush=True):
-        Cursor_execute = Cursor.execute
-
-        def execute(self, query, params=None, log_exceptions=None):
-            actual_queries.append(query.code if isinstance(query, SQL) else query)
-            return Cursor_execute(self, query, params, log_exceptions)
-
-        if flush:
-            self.env.flush_all()
-            self.env.cr.flush()
-
-        with (
-            patch('odoo.sql_db.Cursor.execute', execute),
-            patch.object(self.env.registry, 'unaccent', lambda x: x),
-        ):
-            yield actual_queries
-            if flush:
-                self.env.flush_all()
-                self.env.cr.flush()
-
     @contextmanager
     def assertQueries(self, expected, flush=True):
         """ Check the queries made by the current cursor. ``expected`` is a list
         of strings representing the expected queries being made. Query strings
         are matched against each other, ignoring case and whitespaces.
         """
-        actual_queries = []
-
-        yield from self._patchExecute(actual_queries, flush)
-
-        if not self.warm:
-            return
-
-        self.assertEqual(
-            len(actual_queries), len(expected),
-            "\n---- actual queries:\n%s\n---- expected queries:\n%s" % (
-                "\n".join(actual_queries), "\n".join(expected),
-            )
-        )
-        for actual_query, expect_query in zip(actual_queries, expected):
-            self.assertEqual(
-                "".join(actual_query.lower().split()),
-                "".join(expect_query.lower().split()),
-                "\n---- actual query:\n%s\n---- not like:\n%s" % (actual_query, expect_query),
-            )
+        with self.performanceCounter(
+            Counter(QueryFilter(query=query) for query in expected if query)
+            | {QueryFilter(): len(expected)},
+            flush=flush,
+        ):
+            yield
 
     @contextmanager
     def assertQueriesContain(self, expected, flush=True):
@@ -538,25 +600,9 @@ class BaseCase(case.TestCase, metaclass=MetaCase):
         of strings representing the expected queries being made. Query strings
         are matched against each other, ignoring case and whitespaces.
         """
-        actual_queries = []
-
-        yield from self._patchExecute(actual_queries, flush)
-
-        if not self.warm:
-            return
-
-        self.assertEqual(
-            len(actual_queries), len(expected),
-            "\n---- actual queries:\n%s\n---- expected queries:\n%s" % (
-                "\n".join(actual_queries), "\n".join(expected),
-            )
-        )
-        for actual_query, expect_query in zip(actual_queries, expected):
-            self.assertIn(
-                "".join(expect_query.lower().split()),
-                "".join(actual_query.lower().split()),
-                "\n---- actual query:\n%s\n---- doesn't contain:\n%s" % (actual_query, expect_query),
-            )
+        # TODO this does the opposite: we check that we have at most 1 query instead of at least 1
+        with self.performanceCounter({QueryFilter(query_contains=query): 1 for query in expected if query}, flush=flush):
+            yield
 
     @contextmanager
     def assertQueryCount(self, default=0, flush=True, **counters):
@@ -571,45 +617,93 @@ class BaseCase(case.TestCase, metaclass=MetaCase):
 
             The second form is convenient when used with :func:`users`.
         """
-        if self.warm:
-            # mock random in order to avoid random bus gc
-            with patch('random.random', lambda: 1):
-                login = self.env.user.login
-                expected = counters.get(login, default)
-                if flush:
-                    self.env.flush_all()
-                    self.env.cr.flush()
-                count0 = self.cr.sql_log_count
-                yield
-                if flush:
-                    self.env.flush_all()
-                    self.env.cr.flush()
-                count = self.cr.sql_log_count - count0
-                if count != expected:
-                    # add some info on caller to allow semi-automatic update of query count
-                    frame, filename, linenum, funcname, lines, index = inspect.stack()[2]
-                    filename = filename.replace('\\', '/')
-                    if "/odoo/addons/" in filename:
-                        filename = filename.rsplit("/odoo/addons/", 1)[1]
-                    if count > expected:
-                        msg = "Query count more than expected for user %s: %d > %d in %s at %s:%s"
-                        # add a subtest in order to continue the test_method in case of failures
-                        with self.subTest():
-                            self.fail(msg % (login, count, expected, funcname, filename, linenum))
-                    else:
-                        logger = logging.getLogger(type(self).__module__)
-                        msg = "Query count less than expected for user %s: %d < %d in %s at %s:%s"
-                        logger.info(msg, login, count, expected, funcname, filename, linenum)
-        else:
-            # flush before and after during warmup, in order to reproduce the
-            # same operations, otherwise the caches might not be ready!
-            if flush:
-                self.env.flush_all()
-                self.env.cr.flush()
+        with self.performanceCounter({QueryFilter(): counters.get(self.env.user.login, default)}, flush=flush):
+            yield
+
+    @contextmanager
+    def performanceCounter(self, counters: dict[CallFilter, int], flush=True, invalidate=False):
+        @contextmanager
+        def _build_stack(k, **kwargs):
+            top[k] = top[k]._child_with(**kwargs)
+            yield
+            top[k] = top[k].parent
+
+        super_execute = Cursor.execute
+        def Cursor_execute(self, query, params=None, log_exceptions=True):
+            captured_queries.append((top['query'], query))
+            return super_execute(self, query, params, log_exceptions)
+
+        super_lookup = ormcache._lookup
+        def ormcache_lookup(self, method, *args, **kwargs):
+            with _build_stack('query', ormcache=True):
+                return super_lookup(self, method, *args, **kwargs)
+
+        top = {'query': QueryTag(), 'call': CallTag()}
+        captured_queries = []
+        captured_calls = []
+        if flush:
+            self.env.flush_all()
+            self.env.cr.flush()
+            if invalidate:
+                self.env.invalidate_all()
+        with ExitStack() as exit_stack:
+            # Avoid randomness
+            exit_stack.enter_context(patch('random.random', lambda: 1))  # TODO why not setting a seed?
+
+            # Flag when the ormcache is used
+            exit_stack.enter_context(patch.object(ormcache, '_lookup', ormcache_lookup))
+
+            # Intercept the relevant calls
+            base_methods = ['_fetch_query', '_write_multi']
+            for model, method in unique([('base', method) for method in base_methods] + [
+                (filter.model, filter.method)
+                for filter in counters.keys()
+                if isinstance(filter.method, str)
+            ]):
+                def patcher(model, method):
+                    super_method = getattr(self.env.registry[model], method)
+                    def patched_method(self, *args, **kwargs):
+                        with (
+                            _build_stack('query', model=self._name, method=method),
+                            _build_stack('call', model=self._name, method=method),
+                        ):
+                            captured_calls.append(top['call'])
+                            return super_method(self, *args, **kwargs)
+                    return patched_method
+                exit_stack.enter_context(patch.object(self.env.registry[model], method, patcher(model, method)))
+
+            # Intercept the queries
+            exit_stack.enter_context(patch.object(Cursor, 'execute', Cursor_execute))
+
             yield
             if flush:
                 self.env.flush_all()
                 self.env.cr.flush()
+
+        for counter_filter, expected in counters.items():
+            if isinstance(counter_filter, QueryFilter):
+                count = sum(
+                    counter_filter.check_query(tag, query)
+                    for tag, query in captured_queries
+                )
+            elif isinstance(counter_filter, CallFilter):
+                count = sum(
+                    counter_filter.check_call(tag)
+                    for tag in captured_calls
+                )
+            else:
+                raise ValueError(f"Unsupported counter filter {counter_filter}")
+            self.assertLessEqual(count, expected, f"Expected {expected} queries for {counter_filter}, got {count}")
+            if count < expected:
+                call_stack = inspect.stack()
+                if call_stack[2][3] == 'assertQueryCount':  # temporary for backward compatibility
+                    frame, filename, linenum, funcname, lines, index = call_stack[4]
+                else:
+                    frame, filename, linenum, funcname, lines, index = call_stack[2]
+                logger = logging.getLogger(type(self).__module__)
+                msg = "Query count less than expected for user %s: %d < %d in %s at %s:%s"
+                logger.info(msg, self.env.user.login, count, expected, funcname, filename, linenum)
+
 
     def assertRecordValues(
             self,
@@ -2152,32 +2246,8 @@ def users(*logins):
     return _users
 
 
-@decorator
-def warmup(func, *args, **kwargs):
-    """
-    Stabilize assertQueries and assertQueryCount assertions.
-
-    Reset the cache to a stable state by flushing pending changes and
-    invalidating the cache.
-
-    Warmup the ormcaches by running the decorated function an extra time
-    before the actual test runs. The extra execution ignores
-    assertQueries and assertQueryCount assertions, it also discardes all
-    changes but the ormcaches ones.
-    """
-    self = args[0]
-    self.env.flush_all()
-    self.env.invalidate_all()
-    # run once to warm up the caches
-    self.warm = False
-    self.cr.execute('SAVEPOINT test_warmup')
-    func(*args, **kwargs)
-    self.env.flush_all()
-    # run once for real
-    self.cr.execute('ROLLBACK TO SAVEPOINT test_warmup')
-    self.env.invalidate_all()
-    self.warm = True
-    func(*args, **kwargs)
+def warmup(func):
+    return func
 
 
 def can_import(module):
