@@ -16,6 +16,7 @@ Allows customers to check in-store stock, pay on site, and pick up their orders 
 
         'views/delivery_carrier_views.xml',
         'views/delivery_form_templates.xml',
+        'views/delivery_pick_up_in_store_views.xml',
         'views/res_config_settings_views.xml',
         'views/stock_warehouse_views.xml',
         'views/templates.xml',
