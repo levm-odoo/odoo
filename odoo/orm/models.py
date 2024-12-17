@@ -47,7 +47,7 @@ import psycopg2.extensions
 from psycopg2.extras import Json
 
 import odoo
-from odoo import SUPERUSER_ID, tools
+from odoo import tools
 from odoo.exceptions import AccessError, MissingError, ValidationError, UserError
 from odoo.osv import expression
 from odoo.tools import (
@@ -261,20 +261,9 @@ class MetaModel(api.Meta):
             if not isinstance(self.id, Id):
                 raise TypeError(f"Field {self.id} is not an instance of fields.Id")
 
-            if attrs.get('_log_access', self._auto):
-                from .fields_relational import Many2one  # noqa: PLC0415
-                add_default('create_uid', Many2one(
-                    'res.users', string='Created by', readonly=True))
-                add_default('create_date', Datetime(
-                    string='Created on', readonly=True))
-                add_default('write_uid', Many2one(
-                    'res.users', string='Last Updated by', readonly=True))
-                add_default('write_date', Datetime(
-                    string='Last Updated on', readonly=True))
-
 
 # special columns automatically created by the ORM
-LOG_ACCESS_COLUMNS = ['create_uid', 'create_date', 'write_uid', 'write_date']
+LOG_ACCESS_COLUMNS = ['create_uid', 'create_date', 'write_uid', 'write_date']  # XXX move?
 MAGIC_COLUMNS = ['id'] + LOG_ACCESS_COLUMNS
 
 # valid SQL aggregation functions
@@ -4064,11 +4053,7 @@ class BaseModel(metaclass=MetaModel):
         """
 
         IrModelData = self.env['ir.model.data'].sudo()
-        if self._log_access:
-            res = self.read(LOG_ACCESS_COLUMNS)
-        else:
-            res = [{'id': x} for x in self.ids]
-
+        res = [{'id': x} for x in self.ids]
 
         xml_data = defaultdict(list)
         imds = IrModelData.search_read(
@@ -4505,16 +4490,7 @@ class BaseModel(metaclass=MetaModel):
         env = self.env
 
         bad_names = {'id', 'parent_path'}
-        if self._log_access:
-            # the superuser can set log_access fields while loading registry
-            if not(self.env.uid == SUPERUSER_ID and not self.pool.ready):
-                bad_names.update(LOG_ACCESS_COLUMNS)
-
-        # set magic fields
         vals = {key: val for key, val in vals.items() if key not in bad_names}
-        if self._log_access:
-            vals.setdefault('write_uid', self.env.uid)
-            vals.setdefault('write_date', self.env.cr.now())
 
         field_values = []                           # [(field, value)]
         determine_inverses = defaultdict(list)      # {inverse: fields}
@@ -4654,11 +4630,6 @@ class BaseModel(metaclass=MetaModel):
 
         # determine records that require updating parent_path
         parent_records = self._parent_store_update_prepare(vals_list)
-
-        if self._log_access:
-            # set magic fields (already done by write(), but not for computed fields)
-            log_vals = {'write_uid': self.env.uid, 'write_date': self.env.cr.now()}
-            vals_list = [(log_vals | vals) for vals in vals_list]
 
         # determine SQL updates, grouped by set of updated fields:
         # {(col1, col2, col3): [(id, val1, val2, val3)]}
@@ -4890,11 +4861,6 @@ class BaseModel(metaclass=MetaModel):
         :rtype: dict
         """
         bad_names = ['id', 'parent_path']
-        if self._log_access:
-            # the superuser can set log_access fields while loading registry
-            if not(self.env.uid == SUPERUSER_ID and not self.pool.ready):
-                bad_names.extend(LOG_ACCESS_COLUMNS)
-
         # also discard precomputed readonly fields (to force their computation)
         bad_names.extend(
             fname
@@ -4910,11 +4876,6 @@ class BaseModel(metaclass=MetaModel):
             # add magic fields
             for fname in bad_names:
                 vals.pop(fname, None)
-            if self._log_access:
-                vals.setdefault('create_uid', self.env.uid)
-                vals.setdefault('create_date', self.env.cr.now())
-                vals.setdefault('write_uid', self.env.uid)
-                vals.setdefault('write_date', self.env.cr.now())
 
             result_vals_list.append(vals)
 
@@ -7234,26 +7195,6 @@ class RecordCache(MutableMapping):
     def __len__(self):
         """ Return the number of fields with a cached value. """
         return sum(1 for name in self)
-
-
-AbstractModel = BaseModel
-
-
-class Model(AbstractModel):
-    """ Main super-class for regular database-persisted Odoo models.
-
-    Odoo models are created by inheriting from this class::
-
-        class ResUsers(Model):
-            ...
-
-    The system will later instantiate the class once per database (on
-    which the class' module is installed).
-    """
-    _auto = True                # automatically create database backend
-    _register = False           # not visible in ORM registry, meant to be python-inherited only
-    _abstract = False           # not abstract
-    _transient = False          # not transient
 
 
 def itemgetter_tuple(items):

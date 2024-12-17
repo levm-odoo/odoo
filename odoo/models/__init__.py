@@ -9,10 +9,8 @@ from odoo.orm.models import (
     MAGIC_COLUMNS,
     READ_GROUP_DISPLAY_FORMAT,
     READ_GROUP_NUMBER_GRANULARITY,
-    AbstractModel,
     BaseModel,
     MetaModel,
-    Model,
     check_companies_domain_parent_of,
     check_company_domain_parent_of,
     fix_import_export_id_paths,
@@ -20,6 +18,7 @@ from odoo.orm.models import (
     parse_read_group_spec,
     to_record_ids,
 )
+from odoo.orm.models_simple import AbstractModel, LogAccessMixin, Model, SimpleModel
 from odoo.orm.models_transient import TransientModel
 from odoo.orm.table_objects import Constraint, Index, UniqueIndex
 from odoo.orm.utils import (
