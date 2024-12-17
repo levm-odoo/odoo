@@ -16,18 +16,20 @@ class PurchaseOrderLine(models.Model):
     _order = 'order_id, sequence, id'
 
     name = fields.Text(
-        string='Description', required=True, compute='_compute_price_unit_and_date_planned_and_name', store=True, readonly=False)
+        string='Description', required=True, compute='_compute_price_unit_and_name', store=True, readonly=False)
     sequence = fields.Integer(string='Sequence', default=10)
     product_qty = fields.Float(string='Quantity', digits='Product Unit of Measure', required=True,
                                compute='_compute_product_qty', store=True, readonly=False)
     product_uom_qty = fields.Float(string='Total Quantity', compute='_compute_product_uom_qty', store=True)
     date_planned = fields.Datetime(
-        string='Expected Arrival', index=True,
-        compute="_compute_price_unit_and_date_planned_and_name", readonly=False, store=True,
+        string='Request Ship Date', index=True,
+        compute="_compute_date_planned", readonly=False, store=True,
         help="Delivery date expected from vendor. This date respectively defaults to vendor pricelist lead time then today's date.")
+    date_planned_pol_placeholder = fields.Char(string='Request Ship Date Placeholder', compute='_compute_date_planned_pol_placeholder',
+        readonly=False, store=True)
     discount = fields.Float(
         string="Discount (%)",
-        compute='_compute_price_unit_and_date_planned_and_name',
+        compute='_compute_price_unit_and_name',
         digits='Discount',
         store=True, readonly=False)
     taxes_id = fields.Many2many('account.tax', string='Taxes', context={'active_test': False})
@@ -37,7 +39,7 @@ class PurchaseOrderLine(models.Model):
     product_type = fields.Selection(related='product_id.type', readonly=True)
     price_unit = fields.Float(
         string='Unit Price', required=True, digits='Product Price', aggregator='avg',
-        compute="_compute_price_unit_and_date_planned_and_name", readonly=False, store=True)
+        compute="_compute_price_unit_and_name", readonly=False, store=True)
     price_unit_discounted = fields.Float('Unit Price (Discounted)', compute='_compute_price_unit_discounted')
 
     price_subtotal = fields.Monetary(compute='_compute_amount', string='Subtotal', aggregator=None, store=True)
@@ -79,7 +81,7 @@ class PurchaseOrderLine(models.Model):
     is_downpayment = fields.Boolean()
 
     _accountable_required_fields = models.Constraint(
-        'CHECK(display_type IS NOT NULL OR is_downpayment OR (product_id IS NOT NULL AND product_uom_id IS NOT NULL AND date_planned IS NOT NULL))',
+        'CHECK(display_type IS NOT NULL OR is_downpayment OR (product_id IS NOT NULL AND product_uom_id IS NOT NULL AND date_planned_pol_placeholder IS NOT NULL))',
         'Missing required fields on accountable purchase order line.',
     )
     _non_accountable_null_fields = models.Constraint(
@@ -310,20 +312,11 @@ class PurchaseOrderLine(models.Model):
         return {}
 
     @api.depends('product_qty', 'product_uom_id', 'company_id', 'order_id.partner_id')
-    def _compute_price_unit_and_date_planned_and_name(self):
+    def _compute_price_unit_and_name(self):
         for line in self:
             if not line.product_id or line.invoice_lines or not line.company_id:
                 continue
-            params = line._get_select_sellers_params()
-            seller = line.product_id._select_seller(
-                partner_id=line.partner_id,
-                quantity=line.product_qty,
-                date=line.order_id.date_order and line.order_id.date_order.date() or fields.Date.context_today(line),
-                uom_id=line.product_uom_id,
-                params=params)
-
-            if seller or not line.date_planned:
-                line.date_planned = line._get_date_planned(seller).strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+            seller = line._get_seller()
 
             # If not seller, use the standard price. It needs a proper currency conversion.
             if not seller:
@@ -368,6 +361,34 @@ class PurchaseOrderLine(models.Model):
             if not line.name or line.name in default_names:
                 product_ctx = {'seller_id': seller.id, 'lang': get_lang(line.env, line.partner_id.lang).code}
                 line.name = line._get_product_purchase_description(line.product_id.with_context(product_ctx))
+
+    @api.depends('product_qty', 'product_uom_id', 'company_id', 'order_id.partner_id')
+    def _compute_date_planned_pol_placeholder(self):
+        for line in self:
+            if not line.product_id or line.invoice_lines or not line.company_id:
+                continue
+            seller = line._get_seller()
+            if seller or not line.date_planned_pol_placeholder:
+                line.date_planned_pol_placeholder = line._get_date_planned(seller).strftime("%Y-%m-%d %H:%M:%S")
+
+    @api.depends('product_qty', 'product_uom_id', 'company_id', 'order_id.partner_id', 'order_id.state', 'date_planned_pol_placeholder')
+    def _compute_date_planned(self):
+        for line in self:
+            if not line.product_id or line.invoice_lines or not line.company_id:
+                continue
+            if not line.order_id.origin and line.date_planned_pol_placeholder and not line.date_planned:
+                if line.order_id.state in ('purchase', 'done', 'cancel'):
+                    line.date_planned = datetime.strptime(line.date_planned_pol_placeholder, "%Y-%m-%d %H:%M:%S").strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+                else:
+                    line.date_planned = False
+            else:
+                if not line.date_planned and line.date_planned_pol_placeholder:
+                    line.date_planned = datetime.strptime(line.date_planned_pol_placeholder, "%Y-%m-%d %H:%M:%S").strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+
+    @api.onchange('date_planned')
+    def onchange_date_planned(self):
+        if self.date_planned:
+            self.date_planned_pol_placeholder = self.date_planned.strftime("%Y-%m-%d %H:%M:%S")
 
     @api.depends('product_id', 'product_qty', 'product_uom_id')
     def _compute_product_packaging_id(self):
@@ -635,7 +656,7 @@ class PurchaseOrderLine(models.Model):
         return self.order_id.get_order_timezone().localize(datetime.combine(date, time(12))).astimezone(UTC).replace(tzinfo=None)
 
     def _update_date_planned(self, updated_date):
-        self.date_planned = updated_date
+        self.write({'date_planned': updated_date, 'date_planned_pol_placeholder': updated_date.strftime("%Y-%m-%d %H:%M:%S")})
 
     def _track_qty_received(self, new_qty):
         self.ensure_one()
@@ -678,3 +699,13 @@ class PurchaseOrderLine(models.Model):
         return {
             "order_id": self.order_id,
         }
+
+    def _get_seller(self):
+        params = self._get_select_sellers_params()
+        seller = self.product_id._select_seller(
+            partner_id=self.partner_id,
+            quantity=self.product_qty,
+            date=self.order_id.date_order and self.order_id.date_order.date() or fields.Date.context_today(self),
+            uom_id=self.product_uom_id,
+            params=params)
+        return seller
