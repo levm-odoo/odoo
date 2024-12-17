@@ -847,9 +847,36 @@ class UnfollowLinkTest(MailCommon, HttpCase):
         })
         cls.user_employee.write({'notification_type': 'email'})
 
+<<<<<<< saas-18.1
     def _message_unsubscribe_unreadable_record(self, user):
         def raise_access_error(*args, **kwargs):
             raise AccessError('Unreadable')
+||||||| 2fc34b6a1df81446f2fd0cd8d3b190407ccb4e14
+    def _post_message_and_get_unfollow_urls(self, record, partner_ids):
+        """ Post a message on the record for the partners and extract the unfollow URLs. """
+        with self.mock_mail_gateway():
+            record.message_post(body='test message', subtype_id=self.env.ref('mail.mt_comment').id,
+                                partner_ids=partner_ids.ids)
+        self.assertEqual(len(self._mails), len(partner_ids))
+        mail_by_email = {parse_contact_from_email(email_to)[1]: mail
+                         for mail in self._mails
+                         for email_to in mail['email_to']}
+=======
+    def _post_message_and_get_unfollow_urls(self, record, partner_ids):
+        """ Post a message on the record for the partners and extract the unfollow URLs. """
+        with self.mock_mail_gateway():
+            record.with_user(self.user_admin).with_context(
+                email_notification_force_header=True,
+                email_notification_force_footer=True
+            ).message_post(
+                body='test message',
+                subtype_id=self.env.ref('mail.mt_comment').id,
+                partner_ids=partner_ids.ids)
+        self.assertEqual(len(self._mails), len(partner_ids))
+        mail_by_email = {parse_contact_from_email(email_to)[1]: mail
+                         for mail in self._mails
+                         for email_to in mail['email_to']}
+>>>>>>> a68feabd3bd95574cf34c5a4e3ea877b6eb12923
 
         with patch.object(self.test_record.__class__, 'check_access', side_effect=raise_access_error):
             self.test_record.with_user(user).message_unsubscribe(user.partner_id.ids)
