@@ -748,7 +748,7 @@ class MrpWorkorder(models.Model):
             'name': _('Scrap Products'),
             'view_mode': 'form',
             'res_model': 'stock.scrap',
-            'views': [(self.env.ref('stock.stock_scrap_form_view2').id, 'form')],
+            'views': [(self.env.ref('mrp.stock_scrap_form_view2_inherit_mrp_workorder').id, 'form')],
             'type': 'ir.actions.act_window',
             'context': {'default_company_id': self.production_id.company_id.id,
                         'default_workorder_id': self.id,
