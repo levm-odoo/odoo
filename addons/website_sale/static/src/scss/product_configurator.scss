@@ -39,13 +39,12 @@
 
 .attribute_variant_color{
     position: relative;
-    display: inline-block;
     border: 1px solid $input-border-color;
     border-radius: 50%;
     text-align: center;
     transition: $input-transition;
-    height:20px;
-    width:20px;
+    height: 1.5rem;
+    width: 1.5rem;
 
     @include o-field-pointer();
 
@@ -55,9 +54,9 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        height: 16px;
-        width: 16px;
-        border: 1px solid white;
+        height: 1.375rem;
+        width: 1.375rem;
+        border: 3px solid var(--o-wsale-card-bg, $body-bg);
         border-radius: 50%;
         box-shadow: inset 0 0 2px rgba(black, 0.3);
     }
@@ -83,11 +82,13 @@
 }
 
 .variant_image {
-    width: 30px;
-    height: 30px;
-    object-fit: cover;
-    border: 1px solid #ccc;
-    overflow: hidden;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid $border-color;
+
+    &:hover {
+        border-color:  map-get($theme-colors, 'primary');
+    }
 }
 
 .css_not_available_msg {
