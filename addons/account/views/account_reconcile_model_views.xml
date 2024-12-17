@@ -149,6 +149,13 @@
                                                    invisible="not match_note"
                                                    required="match_note"/>
                                         </div>
+                                        <label for="match_transaction_details" invisible="rule_type == 'writeoff_button'"/>
+                                        <div class="d-flex gap-3" invisible="rule_type == 'writeoff_button'">
+                                            <field name="match_transaction_details"/>
+                                            <field name="match_transaction_details_param"
+                                                   invisible="not match_transaction_details"
+                                                   required="match_transaction_details"/>
+                                        </div>
                                         <label for="match_transaction_type" invisible="rule_type == 'writeoff_button'"/>
                                         <div class="d-flex gap-3" invisible="rule_type == 'writeoff_button'">
                                             <field name="match_transaction_type"/>
