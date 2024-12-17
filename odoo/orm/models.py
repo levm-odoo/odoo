@@ -6711,24 +6711,41 @@ class BaseModel(metaclass=MetaModel):
 
     def __iter__(self) -> typing.Iterator[Self]:
         """ Return an iterator over ``self``. """
-        if len(self._ids) > PREFETCH_MAX and self._prefetch_ids is self._ids:
-            for ids in self.env.cr.split_for_in_conditions(self._ids):
-                for id_ in ids:
-                    yield self.__class__(self.env, (id_,), ids)
+        ids = self._ids
+        size = len(ids)
+        if size <= 1:
+            if size == 1:
+                yield self
+            return
+        clazz = self.__class__
+        env = self.env
+        if size > PREFETCH_MAX and self._prefetch_ids is ids:
+            for sub_ids in self.env.cr.split_for_in_conditions(ids):
+                for id_ in sub_ids:
+                    yield clazz(env, (id_,), sub_ids)
         else:
-            for id_ in self._ids:
-                yield self.__class__(self.env, (id_,), self._prefetch_ids)
+            prefetch_ids = self._prefetch_ids
+            for id_ in ids:
+                yield clazz(env, (id_,), prefetch_ids)
 
     def __reversed__(self) -> typing.Iterator[Self]:
         """ Return an reversed iterator over ``self``. """
-        if len(self._ids) > PREFETCH_MAX and self._prefetch_ids is self._ids:
-            for ids in self.env.cr.split_for_in_conditions(reversed(self._ids)):
-                for id_ in ids:
-                    yield self.__class__(self.env, (id_,), ids)
-        elif self._ids:
+        ids = self._ids
+        size = len(ids)
+        if size <= 1:
+            if size == 1:
+                yield self
+            return
+        clazz = self.__class__
+        env = self.env
+        if size > PREFETCH_MAX and self._prefetch_ids is ids:
+            for sub_ids in self.env.cr.split_for_in_conditions(reversed(ids)):
+                for id_ in sub_ids:
+                    yield clazz(env, (id_,), sub_ids)
+        else:
             prefetch_ids = ReversedIterable(self._prefetch_ids)
-            for id_ in reversed(self._ids):
-                yield self.__class__(self.env, (id_,), prefetch_ids)
+            for id_ in reversed(ids):
+                yield clazz(env, (id_,), prefetch_ids)
 
     def __contains__(self, item):
         """ Test whether ``item`` (record or field name) is an element of ``self``.
