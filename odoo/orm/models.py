@@ -6770,15 +6770,15 @@ class BaseModel(metaclass=MetaModel):
         """ Return the concatenation of ``self`` with all the arguments (in
             linear time complexity).
         """
-        ids = list(self._ids)
+        list_ids = [self._ids]
         for arg in args:
             try:
                 if arg._name != self._name:
                     raise TypeError(f"inconsistent models in: {self} + {arg}")
-                ids.extend(arg._ids)
+                list_ids.append(arg._ids)
             except AttributeError:
                 raise TypeError(f"unsupported operand types in: {self} + {arg!r}")
-        return self.browse(ids)
+        return self.browse(itertools.chain.from_iterable(list_ids))
 
     def __sub__(self, other) -> Self:
         """ Return the recordset of all the records in ``self`` that are not in
@@ -6788,7 +6788,7 @@ class BaseModel(metaclass=MetaModel):
             if self._name != other._name:
                 raise TypeError(f"inconsistent models in: {self} - {other}")
             other_ids = set(other._ids)
-            return self.browse([id for id in self._ids if id not in other_ids])
+            return self.browse(id_ for id_ in self._ids if id_ not in other_ids)
         except AttributeError:
             raise TypeError(f"unsupported operand types in: {self} - {other!r}")
 
@@ -6800,7 +6800,7 @@ class BaseModel(metaclass=MetaModel):
             if self._name != other._name:
                 raise TypeError(f"inconsistent models in: {self} & {other}")
             other_ids = set(other._ids)
-            return self.browse(OrderedSet(id for id in self._ids if id in other_ids))
+            return self.browse(OrderedSet(id_ for id_ in self._ids if id_ in other_ids))
         except AttributeError:
             raise TypeError(f"unsupported operand types in: {self} & {other!r}")
 
@@ -6814,15 +6814,15 @@ class BaseModel(metaclass=MetaModel):
         """ Return the union of ``self`` with all the arguments (in linear time
             complexity, with first occurrence order preserved).
         """
-        ids = list(self._ids)
+        ids = OrderedSet(self._ids)
         for arg in args:
             try:
                 if arg._name != self._name:
                     raise TypeError(f"inconsistent models in: {self} | {arg}")
-                ids.extend(arg._ids)
+                ids.update(arg._ids)
             except AttributeError:
                 raise TypeError(f"unsupported operand types in: {self} | {arg!r}")
-        return self.browse(OrderedSet(ids))
+        return self.browse(ids)
 
     def __eq__(self, other):
         """ Test whether two recordsets are equivalent (up to reordering). """
