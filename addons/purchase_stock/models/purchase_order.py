@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from markupsafe import Markup
+from dateutil.relativedelta import relativedelta
 
 from odoo import api, Command, fields, models, SUPERUSER_ID, _
 from odoo.tools.float_utils import float_compare
@@ -255,6 +256,48 @@ class PurchaseOrder(models.Model):
         if not company_warehouse:
             self.env['stock.warehouse']._warehouse_redirect_warning()
         return picking_type[:1]
+
+    @api.model
+    def retrieve_dashboard(self):
+        """ This function returns the values to populate the custom dashboard in
+            the purchase order views.
+        """
+        self.browse().check_access('read')
+        result = super(PurchaseOrder, self).retrieve_dashboard()
+
+        po = self.env['purchase.order']
+        result['all_late_orders'] = po.search_count([('state', '=', 'purchase'), ('effective_date', '=', False), ('date_planned', '<', fields.Datetime.now())])
+        result['my_late_orders'] = po.search_count([('state', '=', 'purchase'), ('effective_date', '=', False), ('date_planned', '<', fields.Datetime.now()), ('user_id', '=', self.env.uid)])
+        result['all_on_time_delivery'] = self._compute_on_time_delivery()
+        result['my_on_time_delivery'] = self._compute_on_time_delivery(user_specific=True)
+        result['default_days_to_purchase'] = self.env.company.days_to_purchase
+
+        return result
+
+    def _compute_on_time_delivery(self, user_specific=False):
+        """
+        This method calculate the On-Time Delivery (OTD) percentage for purchase orders approved in the
+        last three months where the effective date is less than or equal to the planned date.
+        """
+        three_months_ago = fields.Datetime.subtract(fields.Datetime.now(), months=3)
+        user_condition = "AND po.user_id = %s" if user_specific else ""
+
+        query = """
+            SELECT COUNT(*) FILTER (WHERE po.effective_date <= po.date_planned) * 100.0 / NULLIF(COUNT(*), 0)
+            FROM purchase_order po
+            WHERE po.create_date >= %s
+            AND po.state IN ('purchase', 'done')
+            AND po.company_id = %s
+            {user_condition}
+        """.format(user_condition=user_condition)
+
+        params = [three_months_ago, self.env.company.id]
+        if user_specific:
+            params.append(self.env.uid)
+
+        self.env.cr.execute(query, tuple(params))
+        result = self.env.cr.fetchone()
+        return round(result[0] if result and result[0] is not None else 0, 2)
 
     def _prepare_picking(self):
         if not self.group_id:
