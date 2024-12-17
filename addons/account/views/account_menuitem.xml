@@ -60,7 +60,7 @@
             <menuitem id="root_payment_menu" name="Online Payments" groups="account.group_account_manager" sequence="4"/>
             <menuitem id="account_management_menu" name="Management" groups="account.group_account_manager" sequence="5">
                 <menuitem id="menu_product_product_categories" action="product.product_category_action_form" sequence="3"/>
-                <menuitem id="menu_action_rounding_form_view" action="rounding_list_action" groups="account.group_cash_rounding" sequence="4"/>
+                <menuitem id="menu_action_rounding_form_view" action="rounding_list_action" sequence="4"/>
             </menuitem>
             <menuitem id="menu_analytic_accounting" name="Analytic Accounting" groups="analytic.group_analytic_accounting" sequence="6">
                 <menuitem id="menu_analytic__distribution_model" name="Analytic Distribution Models" action="analytic.action_analytic_distribution_model" groups="analytic.group_analytic_accounting" sequence="1"/>
