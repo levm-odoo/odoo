@@ -40,11 +40,3 @@
         padding-bottom: map-get($spacers, 3);
     }
 }
-
-@for $size from 1 through length($o-colors) {
-  .btn.o_colorlist_item_color_transparent_#{$size - 1} {
-    &:active {
-      border: $border-width solid nth($o-colors, $size);
-    }
-  }
-}

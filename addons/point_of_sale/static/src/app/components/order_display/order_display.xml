@@ -51,7 +51,7 @@
                                   class="rounding"/>
                         </div>
                     </div>
-                    <div class="d-flex justify-content-between w-100 fs-2">
+                    <div class="d-flex justify-content-between w-100 fs-3">
                         Total
                         <span t-esc="formatCurrency(taxTotals.order_sign * taxTotals.total_amount_currency)"
                               class="total"/>

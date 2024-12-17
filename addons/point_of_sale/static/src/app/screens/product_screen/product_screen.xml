@@ -3,9 +3,9 @@
     <t t-name="point_of_sale.ProductScreen">
         <div class="product-screen d-flex h-100">
             <div t-att-class="{'flex-grow-1 w-100 mw-100': ui.isSmall, 'd-none': ui.isSmall and pos.mobile_pane !== 'left'}"
-                class="leftpane d-flex flex-column p-2">
+                class="leftpane d-flex flex-column pb-2 border-end bg-white">
                 <OrderSummary />
-                <div class="pads">
+                <div class="pads px-2 border-top">
                     <div class="control-buttons d-flex justify-content-between gap-2 w-100 py-2">
                         <ControlButtons t-if="!ui.isSmall" onClickMore.bind="displayAllControlPopup"/>
                     </div>

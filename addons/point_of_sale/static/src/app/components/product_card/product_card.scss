@@ -1,9 +1,13 @@
 .product {
     --btn-border-color: #{$o-gray-200};
+    min-height: 5rem;
 
-    &:hover {
-        border: 1px solid $o-gray-100;
+    .btn-light {
+        --btn-hover-border-color: transparent;
+        --btn-hover-bg: #{$o-gray-200};
+
     }
+
 }
 
 .product-img img {

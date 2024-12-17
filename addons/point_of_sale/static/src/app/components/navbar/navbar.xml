@@ -71,6 +71,9 @@
                                 <DropdownItem t-if="showToggleProductView" onSelected="() => this.toggleProductView()">
                                     Switch Product View
                                 </DropdownItem>
+                                <DropdownItem t-if="!this.pos.data.network.offline" onSelected="() => this.reloadProducts()">
+                                    Reload products
+                                </DropdownItem>
                                 <DropdownItem t-if="showCreateProductButton" onSelected="() => this.pos.editProduct()">
                                     Create Product
                                 </DropdownItem>
@@ -89,9 +92,6 @@
                                 </DropdownItem>
                                 <DropdownItem t-if="this.env.debug and this.pos.cashier._role != 'minimal'" onSelected="() => debug.toggleWidget()">
                                     Debug Window
-                                </DropdownItem>
-                                <DropdownItem t-if="!this.pos.data.network.offline" onSelected="() => this.reloadProducts()">
-                                    Reload products
                                 </DropdownItem>
                             </div>
                         </t>

@@ -12,6 +12,8 @@ button {
 .btn-light {
     --btn-hover-bg: #{$o-gray-100};
     --btn-hover-border-color: #{$o-gray-100};
+    --btn-active-border-color: transparent;
+    --btn-active-bg: #{$o-gray-300};
 }
 
 [type="text"], [type="password"], [type="number"], [type="email"], [type="tel"], textarea, select {
@@ -166,10 +168,11 @@ button {
 
 @for $size from 2 through length($o-colors) {
     .o_colorlist_item_color_transparent_#{$size - 1} {
-        $-bg: adjust-color(nth($o-colors, $size), $lightness: 28%, $saturation: 15%);
-        $-color: adjust-color(nth($o-colors, $size), $lightness: -40%, $saturation: -15%);
-        @include o-print-color($-bg, background-color, bg-opacity);
-        @include o-print-color($-color, color, text-opacity);
+        $-border-color: adjust-color(nth($o-colors, $size), $lightness: 25%, $saturation: 5%);
+        $-text-color: adjust-color(nth($o-colors, $size), $lightness: -40%, $saturation: -15%);
+        @include o-print-color($-border-color, border-bottom-color, 1);
+        @include o-print-color($-text-color, color, 1);
+        border-bottom: 6px solid;
     }
 }
 
