@@ -8,7 +8,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from odoo.fields import Command
 from odoo.osv import expression
-from odoo.tools import float_is_zero, float_compare, float_round
+from odoo.tools import float_is_zero, float_compare, float_round, format_date
 
 
 class SaleOrderLine(models.Model):
@@ -306,12 +306,20 @@ class SaleOrderLine(models.Model):
     @api.depends('product_id')
     def _compute_name(self):
         for line in self:
-            if not line.product_id:
+            if not line.product_id and not line.is_downpayment:
                 continue
+
             lang = line.order_id._get_lang()
             if lang != self.env.lang:
                 line = line.with_context(lang=lang)
-            name = line._get_sale_order_line_multiline_description_sale()
+
+            if line.product_id:
+                line.name = line._get_sale_order_line_multiline_description_sale()
+                continue
+            
+            if self.display_type:
+                return _("Down Payments")
+
             if line.is_downpayment and not line.display_type:
                 context = {'lang': lang}
                 dp_state = line._get_downpayment_state()
@@ -320,7 +328,7 @@ class SaleOrderLine(models.Model):
                 elif dp_state == 'cancel':
                     name = _("%(line_description)s (Canceled)", line_description=name)
                 del context
-            line.name = name
+                line.name = name
 
     def _get_sale_order_line_multiline_description_sale(self):
         """ Compute a default multiline description for this sales order line.
