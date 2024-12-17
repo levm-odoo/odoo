@@ -8,7 +8,7 @@ export class Avatar extends Component {
     static props = {
         resModel: { type: String },
         resId: { type: Number },
-        displayName: { type: String },
+        displayName: { type: String, optional: true },
         noSpacing: { type: Boolean, optional: true },
     };
 

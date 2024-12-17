@@ -1,37 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates>
-    <t t-name="resource_mail.Many2OneAvatarResourceField" t-inherit="mail.Many2OneAvatarUserField" t-inherit-mode="primary">
-        <xpath expr="//span[hasclass('o_m2o_avatar')]" position="attributes">
-            <attribute name="t-attf-class" add="{{ displayResourcePopover ? 'o_field_many2one_avatar': '' }}" separator=" "/>
-        </xpath>
-        <xpath expr="//span[hasclass('o_m2o_avatar')]/img" position="attributes">
-            <attribute name="t-if">props.record.data.resource_type !== 'material' &amp;&amp; props.record.data[props.name] !== false</attribute>
-        </xpath>
-        <xpath expr="//span[hasclass('o_m2o_avatar')]/img" position="after">
-            <t t-if="props.record.data.resource_type === 'material'">
-                <span t-if="props.record.data[props.name] !== false"
-                      t-att-title="props.record.data[props.name][1]"
-                      class="d-inline-flex align-items-center justify-content-center rounded o_material_resource cursor-default me-1">
-                    <i class="fa fa-wrench"/>
-                </span>
-                <span t-elif="!props.readonly" class="o_m2o_avatar_empty"></span>
-            </t>
-        </xpath>
+
+    <t t-name="resource_mail.AvatarResource">
+        <div class="o-mail-Avatar o_avatar d-flex align-items-center">
+            <img class="rounded me-1"
+                t-attf-src="/web/image/{{props.resModel}}/{{props.resId}}/avatar_128"
+                t-on-click.stop.prevent="(ev) => this.openPopover(ev.currentTarget)"
+            />
+        </div>
     </t>
 
-    <t t-name="resource_mail.KanbanMany2OneAvatarResourceField" t-inherit="mail.KanbanMany2OneAvatarUserField" t-inherit-mode="primary">
-        <xpath expr="//span[hasclass('o_m2o_avatar')]/img" position="attributes">
-            <attribute name="t-if">props.record.data.resource_type !== 'material' &amp;&amp; props.record.data[props.name] !== false</attribute>
-        </xpath>
-        <xpath expr="//span[hasclass('o_m2o_avatar')]/img" position="after">
-            <t t-if="props.record.data.resource_type === 'material'">
-                <span t-if="props.record.data[props.name] !== false"
-                      t-att-title="props.record.data[props.name][1]"
-                      class="d-inline-flex align-items-center justify-content-center rounded o_material_resource cursor-default me-1">
-                    <i class="fa fa-wrench"/>
-                </span>
-                <span t-elif="!props.readonly" class="o_m2o_avatar_empty"></span>
+    <t t-name="resource_mail.Many2OneAvatarResourceField">
+        <Many2One t-props="many2oneProps">
+            <t t-set-slot="decoration">
+                <t t-if="controller.value !== false">
+                    <t t-if="resourceType === 'material'">
+                        <span class="o_avatar o_m2o_avatar">
+                            <span class="d-inline-flex align-items-center justify-content-center rounded o_material_resource cursor-default me-1" t-att-title="controller.value[1]">
+                                <i class="fa fa-wrench"/>
+                            </span>
+                        </span>
+                    </t>
+                    <t t-elif="resourceType === 'user'">
+                        <AvatarResource resModel="controller.relation" resId="controller.value[0]"/>
+                    </t>
+                </t>
             </t>
-        </xpath>
+        </Many2One>
     </t>
+
 </templates>

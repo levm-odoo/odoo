@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates>
-    <t t-name="mail.Many2OneAvatarUserField" t-inherit="web.Many2OneAvatarField" t-inherit-mode="primary">
-        <xpath expr="//span[hasclass('o_m2o_avatar')]" position="attributes">
-            <attribute name="t-on-click.stop.prevent">onClickAvatar</attribute>
-        </xpath>
+
+    <t t-name="mail.Many2OneAvatarUserField">
+        <Many2One t-props="many2oneProps">
+            <t t-set-slot="decoration">
+                <t t-if="controller.value !== false">
+                    <Avatar resModel="controller.relation" resId="controller.value[0]" noSpacing="true"/>
+                </t>
+            </t>
+        </Many2One>
     </t>
-    
-    <t t-name="mail.KanbanMany2OneAvatarUserField" t-inherit="web.KanbanMany2OneAvatarField" t-inherit-mode="primary">
-        <xpath expr="//span[hasclass('o_m2o_avatar')]" position="attributes">
-            <attribute name="t-on-click.stop.prevent">onClickAvatar</attribute>
-        </xpath>
-        <xpath expr="//t[@t-call='web.Many2OneField']" position="attributes">
-            <attribute name="t-if">props.readonly and props.displayAvatarName</attribute>
-        </xpath>
-    </t>
+
 </templates>

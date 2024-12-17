@@ -218,7 +218,7 @@ test(`handles many2one fields: value is a pair id, display_name`, async () => {
         static components = { Record, Many2OneField };
         static template = xml`
             <Record resModel="'foo'" fieldNames="['foo']" fields="fields" values="values" t-slot-scope="data" onRecordChanged.bind="onRecordChanged">
-                <Many2OneField name="'foo'" record="data.record" relation="'bar'" value="data.record.data.foo"/>
+                <Many2OneField name="'foo'" record="data.record"/>
             </Record>
         `;
 
@@ -272,7 +272,7 @@ test(`handles many2one fields: value is an id`, async () => {
         static components = { Record, Many2OneField };
         static template = xml`
             <Record resModel="'foo'" fieldNames="['foo']" fields="fields" values="values" t-slot-scope="data">
-                <Many2OneField name="'foo'" record="data.record" relation="'bar'" value="data.record.data.foo"/>
+                <Many2OneField name="'foo'" record="data.record"/>
             </Record>
         `;
 
@@ -312,7 +312,7 @@ test(`handles many2one fields: value is an array with id only`, async () => {
         static components = { Record, Many2OneField };
         static template = xml`
             <Record resModel="'foo'" fieldNames="['foo']" fields="fields" values="values" t-slot-scope="data">
-                <Many2OneField name="'foo'" record="data.record" relation="'bar'" value="data.record.data.foo"/>
+                <Many2OneField name="'foo'" record="data.record"/>
             </Record>
         `;
 

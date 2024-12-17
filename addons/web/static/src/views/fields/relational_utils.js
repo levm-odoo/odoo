@@ -205,6 +205,7 @@ export class Many2XAutocomplete extends Component {
         dropdown: { type: Boolean, optional: true },
         autofocus: { type: Boolean, optional: true },
         getOptionClassnames: { type: Function, optional: true },
+        slots: { optional: true },
     };
     static defaultProps = {
         searchLimit: 7,
@@ -269,6 +270,7 @@ export class Many2XAutocomplete extends Component {
         return {
             placeholder: _t("Loading..."),
             options: this.loadOptionsSource.bind(this),
+            optionSlot: this.props.slots?.recordItem ? "option" : undefined,
         };
     }
 
@@ -324,6 +326,12 @@ export class Many2XAutocomplete extends Component {
             label: result[1] ? result[1].split("\n")[0] : _t("Unnamed"),
             displayName: result[1],
             classList: this.props.getOptionClassnames({ id: result[0], display_name: result[1] }),
+            isRecord: true,
+            record: {
+                // make a `web_search_read` instead of `name_search` and add a prop `specification`
+                id: result[0],
+                display_name: result[1],
+            },
         };
     }
     async loadOptionsSource(request) {

@@ -19,6 +19,7 @@ export class AutoComplete extends Component {
                     placeholder: { type: String, optional: true },
                     optionTemplate: { type: String, optional: true },
                     options: [Array, Function],
+                    optionSlot: { type: String, optional: true },
                 },
             },
         },
@@ -36,6 +37,7 @@ export class AutoComplete extends Component {
         dropdown: { type: Boolean, optional: true },
         autofocus: { type: Boolean, optional: true },
         class: { type: String, optional: true },
+        slots: { type: Object, optional: true },
     };
     static defaultProps = {
         value: "",
@@ -222,6 +224,7 @@ export class AutoComplete extends Component {
             isLoading: false,
             placeholder: source.placeholder,
             optionTemplate: source.optionTemplate,
+            optionSlot: source.optionSlot,
         };
     }
 
