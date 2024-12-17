@@ -353,3 +353,49 @@ export const selectElements = function* (root, selector) {
         yield elem;
     }
 };
+
+/**
+ * Recursively finds the first child element matching a condition, starting from a given node.
+ *
+ * @param {Node} root - The node to start searching from.
+ * @param {function(Element): boolean} isValid - A callback to test each element for a condition.
+ * @returns {Element|null} - The first matching element, or null if no match is found.
+ */
+export function findFirstMatchingElement(root, isValid) {
+    if (isValid(root)) {
+        return root;
+    }
+    const children = root.childNodes ?? [];
+    for (const child of children) {
+        const nestedMatch = findFirstMatchingElement(child, isValid);
+        if (nestedMatch) {
+            return nestedMatch;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Recursively finds the last child element matching a condition, starting from a given node.
+ * This function searches from the end of the child nodes to prioritize the last matching element.
+ *
+ * @param {Node} root - The node to start searching from.
+ * @param {function(Element): boolean} isValid - A callback to test each element for a condition.
+ * @returns {Element|null} - The last matching element, or null if no match is found.
+ */
+export function findLastMatchingElement(root, isValid) {
+    if (isValid(root)) {
+        return root;
+    }
+    const children = root.childNodes ?? [];
+    for (let i = children.length - 1; i >= 0; i--) {
+        const child = children[i];
+        const nestedMatch = findLastMatchingElement(child, isValid);
+        if (nestedMatch) {
+            return nestedMatch;
+        }
+    }
+
+    return null;
+}
