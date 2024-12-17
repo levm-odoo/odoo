@@ -97,6 +97,7 @@ export class VideoSelector extends Component {
             platform: null,
             vimeoPreviews: [],
             errorMessage: '',
+            timestamp: { isActive: false, startAt: "0" },
         });
         this.urlInputRef = useRef('url-input');
 
@@ -120,6 +121,29 @@ export class VideoSelector extends Component {
         useAutofocus();
 
         this.onChangeUrl = debounce((ev) => this.updateVideo(ev.target.value), 500);
+
+        this.onChangeStartAt = debounce(async (ev) => {
+            // Regular expression for HH:MM:SS format
+            const timeRegex = /^(?:(\d+):)?([0-5]?\d):([0-5]?\d)$/;
+            const startAt = this.state.timestamp.startAt;
+
+            if (timeRegex.test(startAt)) {
+                // Convert HH:MM:SS to total seconds
+                this.state.timestamp.startAt = startAt.split(":").reduce((acc, time) => 60 * acc + +time) + "";
+            } else if (!isNaN(startAt)) {
+                this.state.timestamp.startAt = startAt;
+            } else {
+                this.state.timestamp.startAt = "0";
+            }
+            await this.updateVideo(ev.target.value);
+        }, 1000);
+
+        this.onChangeIsActive = debounce(async (ev) => {
+            if (!this.state.timestamp.isActive) {
+                this.state.timestamp.startAt = "0";
+            }
+            await this.updateVideo(ev.target.value);
+        }, 500);
     }
 
     get shownOptions() {
@@ -148,6 +172,7 @@ export class VideoSelector extends Component {
         if (!this.state.urlInput) {
             this.state.src = '';
             this.state.urlInput = '';
+            this.state.timestamp = { isActive: false, startAt: "0" },
             this.state.options = [];
             this.state.platform = null;
             this.state.errorMessage = '';
@@ -183,7 +208,7 @@ export class VideoSelector extends Component {
             video_id: videoId,
             params,
             platform
-        } = await this._getVideoURLData(url, options);
+        } = await this._getVideoURLData(url, options, this.state.timestamp);
 
         if (!src) {
             this.state.errorMessage = _t("The provided url is not valid");
@@ -222,10 +247,11 @@ export class VideoSelector extends Component {
     /**
      * Keep rpc call in distinct method make it patchable by test.
      */
-    async _getVideoURLData(url, options) {
+    async _getVideoURLData(url, options, timestamp) {
         return await rpc('/web_editor/video_url/data', {
             video_url: url,
             ...options,
+            ...timestamp,
         });
     }
 
