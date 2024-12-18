@@ -2,10 +2,12 @@ import { useSequential } from "@mail/utils/common/hooks";
 import { status, useComponent, useEffect, useState } from "@odoo/owl";
 import { ConnectionAbortedError } from "@web/core/network/rpc";
 import { useService } from "@web/core/utils/hooks";
+import { useDebounced } from "@web/core/utils/timing";
 
 class UseSuggestion {
     constructor(comp) {
         this.comp = comp;
+        this.fetchSuggestions = useDebounced(this.fetchSuggestions.bind(this), 250);
         useEffect(
             () => {
                 this.update();
@@ -184,11 +186,12 @@ class UseSuggestion {
     async fetchSuggestions() {
         this.state.isFetching = true;
         try {
-            this.lastFetch?.abort();
-            this.lastFetch = this.suggestionService.fetchSuggestions(this.search, {
+            this.abortController?.abort();
+            this.abortController = new AbortController();
+            await this.suggestionService.fetchSuggestions(this.search, {
                 thread: this.thread,
+                signal: this.abortController.signal,
             });
-            await this.lastFetch;
         } catch (e) {
             if (e instanceof ConnectionAbortedError) {
                 return;

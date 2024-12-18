@@ -19,35 +19,58 @@ export class SuggestionService {
         return [["@"], ["#"], [":"]];
     }
 
-    async fetchSuggestions({ delimiter, term }, { thread } = {}) {
+    async fetchSuggestions({ delimiter, term }, { thread, signal } = {}) {
         const cleanedSearchTerm = cleanTerm(term);
         switch (delimiter) {
             case "@": {
-                return this.fetchPartners(cleanedSearchTerm, thread);
+                return this.fetchPartners(cleanedSearchTerm, thread, { signal });
             }
             case "#":
-                return this.fetchThreads(cleanedSearchTerm);
+                return this.fetchThreads(cleanedSearchTerm, { signal });
             case ":":
                 return this.store.cannedReponses.fetch();
         }
     }
 
     /**
+     * Make an ORM call with a cancellable signal. Usefull to abort fetch
+     * requests from the outside.
+     *
+     * @param {String} model
+     * @param {String} method
+     * @param {Array} args
+     * @param {Object} kwargs
+     * @param {Object} options
+     * @param {AbortSignal} options.signal
+     * @returns
+     */
+    makeOrmCall(model, method, args, kwargs, { signal } = {}) {
+        return new Promise((res, rej) => {
+            const req = this.orm.silent.call(model, method, args, kwargs);
+            const onAbort = () => rej(req.abort());
+            signal?.addEventListener("abort", onAbort);
+            req.then(res)
+                .catch(rej)
+                .finally(() => signal?.removeEventListener("abort", onAbort));
+        });
+    }
+    /**
      * @param {string} term
      * @param {import("models").Thread} [thread]
      */
-    async fetchPartners(term, thread) {
+    async fetchPartners(term, thread, { signal } = {}) {
         const kwargs = { search: term };
         if (thread?.model === "discuss.channel") {
             kwargs.channel_id = thread.id;
         }
-        const data = await this.orm.silent.call(
+        const data = await this.makeOrmCall(
             "res.partner",
             thread?.model === "discuss.channel"
                 ? "get_mention_suggestions_from_channel"
                 : "get_mention_suggestions",
             [],
-            kwargs
+            kwargs,
+            { signal }
         );
         this.store.insert(data);
     }
@@ -55,12 +78,14 @@ export class SuggestionService {
     /**
      * @param {string} term
      */
-    async fetchThreads(term) {
-        const suggestedThreads = await this.orm.silent.call(
+    async fetchThreads(term, { signal } = {}) {
+        const suggestedThreads = await this.makeOrmCall(
+            signal,
             "discuss.channel",
             "get_mention_suggestions",
             [],
-            { search: term }
+            { search: term },
+            { signal }
         );
         this.store.Thread.insert(suggestedThreads);
     }
