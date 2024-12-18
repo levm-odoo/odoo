@@ -3,6 +3,7 @@
 from odoo import SUPERUSER_ID, api, fields, models, tools
 from odoo.http import request
 from odoo.osv import expression
+from odoo.tools import float_round
 from odoo.tools.translate import LazyTranslate, _
 
 from odoo.addons.website.tools import text_from_html
@@ -688,19 +689,21 @@ class Website(models.Model):
         seo_data = {
             '@context': 'https://schema.org',
             '@type': 'Product',
-            'name': product_or_template.name,
+            'name': product_or_template.with_context(display_default_code=False).display_name,
             'url': base_url + product_or_template.website_url,
             'image': base_url + self.image_url(product_or_template, 'image_1920'),
             'offers': {
                 '@type': 'Offer',
-                'price': self.pricelist_id._get_product_price(
+                'price': float_round(self.pricelist_id._get_product_price(
                     product_or_template, quantity=1, target_currency=self.currency_id
-                ),
+                ), 2),
                 'priceCurrency': self.currency_id.name,
             },
         }
-        if product_or_template.description_ecommerce:
-            seo_data['description'] = text_from_html(product_or_template.description_ecommerce)
+        if product_or_template.website_meta_description or product_or_template.description_sale:
+            seo_data['description'] = (
+                product_or_template.website_meta_description or product_or_template.description_sale
+            )
         if product_or_template.rating_count:
             seo_data['aggregateRating'] = {
                 '@type': 'AggregateRating',
