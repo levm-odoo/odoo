@@ -20,3 +20,4 @@ from . import test_sale_product_attribute_value_config
 from . import test_sale_refund
 from . import test_sale_to_invoice
 from . import test_sale_report
+from . import test_taxes_tax_totals_summary
