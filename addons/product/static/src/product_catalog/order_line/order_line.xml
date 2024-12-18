@@ -6,16 +6,7 @@
         <t t-portal="`#product-${props.productId}-price`" t-if="showPrice">
             <span class="o_product_catalog_price">Unit price: <t t-out="price"/></span>
         </t>
-        <div 
-            t-if="props.readOnly and props.warning"
-            class="text-danger text-truncate my-2 pt-3 border-top">
-            <i class="fa fa-warning" t-att-title="props.warning"/>
-            <span 
-                class="px-1" 
-                t-att-title="props.warning"
-                t-out="props.warning"/>
-        </div>
-        <span t-elif="props.readOnly" class="m-2 pt-3 border-top" t-out="props.warning">
+        <span t-if="props.readOnly" class="m-2 pt-3 border-top">
             You can't edit this product in the catalog.
         </span>
         <div t-else="" class="d-flex justify-content-end align-items-center m-2">
@@ -38,13 +29,6 @@
                     <i class="fa fa-plus"/>
                 </button>
             </div>
-            <t t-elif="props.warning">
-                <i class="fa fa-warning text-warning" t-att-title="props.warning"/>
-                <span 
-                    class="text-truncate text-warning px-1" 
-                    t-att-title="props.warning"
-                    t-out="props.warning"/>
-            </t>
             <div 
                 class="ms-auto o_product_catalog_buttons o_product_catalog_cancel_global_click"
                 style="min-width: max-content;">
