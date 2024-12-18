@@ -1,5 +1,12 @@
+<<<<<<< saas-18.1
 import { Component, markup, onRendered, onWillStart, useRef, xml } from "@odoo/owl";
 import { expect, getFixture, test } from "@odoo/hoot";
+||||||| 19076c99bf075253492eb24117849fd1a8483bc5
+import { Component, markup, onRendered, onWillStart, useRef, xml } from "@odoo/owl";
+import { describe, expect, getFixture, test } from "@odoo/hoot";
+=======
+import { describe, expect, getFixture, test } from "@odoo/hoot";
+>>>>>>> 0fe43b77f91ba6012e6b1c13571332b646a322cb
 import {
     clear,
     click,
@@ -7,7 +14,11 @@ import {
     hover,
     keyDown,
     keyUp,
+<<<<<<< saas-18.1
     middleClick,
+||||||| 19076c99bf075253492eb24117849fd1a8483bc5
+=======
+>>>>>>> 0fe43b77f91ba6012e6b1c13571332b646a322cb
     pointerDown,
     pointerUp,
     press,
@@ -29,6 +40,11 @@ import {
     runAllTimers,
     tick,
 } from "@odoo/hoot-mock";
+import { Component, markup, onRendered, onWillStart, useRef, xml } from "@odoo/owl";
+import {
+    getPickerApplyButton,
+    getPickerCell,
+} from "@web/../tests/core/datetime/datetime_test_helpers";
 import {
     clickFieldDropdown,
     clickModalButton,
@@ -70,25 +86,48 @@ import {
     validateSearch,
     webModels,
 } from "@web/../tests/web_test_helpers";
-import {
-    getPickerApplyButton,
-    getPickerCell,
-} from "@web/../tests/core/datetime/datetime_test_helpers";
 
 import { currencies } from "@web/core/currency";
+<<<<<<< saas-18.1
 import { registry } from "@web/core/registry";
 import { RelationalModel } from "@web/model/relational_model/relational_model";
 import { WebClient } from "@web/webclient/webclient";
 import { ListController } from "@web/views/list/list_controller";
 import { floatField } from "@web/views/fields/float/float_field";
 import { session } from "@web/session";
+||||||| 19076c99bf075253492eb24117849fd1a8483bc5
+import { registry } from "@web/core/registry";
+import { RelationalModel } from "@web/model/relational_model/relational_model";
+import { WebClient } from "@web/webclient/webclient";
+import { keyUp } from "../../../lib/hoot-dom/helpers/events";
+import { ListController } from "@web/views/list/list_controller";
+import { floatField } from "@web/views/fields/float/float_field";
+import { session } from "@web/session";
+=======
+>>>>>>> 0fe43b77f91ba6012e6b1c13571332b646a322cb
 import { Domain } from "@web/core/domain";
+import { registry } from "@web/core/registry";
+import { useBus } from "@web/core/utils/hooks";
+import { RelationalModel } from "@web/model/relational_model/relational_model";
+import { session } from "@web/session";
+import { floatField } from "@web/views/fields/float/float_field";
 import { Many2XAutocomplete } from "@web/views/fields/relational_utils";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
+<<<<<<< saas-18.1
 import { useBus } from "@web/core/utils/hooks";
 import { user } from "@web/core/user";
 import { buildSelector } from "@web/../tests/_framework/view_test_helpers";
 import { cookie } from "@web/core/browser/cookie";
+||||||| 19076c99bf075253492eb24117849fd1a8483bc5
+import { useBus } from "@web/core/utils/hooks";
+
+describe.current.tags("desktop");
+=======
+import { ListController } from "@web/views/list/list_controller";
+import { WebClient } from "@web/webclient/webclient";
+
+describe.current.tags("desktop");
+>>>>>>> 0fe43b77f91ba6012e6b1c13571332b646a322cb
 
 const { ResCompany, ResPartner, ResUsers } = webModels;
 
@@ -3264,7 +3303,6 @@ test(`editable list view: check that controlpanel buttons are updating when grou
             id: 11,
             name: "Partners Action 11",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [[3, "list"]],
             search_view_id: [9, "search"],
         },
@@ -3306,7 +3344,6 @@ test(`editable list view: check that add button is present when groupby applied`
             id: 11,
             name: "Partners Action 11",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [
                 [3, "list"],
                 [4, "form"],
@@ -5344,7 +5381,6 @@ test(`archive/unarchive handles returned action`, async () => {
             id: 11,
             name: "Action 11",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [[3, "list"]],
             search_view_id: [9, "search"],
         },
@@ -8532,7 +8568,6 @@ test(`execute ActionMenus actions on desktop`, async () => {
                     {
                         id: 44,
                         name: "Custom Action",
-                        type: "ir.actions.act_window",
                         target: "new",
                     },
                 ],
@@ -12416,7 +12451,6 @@ test(`add filter in a grouped list with a pager`, async () => {
             id: 11,
             name: "Action 11",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [[3, "list"]],
             search_view_id: [9, "search"],
             context: { group_by: ["int_field"] },
@@ -14310,7 +14344,6 @@ test(`optional fields is shown only if enabled`, async () => {
             id: 1,
             name: "Currency Action 1",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [[1, "list"]],
         },
     ]);
@@ -14432,14 +14465,12 @@ test(`change the viewType of the current action`, async () => {
             id: 1,
             name: "Partners Action 1",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [[1, "kanban"]],
         },
         {
             id: 2,
             name: "Partners",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [
                 [false, "list"],
                 [1, "kanban"],
@@ -14634,7 +14665,6 @@ test(`list view with optional fields from local storage being the empty array`, 
             id: 1,
             name: "Action 1",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [[42, "list"]],
             search_view_id: [1, "search"],
         },
@@ -14805,7 +14835,6 @@ test(`Auto save: add a record and leave action`, async () => {
             id: 1,
             name: "Action 1",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [[2, "list"]],
             search_view_id: [1, "search"],
         },
@@ -14813,7 +14842,6 @@ test(`Auto save: add a record and leave action`, async () => {
             id: 2,
             name: "Action 2",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [[3, "list"]],
             search_view_id: [1, "search"],
         },
@@ -14846,7 +14874,6 @@ test(`Auto save: create a new record without modifying it and leave action`, asy
             id: 1,
             name: "Action 1",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [[2, "list"]],
             search_view_id: [1, "search"],
         },
@@ -14854,7 +14881,6 @@ test(`Auto save: create a new record without modifying it and leave action`, asy
             id: 2,
             name: "Action 2",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [[3, "list"]],
             search_view_id: [1, "search"],
         },
@@ -14886,7 +14912,6 @@ test(`Auto save: modify a record and leave action`, async () => {
             id: 1,
             name: "Action 1",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [[2, "list"]],
             search_view_id: [1, "search"],
         },
@@ -14894,7 +14919,6 @@ test(`Auto save: modify a record and leave action`, async () => {
             id: 2,
             name: "Action 2",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [[3, "list"]],
             search_view_id: [1, "search"],
         },
@@ -14923,7 +14947,6 @@ test(`Auto save: modify a record and leave action (reject)`, async () => {
             id: 1,
             name: "Action 1",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [[2, "list"]],
             search_view_id: [1, "search"],
         },
@@ -14931,7 +14954,6 @@ test(`Auto save: modify a record and leave action (reject)`, async () => {
             id: 2,
             name: "Action 2",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [[3, "list"]],
             search_view_id: [1, "search"],
         },
@@ -16920,7 +16942,6 @@ test(`restore orderBy from state when using default order`, async () => {
             id: 1,
             name: "Foo",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [
                 [false, "list"],
                 [false, "form"],
@@ -17022,7 +17043,6 @@ test(`context keys not passed down the stack and not to fields`, async () => {
             id: 1,
             name: "Foo",
             res_model: "foo",
-            type: "ir.actions.act_window",
             views: [[false, "list"]],
             context: {
                 list_view_ref: "foo_view_ref",

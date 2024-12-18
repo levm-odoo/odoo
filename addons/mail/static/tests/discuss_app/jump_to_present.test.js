@@ -15,8 +15,14 @@ import {
 import { describe, expect, test } from "@odoo/hoot";
 
 import { PRESENT_VIEWPORT_THRESHOLD } from "@mail/core/common/thread";
+import { queryFirst, tick } from "@odoo/hoot-dom";
 import { serverState } from "@web/../tests/web_test_helpers";
+<<<<<<< saas-18.1
 import { press, queryFirst, tick } from "@odoo/hoot-dom";
+||||||| 19076c99bf075253492eb24117849fd1a8483bc5
+import { queryFirst } from "@odoo/hoot-dom";
+=======
+>>>>>>> 0fe43b77f91ba6012e6b1c13571332b646a322cb
 
 describe.current.tags("desktop");
 defineMailModels();

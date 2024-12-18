@@ -9,6 +9,7 @@ import {
 } from "@mail/../tests/mail_test_helpers";
 import { describe, expect, test } from "@odoo/hoot";
 import { tick } from "@odoo/hoot-dom";
+<<<<<<< saas-18.1
 import {
     asyncStep,
     mockService,
@@ -16,6 +17,11 @@ import {
     serverState,
     waitForSteps,
 } from "@web/../tests/web_test_helpers";
+||||||| 19076c99bf075253492eb24117849fd1a8483bc5
+import { mockService, onRpc, serverState } from "@web/../tests/web_test_helpers";
+=======
+import { mockService, onRpc, serverState } from "@web/../tests/web_test_helpers";
+>>>>>>> 0fe43b77f91ba6012e6b1c13571332b646a322cb
 
 describe.current.tags("desktop");
 defineMailModels();
