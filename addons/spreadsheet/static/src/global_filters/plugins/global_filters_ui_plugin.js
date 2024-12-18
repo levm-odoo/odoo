@@ -68,7 +68,6 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
          * the list of display names.
          */
         this.recordsDisplayName = {};
-        /** @type {Object.<string, string|Array<string>|Object>} */
         this.values = {};
     }
 
@@ -190,27 +189,31 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
         const filter = this.getters.getGlobalFilter(filterId);
 
         const value = filterId in this.values ? this.values[filterId].value : undefined;
-        const preventAutomaticValue = this.values[filterId]?.value?.preventAutomaticValue;
+        const preventDefaultValue = this.values[filterId]?.preventDefaultValue;
+        if (!value && preventDefaultValue) {
+            switch (filter.type) {
+                case "relation":
+                    return [];
+                case "text":
+                    return "";
+                default:
+                    return undefined;
+            }
+        }
         if (filter.type === "date" && filter.rangeType === "from_to") {
             return value || { from: undefined, to: undefined };
         }
-        const defaultValue = (!preventAutomaticValue && filter.defaultValue) || undefined;
-        if (filter.type === "date" && preventAutomaticValue) {
-            return undefined;
-        }
-        if (filter.type === "date" && isEmpty(value) && defaultValue) {
+        if (filter.type === "date" && isEmpty(value) && filter.defaultValue) {
             return this._getValueOfCurrentPeriod(filterId);
         }
-        if (filter.type === "relation" && preventAutomaticValue) {
-            return [];
-        }
-        if (filter.type === "relation" && isEmpty(value) && defaultValue === "current_user") {
+        if (
+            filter.type === "relation" &&
+            isEmpty(value) &&
+            filter.defaultValue === "current_user"
+        ) {
             return [user.userId];
         }
-        if (filter.type === "text" && preventAutomaticValue) {
-            return "";
-        }
-        return value || defaultValue;
+        return value || filter.defaultValue;
     }
 
     /**
@@ -382,7 +385,8 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
     _setGlobalFilterValue(id, value) {
         const filter = this.getters.getGlobalFilter(id);
         this.values[id] = {
-            value: value,
+            preventDefaultValue: false,
+            value,
             rangeType: filter.type === "date" ? filter.rangeType : undefined,
         };
     }
@@ -420,20 +424,9 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
      */
     _clearGlobalFilterValue(id) {
         const filter = this.getters.getGlobalFilter(id);
-        let value;
-        switch (filter.type) {
-            case "text":
-                value = { preventAutomaticValue: true };
-                break;
-            case "date":
-                value = { preventAutomaticValue: true };
-                break;
-            case "relation":
-                value = { preventAutomaticValue: true };
-                break;
-        }
         this.values[id] = {
-            value,
+            preventDefaultValue: true,
+            value: undefined,
             rangeType: filter.type === "date" ? filter.rangeType : undefined,
         };
     }
