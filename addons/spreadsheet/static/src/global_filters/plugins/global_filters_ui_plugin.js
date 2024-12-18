@@ -122,32 +122,25 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
                 break;
             }
             case "SET_GLOBAL_FILTER_VALUE":
-                this.recordsDisplayName[cmd.id] = cmd.displayNames;
                 if (!cmd.value) {
+                    delete this.recordsDisplayName[cmd.id];
                     this._clearGlobalFilterValue(cmd.id);
                 } else {
+                    this.recordsDisplayName[cmd.id] = cmd.displayNames;
                     this._setGlobalFilterValue(cmd.id, cmd.value);
                 }
                 break;
             case "SET_MANY_GLOBAL_FILTER_VALUE":
                 for (const filter of cmd.filters) {
-                    if (filter.value !== undefined) {
-                        this.dispatch("SET_GLOBAL_FILTER_VALUE", {
-                            id: filter.filterId,
-                            value: filter.value,
-                        });
-                    } else {
-                        this.dispatch("CLEAR_GLOBAL_FILTER_VALUE", { id: filter.filterId });
-                    }
+                    this.dispatch("SET_GLOBAL_FILTER_VALUE", {
+                        id: filter.filterId,
+                        value: filter.value,
+                    });
                 }
                 break;
             case "REMOVE_GLOBAL_FILTER":
                 delete this.recordsDisplayName[cmd.id];
                 delete this.values[cmd.id];
-                break;
-            case "CLEAR_GLOBAL_FILTER_VALUE":
-                this.recordsDisplayName[cmd.id] = [];
-                this._clearGlobalFilterValue(cmd.id);
                 break;
         }
     }
