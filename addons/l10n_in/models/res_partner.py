@@ -18,7 +18,7 @@ class ResPartner(models.Model):
             ('special_economic_zone', 'Special Economic Zone'),
             ('deemed_export', 'Deemed Export'),
             ('uin_holders', 'UIN Holders'),
-        ], string="GST Treatment")
+        ], string="GST Treatment", compute="_compute_l10n_in_gst_treatment", store=True)
 
     l10n_in_pan = fields.Char(
         string="PAN",
@@ -30,6 +30,17 @@ class ResPartner(models.Model):
 
     display_pan_warning = fields.Boolean(string="Display pan warning", compute="_compute_display_pan_warning")
     l10n_in_gst_state_warning = fields.Char(compute="_compute_l10n_in_gst_state_warning")
+
+    @api.depends('vat', 'country_id')
+    def _compute_l10n_in_gst_treatment(self):
+        for partner in self:
+            partner.l10n_in_gst_treatment = False
+            if "IN" in partner.fiscal_country_codes:
+                partner.l10n_in_gst_treatment = 'unregistered'
+                if partner.country_id and partner.country_id.code != 'IN':
+                    partner.l10n_in_gst_treatment = 'overseas'
+                elif partner.vat and partner.check_vat_in(partner.vat):
+                    partner.l10n_in_gst_treatment = 'regular'
 
     @api.depends('vat', 'state_id', 'country_id', 'fiscal_country_codes')
     def _compute_l10n_in_gst_state_warning(self):
@@ -57,22 +68,6 @@ class ResPartner(models.Model):
     def _compute_display_pan_warning(self):
         for partner in self:
             partner.display_pan_warning = partner.vat and partner.l10n_in_pan and partner.l10n_in_pan != partner.vat[2:12]
-
-    @api.onchange('company_type')
-    def onchange_company_type(self):
-        res = super().onchange_company_type()
-        if self.country_id and self.country_id.code == 'IN':
-            self.l10n_in_gst_treatment = (self.company_type == 'company') and 'regular' or 'consumer'
-        return res
-
-    @api.onchange('country_id')
-    def _onchange_country_id(self):
-        res = super()._onchange_country_id()
-        if self.country_id and self.country_id.code != 'IN':
-            self.l10n_in_gst_treatment = 'overseas'
-        elif self.country_id and self.country_id.code == 'IN':
-            self.l10n_in_gst_treatment = (self.company_type == 'company') and 'regular' or 'consumer'
-        return res
 
     @api.onchange('vat')
     def onchange_vat(self):
