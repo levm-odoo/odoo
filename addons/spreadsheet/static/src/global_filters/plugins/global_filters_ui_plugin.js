@@ -60,7 +60,7 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
     ]);
     constructor(config) {
         super(config);
-        this.orm = config.custom.env?.services.orm;
+        this.nameService = config.custom.env?.services.name;
         this.odooDataProvider = config.custom.odooDataProvider;
         /**
          * Cache record display names for relation filters.
@@ -100,10 +100,7 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
     handle(cmd) {
         switch (cmd.type) {
             case "ADD_GLOBAL_FILTER":
-                this.recordsDisplayName[cmd.filter.id] =
-                    cmd.filter.type === "relation"
-                        ? cmd.filter.defaultValueDisplayNames
-                        : undefined;
+                this.recordsDisplayName[cmd.filter.id] = cmd.filter.defaultValueDisplayNames;
                 break;
             case "EDIT_GLOBAL_FILTER": {
                 const filter = cmd.filter;
@@ -117,13 +114,11 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
                 } else if (!checkFilterValueIsValid(filter, this.values[id]?.value)) {
                     delete this.values[id];
                 }
-                this.recordsDisplayName[id] =
-                    filter.type === "relation" ? filter.defaultValueDisplayNames : undefined;
+                this.recordsDisplayName[id] = filter.defaultValueDisplayNames;
                 break;
             }
             case "SET_GLOBAL_FILTER_VALUE":
                 if (!cmd.value) {
-                    delete this.recordsDisplayName[cmd.id];
                     this._clearGlobalFilterValue(cmd.id);
                 } else {
                     this.recordsDisplayName[cmd.id] = cmd.displayNames;
@@ -288,15 +283,14 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
                 return [[{ value: periodStr ? periodStr + "/" + year : year }]];
             }
             case "relation":
-                if (!value?.length || !this.orm) {
+                if (!value?.length || !this.nameService) {
                     return [[{ value: "" }]];
                 }
                 if (!this.recordsDisplayName[filter.id]) {
-                    const promise = this.orm
-                        .call(filter.modelName, "read", [value, ["display_name"]])
+                    const promise = this.nameService
+                        .loadDisplayNames(filter.modelName, value)
                         .then((result) => {
-                            const names = result.map(({ display_name }) => display_name);
-                            this.recordsDisplayName[filter.id] = names;
+                            this.recordsDisplayName[filter.id] = Object.values(result);
                         });
                     this.odooDataProvider.notifyWhenPromiseResolves(promise);
                     return [[{ value: "" }]];
