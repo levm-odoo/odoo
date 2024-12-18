@@ -3,7 +3,30 @@
 
     <t t-name="point_of_sale.CashMoveReceipt">
         <div class="pos-receipt">
-            <ReceiptHeader order="props.order" />
+            <div class="pos-cash-move-receipt-header">
+                <img t-attf-src="/web/image?model=res.company&amp;id={{props.company.id}}&amp;field=logo" alt="Logo" class="pos-receipt-logo"/>
+                <br/>
+                <div class="d-flex flex-column align-items-center">
+                    <div class="pos-receipt-contact">
+                        <div t-if="props.company.partner_id?.name" t-esc="props.company.partner_id.name" />
+                        <t t-if="props.company.phone">
+                            <div>Tel:<t t-esc="props.company.phone" /></div>
+                        </t>
+                        <t t-if="props.company.vat">
+                            <div><t t-esc="props.company.country_id?.vat_label || 'Tax ID'"/>: <t t-esc="props.company.vat" /></div>
+                        </t>
+                        <div t-if="props.company.email" t-esc="props.company.email" />
+                        <div t-if="props.company.website" t-esc="props.company.website" />
+                        <div t-if="props.config.receipt_header" style="white-space:pre-line" t-esc="props.config.receipt_header" />
+                        <t t-if="props.cashierName">
+                            <div>--------------------------------</div>
+                            <div>Served by: <t t-esc="props.cashierName" /></div>
+                        </t>
+                        <div>--------------------------------</div>
+                    </div>
+                </div>
+            </div>
+            <br />
             <div class="pos-receipt-center-align">
                 CASH
                 <t t-esc="props.translatedType.toUpperCase()" />
