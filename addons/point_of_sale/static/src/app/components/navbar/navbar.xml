@@ -68,9 +68,6 @@
                                 <DropdownItem t-if="showCashMoveButton and this.pos.cashier._role != 'minimal'" onSelected="() => this.pos.cashMove()">
                                     Cash In/Out
                                 </DropdownItem>
-                                <DropdownItem t-if="showToggleProductView" onSelected="() => this.toggleProductView()">
-                                    Switch Product View
-                                </DropdownItem>
                                 <DropdownItem t-if="!this.pos.data.network.offline" onSelected="() => this.reloadProducts()">
                                     Reload products
                                 </DropdownItem>
@@ -79,7 +76,7 @@
                                 </DropdownItem>
                                 <DropdownItem t-if="isBarcodeScannerSupported() and pos.mainScreen.component.name == 'ProductScreen' and ui.isSmall" onSelected="() => this.onClickScan()">
                                     <span t-if="this.pos.scanning">Stop Barcode Scanner</span>
-                                    <span t-else="">Open Barcode Scanner</span>
+                                    <span t-else="">Barcode Scanner</span>
                                 </DropdownItem>
                                 <DropdownItem t-if="hardwareProxy.printer" onSelected="() => this.showSaleDetails()">
                                     Print Report

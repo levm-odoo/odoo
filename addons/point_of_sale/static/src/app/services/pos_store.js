@@ -98,7 +98,6 @@ export class PosStore extends WithLazyGetterTrap {
         this.numpadMode = "quantity";
         this.mobile_pane = "right";
         this.ticket_screen_mobile_pane = "left";
-        this.productListView = window.localStorage.getItem("productListView") || "grid";
 
         this.ticketScreenState = {
             offsetByDomain: {},
@@ -492,6 +491,17 @@ export class PosStore extends WithLazyGetterTrap {
             return "flex-column";
         } else {
             return "flex-row-reverse justify-content-between m-1";
+        }
+    }
+    getProductPriceFormatted(productTemplate) {
+        const formattedUnitPrice = this.env.utils.formatCurrency(
+            this.getProductPrice({ productTemplate })
+        );
+
+        if (productTemplate.to_weight) {
+            return `${formattedUnitPrice}/${productTemplate.uom_id.name}`;
+        } else {
+            return formattedUnitPrice;
         }
     }
     async openConfigurator(pTemplate) {

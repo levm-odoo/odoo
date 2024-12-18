@@ -10,7 +10,6 @@ import {
     handleSaleDetails,
 } from "@point_of_sale/app/components/navbar/sale_details_button/sale_details_button";
 import { Component, onMounted, useState, useExternalListener } from "@odoo/owl";
-import { ProductScreen } from "@point_of_sale/app/screens/product_screen/product_screen";
 import { Input } from "@point_of_sale/app/components/inputs/input/input";
 import { isBarcodeScannerSupported } from "@web/core/barcode/barcode_video_scanner";
 import { Dropdown } from "@web/core/dropdown/dropdown";
@@ -102,15 +101,6 @@ export class Navbar extends Component {
         });
     }
 
-    toggleProductView() {
-        const newView = this.pos.productListView === "grid" ? "list" : "grid";
-        window.localStorage.setItem("productListView", newView);
-        this.pos.productListView = this.pos.productListView === "grid" ? "list" : "grid";
-    }
-
-    get showToggleProductView() {
-        return this.pos.mainScreen.component === ProductScreen && this.ui.isSmall;
-    }
     openCustomerDisplay() {
         if (this.pos.config.customer_display_type === "local") {
             window.open(

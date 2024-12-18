@@ -4,11 +4,16 @@
     <t t-name="point_of_sale.PartnerList">
         <Dialog bodyClass="'partner-list overflow-y-auto p-0'" contentClass="'h-100'">
             <t t-set-slot="header">
+<<<<<<< HEAD
                 <button t-if="!ui.isSmall and this.pos.cashier._role !== 'minimal'" class="btn btn-primary btn-lg lh-lg" role="img" aria-label="Add a customer"
+=======
+                <button t-if="!ui.isSmall" class="btn btn-primary btn-lg lh-lg me-2" role="img" aria-label="Add a customer"
+>>>>>>> 151a268682d9 ([IMP] point_of_sale, pos_restaurant: pos ui change)
                         t-on-click="() => this.editPartner()"
                         title="Add a customer">
                 Create 
                 </button>
+                <span class="modal-title fs-4">Choose customer</span>
                 <Input tModel="[state, 'query']"
                     class="'ms-auto'"
                     isSmall="ui.isSmall"
