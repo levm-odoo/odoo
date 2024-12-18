@@ -851,3 +851,23 @@ class ProductProduct(models.Model):
         if lst_price:
             return (lst_price - self._get_contextual_price()) / lst_price
         return 0.0
+
+    def _get_gmc_items(self):
+        """Compute Google Merchant Center items' fields.
+
+        See [Google](https://support.google.com/merchants/answer/7052112)'s documentation for more
+        information about each field.
+
+        :return: a dictionary for each non-service product in this recordset.
+        :rtype: list[dict]
+        """
+        return {
+            product: {
+                # Required
+                'id': product.default_code or product.id,
+                'title': product.name,
+                'availability': 'in_stock',
+            }
+            for product in self
+            if product.type in ('consu', 'combo')
+        }
