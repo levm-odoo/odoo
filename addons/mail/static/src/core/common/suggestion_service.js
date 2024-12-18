@@ -23,15 +23,12 @@ export class SuggestionService {
         const cleanedSearchTerm = cleanTerm(term);
         switch (delimiter) {
             case "@": {
-                await this.fetchPartners(cleanedSearchTerm, thread);
-                break;
+                return this.fetchPartners(cleanedSearchTerm, thread);
             }
             case "#":
-                await this.fetchThreads(cleanedSearchTerm);
-                break;
+                return this.fetchThreads(cleanedSearchTerm);
             case ":":
-                await this.store.cannedReponses.fetch();
-                break;
+                return this.store.cannedReponses.fetch();
         }
     }
 
@@ -70,9 +67,7 @@ export class SuggestionService {
 
     searchCannedResponseSuggestions(cleanedSearchTerm, sort) {
         const cannedResponses = Object.values(this.store["mail.canned.response"].records).filter(
-            (cannedResponse) => {
-                return cleanTerm(cannedResponse.source).includes(cleanedSearchTerm);
-            }
+            (cannedResponse) => cleanTerm(cannedResponse.source).includes(cleanedSearchTerm)
         );
         const sortFunc = (c1, c2) => {
             const cleanedName1 = cleanTerm(c1.source);
