@@ -503,8 +503,10 @@ class HolidaysAllocation(models.Model):
                     allocation.last_executed_carryover_date = carryover_date
                     if current_level.action_with_unused_accruals in ['lost', 'maximum']:
                         allocated_days_left = allocation.number_of_days - leaves_taken
-                        postpone_max_days = current_level.postpone_max_days
-                        allocation_max_days = min(postpone_max_days, allocated_days_left)
+                        allocation_max_days = 0 # default if unused_accrual are lost
+                        if current_level.action_with_unused_accruals == 'maximum':
+                            postpone_max_days = current_level.postpone_max_days
+                            allocation_max_days = min(postpone_max_days, allocated_days_left)
                         allocation.number_of_days = min(allocation.number_of_days, allocation_max_days) + leaves_taken
                     allocation.expiring_carryover_days = allocation.number_of_days
 
@@ -547,8 +549,10 @@ class HolidaysAllocation(models.Model):
                         if carryover_level.action_with_unused_accruals in ['lost', 'maximum']:
                             allocation.last_executed_carryover_date = carryover_date
                             allocated_days_left = allocation.number_of_days - leaves_taken
-                            postpone_max_days = current_level.postpone_max_days
-                            allocation_max_days = min(postpone_max_days, allocated_days_left)
+                            allocation_max_days = 0 # default if unused_accrual are lost
+                            if current_level.action_with_unused_accruals == 'maximum':
+                                postpone_max_days = current_level.postpone_max_days
+                                allocation_max_days = min(postpone_max_days, allocated_days_left)
                             allocation.number_of_days = min(allocation.number_of_days, allocation_max_days) + leaves_taken
 
                 if is_accrual_date:
