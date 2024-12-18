@@ -122,6 +122,7 @@ class BusBus(models.Model):
                 ),
             }
         )
+
         self.env.cr.postcommit.data["bus.bus.channels"].add(channel)
 
     def _ensure_hooks(self):

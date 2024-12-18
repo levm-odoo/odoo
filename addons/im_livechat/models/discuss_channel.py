@@ -292,3 +292,17 @@ class DiscussChannel(models.Model):
             self.sudo().livechat_active = False
             self._bus_send_store(Store(self, "livechat_active"))
         super()._action_unfollow(partner, guest)
+
+    def _post_leave_notification(self, partner, member):
+        # breakpoint()
+        chatbot = self.sudo().chatbot_current_step_id.chatbot_script_id.operator_partner_id
+        if partner != chatbot:
+            super()._post_leave_notification(partner,member)
+        # else:
+        #     notification = Markup('<div class="o_mail_notification">%s</div>') % _(
+        #         "left the channel"
+        #     )
+        #     # sudo: mail.message - post as sudo since the user just unsubscribed from the channel
+        #     member.channel_id.sudo().message_post(
+        #         body=notification, subtype_xmlid="mail.mt_comment", author_id=partner.id
+        #     )
