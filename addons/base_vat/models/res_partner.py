@@ -237,7 +237,7 @@ class ResPartner(models.Model):
         vat_has_legit_country_code = self.env['res.country'].search([('code', '=', vat_country_code.upper())], limit=1)
         if not vat_has_legit_country_code:
             vat_has_legit_country_code = vat_country_code.lower() in _region_specific_vat_codes
-        if vat_has_legit_country_code:
+        if vat_has_legit_country_code and default_country.code.lower() == vat_country_code.lower():
             check_result = self.simple_vat_check(vat_country_code, vat_number_split)
             if check_result:
                 return vat_country_code
