@@ -34,6 +34,7 @@ class TestOnSitePayment(HttpCase, OnSiteCommon):
             flow='direct',
             sale_order_ids=[order.id],
             state='pending',
+            provider_id=self.provider.id,
             payment_method_id=self.provider.payment_method_ids.id,
         )
         with mute_logger('odoo.addons.sale.models.payment_transaction'):
