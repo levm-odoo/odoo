@@ -1,5 +1,6 @@
 import { _t } from "@web/core/l10n/translation";
 import { Attachment, FileSelector, IMAGE_MIMETYPES } from "./file_selector";
+import { renderStaticFileCard } from "@html_editor/others/render_static_file_card";
 
 export class DocumentAttachment extends Attachment {
     static template = "html_editor.DocumentAttachment";
@@ -62,8 +63,7 @@ export class DocumentSelector extends FileSelector {
     static async createElements(selectedMedia, { orm }) {
         return Promise.all(
             selectedMedia.map(async (attachment) => {
-                const linkEl = document.createElement("a");
-                let href = `/web/content/${encodeURIComponent(
+                let url = `/web/content/${encodeURIComponent(
                     attachment.id
                 )}?unique=${encodeURIComponent(attachment.checksum)}&download=true`;
                 if (!attachment.public) {
@@ -73,12 +73,10 @@ export class DocumentSelector extends FileSelector {
                             attachment.id,
                         ]);
                     }
-                    href += `&access_token=${encodeURIComponent(accessToken)}`;
+                    url += `&access_token=${encodeURIComponent(accessToken)}`;
                 }
-                linkEl.href = href;
-                linkEl.title = attachment.name;
-                linkEl.dataset.mimetype = attachment.mimetype;
-                return linkEl;
+                const { name: filename, mimetype } = attachment;
+                return renderStaticFileCard(filename, mimetype, url);
             })
         );
     }

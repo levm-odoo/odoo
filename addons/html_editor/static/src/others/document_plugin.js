@@ -1,7 +1,8 @@
 import { DocumentSelector } from "@html_editor/main/media/media_dialog/document_selector";
 import { Plugin } from "@html_editor/plugin";
+import { withSequence } from "@html_editor/utils/resource";
 import { _t } from "@web/core/l10n/translation";
-import { renderToElement } from "@web/core/utils/render";
+import { renderStaticFileCard } from "./render_static_file_card";
 
 const documentMediaDialogTab = {
     id: "DOCUMENTS",
@@ -10,28 +11,24 @@ const documentMediaDialogTab = {
     sequence: 15,
 };
 
-/**
- * Fallback for the FilePlugin, when embedded components are not available.
- */
 export class DocumentPlugin extends Plugin {
     static id = "document";
     static dependencies = ["dom", "history"];
     resources = {
-        user_commands: [
-            {
-                id: "uploadFile2",
-                title: _t("Upload a file (non-embedded)"),
-                description: _t("Add a download box 2"),
-                icon: "fa-upload",
-                run: this.uploadAndInsertFiles.bind(this),
-                isAvailable: () => !this.config.disableFile,
-            },
-        ],
+        user_commands: {
+            id: "uploadFile",
+            title: _t("Upload a file"),
+            description: _t("Add a download box"),
+            icon: "fa-upload",
+            run: this.uploadAndInsertFiles.bind(this),
+            isAvailable: () => !this.config.disableFile,
+        },
         powerbox_items: {
             categoryId: "media",
-            commandId: "uploadFile2",
+            commandId: "uploadFile",
             keywords: ["file"],
         },
+        power_buttons: withSequence(5, { commandId: "uploadFile" }),
         media_dialog_tabs_providers: () =>
             this.config.disableFile ? [] : [documentMediaDialogTab],
         selectors_for_feff_providers: () => ".o_file_card",
@@ -69,28 +66,7 @@ export class DocumentPlugin extends Plugin {
             unique: true,
             accessToken: true,
         });
-        // consider adding this to a template that t-calls the template below
-        const banner = this.document.createElement("span");
-        banner.classList.add("o_file_card");
-        banner.contentEditable = false;
-        const bannerElement = renderToElement("html_editor.staticFileBanner", {
-            fileModel: {
-                filename: attachment.name,
-                mimetype: attachment.mimetype,
-                downloadUrl: url,
-            },
-        });
-
-        // const bannerElement = parseHTML(
-        //     this.document,
-        //     `<span class="d-flex align-items-center alert alert-info">
-        //         <span class="o_file_image d-flex o_image" data-mimetype="${attachment.mimetype}"></div>
-        //         <span class="px-5 d-flex align-items-center" contenteditable="true">
-        //             <a href="${url}">${attachment.name}</a>
-        //         </span>
-        //     </span>`
-        // ).childNodes[0];
-        banner.append(bannerElement);
-        return banner;
+        const { name: filename, mimetype } = attachment;
+        return renderStaticFileCard(filename, mimetype, url);
     }
 }
