@@ -537,6 +537,7 @@ class IrActionsServer(models.Model):
     state = fields.Selection([
         ('object_write', 'Update Record'),
         ('object_create', 'Create Record'),
+        ('button', 'Button Click'),
         ('code', 'Execute Code'),
         ('webhook', 'Send Webhook Notification'),
         ('multi', 'Execute Existing Actions')], string='Type',
@@ -548,6 +549,7 @@ class IrActionsServer(models.Model):
              "- 'Send SMS': send SMS, log them on documents (SMS)"
              "- 'Add/Remove Followers': add or remove followers to a record (Discuss)\n"
              "- 'Create Record': create a new record with new values\n"
+             "- 'Button Click': execute a button from model or model's views\n"
              "- 'Execute Code': a block of Python code that will be executed\n"
              "- 'Send Webhook Notification': send a POST request to an external system, also known as a Webhook\n"
              "- 'Execute Existing Actions': define an action that triggers several other server actions\n")
@@ -559,6 +561,9 @@ class IrActionsServer(models.Model):
                                help="Model on which the server action runs.")
     available_model_ids = fields.Many2many('ir.model', string='Available Models', compute='_compute_available_model_ids', store=False)
     model_name = fields.Char(related='model_id.model', string='Model Name')
+    # Button
+    available_buttons = fields.Json(string='Available Buttons', compute='_compute_available_buttons')
+    button_uid = fields.Char(string='Button')
     # Python code
     code = fields.Text(string='Python Code', groups='base.group_system',
                        default=DEFAULT_PYTHON_CODE,
@@ -771,6 +776,14 @@ class IrActionsServer(models.Model):
     def _check_child_recursion(self):
         if self._has_cycle('child_ids'):
             raise ValidationError(_('Recursion found in child server actions'))
+
+    @api.depends('state', 'model_id')
+    def _compute_available_buttons(self):
+        for action in self:
+            if action.state != 'button':
+                action.available_buttons = False
+                continue
+            action.available_buttons = action._get_available_buttons()
 
     def _get_readable_fields(self):
         return super()._get_readable_fields() | {
