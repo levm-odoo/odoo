@@ -105,11 +105,17 @@ patch(AttendeeCalendarCommonRenderer.prototype, {
         const parsedDate = DateTime.fromJSDate(date).toISODate();
         const multiCalendar = this.props.model.multiCalendar;
         const showLine = ["week", "month"].includes(this.props.model.scale);
-        const worklocation = this.props.model.worklocations[parsedDate];
+        let worklocation = this.props.model.worklocations[parsedDate];
         const workLocationSetForCurrentUser =
             multiCalendar ?
             Object.keys(worklocation).some(key => worklocation[key].some(wlItem => wlItem.userId === user.userId)
             ) : worklocation?.userId === user.userId;
+        if (multiCalendar && !this.props.model.data.userFilterActive) {
+            for (let wl in worklocation){
+                worklocation[wl] = worklocation[wl].filter(wlItem => wlItem.userId !== user.userId);
+            }
+            worklocation = Object.fromEntries(Object.entries(worklocation).filter(([_, wlItems]) => wlItems.length !== 0));
+        }
         return {
             ...super.headerTemplateProps(date),
             worklocation,
