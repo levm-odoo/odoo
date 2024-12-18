@@ -3,7 +3,7 @@ import { nextLeaf } from "@html_editor/utils/dom_info";
 import { isBlock } from "@html_editor/utils/blocks";
 import { renderFileCard } from "./utils";
 import { FileDocumentsSelector } from "./file_documents_selector";
-import { DocumentPlugin } from "@html_editor/others/document_plugin";
+import { DocumentPlugin } from "@html_editor/main/media/document/document_plugin";
 import { closestElement } from "@html_editor/utils/dom_traversal";
 
 /** @typedef {import("@html_editor/core/selection_plugin").Cursors} Cursors */

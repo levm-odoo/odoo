@@ -6,7 +6,7 @@ import { onRpc, patchWithCleanup } from "@web/../tests/web_test_helpers";
 import { animationFrame, click, press, queryOne, waitFor } from "@odoo/hoot-dom";
 import { execCommand } from "./_helpers/userCommands";
 import { MAIN_EMBEDDINGS } from "@html_editor/others/embedded_components/embedding_sets";
-import { DocumentPlugin } from "@html_editor/others/document_plugin";
+import { DocumentPlugin } from "@html_editor/main/media/document/document_plugin";
 import { getContent } from "./_helpers/selection";
 import { isZwnbsp } from "@html_editor/utils/dom_info";
 

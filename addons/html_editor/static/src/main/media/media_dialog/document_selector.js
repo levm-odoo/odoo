@@ -1,6 +1,6 @@
 import { _t } from "@web/core/l10n/translation";
 import { Attachment, FileSelector, IMAGE_MIMETYPES } from "./file_selector";
-import { renderStaticFileCard } from "@html_editor/others/render_static_file_card";
+import { renderStaticFileCard } from "@html_editor/main/media/document/render_static_file_card";
 
 export class DocumentAttachment extends Attachment {
     static template = "html_editor.DocumentAttachment";
