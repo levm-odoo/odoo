@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-
-import itertools
 
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -19,8 +16,7 @@ from odoo.osv import expression
 from odoo.tools.float_utils import float_round
 
 from odoo.tools import date_utils, ormcache
-from .utils import Intervals, float_to_time, make_aware, datetime_to_string, string_to_datetime
-from odoo.addons.hr_work_entry_contract.models.hr_work_intervals import WorkIntervals
+from .utils import Intervals, float_to_time, make_aware, datetime_to_string, string_to_datetime, WorkIntervals
 
 
 class ResourceCalendar(models.Model):
@@ -370,17 +366,10 @@ class ResourceCalendar(models.Model):
                 if resource in per_resource_result:
                     resource_specific_result = [(max(bounds_per_tz[tz][0], tz.localize(val[0])), min(bounds_per_tz[tz][1], tz.localize(val[1])), val[2])
                         for val in per_resource_result[resource]]
-                    result_per_resource_id[resource.id] = WorkIntervals(itertools.chain(res, resource_specific_result))
+                    result_per_resource_id[resource.id] = WorkIntervals(chain(res, resource_specific_result))
                 else:
                     result_per_resource_id[resource.id] = res_intervals
         return result_per_resource_id
-
-    def _leave_intervals(self, start_dt, end_dt, resource=None, domain=None, tz=None):
-        if resource is None:
-            resource = self.env['resource.resource']
-        return self._leave_intervals_batch(
-            start_dt, end_dt, resources=resource, domain=domain, tz=tz
-        )[resource.id]
 
     def _leave_intervals_batch(self, start_dt, end_dt, resources=None, domain=None, tz=None, any_calendar=False):
         """ Return the leave intervals in the given datetime range.
@@ -512,49 +501,6 @@ class ResourceCalendar(models.Model):
             'days': float_round(sum(day_days[day] for day in day_days), precision_rounding=0.001),
             'hours': sum(day_hours.values()),
         }
-
-    def _get_days_data(self, intervals, day_total):
-        """
-        helper function to compute duration of `intervals`
-        expressed in days and hours.
-        `day_total` is a dict {date: n_hours} with the number of hours for each day.
-        """
-        day_hours = defaultdict(float)
-        for start, stop, _meta in intervals:
-            day_hours[start.date()] += (stop - start).total_seconds() / 3600
-
-        # compute number of days the hours span over
-        days = float_round(sum(
-            day_hours[day] / day_total[day] if day_total[day] else 0
-            for day in day_hours
-        ), precision_rounding=0.001)
-        return {
-            'days': days,
-            'hours': sum(day_hours.values()),
-        }
-
-    def _get_resources_day_total(self, from_datetime, to_datetime, resources=None):
-        """
-        @return dict with hours of attendance in each day between `from_datetime` and `to_datetime`
-        """
-        self.ensure_one()
-        if not resources:
-            resources = self.env['resource.resource']
-            resources_list = [resources]
-        else:
-            resources_list = list(resources) + [self.env['resource.resource']]
-        # total hours per day:  retrieve attendances with one extra day margin,
-        # in order to compute the total hours on the first and last days
-        from_full = from_datetime - timedelta(days=1)
-        to_full = to_datetime + timedelta(days=1)
-        intervals = self._attendance_intervals_batch(from_full, to_full, resources=resources)
-
-        result = defaultdict(lambda: defaultdict(float))
-        for resource in resources_list:
-            day_total = result[resource.id]
-            for start, stop, _meta in intervals[resource.id]:
-                day_total[start.date()] += (stop - start).total_seconds() / 3600
-        return result
 
     def _get_closest_work_time(self, dt, match_end=False, resource=None, search_range=None, compute_leaves=True):
         """Return the closest work interval boundary within the search range.

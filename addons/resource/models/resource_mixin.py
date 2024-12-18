@@ -1,11 +1,14 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from collections import defaultdict
-from pytz import utc
+from datetime import datetime
+from dateutil.rrule import rrule, DAILY
+from itertools import chain
+from pytz import timezone, utc
 
 from odoo import api, fields, models
-from .utils import timezone_datetime
+from odoo.osv import expression
+from .utils import float_to_time, Intervals, timezone_datetime, WorkIntervals
 
 
 class ResourceMixin(models.AbstractModel):
@@ -204,30 +207,156 @@ class ResourceMixin(models.AbstractModel):
                 result[record.id] = sorted(record_result.items())
         return result
 
-    def list_leaves(self, from_datetime, to_datetime, calendar=None, domain=None):
+    def _get_calendar_periods(self, start, stop):
         """
-            By default the resource calendar is used, but it can be
-            changed using the `calendar` argument.
-
-            `domain` is used in order to recognise the leaves to take,
-            None means default value ('time_type', '=', 'leave')
-
-            Returns a list of tuples (day, hours, resource.calendar.leaves)
-            for each leave in the calendar.
+        :param datetime start: the start of the period
+        :param datetime stop: the stop of the period
+        This method can be overridden in other modules where it's possible to have different resource calendars for an
+        employee depending on the date.
         """
-        resource = self.resource_id
-        calendar = calendar or self.resource_calendar_id
+        calendar_periods_by_employee = {}
+        for employee in self:
+            calendar = employee.resource_calendar_id or employee.company_id.resource_calendar_id
+            calendar_periods_by_employee[employee] = [(start, stop, calendar)]
+        return calendar_periods_by_employee
 
-        # naive datetimes are made explicit in UTC
-        if not from_datetime.tzinfo:
-            from_datetime = from_datetime.replace(tzinfo=utc)
-        if not to_datetime.tzinfo:
-            to_datetime = to_datetime.replace(tzinfo=utc)
+    def _get_attendance_intervals(self, start_dt, end_dt, domain=None, tz=None, lunch=False):
+        assert start_dt.tzinfo and end_dt.tzinfo
+        self.ensure_one()
+        domain = domain if domain is not None else []
+        all_calendar_periods = self._get_calendar_periods(start_dt, end_dt)
+        all_calendars = self.env['resource.calendar']
+        for calendar_periods in all_calendar_periods.values():
+            for period in calendar_periods:
+                all_calendars |= period[2]
+        domain = expression.AND([domain, [
+            ('calendar_id', 'in', all_calendars.ids),
+            ('resource_id', 'in', self.ids + [False]),
+            ('display_type', '=', False),
+            ('day_period', '!=' if not lunch else '=', 'lunch'),
+        ]])
 
-        attendances = calendar._attendance_intervals_batch(from_datetime, to_datetime, resource)[resource.id]
-        leaves = calendar._leave_intervals_batch(from_datetime, to_datetime, resource, domain)[resource.id]
-        result = []
-        for start, stop, leave in (leaves & attendances):
-            hours = (stop - start).total_seconds() / 3600
-            result.append((start.date(), hours, leave))
-        return result
+        attendances_per_day = {
+            (cal, weekday, weektype, res): atts
+            for cal, weekday, weektype, res, atts
+            in self.env['resource.calendar.attendance']._read_group(
+                domain=domain,
+                groupby=['resource_calendar_id', 'dayofweek', 'week_type', 'resource_id'],
+                aggregates=['id:recordset']
+            )
+        }
+        weekdays = set(map(lambda c, dow, wt: dow, attendances_per_day.keys()))
+
+        # TODO not finished
+        # get attendances of calendars
+        # for each resource, get intervals by intersecting calendars intervals and calendar period intervals
+
+        # Group resources per tz they will all have the same result
+        resources_per_tz = defaultdict(list)
+        for resource in self:
+            resources_per_tz[tz or timezone(resource.tz)].append(resource)
+
+        start = start_dt.astimezone(utc)
+        end = end_dt.astimezone(utc)
+        bounds_per_tz = {
+            tz: (start_dt.astimezone(tz), end_dt.astimezone(tz))
+            for tz in resources_per_tz
+        }
+        # Use the outer bounds from the requested timezones
+        for low, high in bounds_per_tz.values():
+            start = min(start, low.replace(tzinfo=utc))
+            end = max(end, high.replace(tzinfo=utc))
+        # Generate once with utc as timezone
+        days = rrule(DAILY, start.date(), until=end.date(), byweekday=weekdays)
+        base_result = []
+        per_resource_result = defaultdict(list)
+        for day in days:
+            week_type = self.env['resource.calendar.attendance'].get_week_type(day)
+            attendances = attendances_per_day[day.weekday() + 7 * week_type]
+            for attendance in attendances:
+                if (attendance.date_from and day.date() < attendance.date_from) or\
+                    (attendance.date_to and attendance.date_to < day.date()):
+                    continue
+                day_from = datetime.combine(day, float_to_time(attendance.hour_from))
+                day_to = datetime.combine(day, float_to_time(attendance.hour_to))
+                if attendance.resource_id:
+                    per_resource_result[attendance.resource_id].append((day_from, day_to, attendance))
+                else:
+                    base_result.append((day_from, day_to, attendance))
+
+        # Copy the result localized once per necessary timezone
+        # Strictly speaking comparing start_dt < time or start_dt.astimezone(tz) < time
+        # should always yield the same result. however while working with dates it is easier
+        # if all dates have the same format
+        result_per_tz = {
+            tz: [(max(bounds_per_tz[tz][0], tz.localize(val[0])),
+                min(bounds_per_tz[tz][1], tz.localize(val[1])),
+                val[2])
+                    for val in base_result]
+            for tz in resources_per_tz.keys()
+        }
+        result_per_resource_id = dict()
+        for tz, resources in resources_per_tz.items():
+            res = result_per_tz[tz]
+            res_intervals = WorkIntervals(res)
+            for resource in resources:
+                if resource in per_resource_result:
+                    resource_specific_result = [(max(bounds_per_tz[tz][0], tz.localize(val[0])), min(bounds_per_tz[tz][1], tz.localize(val[1])), val[2])
+                        for val in per_resource_result[resource]]
+                    result_per_resource_id[resource.id] = WorkIntervals(chain(res, resource_specific_result))
+                else:
+                    result_per_resource_id[resource.id] = res_intervals
+        return result_per_resource_id
+
+    def _get_leave_intervals(self, start_dt, end_dt, domain=None, tz=None):
+        assert start_dt.tzinfo and end_dt.tzinfo
+
+        if domain is None:
+            domain = [('time_type', '=', 'leave')]
+        # for the computation, express all datetimes in UTC
+        domain = expression.AND([
+            domain,
+            [
+                ('resource_id', 'in', [False] + self.resource_id.ids),  # public leaves don't have a resource_id
+                ('date_from', '<=', end_dt),
+                ('date_to', '>=', start_dt),
+            ]
+        ])
+
+        # retrieve leave intervals in (start_dt, end_dt)
+        result = defaultdict(lambda: [])
+        tz_dates = {}
+        all_leaves = self.env['resource.calendar.leaves'].search(domain)
+        for leave in all_leaves:
+            leave_resource = leave.resource_id
+            leave_company = leave.company_id
+            leave_date_from = leave.date_from
+            leave_date_to = leave.date_to
+            for resource in self:
+                if leave_resource and leave_resource != resource.resource_id or\
+                        not leave_resource and leave_company and resource.company_id != leave_company:
+                    continue
+                tz = tz if tz else timezone(resource.tz)
+                if (tz, start_dt) in tz_dates:
+                    start = tz_dates[(tz, start_dt)]
+                else:
+                    start = start_dt.astimezone(tz)
+                    tz_dates[(tz, start_dt)] = start
+                if (tz, end_dt) in tz_dates:
+                    end = tz_dates[(tz, end_dt)]
+                else:
+                    end = end_dt.astimezone(tz)
+                    tz_dates[(tz, end_dt)] = end
+                dt0 = leave_date_from.astimezone(tz)
+                dt1 = leave_date_to.astimezone(tz)
+                result[resource].append((max(start, dt0), min(end, dt1), leave))
+
+        return {resource: Intervals(result[resource.id]) for resource in self}
+
+    def _get_work_intervals(self, start_dt, end_dt, domain=None, tz=None):
+        attendance_intervals = self._get_attendance_intervals(start_dt, end_dt, tz=tz or self.env.context.get("employee_timezone"))
+        leave_intervals = self._get_leave_intervals(start_dt, end_dt, domain, tz=tz)
+        return {
+            resource: (attendance_intervals[resource] - leave_intervals[resource])
+            for resource in self
+        }

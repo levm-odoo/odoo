@@ -24,6 +24,34 @@ def datetime_str(year, month, day, hour=0, minute=0, second=0, microsecond=0, tz
         dt = timezone(tzinfo).localize(dt).astimezone(utc)
     return fields.Datetime.to_string(dt)
 
+def list_leaves(employee, from_datetime, to_datetime, calendar=None, domain=None):
+    """
+        By default the resource calendar is used, but it can be
+        changed using the `calendar` argument.
+
+        `domain` is used in order to recognise the leaves to take,
+        None means default value ('time_type', '=', 'leave')
+
+        Returns a list of tuples (day, hours, resource.calendar.leaves)
+        for each leave in the calendar.
+    """
+    resource = employee.resource_id
+    calendar = calendar or employee.resource_calendar_id
+
+    # naive datetimes are made explicit in UTC
+    if not from_datetime.tzinfo:
+        from_datetime = from_datetime.replace(tzinfo=utc)
+    if not to_datetime.tzinfo:
+        to_datetime = to_datetime.replace(tzinfo=utc)
+
+    attendances = calendar._attendance_intervals_batch(from_datetime, to_datetime, resource)[resource.id]
+    leaves = calendar._leave_intervals_batch(from_datetime, to_datetime, resource, domain)[resource.id]
+    result = []
+    for start, stop, leave in (leaves & attendances):
+        hours = (stop - start).total_seconds() / 3600
+        result.append((start.date(), hours, leave))
+    return result
+
 
 class TestIntervals(TransactionCase):
 
@@ -960,7 +988,8 @@ class TestResMixin(TestResourceCommon):
             'date_to': datetime_str(2018, 4, 10, 23, 59, 59, tzinfo=self.jean.tz),
         })
 
-        leaves = self.jean.list_leaves(
+        leaves = list_leaves(
+            self.jean,
             datetime_tz(2018, 4, 9, 0, 0, 0, tzinfo=self.jean.tz),
             datetime_tz(2018, 4, 13, 23, 59, 59, tzinfo=self.jean.tz),
         )
@@ -975,7 +1004,8 @@ class TestResMixin(TestResourceCommon):
             'date_to': datetime_str(2018, 4, 2, 14, 0, 0, tzinfo=self.jean.tz),
         })
 
-        leaves = self.jean.list_leaves(
+        leaves = list_leaves(
+            self.jean,
             datetime_tz(2018, 4, 2, 0, 0, 0, tzinfo=self.jean.tz),
             datetime_tz(2018, 4, 6, 23, 0, 0, tzinfo=self.jean.tz),
         )
@@ -992,7 +1022,8 @@ class TestResMixin(TestResourceCommon):
             'date_to': datetime_str(2018, 4, 2, 10, 0, 1, tzinfo=self.jean.tz),
         })
 
-        leaves = self.jean.list_leaves(
+        leaves = list_leaves(
+            self.jean,
             datetime_tz(2018, 4, 2, 0, 0, 0, tzinfo=self.jean.tz),
             datetime_tz(2018, 4, 6, 23, 0, 0, tzinfo=self.jean.tz),
         )
@@ -1012,7 +1043,8 @@ class TestResMixin(TestResourceCommon):
             'date_to': datetime_str(2018, 4, 2, 10, 0, 0, tzinfo=self.jean.tz),
         })
 
-        leaves = self.jean.list_leaves(
+        leaves = list_leaves(
+            self.jean,
             datetime_tz(2018, 4, 2, 0, 0, 0, tzinfo=self.jean.tz),
             datetime_tz(2018, 4, 6, 23, 0, 0, tzinfo=self.jean.tz),
         )
@@ -1252,21 +1284,24 @@ class TestTimezones(TestResourceCommon):
         })
 
         # 09-04-2018 10:00:00 - 13-04-2018 18:00:00
-        leaves = self.jean.list_leaves(
+        leaves = list_leaves(
+            self.jean,
             datetime_tz(2018, 4, 9, 8, 0, 0),
             datetime_tz(2018, 4, 13, 16, 0, 0),
         )
         self.assertEqual(leaves, [(date(2018, 4, 9), 4, leave)])
 
         # 09-04-2018 00:00:00 - 13-04-2018 08:00:00
-        leaves = self.jean.list_leaves(
+        leaves = list_leaves(
+            self.jean,
             datetime_tz(2018, 4, 9, 8, 0, 0, tzinfo=self.tz3),
             datetime_tz(2018, 4, 13, 16, 0, 0, tzinfo=self.tz3),
         )
         self.assertEqual(leaves, [(date(2018, 4, 9), 6, leave)])
 
         # 09-04-2018 08:00:00 - 14-04-2018 12:00:00
-        leaves = self.jean.list_leaves(
+        leaves = list_leaves(
+            self.jean,
             datetime_tz(2018, 4, 9, 8, 0, 0, tzinfo=self.tz2),
             datetime_tz(2018, 4, 13, 16, 0, 0, tzinfo=self.tz4),
         )

@@ -1,4 +1,3 @@
-# -*- coding:utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import itertools
@@ -9,12 +8,10 @@ import pytz
 from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models, _
-from odoo.addons.resource.models.utils import string_to_datetime, Intervals
+from odoo.addons.resource.models.utils import string_to_datetime, WorkIntervals
 from odoo.osv import expression
 from odoo.tools import ormcache, format_list
 from odoo.exceptions import UserError
-
-from .hr_work_intervals import WorkIntervals
 
 
 class HrContract(models.Model):
