@@ -28293,7 +28293,7 @@ day_count_convention (number, default=${DEFAULT_DAY_COUNT_CONVENTION} ) ${_lt("A
             const before = this.getters.getCell(sheetId, col, row);
             const hasContent = "content" in after || "formula" in after;
             // Compute the new cell properties
-            const afterContent = hasContent ? after.content || "" : (before === null || before === void 0 ? void 0 : before.content) || "";
+            const afterContent = (hasContent ? after.content : before === null || before === void 0 ? void 0 : before.content) || "";
             let style;
             if (after.style !== undefined) {
                 style = after.style || undefined;
@@ -43480,8 +43480,8 @@ day_count_convention (number, default=${DEFAULT_DAY_COUNT_CONVENTION} ) ${_lt("A
 
 
     __info__.version = '16.0.55';
-    __info__.date = '2024-12-12T14:54:17.363Z';
-    __info__.hash = 'f535004';
+    __info__.date = '2024-12-19T08:40:21.132Z';
+    __info__.hash = '5215887';
 
 
 })(this.o_spreadsheet = this.o_spreadsheet || {}, owl);
