@@ -26,6 +26,8 @@ import { getRunner } from "./main_runner";
  *  | "symbol"
  *  | "undefined"} ArgumentPrimitive
  *
+ * @typedef {[string, ArgumentType]} Label
+ *
  * @typedef {string | RegExp | { new(): any }} Matcher
  *
  * @typedef {{
@@ -87,6 +89,7 @@ const {
     setTimeout,
     String,
     TypeError,
+    WeakSet,
     window,
 } = globalThis;
 /** @type {Storage["getItem"]} */
@@ -116,7 +119,7 @@ const $writeText = $clipboard?.writeText.bind($clipboard);
 const getConstructor = (value) => {
     const { constructor } = value;
     if (constructor !== Object) {
-        return constructor;
+        return constructor || { name: null };
     }
     const str = value.toString();
     const match = str.match(R_OBJECT);
@@ -297,6 +300,7 @@ const R_OBJECT = /^\[object ([\w-]+)\]$/;
 const dmp = new DiffMatchPatch();
 const { DIFF_INSERT, DIFF_DELETE } = DiffMatchPatch;
 
+const labelObjects = new WeakSet();
 const objectConstructors = new Map();
 const windowTarget = {
     addEventListener: window.addEventListener.bind(window),
@@ -856,6 +860,13 @@ export function hasClipboard() {
 }
 
 /**
+ * @param {[string, ArgumentType]} label
+ */
+export function isLabel(label) {
+    return labelObjects.has(label);
+}
+
+/**
  * Returns whether the given value is either `null` or `undefined`.
  *
  * @template T
@@ -974,6 +985,35 @@ export function lookup(pattern, items, property = "key") {
         result.sort((a, b) => scores.get(b) - scores.get(a));
     }
     return result;
+}
+
+/**
+ * @template [T=any]
+ * @param {T} value
+ * @param {ArgumentType} type
+ */
+export function makeLabel(value, type) {
+    if (isLabel(value)) {
+        [value, type] = value;
+    } else if (type === undefined) {
+        type = getTypeOf(value);
+    }
+    if (type !== null) {
+        value = formatHumanReadable(value);
+    }
+    const label = [value, type];
+    labelObjects.add(label);
+    return label;
+}
+
+/**
+ * Special label type used in test results
+ * @param {string} className
+ */
+export function makeLabelIcon(className) {
+    const label = [className, "icon"];
+    labelObjects.add(label);
+    return label;
 }
 
 /**
@@ -1394,10 +1434,10 @@ export class Markup {
                         const classList = ["no-underline"];
                         let tagName = "t";
                         if (diff[0] === DIFF_INSERT) {
-                            classList.push("text-pass", "bg-pass-900");
+                            classList.push("text-emerald", "bg-emerald-900");
                             tagName = "ins";
                         } else if (diff[0] === DIFF_DELETE) {
-                            classList.push("text-fail", "bg-fail-900");
+                            classList.push("text-rose", "bg-rose-900");
                             tagName = "del";
                         }
                         return new this({
@@ -1415,7 +1455,7 @@ export class Markup {
      * @param {unknown} value
      */
     static green(content, value) {
-        return [new this({ className: "text-pass", content }), deepCopy(value)];
+        return [new this({ className: "text-emerald", content }), deepCopy(value)];
     }
 
     /**
@@ -1430,7 +1470,7 @@ export class Markup {
      * @param {unknown} value
      */
     static red(content, value) {
-        return [new this({ className: "text-fail", content }), deepCopy(value)];
+        return [new this({ className: "text-rose", content }), deepCopy(value)];
     }
 
     /**
@@ -1473,34 +1513,14 @@ export class MockEventTarget extends EventTarget {
     }
 }
 
-export class FormattedString extends String {
-    static RAW = "raw";
-
-    /** @type {string} */
-    type;
-
-    /**
-     * @param {unknown} value
-     * @param {string} [type]
-     */
-    constructor(value, type) {
-        if (!type) {
-            if (value instanceof FormattedString) {
-                type = value.type;
-            } else {
-                type = getTypeOf(value);
-            }
-        }
-
-        if (type !== FormattedString.RAW) {
-            value = formatHumanReadable(value);
-        }
-
-        super(value);
-
-        this.type = type;
-    }
-}
+export const CASE_EVENT_TYPES = {
+    assertion: 0b1,
+    error: 0b10,
+    interaction: 0b100,
+    query: 0b1000,
+    server: 0b10000,
+    step: 0b100000,
+};
 
 export const INCLUDE_LEVEL = {
     url: 1,
