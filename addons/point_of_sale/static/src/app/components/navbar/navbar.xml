@@ -33,7 +33,7 @@
             >
                 <div class="status-buttons d-flex flex-grow-1 align-items-center justify-content-end gap-1">
                     <Input tModel="[pos, 'searchProductWord']"
-                    class="'p-0'"
+                    class="ui.isSmall ? 'p-0' : 'p-0 search-input-reduced'"
                     isSmall="ui.isSmall"
                     placeholder.translate="Search products..."
                     icon="{type: 'fa', value: 'fa-search fa-lg fa-fw'}"
