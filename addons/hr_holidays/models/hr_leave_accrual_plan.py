@@ -64,6 +64,29 @@ class HrLeaveAccrualPlan(models.Model):
         ("dec", "December")
     ], default="jan")
     added_value_type = fields.Selection([('day', 'Days'), ('hour', 'Hours')], compute='_compute_added_value_type', store=True)
+    summary = fields.Html(readonly=True, compute='_compute_summary')
+
+    @api.depends('transition_mode', 'show_transition_mode', 'is_based_on_worked_time', 'accrued_gain_time', 'is_carryover', 'carryover_date', 'carryover_day_display', 'carryover_month')
+    def _compute_summary(self):
+        self.summary = "This accrual plan is accrued at the "
+        self.summary += "<b>start</b> " if self.accrued_gain_time == "start" else " end "
+        self.summary += "of each period, based on "
+        self.summary += "the worked time. " if self.is_based_on_worked_time else " the whole calendar days. "
+        self.summary += "Accrued days are "
+        self.summary += "" if self.is_carryover else "not "
+        self.summary += "carried over from year to year"
+        if self.is_carryover:
+            self.summary += " on "
+            if self.carryover_date == "year_start":
+                self.summary += "the start of the year"
+            elif self.carryover_date == "allocation":
+                self.summary += "the allocation date"
+            else:
+                self.summary += "the " + str(dict(self._fields["carryover_day_display"].get_description(self.env).get("selection")).get(self.carryover_day_display)) + " of " + str(dict(self._fields["carryover_month"].get_description(self.env).get("selection")).get(self.carryover_month))
+        self.summary += ". "
+        if self.show_transition_mode:
+            self.summary += "If an accrual level changes mid-pay period, employees will be placed on the next accrual level "
+            self.summary += "immediately, in the exact date during the ongoing pay period." if self.transition_mode == "immediately" else "in the next pay period."
 
     @api.depends('level_ids')
     def _compute_show_transition_mode(self):
