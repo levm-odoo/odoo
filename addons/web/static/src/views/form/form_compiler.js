@@ -305,6 +305,7 @@ export class FormCompiler extends ViewCompiler {
         }
 
         let forceNewline = false;
+        let oldChild = null;
         for (const child of el.children) {
             if (getTag(child, true) === "newline") {
                 forceNewline = true;
@@ -342,6 +343,17 @@ export class FormCompiler extends ViewCompiler {
                 const addLabel = child.hasAttribute("nolabel")
                     ? child.getAttribute("nolabel") !== "1"
                     : true;
+                if (
+                    !isOuterGroup &&
+                    !addLabel &&
+                    itemSpan === 1 &&
+                    ((oldChild &&
+                        getTag(oldChild, true) !== "label" &&
+                        oldChild.getAttribute("for") === child.getAttribute("name")) ||
+                        oldChild === null)
+                ) {
+                    console.warn(">>>>>" + child.outerHTML);
+                }
                 slotContent = this.compileNode(child, { ...params, currentSlot: mainSlot }, false);
                 if (slotContent && addLabel && !isOuterGroup && !isTextNode(slotContent)) {
                     itemSpan = itemSpan === 1 ? itemSpan + 1 : itemSpan;
@@ -428,6 +440,7 @@ export class FormCompiler extends ViewCompiler {
                 append(mainSlot, slotContent);
                 append(formGroup, mainSlot);
             }
+            oldChild = child;
         }
         return formGroup;
     }
