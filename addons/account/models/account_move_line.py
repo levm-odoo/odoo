@@ -29,6 +29,16 @@ class AccountMoveLine(models.Model):
     #                                          JOURNAL ENTRY
     # ==============================================================================================
 
+    deductible_amount = fields.Float("Deductability", default=100)
+
+    @api.constrains('deductible_amount')
+    def _constrains_deductible_amount(self):
+        for aml in self:
+            if aml.move_type != 'in_invoice' and float_compare(aml.deductible_amount, 100, precision_digits=2):  # Check for credit note ?
+                raise ValidationError(_("Only vendor bills allow for deductability of product/services."))
+            if aml.deductible_amount < 0 or aml.deductible_amount > 100:
+                raise ValidationError(_("The deductability must be a value between 0 and 100."))
+
     # === Parent fields === #
     move_id = fields.Many2one(
         comodel_name='account.move',

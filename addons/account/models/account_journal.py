@@ -80,6 +80,21 @@ class AccountJournal(models.Model):
                                          'expense_depreciation', 'expense_direct_cost', 'off_balance'))
         ]"""
 
+    deductible_account_id = fields.Many2one(
+        comodel_name='account.account', check_company=True,
+        string='Non Deductible Account', readonly=False,
+        domain="[('deprecated', '=', False), ('account_type', '=', 'asset_current')]",
+        compute="_compute_default_deductible_account",
+    )
+
+    @api.depends('company_id', 'type')
+    def _compute_default_deductible_account(self):
+        for journal in self:
+            if journal.type == 'purchase':
+                journal.deductible_account_id = journal.deductible_account_id or journal.company_id.account_journal_deductible_account_id
+            else:
+                journal.deductible_account_id = False
+
     name = fields.Char(string='Journal Name', required=True, translate=True)
     code = fields.Char(
         string='Short Code',

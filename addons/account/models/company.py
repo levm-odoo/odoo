@@ -61,6 +61,10 @@ class ResCompany(models.Model):
     _name = "res.company"
     _inherit = ["res.company", "mail.thread"]
 
+
+    account_journal_deductible_account_id = fields.Many2one('account.account', string='Journal Deductible Account', check_company=True)
+
+
     fiscalyear_last_day = fields.Integer(default=31, required=True)
     fiscalyear_last_month = fields.Selection(MONTH_SELECTION, default='12', required=True)
     fiscalyear_lock_date = fields.Date(

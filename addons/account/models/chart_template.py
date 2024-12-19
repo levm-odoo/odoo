@@ -759,6 +759,12 @@ class AccountChartTemplate(models.AbstractModel):
                 'code_digits': code_digits,
                 'account_type': 'asset_current',
             },
+            'account_journal_deductible_account_id': { # Berk
+                'name': _("Non Deductible Account"),
+                'prefix': bank_prefix,
+                'code_digits': code_digits,
+                'account_type': 'asset_current',
+            },
             'account_journal_early_pay_discount_loss_account_id': {
                 'name': _("Cash Discount Loss"),
                 'code': '999998',

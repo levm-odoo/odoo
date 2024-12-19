@@ -8,6 +8,15 @@ from odoo.addons.account.models.company import PEPPOL_LIST
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
+    account_journal_deductible_account_id = fields.Many2one(
+        comodel_name='account.account',
+        string='Deductible',
+        readonly=False,
+        related='company_id.account_journal_deductible_account_id',
+        check_company=True,
+        domain="[('deprecated', '=', False), ('account_type', '=', 'asset_current')]",
+    )
+
     has_accounting_entries = fields.Boolean(compute='_compute_has_chart_of_accounts')
     currency_id = fields.Many2one('res.currency', related="company_id.currency_id", required=True, readonly=False,
         string='Currency', help="Main currency of the company.")
