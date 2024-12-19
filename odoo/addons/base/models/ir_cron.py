@@ -93,6 +93,9 @@ class IrCron(models.Model):
         for cron in self.with_context(lang='en_US'):
             cron.cron_name = cron.ir_actions_server_id.name
 
+    def action_set_automated_name(self):
+        return self.ir_actions_server_id.action_set_automated_name()
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:

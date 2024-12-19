@@ -98,7 +98,7 @@ class BaseAutomation(models.Model):
     model_name = fields.Char(related="model_id.model", string="Model Name", readonly=True, inverse="_inverse_model_name")
     model_is_mail_thread = fields.Boolean(related="model_id.is_mail_thread")
     action_server_ids = fields.One2many("ir.actions.server", "base_automation_id",
-        context={'default_usage': 'base_automation'},
+        context={'default_usage': 'base_automation', 'default_is_automated_name': True},
         string="Actions",
         compute="_compute_action_server_ids",
         store=True,

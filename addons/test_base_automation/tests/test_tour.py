@@ -236,7 +236,7 @@ class BaseAutomationTestUi(HttpCase):
                 default_keys = {k: v for k, v in self_model._context.items() if k.startswith("default_")}
                 self.assertEqual(
                     default_keys,
-                    {"default_model_id": model.id, "default_usage": "base_automation"},
+                    {'default_is_automated_name': True, "default_model_id": model.id, "default_usage": "base_automation"},
                 )
             if onchange_link_passes == 2:
                 self.assertEqual(res["value"]["name"], "Add followers: ")

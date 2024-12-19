@@ -140,7 +140,10 @@ export class KanbanArchParser {
         const cardClassName = cardDoc.getAttribute("class") || "";
 
         if (!defaultOrder.length && handleField) {
-            defaultOrder = stringToOrderBy(handleField);
+            // TODO make a proper [FIX] commit in 18.0
+            //      see: https://github.com/odoo/odoo/commit/f7e3a7438ece0c923d1b4717e9572ffef17dc2f4
+            const handleFieldSort = `${handleField}, id`;
+            defaultOrder = stringToOrderBy(handleFieldSort);
         }
 
         return {
