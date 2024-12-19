@@ -455,6 +455,7 @@ test(`simple calendar rendering on desktop`, async () => {
     expect(`.o_event`).toHaveCount(0);
 
     // test search bar in filter
+    await new Promise(r => setTimeout(r));
     await contains(`.o_calendar_sidebar input[type=text]`).click();
     expect(`.dropdown-item`).toHaveCount(2);
     expect(queryAllTexts`.dropdown-item`).toEqual(["partner 3", "partner 4"]);
