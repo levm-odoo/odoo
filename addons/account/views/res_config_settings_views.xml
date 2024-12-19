@@ -297,6 +297,14 @@
                                         </div>
                                     </div>
                                 </setting>
+                                <setting string="Other default accounts:">
+                                    <div class="content-group">
+                                        <div class="row mt8">
+                                            <label for="account_journal_deductible_account_id" class="col-lg-5 o_light_label"/>
+                                            <field name="account_journal_deductible_account_id"/>
+                                        </div>
+                                    </div>
+                                </setting>
                             </block>
                         </t>
 

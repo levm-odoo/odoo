@@ -2724,6 +2724,38 @@ class AccountMove(models.Model):
             if invoice.state != 'posted':
                 invoice._recompute_cash_rounding_lines()
 
+    @contextmanager
+    def _sync_deductable_lines(self, container):
+        moves_values_before = {
+            move: [
+                line
+                for line in move.invoice_line_ids
+                if float_compare(line.deductible_amount, 100.00, precision_rounding=2)
+            ]
+            for move in container['records']
+            if move.state == 'draft' and move.move_type == 'in_invoice'
+        }
+        yield
+
+        while moves_values_before:
+            move, deduced_lines = moves_values_before.popitem()
+            if not deduced_lines:
+                continue  # only manage if some lines are deduced
+
+            vals_to_create = []
+            for line in deduced_lines:
+                vals = {
+                    'name': (line.name or "") + _(" Non-deductible"), # TODO Chack if name is mandatory
+                    'debit': line.debit * line.deductible_amount / 100.00,
+                    'move_id': move.id,
+                    'account_id': move._get_automatic_balancing_account(), # TODO change this
+                    'currency_id': move.currency_id.id,
+                    'tax_ids': False, # TODO check this
+                }
+                vals_to_create.append(vals['debit'])
+                line.debit -= vals['debit']
+            self.env['account.move.line'].create(vals)
+
     @api.model
     def _sync_dynamic_line_needed_values(self, values_list):
         res = {}
@@ -3044,6 +3076,14 @@ class AccountMove(models.Model):
                 ))
                 stack.enter_context(self._sync_unbalanced_lines(misc_container))
                 stack.enter_context(self._sync_rounding_lines(invoice_container))
+                stack.enter_context(self._sync_deductable_lines(invoice_container))
+                # stack.enter_context(self._sync_dynamic_line(
+                #     existing_key_fname='epd_key',
+                #     needed_vals_fname='line_ids.epd_needed',
+                #     needed_dirty_fname='line_ids.is_deductible_dirty',
+                #     line_type='epd',
+                #     container=invoice_container,
+                # ))
                 stack.enter_context(self._sync_dynamic_line(
                     existing_key_fname='discount_allocation_key',
                     needed_vals_fname='line_ids.discount_allocation_needed',

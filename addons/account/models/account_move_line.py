@@ -28,6 +28,37 @@ class AccountMoveLine(models.Model):
     #                                          JOURNAL ENTRY
     # ==============================================================================================
 
+    deductible_amount = fields.Float("Deductability", default=100)
+    deductable_key = fields.Binary(compute='_compute_deductable_key', exportable=False)
+    is_deductible_dirty = fields.Boolean(compute='_compute_deductible_needed')
+
+    @api.depends('tax_ids', 'account_id', 'company_id')
+    def _compute_deductable_key(self):
+        for line in self:
+            if line.display_type == 'product' and float_compare(line.deductible_amount, 100.00, precision_rounding=2):
+                line.deductable_key = frozendict({
+                    'account_id': line.account_id.id,
+                    'analytic_distribution': line.analytic_distribution,
+                    'tax_ids': [Command.set(line.tax_ids.ids)],
+                    'tax_tag_ids': [Command.set(line.tax_tag_ids.ids)],
+                    'move_id': line.move_id.id,
+                })
+            else:
+                line.deductable_key = False
+
+    @api.depends('deductible_amount')
+    def _compute_deductible_needed(self):
+        for line in self:
+            line.is_deductible_dirty = bool(float_compare(line.deductible_amount, 100.00, precision_rounding=2))
+
+    @api.constrains('deductible_amount')
+    def _constrains_deductible_amount(self):
+        for aml in self:
+            if aml.move_type != 'in_invoice' and float_compare(aml.deductible_amount, 100, precision_digits=2):  # Check for credit note ?
+                raise ValidationError(_("Only vendor bills allow for deductability of product/services."))
+            if aml.deductible_amount < 0 or aml.deductible_amount > 100:
+                raise ValidationError(_("The deductability must be a value between 0 and 100."))
+
     # === Parent fields === #
     move_id = fields.Many2one(
         comodel_name='account.move',
