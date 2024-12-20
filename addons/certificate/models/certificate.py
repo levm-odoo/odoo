@@ -162,8 +162,39 @@ class Certificate(models.Model):
                 if not cert:
                     try:
                         pkcs12_password = certificate.pkcs12_password.encode('utf-8') if certificate.pkcs12_password else None
-                        _key, cert, _additional_certs = pkcs12.load_key_and_certificates(content, pkcs12_password)
+                        key, cert, additional_certs = pkcs12.load_key_and_certificates(content, pkcs12_password)
                         certificate.content_format = 'pkcs12'
+
+                        # PKCS12 files may contain several certificates, we use the first one in the file that matches the
+                        # provided private key and is valid.
+                        certs = [cert] + additional_certs
+                        is_compatible = is_valid = False
+                        compatibles = [
+                            self._is_cert_and_key_compatible(
+                                cert.public_bytes(Encoding.PEM),
+                                key.public_key().public_bytes(
+                                    encoding=Encoding.PEM,
+                                    format=serialization.PublicFormat.SubjectPublicKeyInfo
+                                )
+                            )
+                            for cert in certs
+                        ]
+                        valids = [
+                            self._is_certificate_valid(cert.public_bytes(Encoding.PEM))
+                            for cert in certs
+                        ]
+                        while certs and not (is_compatible and is_valid):
+                            cert = certs.pop()
+                            is_compatible = self._is_cert_and_key_compatible(
+                                cert.public_bytes(Encoding.PEM),
+                                key.public_key().public_bytes(
+                                    encoding=Encoding.PEM,
+                                    format=serialization.PublicFormat.SubjectPublicKeyInfo
+                                )
+                            )
+                            is_valid = self._is_certificate_valid(cert.public_bytes(Encoding.PEM))
+                        if not (is_compatible and is_valid):
+                            cert = None
                     except ValueError:
                         pass
                 if not cert:
@@ -205,14 +236,11 @@ class Certificate(models.Model):
     def _compute_is_valid(self):
         # Certificate dates are UTC timezoned
         # https://cryptography.io/en/latest/x509/reference/#cryptography.x509.Certificate.not_valid_after
-        utc_now = datetime.datetime.now(datetime.timezone.utc)
         for certificate in self:
             if not certificate.date_start or not certificate.date_end or certificate.loading_error:
                 certificate.is_valid = False
             else:
-                date_start = certificate.date_start.replace(tzinfo=datetime.timezone.utc)
-                date_end = certificate.date_end.replace(tzinfo=datetime.timezone.utc)
-                certificate.is_valid = date_start <= utc_now <= date_end
+                certificate.is_valid = self._is_certificate_valid(base64.b64decode(certificate.with_context(bin_size=False).pem_certificate))
 
     def _search_is_valid(self, operator, value):
         if operator not in ['=', '!='] or not isinstance(value, bool):
@@ -240,19 +268,13 @@ class Certificate(models.Model):
         for certificate in self:
             pem_certificate = certificate.with_context(bin_size=False).pem_certificate
             if pem_certificate:
-                cert = x509.load_pem_x509_certificate(base64.b64decode(pem_certificate))
-                cert_public_key_bytes = cert.public_key().public_bytes(
-                    encoding=Encoding.PEM,
-                    format=serialization.PublicFormat.SubjectPublicKeyInfo
-                )
-
                 if certificate.private_key_id:
                     if certificate.private_key_id.loading_error:
                         raise UserError(certificate.private_key_id.loading_error)
                     pkey_public_key_bytes = base64.b64decode(
                         certificate.private_key_id._get_public_key_bytes(encoding='pem')
                     )
-                    if not constant_time.bytes_eq(pkey_public_key_bytes, cert_public_key_bytes):
+                    if not self._is_cert_and_key_compatible(base64.b64decode(pem_certificate), pkey_public_key_bytes):
                         raise UserError(_("The certificate and private key are not compatible."))
 
                 if certificate.public_key_id:
@@ -261,12 +283,39 @@ class Certificate(models.Model):
                     pkey_public_key_bytes = base64.b64decode(
                         certificate.public_key_id._get_public_key_bytes(encoding='pem')
                     )
-                    if not constant_time.bytes_eq(pkey_public_key_bytes, cert_public_key_bytes):
+                    if not self._is_cert_and_key_compatible(base64.b64decode(pem_certificate), pkey_public_key_bytes):
                         raise UserError(_("The certificate and public key are not compatible."))
 
     # -------------------------------------------------------
     #                   Business Methods                    #
     # -------------------------------------------------------
+
+    @api.model
+    def _is_certificate_valid(self, pem_certificate):
+        if not pem_certificate:
+            return False
+        cert = x509.load_pem_x509_certificate(pem_certificate)
+
+        utc_now = datetime.datetime.now(datetime.timezone.utc)
+        if parse_version(metadata.version('cryptography')) < parse_version('42.0.0'):
+            date_start = cert.not_valid_before.replace(tzinfo=datetime.timezone.utc)
+            date_end = cert.not_valid_after.replace(tzinfo=datetime.timezone.utc)
+        else:
+            date_start = cert.not_valid_before_utc
+            date_end = cert.not_valid_after_utc
+        return (date_start <= utc_now <= date_end)
+
+    @api.model
+    def _is_cert_and_key_compatible(self, pem_certificate, pem_key):
+        if not (pem_certificate and pem_key):
+            return False
+
+        cert = x509.load_pem_x509_certificate(pem_certificate)
+        cert_public_key_bytes = cert.public_key().public_bytes(
+            encoding=Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        return constant_time.bytes_eq(pem_key, cert_public_key_bytes)
 
     def _get_der_certificate_bytes(self, formatting='encodebytes'):
         self.ensure_one()
