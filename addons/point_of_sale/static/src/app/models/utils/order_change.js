@@ -154,7 +154,12 @@ export const getOrderChanges = (order, skipped = false, orderPreparationCategori
         result.internal_note = order.internal_note;
     }
     const sittingMode = order.last_order_preparation_change.sittingMode;
-    if (sittingMode !== order.preset_id?.id) {
+
+    if (
+        order.config_id.use_presets &&
+        order.config_id.default_preset_id?.id &&
+        sittingMode !== order.preset_id?.id
+    ) {
         result.modeUpdate = true;
     }
     return result;

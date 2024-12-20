@@ -33,7 +33,7 @@ export class PosOrder extends Base {
                   lines: {},
                   general_customer_note: "",
                   internal_note: "",
-                  sittingMode: 0,
+                  sittingMode: this.config_id.default_preset_id?.id || 0,
               };
         this.general_customer_note = vals.general_customer_note || "";
         this.internal_note = vals.internal_note || "";
