@@ -325,16 +325,16 @@ export class RelationalModel extends Model {
         if (config.countLimit !== Number.MAX_SAFE_INTEGER) {
             config.countLimit = Math.max(config.countLimit, config.offset + config.limit);
         }
-        const { records, length } = await this._loadUngroupedList({
+        const { records, length, offset } = await this._loadUngroupedList({
             ...config,
             context: {
                 ...config.context,
                 current_company_id: config.currentCompanyId,
             },
         });
-        if (config.offset && !records.length) {
-            config.offset = 0;
-            return this._loadData(config);
+        if (config.offset !== offset) {
+            // offset reset by web_search_read because there was no record for the requested offset
+            config.offset = offset;
         }
         return { records, length };
     }
@@ -547,9 +547,7 @@ export class RelationalModel extends Model {
 
             return records;
         } else {
-            return resIds.map((resId) => {
-                return { id: resId };
-            });
+            return resIds.map((resId) => ({ id: resId }));
         }
     }
 

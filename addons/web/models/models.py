@@ -47,6 +47,8 @@ class Base(models.AbstractModel):
     @api.readonly
     def web_search_read(self, domain, specification, offset=0, limit=None, order=None, count_limit=None):
         records = self.search_fetch(domain, specification.keys(), offset=offset, limit=limit, order=order)
+        if offset and not records:
+            records = self.search_fetch(domain, specification.keys(), offset=0, limit=limit, order=order)
         values_records = records.web_read(specification)
         return self._format_web_search_read_results(domain, values_records, offset, limit, count_limit)
 
@@ -55,6 +57,7 @@ class Base(models.AbstractModel):
             return {
                 'length': 0,
                 'records': [],
+                'offset': offset,
             }
         current_length = len(records) + offset
         limit_reached = len(records) == limit
@@ -67,6 +70,7 @@ class Base(models.AbstractModel):
         return {
             'length': length,
             'records': records,
+            'offset': offset,
         }
 
     def web_save(self, vals, specification: dict[str, dict], next_id=None) -> list[dict]:
