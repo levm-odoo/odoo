@@ -37,7 +37,7 @@
                             <table t-if="!ui.isSmall"  class="table table-striped table-hover">
                                 <tbody>
                                     <t t-foreach="_filteredOrderList" t-as="order" t-key="order.uuid">
-                                        <tr t-attf-class="{{ isHighlighted(order) ? 'highlight': '' }}"
+                                        <tr class="order-row" t-attf-class="{{ isHighlighted(order) ? 'highlight': '' }}"
                                             t-on-click="() => this.onClickOrder(order)" t-on-dblclick="() => order.uiState.locked ? ()=>{} : this._setOrder(order)" >
                                             <td>
                                                 <div class="fs-6 fw-bolder"><t t-esc="getDate(order)"></t></div>
