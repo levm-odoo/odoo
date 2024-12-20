@@ -403,7 +403,7 @@ class TestSubqueries(TransactionCase):
             WHERE "test_new_api_related"."foo_id" IN (
                 SELECT "test_new_api_related_foo"."id"
                 FROM "test_new_api_related_foo"
-                WHERE "test_new_api_related_foo"."name" = %s
+                WHERE "test_new_api_related_foo"."name" IN %s
             )
             ORDER BY "test_new_api_related"."id"
         """]):
@@ -415,7 +415,7 @@ class TestSubqueries(TransactionCase):
             WHERE "test_new_api_related"."foo_id" IN (
                 SELECT "test_new_api_related_foo"."id"
                 FROM "test_new_api_related_foo"
-                WHERE "test_new_api_related_foo"."name" = %s
+                WHERE "test_new_api_related_foo"."name" IN %s
                 AND "test_new_api_related_foo"."id" < %s
             )
             ORDER BY "test_new_api_related"."id"
@@ -451,7 +451,7 @@ class TestSubqueries(TransactionCase):
                 WHERE "test_new_api_related_foo"."bar_id" IN (
                     SELECT "test_new_api_related_bar"."id"
                     FROM "test_new_api_related_bar"
-                    WHERE "test_new_api_related_bar"."name" = %s
+                    WHERE "test_new_api_related_bar"."name" IN %s
                 )
             )
             ORDER BY "test_new_api_related"."id"
@@ -467,7 +467,7 @@ class TestSubqueries(TransactionCase):
                 WHERE "test_new_api_related_foo"."bar_id" IN (
                     SELECT "test_new_api_related_bar"."id"
                     FROM "test_new_api_related_bar"
-                    WHERE "test_new_api_related_bar"."name" = %s
+                    WHERE "test_new_api_related_bar"."name" IN %s
                     AND "test_new_api_related_bar"."id" < %s
                 )
                 AND "test_new_api_related_foo"."id" < %s
@@ -485,7 +485,7 @@ class TestSubqueries(TransactionCase):
                 WHERE "test_new_api_related_foo"."bar_id" IN (
                     SELECT "test_new_api_related_bar"."id"
                     FROM "test_new_api_related_bar"
-                    WHERE "test_new_api_related_bar"."name" = %s
+                    WHERE "test_new_api_related_bar"."name" IN %s
                     AND "test_new_api_related_bar"."id" < %s
                 )
                 AND "test_new_api_related_foo"."id" < %s
@@ -503,7 +503,7 @@ class TestSubqueries(TransactionCase):
                 WHERE "test_new_api_related_foo"."bar_id" IN (
                     SELECT "test_new_api_related_bar"."id"
                     FROM "test_new_api_related_bar"
-                    WHERE "test_new_api_related_bar"."name" = %s
+                    WHERE "test_new_api_related_bar"."name" IN %s
                     AND "test_new_api_related_bar"."id" < %s
                 )
                 AND "test_new_api_related_foo"."id" < %s
@@ -522,7 +522,7 @@ class TestSubqueries(TransactionCase):
                 WHERE "test_new_api_related_foo"."bar_id" IN (
                     SELECT "test_new_api_related_bar"."id"
                     FROM "test_new_api_related_bar"
-                    WHERE "test_new_api_related_bar"."name" = %s
+                    WHERE "test_new_api_related_bar"."name" IN %s
                     AND "test_new_api_related_bar"."id" < %s
                 )
             )
@@ -551,7 +551,7 @@ class TestSubqueries(TransactionCase):
             WHERE "test_new_api_related"."foo_id" IN (
                 SELECT "test_new_api_related_foo"."id"
                 FROM "test_new_api_related_foo"
-                WHERE "test_new_api_related_foo"."name" = %s
+                WHERE "test_new_api_related_foo"."name" IN %s
             )
             ORDER BY "test_new_api_related"."id"
         """]):
@@ -566,7 +566,7 @@ class TestSubqueries(TransactionCase):
                     SELECT "test_new_api_related_foo"."id"
                     FROM "test_new_api_related_foo"
                     WHERE (
-                        "test_new_api_related_foo"."name" != %s
+                        "test_new_api_related_foo"."name" NOT IN %s
                         OR "test_new_api_related_foo"."name" IS NULL
                     )
                 )
@@ -583,7 +583,7 @@ class TestSubqueries(TransactionCase):
                 OR "test_new_api_related"."foo_id" IN (
                     SELECT "test_new_api_related_foo"."id"
                     FROM "test_new_api_related_foo"
-                    WHERE ("test_new_api_related_foo"."name" = %s OR "test_new_api_related_foo"."name" IS NULL)
+                    WHERE ("test_new_api_related_foo"."name" IN %s OR "test_new_api_related_foo"."name" IS NULL)
                 )
             )
             ORDER BY "test_new_api_related"."id"
@@ -596,7 +596,7 @@ class TestSubqueries(TransactionCase):
             WHERE "test_new_api_related"."foo_id" IN (
                 SELECT "test_new_api_related_foo"."id"
                 FROM "test_new_api_related_foo"
-                WHERE "test_new_api_related_foo"."name" != %s
+                WHERE "test_new_api_related_foo"."name" NOT IN %s
             )
             ORDER BY "test_new_api_related"."id"
         """]):
@@ -675,7 +675,7 @@ class TestSubqueries(TransactionCase):
                         OR "test_new_api_related_foo"."bar_id" IN (
                             SELECT "test_new_api_related_bar"."id"
                             FROM "test_new_api_related_bar"
-                            WHERE ("test_new_api_related_bar"."name" = %s OR "test_new_api_related_bar"."name" IS NULL)
+                            WHERE ("test_new_api_related_bar"."name" IN %s OR "test_new_api_related_bar"."name" IS NULL)
                         )
                     )
                 )
@@ -693,7 +693,7 @@ class TestSubqueries(TransactionCase):
                 WHERE "test_new_api_related_foo"."bar_id" IN (
                     SELECT "test_new_api_related_bar"."id"
                     FROM "test_new_api_related_bar"
-                    WHERE "test_new_api_related_bar"."name" != %s
+                    WHERE "test_new_api_related_bar"."name" NOT IN %s
                 )
             )
             ORDER BY "test_new_api_related"."id"
@@ -731,7 +731,7 @@ class TestSubqueries(TransactionCase):
             FROM "test_new_api_related_inherits"
             LEFT JOIN "test_new_api_related" AS "test_new_api_related_inherits__base_id"
                 ON ("test_new_api_related_inherits"."base_id" = "test_new_api_related_inherits__base_id"."id")
-            WHERE "test_new_api_related_inherits__base_id"."name" = %s
+            WHERE "test_new_api_related_inherits__base_id"."name" IN %s
             AND "test_new_api_related_inherits__base_id"."id" < %s
             ORDER BY "test_new_api_related_inherits"."id"
         """]):
@@ -746,7 +746,7 @@ class TestSubqueries(TransactionCase):
             WHERE "test_new_api_related_inherits__base_id"."foo_id" IN (
                 SELECT "test_new_api_related_foo"."id"
                 FROM "test_new_api_related_foo"
-                WHERE "test_new_api_related_foo"."name" = %s
+                WHERE "test_new_api_related_foo"."name" IN %s
             )
             AND "test_new_api_related_inherits__base_id"."id" < %s
             ORDER BY "test_new_api_related_inherits"."id"
@@ -761,7 +761,7 @@ class TestSubqueries(TransactionCase):
             WHERE "test_new_api_related_inherits__base_id"."foo_id" IN (
                 SELECT "test_new_api_related_foo"."id"
                 FROM "test_new_api_related_foo"
-                WHERE "test_new_api_related_foo"."name" = %s
+                WHERE "test_new_api_related_foo"."name" IN %s
                 AND "test_new_api_related_foo"."id" < %s
             )
             AND "test_new_api_related_inherits__base_id"."id" < %s
@@ -780,7 +780,7 @@ class TestSubqueries(TransactionCase):
                 WHERE "test_new_api_related_foo"."bar_id" IN (
                     SELECT "test_new_api_related_bar"."id"
                     FROM "test_new_api_related_bar"
-                    WHERE "test_new_api_related_bar"."name" = %s
+                    WHERE "test_new_api_related_bar"."name" IN %s
                 )
             )
             AND "test_new_api_related_inherits__base_id"."id" < %s
@@ -799,7 +799,7 @@ class TestSubqueries(TransactionCase):
                 WHERE "test_new_api_related_foo"."bar_id" IN (
                     SELECT "test_new_api_related_bar"."id"
                     FROM "test_new_api_related_bar"
-                    WHERE "test_new_api_related_bar"."name" = %s
+                    WHERE "test_new_api_related_bar"."name" IN %s
                     AND "test_new_api_related_bar"."id" < %s
                 )
                 AND "test_new_api_related_foo"."id" < %s
@@ -995,7 +995,7 @@ class TestFlushSearch(TransactionCase):
         ''', '''
             SELECT "test_new_api_city"."id"
             FROM "test_new_api_city"
-            WHERE "test_new_api_city"."id" = %s AND "test_new_api_city"."name" LIKE %s
+            WHERE "test_new_api_city"."id" IN %s AND "test_new_api_city"."name" LIKE %s
             ORDER BY "test_new_api_city"."id"
         ''']):
             self.brussels.name = "Bruxelles"
@@ -1012,7 +1012,7 @@ class TestFlushSearch(TransactionCase):
         ''', '''
             SELECT "test_new_api_city"."id"
             FROM "test_new_api_city"
-            WHERE "test_new_api_city"."id" = %s
+            WHERE "test_new_api_city"."id" IN %s
             ORDER BY "test_new_api_city"."name", "test_new_api_city"."id"
         ''']):
             self.brussels.name = "Bruxelles"
@@ -1031,7 +1031,7 @@ class TestFlushSearch(TransactionCase):
             FROM "test_new_api_city"
             LEFT JOIN "test_new_api_country" AS "test_new_api_city__country_id"
                 ON ("test_new_api_city"."country_id" = "test_new_api_city__country_id"."id")
-            WHERE "test_new_api_city"."id" = %s
+            WHERE "test_new_api_city"."id" IN %s
             ORDER BY "test_new_api_city__country_id"."name",
                     "test_new_api_city__country_id"."id",
                     "test_new_api_city"."id"
@@ -1051,7 +1051,7 @@ class TestFlushSearch(TransactionCase):
             FROM "test_new_api_city"
             LEFT JOIN "test_new_api_country" AS "test_new_api_city__country_id"
                 ON ("test_new_api_city"."country_id" = "test_new_api_city__country_id"."id")
-            WHERE "test_new_api_city"."id" = %s
+            WHERE "test_new_api_city"."id" IN %s
             ORDER BY "test_new_api_city__country_id"."name",
                     "test_new_api_city__country_id"."id",
                     "test_new_api_city"."id"
@@ -1063,7 +1063,7 @@ class TestFlushSearch(TransactionCase):
         with self.assertQueries(['''
             SELECT "test_new_api_city"."id", "test_new_api_city"."name"
             FROM "test_new_api_city"
-            WHERE "test_new_api_city"."id" = %s
+            WHERE "test_new_api_city"."id" IN %s
             ORDER BY "test_new_api_city"."id"
         '''], flush=False):
             self.brussels.name = "Bruxelles"
@@ -1096,7 +1096,7 @@ class TestFlushSearch(TransactionCase):
         ''', '''
             SELECT "test_new_api_city"."id", "test_new_api_city"."name"
             FROM "test_new_api_city"
-            WHERE "test_new_api_city"."id" = %s
+            WHERE "test_new_api_city"."id" IN %s
             ORDER BY "test_new_api_city"."name"
         '''], flush=False):
             self.brussels.name = "Brüsel"
@@ -1156,7 +1156,7 @@ class TestDatePartNumber(TransactionCase):
         with self.assertQueries(["""
             SELECT "test_new_api_person"."id"
             FROM "test_new_api_person"
-            WHERE date_part(%s, "test_new_api_person"."birthday") = %s
+            WHERE date_part(%s, "test_new_api_person"."birthday") IN %s
             ORDER BY "test_new_api_person"."id"
         """]):
             result = self.env["test_new_api.person"].search([('birthday.month_number', '=', '2')])
@@ -1165,7 +1165,7 @@ class TestDatePartNumber(TransactionCase):
         with self.assertQueries(["""
             SELECT "test_new_api_person"."id"
             FROM "test_new_api_person"
-            WHERE date_part(%s, "test_new_api_person"."birthday") = %s
+            WHERE date_part(%s, "test_new_api_person"."birthday") IN %s
             ORDER BY "test_new_api_person"."id"
         """]):
             result = self.env["test_new_api.person"].search([('birthday.quarter_number', '=', '1')])
@@ -1174,7 +1174,7 @@ class TestDatePartNumber(TransactionCase):
         with self.assertQueries(["""
             SELECT "test_new_api_person"."id"
             FROM "test_new_api_person"
-            WHERE date_part(%s, "test_new_api_person"."birthday") = %s
+            WHERE date_part(%s, "test_new_api_person"."birthday") IN %s
             ORDER BY "test_new_api_person"."id"
         """]):
             result = self.env["test_new_api.person"].search([('birthday.iso_week_number', '=', '6')])
