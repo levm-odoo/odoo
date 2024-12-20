@@ -9,6 +9,12 @@ from odoo.exceptions import UserError, ValidationError
 
 logger = logging.getLogger(__name__)
 
+CAPTCHA_ROUTES = {
+    "/web/login": "login",
+    "/web/signup": "signup",
+    "/web/reset_password": "reset_password",
+}
+
 
 class Http(models.AbstractModel):
     _inherit = 'ir.http'
@@ -106,3 +112,17 @@ class Http(models.AbstractModel):
             if error == 'bad-request':
                 return 'bad_request'
         return 'is_bot'
+
+    @classmethod
+    def _dispatch(cls, endpoint):
+        captcha = endpoint.routing.get('captcha')
+        if captcha and request.httprequest.method not in ('GET', 'HEAD', 'OPTIONS', 'TRACE'):
+            if not request.env['ir.http']._verify_request_recaptcha_token(captcha):
+                raise UserError(_("Suspicious activity detected by Turnstile."))
+        return super()._dispatch(endpoint)
+
+    def _generate_routing_rules(drlg, modules, converters):
+        for url, endpoint in super()._generate_routing_rules(modules, converters):
+            if CAPTCHA_ROUTES.get(url):
+                endpoint.routing['captcha'] = CAPTCHA_ROUTES[url]
+            yield url, endpoint
