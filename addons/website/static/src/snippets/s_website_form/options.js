@@ -528,12 +528,50 @@ options.registry.WebsiteFormEditor = FormEditor.extend({
         // we are building the UserValueWidgets.
         if (this.rerender) {
             this.rerender = false;
+            if(this.activeForm.model != "mail.mail") {
+                this.$target[0].classList.remove("send_a_copy");
+            }
             await this._rerenderXML();
             return;
         }
         await this._super.apply(this, arguments);
         // End Message UI
         this.updateUIEndMessage();
+    },
+    toggleEmailField: function () {
+        const inputEl = this.$target[0].querySelector("input[name=email_from]") || this.$target[0].querySelector("input[name=email]");
+        const emailFieldHTML = `
+            <div data-name="Field" class="s_website_form_field mb-3 col-12 s_website_form_model_required custom_for_email" data-type="email">
+                <div class="row s_col_no_resize s_col_no_bgcolor">
+                    <label class="col-form-label col-sm-auto s_website_form_label" style="width: 200px" for="custom_for_email">
+                        <span class="s_website_form_label_content">Your Email</span>
+                        <span class="s_website_form_mark"> *</span>
+                    </label>
+                    <div class="col-sm">
+                        <input class="form-control s_website_form_input custom_for_email" type="email" name="email_from" required data-fill-with="email" id="custom_for_email"/>
+                    </div>
+                </div>
+            </div>`;
+
+        if (this.$target[0].classList.contains("send_a_copy")) {
+            if (inputEl) {
+                inputEl.closest("div[data-name=Field]").classList.add("s_website_form_model_required", "class_for_email");
+            } else {
+                this.$target[0].querySelector(".s_website_form_rows").insertAdjacentHTML('afterbegin', emailFieldHTML);
+                this.$target[0].querySelector("label[for=custom_for_email] .s_website_form_mark").textContent = this.$target[0].dataset.mark;
+            }
+        } else {
+            const customEmailField = this.$target[0].querySelector(".custom_for_email");
+            if (customEmailField) {
+                customEmailField.remove();
+            } else {
+                const emailField = this.$target[0].querySelector(".class_for_email");
+                if (emailField) {
+                    emailField.classList.remove("s_website_form_model_required", "class_for_email");
+                }
+            }
+        }
+        this.trigger_up("reload_snippet_template");
     },
     /**
      * @see this.updateUI
@@ -751,9 +789,6 @@ options.registry.WebsiteFormEditor = FormEditor.extend({
                     case 'char':
                         option = this._buildInput(field);
                         break;
-                    case 'binary':
-                        option = this._buildButton(field);
-                        break;
                 }
                 if (field.required) {
                     // Try to retrieve hidden value in form, else,
@@ -812,45 +847,6 @@ options.registry.WebsiteFormEditor = FormEditor.extend({
         inputEl.dataset.addActionField = '';
         inputEl.setAttribute('string', field.string);
         inputEl.classList.add('o_we_large');
-        return inputEl;
-    },
-    /**
-     * Returns a we-checkbox element from the field
-     *
-     * @private
-     * @param {Object} field
-     * @returns {HTMLElement}
-     */
-    _buildButton: function (field) {
-        const inputEl = document.createElement('we-checkbox');
-        inputEl.dataset.noPreview = 'true';
-        inputEl.dataset.fieldName = field.name;
-        inputEl.dataset.addActionField = 1;
-        inputEl.setAttribute('string', field.string);
-        inputEl.setAttribute('checked', true);
-        inputEl.classList.add('o_we_sublevel_1');
-        // return inputEl;
-        
-        // const buttonEl = document.createElement('we-button');
-        // buttonEl.classList.add('o_we_user_value_widget', 'o_we_checkbox_wrapper');
-        // // const toggleName = field.name.replace(/_/g, '-').replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase(); 
-        // // buttonEl.dataset[`toggle-${toggleName}`] = 'true';
-        // buttonEl.dataset.noPreview = 'true';
-        // buttonEl.dataset.fieldName = field.name;
-
-        // const titleEl = document.createElement('we-title');
-        // titleEl.setAttribute('string', field.string);
-        // titleEl.textContent = field.string;
-        // titleEl.dataset.fieldName = field.name;
-        // buttonEl.appendChild(titleEl);
-    
-        // const divEl = document.createElement('div');
-        // const checkboxEl = document.createElement('we-checkbox');
-        // divEl.appendChild(checkboxEl);
-    
-        // buttonEl.appendChild(divEl);
-        debugger
-        // return buttonEl;
         return inputEl;
     },
     /**
@@ -1852,9 +1848,13 @@ options.registry.WebsiteFormFieldRequired = DisableOverlayButtonOption.extend({
         const fieldName = this.$target[0]
             .querySelector("input.s_website_form_input").getAttribute("name");
         const spanEl = document.createElement("span");
+        let optionSendACopy = ""
+        if(this.$target[0].classList.contains("class_for_email")) {
+            optionSendACopy = "Send a Copy";
+        }
         spanEl.innerText = _t("The field “%(field)s” is mandatory for the action “%(action)s”.", {
             field: fieldName,
-            action: currentActionName,
+            action: optionSendACopy || currentActionName,
         });
         uiFragment.querySelector("we-alert").appendChild(spanEl);
     },
