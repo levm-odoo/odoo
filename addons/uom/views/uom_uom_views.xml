@@ -4,7 +4,7 @@
         <field name="name">uom.uom.list</field>
         <field name="model">uom.uom</field>
         <field name="arch" type="xml">
-            <list string="Units of Measure" create="false">
+            <list string="Units of Measure and Packaging" create="false">
                 <field name="name"/>
                 <field name="category_id"/>
                 <field name="uom_type"/>
