@@ -304,7 +304,7 @@
             <field name="model">hr.employee</field>
             <field name="arch" type="xml">
                 <list string="Employees" multi_edit="1" editable="bottom" sample="1" js_class="hr_employee_list">
-                    <field name="name" readonly="1"/>
+                    <field name="name"/>
                     <field name="company_id" optional="hide"/>
                     <field name="department_id" optional="hide"/>
                     <field name="job_id" context="{'default_no_of_recruitment': 0, 'default_is_favorite': False}" optional="hide"/>
