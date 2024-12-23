@@ -34,7 +34,7 @@
                     </div>
                 </button>
                 <button
-                    class="h-100 button btn btn-light btn-lg d-flex flex-row align-items-center justify-content-center w-50"
+                    class="h-100 button btn btn-secondary btn-lg d-flex flex-row align-items-center justify-content-center w-50"
                     t-on-click="() => this.pos.showDefault()"
                     t-elif="!this.currentOrder.isDirectSale and !this.displayCategoryCount.length and !this.currentOrder.isEmpty()"
                 >
