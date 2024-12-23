@@ -63,12 +63,11 @@
                                             <td class="align-middle">
                                                 <div class="badge rounded text-bg-secondary fs-6"><t t-esc="getStatus(order)"></t></div>
                                             </td>
-                                            <td class="text-end" t-if="!shouldHideDeleteButton(order)">
-                                                <button t-on-click.stop="() => this.pos.onDeleteOrder(order)" class="btn btn-danger btn-lg">
+                                            <td class="text-end" name="delete-column">
+                                                <button t-if="!shouldHideDeleteButton(order)" t-on-click.stop="() => this.pos.onDeleteOrder(order)" class="btn btn-danger btn-lg">
                                                     <i class="fa fa-trash" aria-hidden="true"/>
                                                 </button>
                                             </td>
-                                            <td t-else=""></td>
                                         </tr>
                                     </t>
                                 </tbody>

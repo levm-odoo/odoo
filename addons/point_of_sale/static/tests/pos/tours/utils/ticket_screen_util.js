@@ -20,7 +20,7 @@ export function selectOrder(orderName) {
 export function selectOrderByPrice(price) {
     return [
         {
-            trigger: `.ticket-screen .order-row > .col:contains("${price}")`,
+            trigger: `.ticket-screen .order-row:contains("${price}")`,
             run: "click",
         },
     ];
