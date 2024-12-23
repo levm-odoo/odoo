@@ -397,16 +397,16 @@ class AccountMove(models.Model):
         seller_buyer = self._get_l10n_in_seller_buyer_party()
         tax_details_by_code = self._get_l10n_in_tax_details_by_line_code(tax_details.get("tax_details", {}))
         is_intra_state = (
-            self.fiscal_position_id
-            and (
-                self.fiscal_position_id == self.with_company(
-                    self.company_id
-                ).env['account.chart.template'].ref(
-                    'fiscal_position_in_intra_state',
-                    raise_if_not_found=False
-                )
-            )
-            or self.l10n_in_state_id == self.company_id.state_id
+            # self.fiscal_position_id
+            # and (
+            #     self.fiscal_position_id == self.with_company(
+            #         self.company_id
+            #     ).env['account.chart.template'].ref(
+            #         'fiscal_position_in_intra_state',
+            #         raise_if_not_found=False
+            #     )
+            # )
+            self.l10n_in_state_id == self.company_id.state_id
         )
         is_overseas = self.l10n_in_gst_treatment == "overseas"
         line_ids = set()
