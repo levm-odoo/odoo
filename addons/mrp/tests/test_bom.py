@@ -3,6 +3,7 @@
 
 from odoo import exceptions, Command, fields
 from odoo.tests import Form
+from odoo.exceptions import ValidationError
 from odoo.addons.mrp.tests.common import TestMrpCommon
 from odoo.tools import float_compare, float_round, float_repr
 
@@ -1722,3 +1723,90 @@ class TestBoM(TestMrpCommon):
         self.assertFalse(bom.byproduct_ids[0].operation_id)
         self.assertEqual(bom.bom_line_ids[1].operation_id, ope_2)
         self.assertEqual(bom.byproduct_ids[1].operation_id, ope_2)
+
+    def test_onchange_product_on_bom(self):
+        '''
+            Checks that variant-related data is correctly flushed and that users get a warning when losing such data.
+            Tests both '_onchange_product_id' and 'onchange_product_tmpl_id' methods.
+        '''
+        final, other, component, by_product = self.env["product.product"].create([
+                {"name": "Final product", "type": "product", "uom_id": self.env.ref('uom.product_uom_unit').id},
+                {"name": "Other product", "type": "product", "uom_id": self.env.ref('uom.product_uom_dozen').id},  # Other has a different UOM from Final
+                {"name": "Component", "type": "product"},
+                {"name": "By-Product", "type": "product"}
+        ])
+        attr = self.env['product.attribute'].create({'name': 'Attribute'})
+        self.env['product.attribute.value'].create([{
+            'name': f'Variant {n + 1}', 'attribute_id': attr.id, 'sequence': n
+        } for n in range(2)])
+        final_template = final.product_tmpl_id
+        attr_line = self.env['product.template.attribute.line'].create([{
+            'product_tmpl_id': final_template.id,
+            'attribute_id': attr.id,
+            'value_ids': [Command.set(attr.value_ids.ids)]
+        }])
+        # For every bom_batch[x]:
+        #   - bom_batch[x][0] has variant info in component line
+        #   - bom_batch[x][1] has variant info in by-product line
+        #   - bom_batch[x][2] has variant info in operation line
+        bom_batch = [self.env['mrp.bom'].create([
+        {
+            'product_tmpl_id': final_template.id,
+            'bom_line_ids': [Command.create({
+                    'product_id': component.id,
+                    'bom_product_template_attribute_value_ids': [Command.link(attr_line.product_template_value_ids[batch].id)]})]
+        },
+        {
+            'product_tmpl_id': final_template.id,
+            'byproduct_ids': [Command.create({
+                    'product_id': by_product.id,
+                    'bom_product_template_attribute_value_ids': [Command.link(attr_line.product_template_value_ids[batch].id)]})]
+        },
+        {
+            'product_tmpl_id': final_template.id,
+            'operation_ids': [Command.create({
+                    'name': 'Operation',
+                    'workcenter_id': self.workcenter_1.id,
+                    'bom_product_template_attribute_value_ids': [Command.link(attr_line.product_template_value_ids[batch].id)]})]
+        }]) for batch in range(2)]
+        # Required to display `byproduct_ids` and `operation_ids` in the form view
+        self.env.user.groups_id += self.env.ref("mrp.group_mrp_byproducts")
+        self.env.user.groups_id += self.env.ref("mrp.group_mrp_routings")
+
+        # Test when changing product variant (_onchange_product_id)
+        for bom in bom_batch[0]:
+            with Form(bom) as bom_form:
+                with self.assertLogs(level="WARNING") as warning_logger:
+                    bom_form.product_id = final_template.product_variant_ids[0]
+            self.assertEqual(len(warning_logger.output), 1, "Exactly one warning should be logged")
+            self.assertIn(
+                "Changing the product or variant will permanently reset all previously encoded variant-related data.",
+                warning_logger.output[0],
+                "Unexpected warning message"
+            )
+            # Check that data has been correctly flushed
+            self.assertFalse(bom.bom_line_ids.bom_product_template_attribute_value_ids)
+            self.assertFalse(bom.operation_ids.bom_product_template_attribute_value_ids)
+            self.assertFalse(bom.byproduct_ids.bom_product_template_attribute_value_ids)
+
+        # Test when changing product (onchange_product_tmpl_id)
+        for bom in bom_batch[1]:
+            self.assertEqual(bom.product_uom_id.id, final_template.uom_id.id)
+            with Form(bom) as bom_form:
+                with self.assertLogs(level="WARNING") as warning_logger:
+                    bom_form.product_tmpl_id = other.product_tmpl_id
+            self.assertEqual(len(warning_logger.output), 1, "Exactly one warning should be logged")
+            self.assertIn(
+                "Changing the product or variant will permanently reset all previously encoded variant-related data.",
+                warning_logger.output[0],
+                "Unexpected warning message"
+            )
+            # Check that data has been correctly flushed / changed
+            self.assertEqual(bom.product_uom_id.id, other.product_tmpl_id.uom_id.id, "BOM UOM not changed correctly")
+            self.assertFalse(bom.product_id)
+            self.assertFalse(bom.bom_line_ids.bom_product_template_attribute_value_ids)
+            self.assertFalse(bom.operation_ids.bom_product_template_attribute_value_ids)
+            self.assertFalse(bom.byproduct_ids.bom_product_template_attribute_value_ids)
+        self.assertFalse(bom_batch[1][0].code)
+        self.assertIn('(new) 1', bom_batch[1][1].code)
+        self.assertIn('(new) 2', bom_batch[1][2].code)

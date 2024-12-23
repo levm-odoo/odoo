@@ -99,9 +99,21 @@ class MrpBom(models.Model):
     @api.onchange('product_id')
     def _onchange_product_id(self):
         if self.product_id:
+            warning = (
+                (self.bom_line_ids and self.bom_line_ids.bom_product_template_attribute_value_ids) or
+                (self.operation_ids and self.operation_ids.bom_product_template_attribute_value_ids) or
+                (self.byproduct_ids and self.byproduct_ids.bom_product_template_attribute_value_ids)
+            ) and {
+                'warning': {
+                    'title': _("Warning"),
+                    'message': _("Changing the product or variant will permanently reset all previously encoded variant-related data.")
+                }
+            }
             self.bom_line_ids.bom_product_template_attribute_value_ids = False
             self.operation_ids.bom_product_template_attribute_value_ids = False
             self.byproduct_ids.bom_product_template_attribute_value_ids = False
+            if warning:
+                return warning
 
     @api.constrains('active', 'product_id', 'product_tmpl_id', 'bom_line_ids')
     def _check_bom_cycle(self):
@@ -211,6 +223,16 @@ class MrpBom(models.Model):
     @api.onchange('product_tmpl_id')
     def onchange_product_tmpl_id(self):
         if self.product_tmpl_id:
+            warning = (
+                (self.bom_line_ids and self.bom_line_ids.bom_product_template_attribute_value_ids) or
+                (self.operation_ids and self.operation_ids.bom_product_template_attribute_value_ids) or
+                (self.byproduct_ids and self.byproduct_ids.bom_product_template_attribute_value_ids)
+            ) and {
+                'warning': {
+                    'title': _("Warning"),
+                    'message': _("Changing the product or variant will permanently reset all previously encoded variant-related data.")
+                }
+            }
             self.product_uom_id = self.product_tmpl_id.uom_id.id
             if self.product_id.product_tmpl_id != self.product_tmpl_id:
                 self.product_id = False
@@ -226,6 +248,8 @@ class MrpBom(models.Model):
                 self.code = _("%s (new) %s", self.product_tmpl_id.name, number_of_bom_of_this_product)
             else:
                 self.code = False
+            if warning:
+                return warning
 
     def copy(self, default=None):
         res = super().copy(default)
