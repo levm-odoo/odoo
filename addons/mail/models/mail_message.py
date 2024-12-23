@@ -565,12 +565,12 @@ class MailMessage(models.Model):
         ))
 
     @api.model
-    def _get_with_access(self, message_id, operation, **kwargs):
-        """Return the message with the given id if it exists and if the current
-        user can access it for the given operation."""
-        message = self.browse(message_id).exists()
-        if not message:
-            return message
+    def _get_with_access(self, message_id, operation="read", access_params=None):
+        message = self.browse(message_id)
+        # sanity check on kwargs
+        allowed_params = self.env[message.sudo().model]._get_allowed_access_params()
+        if invalid := (set((access_params or {}).keys()) - allowed_params):
+            _logger.warning("Invalid parameters to _get_with_access: %s", invalid)
 
         if self.env.user._is_public() and self.env["mail.guest"]._get_guest_from_context():
             # Don't check_access_rights for public user with a guest, as the rules are
@@ -586,8 +586,7 @@ class MailMessage(models.Model):
         if message.model and message.res_id:
             mode = self.env[message.model]._get_mail_message_access([message.res_id], operation)
             if self.env[message.model]._get_thread_with_access(
-                message.res_id, mode=mode,
-                access_params={key: value for key, value in kwargs.items() if key in self.env[message.model]._get_allowed_access_params()},
+                message.res_id, mode=mode, access_params=access_params,
             ):
                 return message
 
