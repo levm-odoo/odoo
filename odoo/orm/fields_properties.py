@@ -581,6 +581,10 @@ class Properties(Field):
             property_definition['value'] = values_dict.get(property_definition['name'])
         return values_list
 
+    def property_value_getter(self, property_name: str):
+        check_property_field_value_name(property_name)
+        return lambda value: value and value.get(property_name, False)
+
     def property_to_sql(self, field_sql: SQL, property_name: str, model: BaseModel, alias: str, query: Query) -> SQL:
         check_property_field_value_name(property_name)
         return SQL("(%s -> %s)", field_sql, property_name)

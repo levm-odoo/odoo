@@ -21,6 +21,7 @@ from .domains import NEGATIVE_CONDITION_OPERATORS, Domain
 from .utils import COLLECTION_TYPES, SQL_OPERATORS, expand_ids
 
 if typing.TYPE_CHECKING:
+    from collections.abc import Callable
     from .models import BaseModel
 T = typing.TypeVar("T")
 
@@ -1530,6 +1531,9 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
     #
     # Computation of field values
     #
+
+    def property_value_getter(self, property_name: str) -> Callable[[T], typing.Any]:
+        raise ValueError(f"Invalid field property {property_name!r} on {self}")
 
     def recompute(self, records):
         """ Process the pending computations of ``self`` on ``records``. This

@@ -6298,19 +6298,34 @@ class BaseModel(metaclass=MetaModel):
 
         if isinstance(func, str):
             # special case: sequence of field names
-            *rel_field_names, field_name = func.split('.')
+            field_names = func.split('.')
+            property_name = None
             records = self
-            for rel_field_name in rel_field_names:
-                records = records[rel_field_name]
+            for index, field_name in enumerate(field_names):
+                field = records._fields[field_name]
+                if field.relational:
+                    records = field.__get__(records)
+                elif index == len(field_names) - 1:
+                    # reading a normal field
+                    break
+                elif index == len(field_names) - 2:
+                    # reading a property
+                    property_name = field_names[-1]
+                    break
+                else:
+                    raise ValueError(f"Failed to map({func!r}), invalid field type")
+            if field.relational:
+                # union of records
+                return records
             if len(records) > PREFETCH_MAX:
                 # fetch fields for all recordset in case we have a recordset
                 # that is larger than the prefetch
-                records.fetch([field_name])
-            field = records._fields[field_name]
-            getter = field.__get__
-            if field.relational:
-                # union of records
-                return getter(records)
+                records.fetch([field.name])
+            if property_name:
+                property_getter = field.property_value_getter(property_name)
+                getter = lambda record: property_getter(field.__get__(record))  # noqa: E731
+            else:
+                getter = field.__get__
             return [getter(record) for record in records]
 
         if self:

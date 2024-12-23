@@ -2597,6 +2597,13 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
         category21.write({'discussions': [Command.link(discussion2.id)]})
         self.assertEqual(discussion2.categories.ids, category21.ids)
 
+    def test_75_mapped_properties(self):
+        records = self.env['test_new_api.mixed'].create([
+            {'date': date(2020, 5, 10)},
+            {'date': date(2022, 1, 1)},
+        ])
+        self.assertEqual(records.mapped('date.year'), [2020, 2022])
+
     def test_80_copy(self):
         discussion = self.env.ref('test_new_api.discussion_0')
         message = self.env.ref('test_new_api.message_0_0')

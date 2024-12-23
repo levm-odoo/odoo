@@ -33,6 +33,23 @@ class BaseDate(Field[T | typing.Literal[False]], typing.Generic[T]):
     add = staticmethod(date_utils.add)
     subtract = staticmethod(date_utils.subtract)
 
+    def property_value_getter(self, property_name: str):
+        # property 'tz' implemented in DateTime
+        if property_name == 'tz':
+            return lambda d: d
+        if property_name not in READ_GROUP_NUMBER_GRANULARITY:
+            raise ValueError(f'Error when processing the granularity {property_name} is not supported. Only {", ".join(READ_GROUP_NUMBER_GRANULARITY.keys())} are supported')
+
+        match property_name:
+            case 'year_number':
+                return lambda d: d and d.year
+            case 'quarter_number':
+                return lambda d: d and d.month // 3
+            case 'month_number':
+                return lambda d: d and d.month
+            # XXX continue and for dates
+        raise NotImplementedError(f"Unexpected property_name: {property_name!r}")
+
     def property_to_sql(self, field_sql: SQL, property_name: str, model: BaseModel, alias: str, query: Query) -> SQL:
         sql_expr = field_sql
         timezone = model.env.context.get('tz')
