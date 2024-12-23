@@ -1,3 +1,5 @@
+import logging
+
 from datetime import datetime
 from markupsafe import Markup
 from werkzeug.exceptions import NotFound
@@ -8,6 +10,8 @@ from odoo.tools import frozendict
 from odoo.tools import email_normalize
 from odoo.addons.mail.models.discuss.mail_guest import add_guest_to_context
 from odoo.addons.mail.tools.discuss import Store
+
+_logger = logging.getLogger(__name__)
 
 
 class ThreadController(http.Controller):
@@ -144,6 +148,10 @@ class ThreadController(http.Controller):
     @http.route("/mail/message/post", methods=["POST"], type="jsonrpc", auth="public")
     @add_guest_to_context
     def mail_message_post(self, thread_model, thread_id, post_data, context=None, **kwargs):
+        allowed_params = self._whitelist_post_kwargs(request.env[thread_model])
+        if invalid := (set(kwargs.keys()) - allowed_params):
+            _logger.warning("Invalid parameters to mail_message_post: %s", invalid)
+
         guest = request.env["mail.guest"]._get_guest_from_context()
         guest.env["ir.attachment"].browse(post_data.get("attachment_ids", []))._check_attachments_access(
             kwargs.get("attachment_tokens")
@@ -180,6 +188,15 @@ class ThreadController(http.Controller):
         message = thread.sudo().message_post(**self._prepare_post_data(post_data, thread, **kwargs))
         return Store(message, for_current_user=True).get_result()
 
+    def _whitelist_post_kwargs(self, thread):
+        return thread._get_allowed_access_params() | {
+            'attachment_tokens',  # additional security access
+            'partner_emails', 'partner_additional_values',  # suggested recipients
+        }
+
+    def _whitelist_update_kwargs(self, thread):
+        return thread._get_allowed_access_params()
+
     @http.route("/mail/message/update_content", methods=["POST"], type="jsonrpc", auth="public")
     @add_guest_to_context
     def mail_message_update_content(self, message_id, body, attachment_ids, attachment_tokens=None, partner_ids=None, **kwargs):
@@ -188,6 +205,11 @@ class ThreadController(http.Controller):
         message = self._get_message_with_access(message_id, operation="create", **kwargs)
         if not message or not self._is_message_editable(message, **kwargs):
             raise NotFound()
+
+        allowed_params = self._whitelist_update_kwargs(request.env[message.sudo().model])
+        if invalid := (set(kwargs.keys()) - allowed_params):
+            _logger.warning("Invalid parameters to mail_message_update_content: %s", invalid)
+
         # sudo: mail.message - access is checked in _get_with_access and _is_message_editable
         message = message.sudo()
         body = Markup(body) if body else body  # may contain HTML such as @mentions
