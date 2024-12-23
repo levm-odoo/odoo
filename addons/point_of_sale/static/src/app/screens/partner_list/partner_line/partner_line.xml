@@ -34,8 +34,8 @@
                         <i class="fa fa-fw fa-paper-plane-o me-2" /><t t-esc="props.partner.email" />
                     </div>
                 </div>
-                <div class="d-flex justify-content-between align-items-center p-1">
-                    <button t-if="props.isSelected" t-on-click.stop="props.onClickUnselect" class="unselect-tag-mobile d-inline-block d-lg-none btn btn-light border ms-2">
+                <div class="d-empty-none p-1">
+                    <button t-if="props.isSelected" t-on-click.stop="props.onClickUnselect" class="unselect-tag-mobile d-inline-block d-lg-none btn btn-light border">
                         <i class="fa fa-times me-1"></i>
                         <span>UNSELECT</span>
                     </button>
