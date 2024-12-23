@@ -30,6 +30,7 @@ class ResPartner(models.Model):
 
     display_pan_warning = fields.Boolean(string="Display pan warning", compute="_compute_display_pan_warning")
     l10n_in_gst_state_warning = fields.Char(compute="_compute_l10n_in_gst_state_warning")
+    l10n_in_is_advanced_template = fields.Boolean(related='company_id.l10n_in_is_advanced_template')
 
     @api.depends('vat', 'state_id', 'country_id', 'fiscal_country_codes')
     def _compute_l10n_in_gst_state_warning(self):

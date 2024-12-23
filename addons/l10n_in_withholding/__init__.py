@@ -10,18 +10,18 @@ _logger = logging.getLogger(__name__)
 
 def _l10n_in_withholding_post_init(env):
     """ Existing companies that have the Indian Chart of Accounts set """
-    for company in env['res.company'].search([('chart_template', '=', 'in'), ('parent_id', '=', False)]):
+    for company in env['res.company'].search([('chart_template', '=', 'in_adv'), ('parent_id', '=', False)]):
         _logger.info("Company %s already has the Indian localization installed, updating...", company.name)
         ChartTemplate = env['account.chart.template'].with_company(company)
         data = {
-            model: ChartTemplate._parse_csv('in', model, module='l10n_in_withholding')
+            model: ChartTemplate._parse_csv('in_adv', model, module='l10n_in_withholding')
             for model in [
                 'account.account',
                 'account.tax',
             ]
         }
         try:
-            ChartTemplate._deref_account_tags('in', data['account.tax'])
+            ChartTemplate._deref_account_tags('in_adv', data['account.tax'])
             ChartTemplate._pre_reload_data(company, {}, data)
             ChartTemplate._load_data(data)
             company.l10n_in_withholding_account_id = ChartTemplate.ref('p100595')

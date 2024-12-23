@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import _, fields, models
+from odoo import _, fields, models, api
 from odoo.exceptions import ValidationError, RedirectWarning
 from odoo.addons.l10n_in.models.iap_account import IAP_SERVICE_NAME
 
@@ -21,6 +21,7 @@ class ResConfigSettings(models.TransientModel):
     module_l10n_in_withholding = fields.Boolean('Indian TDS and TCS')
     l10n_in_hsn_code_digit = fields.Selection(related='company_id.l10n_in_hsn_code_digit', readonly=False)
     module_l10n_in_enet_batch_payment = fields.Boolean(string="Vendor Payment")
+    l10n_in_is_advanced_template = fields.Boolean(related='company_id.l10n_in_is_advanced_template')
 
     def l10n_in_edi_buy_iap(self):
         if not self.l10n_in_edi_production_env or not (self.module_l10n_in_edi or self.module_l10n_in_gstin_status):

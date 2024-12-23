@@ -10,6 +10,7 @@ class ProductTemplate(models.Model):
 
     l10n_in_hsn_code = fields.Char(string="HSN/SAC Code", help="Harmonized System Nomenclature/Services Accounting Code")
     l10n_in_hsn_warning = fields.Text(string="HSC/SAC warning", compute="_compute_l10n_in_hsn_warning")
+    l10n_in_is_advanced_template = fields.Boolean(related='company_id.l10n_in_is_advanced_template')
 
     @api.depends('sale_ok', 'l10n_in_hsn_code')
     def _compute_l10n_in_hsn_warning(self):
