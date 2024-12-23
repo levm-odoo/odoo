@@ -8,6 +8,10 @@
         .orderline:hover {
             background: none;
         }
+
+        .orderline::before {
+            display: none;
+        }
     
     }    
 }
