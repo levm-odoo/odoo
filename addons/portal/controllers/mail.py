@@ -8,6 +8,7 @@ from odoo.http import request
 from odoo.osv import expression
 from odoo.tools import consteq
 from odoo.addons.mail.controllers import mail
+from odoo.addons.mail.controllers.thread import ThreadController
 from odoo.addons.mail.tools.discuss import Store
 from odoo.addons.portal.utils import get_portal_partner
 from odoo.exceptions import AccessError
@@ -28,7 +29,11 @@ class PortalChatter(http.Controller):
         if access_token or (_hash and pid):
             message = request.env["mail.message"].browse(int(res_id)).exists().filtered(
                 lambda msg: request.env[msg.model]._get_thread_with_access(
-                    msg.res_id, token=access_token, hash=_hash, pid=pid and int(pid)
+                    msg.res_id, access_params={
+                        'token': access_token,
+                        'hash': _hash,
+                        'pid': pid and int(pid),
+                    },
                 )
             )
         else:
@@ -42,7 +47,7 @@ class PortalChatter(http.Controller):
     @http.route("/portal/chatter_init", type="jsonrpc", auth="public", website=True)
     def portal_chatter_init(self, thread_model, thread_id, **kwargs):
         store = Store()
-        thread = request.env[thread_model]._get_thread_with_access(thread_id, **kwargs)
+        thread = ThreadController._get_thread_with_access(thread_model, thread_id, **kwargs)
         partner = request.env.user.partner_id
         if thread and request.env.user._is_public():
             if portal_partner := get_portal_partner(
@@ -72,8 +77,8 @@ class PortalChatter(http.Controller):
         # Check access
         Message = request.env['mail.message']
         if kw.get('token'):
-            access_as_sudo = request.env[thread_model]._get_thread_with_access(
-                thread_id, token=kw.get("token")
+            access_as_sudo = ThreadController._get_thread_with_access(
+                thread_model, thread_id, token=kw["token"],
             )
             if not access_as_sudo:  # if token is not correct, raise Forbidden
                 raise Forbidden()

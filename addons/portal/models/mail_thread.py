@@ -93,12 +93,17 @@ class MailThread(models.AbstractModel):
         return False
 
     @api.model
-    def _get_thread_with_access(self, thread_id, mode="read", **kwargs):
-        if thread := super()._get_thread_with_access(thread_id, mode, **kwargs):
+    def _get_allowed_access_params(self):
+        return super()._get_allowed_access_params() | {'hash', 'pid', 'token'}
+
+    @api.model
+    def _get_thread_with_access(self, thread_id, mode="read", access_params=None):
+        if thread := super()._get_thread_with_access(thread_id, mode=mode, access_params=access_params):
             return thread
+        access_params = access_params or {}
         thread = self.browse(thread_id).sudo()
-        if validate_thread_with_hash_pid(thread, kwargs.get("hash"), kwargs.get("pid")):
+        if validate_thread_with_hash_pid(thread, access_params.get("hash"), access_params.get("pid")):
             return thread
-        if validate_thread_with_token(thread, kwargs.get("token")):
+        if validate_thread_with_token(thread, access_params.get("token")):
             return thread
         return self.browse()
