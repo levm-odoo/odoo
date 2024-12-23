@@ -40,7 +40,7 @@
                     </div>
                     <div class="center-content d-flex flex-column flex-grow-1 gap-2 py-2 pe-2">
                         <t t-call="point_of_sale.PaymentScreenDue" />
-                        <div class="payment-summary d-flex flex-grow-1 flex-column gap-2 overflow-y-auto pt-3 rounded-3 bg-view">
+                        <div class="payment-summary d-flex flex-grow-1 flex-column gap-2 overflow-y-auto pt-3">
                             <PaymentScreenStatus order="currentOrder" />
                             <PaymentScreenPaymentLines
                                 paymentLines="paymentLines"
@@ -60,7 +60,7 @@
     </t>
 
     <t t-name="point_of_sale.PaymentScreenDue">
-        <section class="paymentlines-container rounded-3 bg-view"
+        <section class="paymentlines-container"
             t-att-class="{'paymentlines-empty': paymentLines.length === 0 }">
             <div class="total text-center py-2 py-lg-4 text-success">
                 <t t-esc="this.env.utils.formatCurrency(currentOrder.getTotalDue())" />
