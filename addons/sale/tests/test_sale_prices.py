@@ -636,7 +636,7 @@ class TestSalePrices(SaleCommon):
         """
         # If test is run without demo data
         # pricelists are not automatically enabled
-        self._enable_pricelists()
+        self._enable_feature(self.group_product_pricelist)
         pricelist = self.pricelist
         partner = self.partner
 

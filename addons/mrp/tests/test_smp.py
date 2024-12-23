@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.addons.mrp.tests.common import TestMrpCommon
-from odoo.tests import Form
 from odoo import Command
+from odoo.tests import Form
+
+from odoo.addons.mrp.tests.common import TestMrpCommon
 
 
 class TestMrpSerialMassProduce(TestMrpCommon):
@@ -336,9 +336,7 @@ class TestMrpSerialMassProduce(TestMrpCommon):
         """Create a MO for a product tracked by lot and with a component untracked and tracked by lot.
            As the smp wizard should not open even if in two steps
         """
-        self.env['res.config.settings'].write({
-            'group_stock_adv_location': True,
-        })
+        self._enable_feature(self.quick_ref('stock.group_adv_location'))
         self.env.ref('stock.warehouse0').manufacture_steps = 'pbm'
         mo = self.generate_mo(tracking_final='lot', tracking_base_1='lot')[0]
         # Make some stock and reserve

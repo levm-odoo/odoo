@@ -12,6 +12,7 @@ class ProductCommon(UomCommon):
         super().setUpClass()
 
         cls.group_product_pricelist = cls.quick_ref('product.group_product_pricelist')
+        cls.group_product_variant = cls.quick_ref('product.group_product_variant')
         cls.product_category = cls.env['product.category'].create({
             'name': 'Test Category',
         })
@@ -37,11 +38,7 @@ class ProductCommon(UomCommon):
     @classmethod
     def get_default_groups(cls):
         groups = super().get_default_groups()
-        return groups | cls.quick_ref('base.group_system')
-
-    @classmethod
-    def _enable_pricelists(cls):
-        cls.env.user.groups_id += cls.group_product_pricelist
+        return groups | cls.group_system
 
     @classmethod
     def _create_pricelist(cls, **create_vals):

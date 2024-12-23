@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 import re
 
@@ -119,10 +118,9 @@ class TestStockCommon(TestProductCommon):
         cls.kgB = cls.ProductObj.create({'name': 'kg-B', 'is_storable': True, 'uom_id': cls.uom_kg.id, 'uom_po_id': cls.uom_kg.id})
         cls.gB = cls.ProductObj.create({'name': 'g-B', 'is_storable': True, 'uom_id': cls.uom_gm.id, 'uom_po_id': cls.uom_gm.id})
 
-        cls.env.ref('base.group_user').write({'implied_ids': [
-            (4, cls.env.ref('base.group_multi_company').id),
-            (4, cls.env.ref('stock.group_production_lot').id),
-        ]})
+        cls.group_production_lot = cls.quick_ref('stock.group_production_lot')
+        cls._enable_feature(cls.group_production_lot)
+
         #######################################################################
         # TODO: refactor these changes from common2.py
         #######################################################################

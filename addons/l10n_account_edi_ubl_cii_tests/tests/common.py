@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
 import base64
 
-from freezegun import freeze_time
 from os.path import join as opj
 
-from odoo.addons.account.tests.common import AccountTestInvoicingCommon
+from freezegun import freeze_time
+from lxml import etree
+
 from odoo import fields
 from odoo.tools import misc
 
-from lxml import etree
+from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
 
 class TestUBLCommon(AccountTestInvoicingCommon):
@@ -20,7 +20,7 @@ class TestUBLCommon(AccountTestInvoicingCommon):
         cls.other_currency = cls.setup_other_currency('USD', rounding=0.001)
 
         # Required for `product_uom_id` to be visible in the form views
-        cls.env.user.groups_id += cls.env.ref('uom.group_uom')
+        cls._enable_uom()
 
         # remove this tax, otherwise, at import, this tax with children taxes can be selected and the total is wrong
         cls.tax_armageddon.children_tax_ids.unlink()

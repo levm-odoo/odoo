@@ -135,9 +135,6 @@ class TestDeliveryCost(DeliveryCommon, SaleCommon):
         self.assertEqual(float_compare(line.price_subtotal, 0, precision_digits=2), 0,
             "Delivery cost is not correspond.")
 
-        # I set default delivery policy
-        self.env['res.config.settings'].create({}).execute()
-
     def test_01_delivery_cost_from_pricelist(self):
         """ This test aims to validate the use of a pricelist to compute the delivery cost in the case the associated
             product of the shipping method is defined in the pricelist """
@@ -220,7 +217,7 @@ class TestDeliveryCost(DeliveryCommon, SaleCommon):
     def test_01_taxes_on_delivery_cost(self):
         # Creating taxes and fiscal position
 
-        self.env.ref('base.group_user').write({'implied_ids': [(4, self.env.ref('product.group_product_pricelist').id)]})
+        self._enable_feature(self.group_product_pricelist)
 
         tax_price_include, tax_price_exclude = self.env['account.tax'].create([{
             'name': '10% inc',
@@ -251,7 +248,7 @@ class TestDeliveryCost(DeliveryCommon, SaleCommon):
 
         # Create sales order
         # Required to see `pricelist_id` in the view
-        self.env.user.groups_id += self.env.ref('product.group_product_pricelist')
+        self._enable_feature(self.group_product_pricelist)
         order_form = Form(self.env['sale.order'].with_context(tracking_disable=True))
         order_form.partner_id = self.partner
         order_form.fiscal_position_id = fiscal_position

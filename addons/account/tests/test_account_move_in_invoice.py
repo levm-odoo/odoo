@@ -1,14 +1,16 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=bad-whitespace
-from freezegun import freeze_time
-from odoo.addons.account.tests.common import AccountTestInvoicingCommon
-from odoo.tests import Form, tagged
-from odoo import fields, Command
-from odoo.osv import expression
-from odoo.exceptions import ValidationError, UserError
+from collections import defaultdict
 from datetime import date
 
-from collections import defaultdict
+from freezegun import freeze_time
+
+from odoo import Command, fields
+from odoo.exceptions import UserError, ValidationError
+from odoo.osv import expression
+from odoo.tests import Form, tagged
+
+from odoo.addons.account.tests.common import AccountTestInvoicingCommon
+
 
 @tagged('post_install', '-at_install')
 class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
@@ -128,7 +130,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
             'amount_tax': 168.0,
             'amount_total': 1128.0,
         }
-        cls.env.user.groups_id += cls.env.ref('uom.group_uom')
+        cls._enable_uom()
 
     @classmethod
     def setup_armageddon_tax(cls, tax_name, company_data, **kwargs):
@@ -2542,7 +2544,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
         Ensure that taxes are recomputed correctly when product uom and
         price unit are changed for users without 'uom.group_uom' group
         """
-        self.env.user.groups_id -= self.env.ref('uom.group_uom')
+        self.assertNotIn(self.group_uom, self.env.user.groups_id)
         tax = self.company_data['default_tax_purchase']
         product = self.env['product.product'].create({
             'name': 'product',

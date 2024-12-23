@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from contextlib import contextmanager
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 from odoo import Command, modules
-from odoo.tests.common import new_test_user, TransactionCase, HttpCase
+from odoo.tests.common import HttpCase, TransactionCase, new_test_user
 from odoo.tools.mail import email_split_and_format
 
 DISABLED_MAIL_CONTEXT = {
@@ -144,6 +143,10 @@ class BaseCommon(TransactionCase):
             groups='base.group_portal',
             **({'login': 'portal_user'} | kwargs),
         )
+
+    @classmethod
+    def _enable_feature(cls, feature_groups):
+        cls.group_user.implied_ids = [Command.link(group.id) for group in feature_groups]
 
     @classmethod
     def quick_ref(cls, xmlid):

@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import odoo
 
 from odoo import Command
-from odoo.addons.point_of_sale.tests.common import TestPoSCommon
 from odoo.tests import Form
+
+from odoo.addons.point_of_sale.tests.common import TestPoSCommon
 
 
 @odoo.tests.tagged('post_install', '-at_install')
@@ -15,15 +15,6 @@ class TestConfigureShops(TestPoSCommon):
         should reflect to the pos.config record pointed by the
         pos_config_id field.
     """
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        # If not enabled (like in demo data), landing on res.config will try
-        # to disable module_sale_quotation_builder and raise an issue
-        group_order_template = cls.env.ref('sale_management.group_sale_order_template', raise_if_not_found=False)
-        if group_order_template:
-            cls.env.ref('base.group_user').write({"implied_ids": [(4, group_order_template.id)]})
 
     def _remove_on_payment_taxes(self):
         """ Call this when testing the res.config.settings with Form.

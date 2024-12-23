@@ -45,7 +45,7 @@ class SaleCommon(
 
     @classmethod
     def _enable_discounts(cls):
-        cls.env.user.groups_id += cls.group_discount_per_so_line
+        cls._enable_feature(cls.group_discount_per_so_line)
 
 
 class TestSaleCommon(AccountTestInvoicingCommon):

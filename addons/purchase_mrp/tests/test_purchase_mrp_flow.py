@@ -1,12 +1,12 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from datetime import timedelta
 
-from odoo.tests import Form, TransactionCase, tagged
-from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo import fields
 from odoo.fields import Command
+from odoo.tests import Form, tagged
+
+from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
 
 @tagged('post_install', '-at_install')
@@ -22,10 +22,7 @@ class TestPurchaseMrpFlow(AccountTestInvoicingCommon):
         cls.warehouse = cls.env['stock.warehouse'].search([('company_id', '=', cls.env.company.id)])
         cls.stock_location = cls.warehouse.lot_stock_id
 
-        grp_uom = cls.env.ref('uom.group_uom')
-        group_user = cls.env.ref('base.group_user')
-        group_user.write({'implied_ids': [(4, grp_uom.id)]})
-        cls.env.user.write({'groups_id': [(4, grp_uom.id)]})
+        cls._enable_feature(cls.group_uom)
 
         cls.uom_kg = cls.env['uom.uom'].search([('category_id', '=', cls.categ_kgm.id), ('uom_type', '=', 'reference')],
                                                  limit=1)

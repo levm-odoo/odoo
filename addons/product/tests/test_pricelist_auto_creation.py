@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo.addons.product.tests.common import ProductCommon
@@ -17,8 +16,6 @@ class TestPricelistAutoCreation(ProductCommon):
         cls.env['res.currency'].search([('name', '!=', 'EUR')]).action_archive()
 
         # Disabled pricelists feature
-        cls.group_user = cls.env.ref('base.group_user').sudo()
-        cls.group_product_pricelist = cls.env.ref('product.group_product_pricelist')
         cls.group_user._remove_group(cls.group_product_pricelist)
         cls.env['product.pricelist'].search([]).unlink()
         return res
@@ -41,8 +38,3 @@ class TestPricelistAutoCreation(ProductCommon):
                 ('company_id', '=', self.env.company.id),
             ])
         )
-        # self.env.user.clear_caches()
-        # self.group_user.invalidate_recordset()
-        # self.assertTrue(
-        #     self.group_product_pricelist in self.group_user.implied_ids
-        # )

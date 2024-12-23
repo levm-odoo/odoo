@@ -1,11 +1,12 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from collections import defaultdict
-from lxml import etree
 import logging
 
-from odoo import exceptions, Command
+from collections import defaultdict
+
+from lxml import etree
+
+from odoo import Command, exceptions
 from odoo.tests import Form, TransactionCase, tagged
 
 _logger = logging.getLogger(__name__)
@@ -177,12 +178,6 @@ class TestResConfigExecute(TransactionCase):
             'login': 'sleepy',
             'groups_id': [Command.link(group_system.id)],
         })
-
-        # If not enabled (like in demo data), landing on res.config will try
-        # to disable module_sale_quotation_builder and raise an issue
-        group_order_template = self.env.ref('sale_management.group_sale_order_template', raise_if_not_found=False)
-        if group_order_template:
-            self.env.ref('base.group_user').write({"implied_ids": [(4, group_order_template.id)]})
 
         _logger.info("Testing settings access for group %s", group_system.full_name)
         forbidden_models = self._test_user_settings_fields_access(settings_only_user)

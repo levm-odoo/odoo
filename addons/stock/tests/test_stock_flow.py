@@ -1,17 +1,16 @@
-# -*- coding: utf-8 -*-
 
-from odoo.addons.stock.tests.common import TestStockCommon
+from odoo import fields
 from odoo.exceptions import ValidationError
 from odoo.tests import Form, tagged
-from odoo.tools import mute_logger, float_round
-from odoo import fields
+from odoo.tools import float_round, mute_logger
+
+from odoo.addons.stock.tests.common import TestStockCommon
 
 
 class TestStockFlow(TestStockCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.env.ref('base.group_user').write({'implied_ids': [(4, cls.env.ref('stock.group_production_lot').id)]})
         decimal_product_uom = cls.env.ref('product.decimal_product_uom')
         decimal_product_uom.digits = 3
         cls.partner_company2 = cls.env['res.partner'].create({

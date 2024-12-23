@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from datetime import datetime, timedelta
-from odoo.tools import html2plaintext
 
 from odoo import Command
-from odoo.tests import Form, tagged
 from odoo.exceptions import AccessError
-from odoo.addons.stock.tests.test_report import TestReportsCommon
+from odoo.tests import Form, tagged
+from odoo.tools import html2plaintext
+
 from odoo.addons.sale.tests.common import TestSaleCommon
+from odoo.addons.stock.tests.test_report import TestReportsCommon
 
 
 class TestSaleStockReports(TestReportsCommon):
@@ -187,36 +187,36 @@ class TestSaleStockReports(TestReportsCommon):
 @tagged('post_install', '-at_install')
 class TestSaleStockInvoices(TestSaleCommon):
 
-    def setUp(self):
-        super(TestSaleStockInvoices, self).setUp()
-        self.env.ref('base.group_user').write({'implied_ids': [(4, self.env.ref('stock.group_production_lot').id)]})
-        self.product_by_lot = self.env['product.product'].create({
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._enable_feature(cls.quick_ref('stock.group_production_lot'))
+        cls.product_by_lot, cls.product_by_usn = cls.env['product.product'].create([{
             'name': 'Product By Lot',
             'is_storable': True,
             'tracking': 'lot',
-        })
-        self.product_by_usn = self.env['product.product'].create({
+        }, {
             'name': 'Product By USN',
             'is_storable': True,
             'tracking': 'serial',
-        })
-        self.warehouse = self.env['stock.warehouse'].search([('company_id', '=', self.env.company.id)], limit=1)
-        self.stock_location = self.warehouse.lot_stock_id
-        lot = self.env['stock.lot'].create({
+        }])
+        cls.warehouse = cls.env['stock.warehouse'].search([('company_id', '=', cls.env.company.id)], limit=1)
+        cls.stock_location = cls.warehouse.lot_stock_id
+        lot = cls.env['stock.lot'].create({
             'name': 'LOT0001',
-            'product_id': self.product_by_lot.id,
+            'product_id': cls.product_by_lot.id,
         })
-        self.usn01 = self.env['stock.lot'].create({
+        cls.usn01 = cls.env['stock.lot'].create({
             'name': 'USN0001',
-            'product_id': self.product_by_usn.id,
+            'product_id': cls.product_by_usn.id,
         })
-        self.usn02 = self.env['stock.lot'].create({
+        cls.usn02 = cls.env['stock.lot'].create({
             'name': 'USN0002',
-            'product_id': self.product_by_usn.id,
+            'product_id': cls.product_by_usn.id,
         })
-        self.env['stock.quant']._update_available_quantity(self.product_by_lot, self.stock_location, 10, lot_id=lot)
-        self.env['stock.quant']._update_available_quantity(self.product_by_usn, self.stock_location, 1, lot_id=self.usn01)
-        self.env['stock.quant']._update_available_quantity(self.product_by_usn, self.stock_location, 1, lot_id=self.usn02)
+        cls.env['stock.quant']._update_available_quantity(cls.product_by_lot, cls.stock_location, 10, lot_id=lot)
+        cls.env['stock.quant']._update_available_quantity(cls.product_by_usn, cls.stock_location, 1, lot_id=cls.usn01)
+        cls.env['stock.quant']._update_available_quantity(cls.product_by_usn, cls.stock_location, 1, lot_id=cls.usn02)
 
     def test_invoice_less_than_delivered(self):
         """

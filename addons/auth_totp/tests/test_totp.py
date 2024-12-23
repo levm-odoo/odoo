@@ -1,12 +1,13 @@
-import logging
 import json
+import logging
 import time
+
 from xmlrpc.client import Fault
 
 from passlib.totp import TOTP
 
 from odoo import http
-from odoo.tests import tagged, get_db_name, new_test_user, HttpCase
+from odoo.tests import HttpCase, get_db_name, new_test_user, tagged
 from odoo.tools import mute_logger
 
 from ..controllers.home import Home
@@ -97,11 +98,6 @@ class TestTOTP(TestTOTPMixin, HttpCase):
 
     def test_totp_administration(self):
         self.start_tour('/web', 'totp_tour_setup', login='test_user')
-        # If not enabled (like in demo data), landing on res.config will try
-        # to disable module_sale_quotation_builder and raise an issue
-        group_order_template = self.env.ref('sale_management.group_sale_order_template', raise_if_not_found=False)
-        if group_order_template:
-            self.env.ref('base.group_user').write({"implied_ids": [(4, group_order_template.id)]})
         self.start_tour('/odoo', 'totp_admin_disables', login='admin')
         self.start_tour('/', 'totp_login_disabled', login=None)
 

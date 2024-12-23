@@ -1,20 +1,19 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import Command
-from odoo.tests import Form
-from odoo.addons.mrp.tests.common import TestMrpCommon
 from odoo.exceptions import UserError
+from odoo.tests import Form
+
+from odoo.addons.mrp.tests.common import TestMrpCommon
 
 
 class TestUnbuild(TestMrpCommon):
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.stock_location = cls.env.ref('stock.stock_location_stock')
-        cls.env.ref('base.group_user').write({
-            'implied_ids': [(4, cls.env.ref('stock.group_production_lot').id)]
-        })
+        cls._enable_feature(cls.quick_ref('stock.group_production_lot'))
 
     def test_unbuild_standart(self):
         """ This test creates a MO and then creates 3 unbuild

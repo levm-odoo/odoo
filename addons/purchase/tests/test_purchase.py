@@ -1,14 +1,15 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-from odoo.addons.account.tests.common import AccountTestInvoicingCommon
-from odoo.tests import tagged, Form
+from datetime import timedelta
+
+import pytz
+
+from freezegun import freeze_time
+
 from odoo import Command, fields
 from odoo.exceptions import UserError
+from odoo.tests import Form, tagged
 
-
-from datetime import timedelta
-from freezegun import freeze_time
-import pytz
+from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
 
 @tagged('-at_install', 'post_install')
@@ -351,9 +352,9 @@ class TestPurchase(AccountTestInvoicingCommon):
     def test_with_different_uom(self):
         """ This test ensures that the unit price is correctly computed"""
         # Required for `product_uom_id` to be visibile in the view
-        self.env.user.groups_id += self.env.ref('uom.group_uom')
-        uom_units = self.env.ref('uom.product_uom_unit')
-        uom_dozens = self.env.ref('uom.product_uom_dozen')
+        self._enable_uom()
+        uom_units = self.uom_unit
+        uom_dozens = self.uom_dozen
         uom_pairs = self.env['uom.uom'].create({
             'name': 'Pairs',
             'category_id': uom_units.category_id.id,

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo.addons.base.tests.common import BaseCommon
@@ -19,10 +18,11 @@ class UomCommon(BaseCommon):
 
         cls.group_uom = cls.quick_ref('uom.group_uom')
 
-    @classmethod
-    def _enable_uom(cls):
-        cls.env.user.groups_id += cls.group_uom
+        # Ensure uom group is disabled by default, to make tests more deterministic, not relying on
+        # existing database configuration (e.g. implied when sale_timesheet is installed, ...)
+        if cls.group_uom in cls.group_user.implied_ids:
+            cls.group_user._remove_group(cls.group_uom)
 
     @classmethod
-    def _disable_uom(cls):
-        cls.env.user.groups_id -= cls.group_uom
+    def _enable_uom(cls):
+        cls._enable_feature(cls.group_uom)

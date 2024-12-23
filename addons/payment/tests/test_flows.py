@@ -383,21 +383,18 @@ class TestFlows(PaymentHttpCommon):
 
     def test_tokenization_input_is_shown_to_logged_in_users(self):
         # Test both for portal and internal users
-        self.user = self.portal_user
         self.provider.allow_tokenization = True
 
-        show_tokenize_input = PaymentPortal._compute_show_tokenize_input_mapping(self.provider)
-        self.assertDictEqual(show_tokenize_input, {self.provider.id: True})
-
-        self.user = self.internal_user
-        self.provider.allow_tokenization = True
-
-        show_tokenize_input = PaymentPortal._compute_show_tokenize_input_mapping(self.provider)
-        self.assertDictEqual(show_tokenize_input, {self.provider.id: True})
+        for user in (self.portal_user, self.internal_user):
+            show_tokenize_input = PaymentPortal._compute_show_tokenize_input_mapping(
+                self.provider.with_user(user).sudo()
+            )
+            self.assertDictEqual(show_tokenize_input, {self.provider.id: True})
 
     def test_tokenization_input_is_shown_to_logged_out_users(self):
-        self.user = self.public_user
         self.provider.allow_tokenization = True
 
-        show_tokenize_input = PaymentPortal._compute_show_tokenize_input_mapping(self.provider)
+        show_tokenize_input = PaymentPortal._compute_show_tokenize_input_mapping(
+            self.provider.with_user(self.public_user).sudo()
+        )
         self.assertDictEqual(show_tokenize_input, {self.provider.id: True})

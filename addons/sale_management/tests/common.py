@@ -10,7 +10,7 @@ class SaleManagementCommon(SaleCommon):
         super().setUpClass()
 
         # Ensure user has access to sale order templates
-        cls.env.user.groups_id += cls.env.ref('sale_management.group_sale_order_template')
+        cls._enable_feature(cls.quick_ref('sale_management.group_sale_order_template'))
 
         cls.empty_order_template = cls.env['sale.order.template'].create({
             'name': "Test Quotation Template",

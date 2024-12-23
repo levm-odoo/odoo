@@ -1,15 +1,15 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=bad-whitespace
-from odoo.addons.account.tests.common import AccountTestInvoicingCommon
-from odoo.tests import Form, tagged
-from odoo import fields, Command
-from odoo.exceptions import UserError
-
 from collections import defaultdict
-from unittest.mock import patch
 from datetime import timedelta
+from unittest.mock import patch
+
 from freezegun import freeze_time
 
+from odoo import Command, fields
+from odoo.exceptions import UserError
+from odoo.tests import Form, tagged
+
+from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
 
 @tagged('post_install', '-at_install')
@@ -131,7 +131,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
             'amount_tax': 210.0,
             'amount_total': 1410.0,
         }
-        cls.env.user.groups_id += cls.env.ref('uom.group_uom')
+        cls._enable_uom()
 
     def setUp(self):
         super(TestAccountMoveOutInvoiceOnchanges, self).setUp()

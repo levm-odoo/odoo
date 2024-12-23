@@ -2,7 +2,7 @@
 
 from odoo.exceptions import UserError
 from odoo.fields import Command
-from odoo.tests import tagged, Form
+from odoo.tests import Form, tagged
 
 from odoo.addons.product.tests.common import ProductCommon
 
@@ -42,8 +42,7 @@ class TestPricelist(ProductCommon):
                 }),
             ],
         })
-        # Enable pricelist feature
-        cls.env.user.groups_id += cls.env.ref('product.group_product_pricelist')
+        cls._enable_feature(cls.group_product_pricelist)
 
     def test_10_discount(self):
         # Make sure the price using a pricelist is the same than without after

@@ -1,14 +1,13 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from datetime import datetime, timedelta
+
 from freezegun import freeze_time
 
 from odoo import Command, fields
 from odoo.exceptions import UserError
-from odoo.tests import Form, users
-from odoo.tools.misc import format_date
-from odoo.tests.common import HttpCase, tagged
+from odoo.tests import Form, HttpCase, tagged, users
+from odoo.tools import format_date
 
 from odoo.addons.mrp.tests.common import TestMrpCommon
 
@@ -18,7 +17,7 @@ class TestMrpOrder(TestMrpCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.env.ref('base.group_user').write({'implied_ids': [(4, cls.env.ref('stock.group_production_lot').id)]})
+        cls._enable_feature(cls.quick_ref('stock.group_production_lot'))
 
     def test_access_rights_manager(self):
         """ Checks an MRP manager can create, confirm and cancel a manufacturing order. """

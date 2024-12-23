@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from datetime import datetime, timedelta
 
 from odoo import Command
-from odoo.addons.mrp.tests.common import TestMrpCommon
 from odoo.tests import Form
 from odoo.tests.common import TransactionCase
+
+from odoo.addons.mrp.tests.common import TestMrpCommon
 
 
 class TestMrpProductionBackorder(TestMrpCommon):
@@ -13,7 +13,7 @@ class TestMrpProductionBackorder(TestMrpCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.env.ref('base.group_user').write({'implied_ids': [(4, cls.env.ref('stock.group_production_lot').id)]})
+        cls._enable_feature(cls.quick_ref('stock.group_product_lot'))
         cls.stock_location = cls.env.ref('stock.stock_location_stock')
         warehouse_form = Form(cls.env['stock.warehouse'])
         warehouse_form.name = 'Test Warehouse'

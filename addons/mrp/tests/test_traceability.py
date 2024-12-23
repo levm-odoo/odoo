@@ -1,13 +1,15 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo.tests import Form
-from odoo.addons.mrp.tests.common import TestMrpCommon
-from odoo.exceptions import UserError
+import logging
 
 from datetime import datetime
-import logging
+
 from freezegun import freeze_time
+
+from odoo.exceptions import UserError
+from odoo.tests import Form
+
+from odoo.addons.mrp.tests.common import TestMrpCommon
 
 _logger = logging.getLogger(__name__)
 
@@ -18,7 +20,7 @@ class TestTraceability(TestMrpCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.env.ref('base.group_user').write({'implied_ids': [(4, cls.env.ref('stock.group_production_lot').id)]})
+        cls._enable_feature(cls.quick_ref('stock.group_production_lot'))
 
     def _create_product(self, tracking):
         return self.env['product.product'].create({
@@ -122,11 +124,7 @@ class TestTraceability(TestMrpCommon):
             self.assertEqual(final_product['unfoldable'], True, "Final product should always be unfoldable")
 
             # Find parts of the final products
-            lines = self.env['stock.traceability.report'].get_lines(final_product['id'], **{
-                'level': final_product['level'],
-                'model_id': final_product['model_id'],
-                'model_name': final_product['model'],
-            })
+            lines = self.env['stock.traceability.report'].get_lines(final_product['id'], level=final_product['level'], model_id=final_product['model_id'], model_name=final_product['model'])
             self.assertEqual(len(lines), 3, "There should be 3 lines. 1 for untracked, 1 for lot, and 1 for serial")
 
             for line in lines:

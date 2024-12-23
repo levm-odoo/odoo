@@ -1,12 +1,14 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from datetime import datetime, timedelta
 
 from odoo import Command
-from odoo.addons.stock_account.tests.test_anglo_saxon_valuation_reconciliation_common import ValuationReconciliationTestCommon
-from odoo.addons.sale_stock.tests.common import TestSaleStockCommon
 from odoo.exceptions import RedirectWarning, UserError
 from odoo.tests import Form, tagged
+
+from odoo.addons.sale_stock.tests.common import TestSaleStockCommon
+from odoo.addons.stock_account.tests.test_anglo_saxon_valuation_reconciliation_common import (
+    ValuationReconciliationTestCommon,
+)
 
 
 @tagged('post_install', '-at_install')
@@ -1517,11 +1519,11 @@ class TestSaleStock(TestSaleStockCommon, ValuationReconciliationTestCommon):
         - on OUT picking: there should be 2 stock.move.lines, one with package and one without
         """
         warehouse = self.company_data.get('default_warehouse')
-        self.env['res.config.settings'].write({
-            'group_stock_tracking_lot': True,
-            'group_stock_adv_location': True,
-            'group_stock_multi_locations': True,
-        })
+        self._enable_feature(
+            self.quick_ref('stock.group_adv_location')
+            + self.quick_ref('stock.group_multi_locations')
+            + self.quick_ref('stock.group_tracking_lot')
+        )
         warehouse.delivery_steps = 'pick_pack_ship'
         self.env['stock.quant']._update_available_quantity(self.test_product_delivery, warehouse.lot_stock_id, 10)
 
