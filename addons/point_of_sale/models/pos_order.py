@@ -256,11 +256,11 @@ class PosOrder(models.Model):
         help="Employee who uses the cash register.",
         default=lambda self: self.env.uid,
     )
-    amount_difference = fields.Float(string='Difference', digits=0, readonly=True)
-    amount_tax = fields.Float(string='Taxes', digits=0, readonly=True, required=True)
-    amount_total = fields.Float(string='Total', digits=0, readonly=True, required=True)
-    amount_paid = fields.Float(string='Paid', digits=0, required=True)
-    amount_return = fields.Float(string='Returned', digits=0, required=True, readonly=True)
+    amount_difference = fields.Monetary(string='Difference', readonly=True)
+    amount_tax = fields.Monetary(string='Taxes', readonly=True, required=True)
+    amount_total = fields.Monetary(string='Total', readonly=True, required=True)
+    amount_paid = fields.Monetary(string='Paid', required=True)
+    amount_return = fields.Monetary(string='Returned', required=True, readonly=True)
     margin = fields.Monetary(string="Margin", compute='_compute_margin')
     margin_percent = fields.Float(string="Margin (%)", compute='_compute_margin', digits=(12, 4))
     is_total_cost_computed = fields.Boolean(compute='_compute_is_total_cost_computed',
@@ -314,7 +314,7 @@ class PosOrder(models.Model):
     preset_time = fields.Datetime(string='Hour', help="Hour of the day for the order")
     is_invoiced = fields.Boolean('Is Invoiced', compute='_compute_is_invoiced')
     is_tipped = fields.Boolean('Is this already tipped?', readonly=True)
-    tip_amount = fields.Float(string='Tip Amount', digits=0, readonly=True)
+    tip_amount = fields.Monetary(string='Tip Amount', readonly=True)
     refund_orders_count = fields.Integer('Number of Refund Orders', compute='_compute_refund_related_fields', help="Number of orders where items from this order were refunded")
     refunded_order_id = fields.Many2one('pos.order', compute='_compute_refund_related_fields', help="Order from which items were refunded in this order")
     has_refundable_lines = fields.Boolean('Has Refundable Lines', compute='_compute_has_refundable_lines')
@@ -1284,13 +1284,11 @@ class PosOrderLine(models.Model):
         comodel_name='product.attribute.custom.value', inverse_name='pos_order_line_id',
         string="Custom Values",
         store=True, readonly=False)
-    price_unit = fields.Float(string='Unit Price', digits=0)
+    price_unit = fields.Monetary(string='Unit Price')
     qty = fields.Float('Quantity', digits='Product Unit of Measure', default=1)
-    price_subtotal = fields.Float(string='Tax Excl.', digits=0,
-        readonly=True, required=True)
-    price_subtotal_incl = fields.Float(string='Tax Incl.', digits=0,
-        readonly=True, required=True)
-    price_extra = fields.Float(string="Price extra")
+    price_subtotal = fields.Monetary(string='Tax Excl.', readonly=True, required=True)
+    price_subtotal_incl = fields.Monetary(string='Tax Incl.', readonly=True, required=True)
+    price_extra = fields.Monetary(string="Price extra")
     price_type = fields.Selection([
         ('original', 'Original'),
         ('manual', 'Manual'),
@@ -1298,7 +1296,7 @@ class PosOrderLine(models.Model):
     ], string='Price Type', default='original')
     margin = fields.Monetary(string="Margin", compute='_compute_margin')
     margin_percent = fields.Float(string="Margin (%)", compute='_compute_margin', digits=(12, 4))
-    total_cost = fields.Float(string='Total cost', digits='Product Price', readonly=True)
+    total_cost = fields.Monetary(string='Total cost', readonly=True)
     is_total_cost_computed = fields.Boolean(help="Allows to know if the total cost has already been computed or not")
     discount = fields.Float(string='Discount (%)', digits=0, default=0.0)
     order_id = fields.Many2one('pos.order', string='Order Ref', ondelete='cascade', required=True, index=True)
