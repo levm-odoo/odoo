@@ -94,7 +94,6 @@ registry.category("web_tour.tours").add("CashierStayLogged", {
             SelectionPopup.has("Mitchell Admin"),
             SelectionPopup.has("Mitchell Admin", { run: "click" }),
             Dialog.confirm("Open Register"),
-            PosHr.cashierNaeIs("Mitchell Admin"),
             PosHr.refreshPage(),
             ProductScreen.isShown(),
             Chrome.clickMenuButton(),

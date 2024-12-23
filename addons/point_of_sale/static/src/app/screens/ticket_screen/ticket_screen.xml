@@ -75,7 +75,7 @@
 
                             </table>
                             <t t-if="ui.isSmall" t-foreach="_filteredOrderList" t-as="order" t-key="order.uuid">
-                                <div class="mobileOrderList order-row d-flex flex-row ps-1" t-att-class="{ 'highlight': isHighlighted(order) }"
+                                <div class="mobileOrderList order-row d-flex flex-row ps-1" t-attf-class="{{ isHighlighted(order) ? 'highlight': '' }}"
                                     t-on-click="() => this.onClickOrder(order)" t-on-dblclick="() =>  order.uiState.locked ? ()=>{} : this._setOrder(order)" >
                                     <div class="p-2">
                                             <div class="fw-bolder"><t t-esc="getDate(order)"></t></div>
