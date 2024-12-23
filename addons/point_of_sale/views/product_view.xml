@@ -72,6 +72,8 @@
                                    groups="point_of_sale.group_pos_user"
                                    string="Category"
                                    options="{'color_field': 'color'}"/>
+                            <field name="color"
+                                   widget="color_picker" string="Color" />
                         </group>
                         <group string="Public Description" name="public_description" invisible="1">
                             <field name="public_description"
@@ -154,11 +156,17 @@
         <field name="model">product.template</field>
         <field name="inherit_id" ref="product.product_template_tree_view"/>
         <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="js_class">pos_list_renderer</attribute>
+            </xpath>
             <field name="categ_id" position="before">
                 <field name="pos_categ_ids" widget="many2many_tags" groups="point_of_sale.group_pos_user" optional="hide" string="POS Product Category"/>
             </field>
             <field name="pos_categ_ids" position="after">
                 <field name="available_in_pos" groups="point_of_sale.group_pos_user" optional="hide"/>
+            </field>
+            <field name="is_favorite" position="before">
+                <field name="sequence" widget="handle_widget" nolabel="1" groups="point_of_sale.group_pos_user" />
             </field>
         </field>
     </record>
@@ -188,6 +196,7 @@
             </xpath>
             <div name="tax_info" position="after">
                 <field name="pos_categ_ids" string="POS Category" class="oe_inline" widget="many2many_tags" placeholder="Unsaleable"/>
+                <field name="color" widget="color_picker" string="Color" />
             </div>
         </field>
     </record>
