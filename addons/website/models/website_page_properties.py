@@ -170,10 +170,7 @@ class WebsitePageProperties(models.TransientModel):
             url = record.url
             current_homepage_url = record.website_id.homepage_url or '/'
             record.is_homepage = url == current_homepage_url
-            if record.parent_id and record.is_homepage:
-                # record.has_parent_page = False
-                record.parent_id = False
-    
+
     @api.depends('parent_id')
     def _compute_has_parent_page(self):
         for page in self:
@@ -200,6 +197,11 @@ class WebsitePageProperties(models.TransientModel):
 
     def write(self, vals):
         write_result = super().write(vals)
+        # If the page is set as homepage, we need to remove the parent page.
+        if 'is_homepage' in vals:
+            for record in self:
+                if record.is_homepage and record.parent_id:
+                    record.parent_id = False
 
         # Once website.page has been written, the url might have been modified.
         # We can now create the redirects.

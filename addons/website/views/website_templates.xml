@@ -292,11 +292,9 @@
                 <nav aria-label="breadcrumb">
                     <t t-set="parent_page" t-value="main_object.parent_id"/>
                     <ul class="breadcrumb mb-0 container p-2">
-                        <li>
-                            <t t-if="parent_page.parent_id and parent_page.parent_id.url">
+                        <li t-if="parent_page.parent_id and parent_page.parent_id.url">
                                 <a t-att-href="parent_page.parent_id.url" t-out="parent_page.parent_id.name"/>
                                 <span class="pe-1"> / </span>
-                            </t>
                         </li>
                         <li>
                             <a t-att-href="parent_page.url" t-out="parent_page.name"/>
@@ -382,7 +380,7 @@
         <attribute name="t-attf-class" add="#{'o_breadcrumb_overlay' if 'breadcrumb_overlay' in main_object and main_object.breadcrumb_overlay else ''}" />
     </xpath>
     <xpath expr="//div[hasclass('o_page_breadcrumb')]" position="attributes">
-        <attribute name="t-attf-class" add="page_breadcrumb #{breadcrumb_bg_color_class} #{breadcrumb_text_color_class}" separator=" "/>
+        <attribute name="t-attf-class" add="o_page_breadcrumb #{breadcrumb_bg_color_class} #{breadcrumb_text_color_class}" separator=" "/>
         <attribute name="t-attf-style" add="#{breadcrumb_bg_color_style and ('background-color: %s;' % breadcrumb_bg_color_style)} #{breadcrumb_text_color_style and ('color: %s;' % breadcrumb_text_color_style)}"  separator=" "/>
     </xpath>
     <xpath expr="//div[hasclass('o_page_breadcrumb')]" position="attributes">

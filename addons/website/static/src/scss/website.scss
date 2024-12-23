@@ -209,7 +209,6 @@ body {
             }
             > nav {
                 @include o-apply-colors('breadcrumb');
-                @include o-apply-colors('breadcrumb-custom');
                 @include o-add-gradient('breadcrumb-gradient');
             }
         }

@@ -6,7 +6,7 @@ import {
     registerWebsitePreviewTour,
 } from '@website/js/tours/tour_utils';
 
-const breadcrumb = {id: "page_breadcrumb", name: "Breadcrumb"};
+const breadcrumb = {id: "o_page_breadcrumb", name: "Breadcrumb"};
 
 registerWebsitePreviewTour('website_page_options', {
     url: '/',
@@ -25,8 +25,8 @@ registerWebsitePreviewTour('website_page_options', {
     },
     ...clickOnEditAndWaitEditMode(),
     ...clickOnSnippet({id: 'o_header_standard', name: 'Header'}),
-    changeOption('topMenuColor', 'we-select.o_we_so_color_palette'),
-    changeOption('topMenuColor', 'button[data-color="black-50"]', 'background color', 'bottom', true),
+    changeOption('BaseColorOption', 'we-select.o_we_so_color_palette'),
+    changeOption('BaseColorOption', 'button[data-color="black-50"]', 'background color', 'bottom', true),
     ...clickOnSave(),
     {
         content: "Check that the header is in black-50",
@@ -34,8 +34,8 @@ registerWebsitePreviewTour('website_page_options', {
     },
     ...clickOnEditAndWaitEditMode(),
     ...clickOnSnippet({id: 'o_header_standard', name: 'Header'}),
-    changeOption("topMenuColor", '[data-page-option-name="header_text_color"]'),
-    changeOption("topMenuColor", 'button[style="background-color:#FF0000;"]', "text color", "bottom", true),
+    changeOption("BaseColorOption", '[data-page-option-name="header_text_color"]'),
+    changeOption("BaseColorOption", 'button[style="background-color:#FF0000;"]', "text color", "bottom", true),
     ...clickOnSave(),
     {
         content: "Check that text color of the header is in red",
@@ -150,8 +150,8 @@ registerWebsitePreviewTour("website_page_breadcrumb", {
     },
     ...clickOnEditAndWaitEditMode(),
     ...clickOnSnippet(breadcrumb),
-    changeOption("BreadcrumbColor", "we-select.o_we_so_color_palette"),
-    changeOption("BreadcrumbColor", "button[data-color='black-50']", "background color", "bottom", true),
+    changeOption("BaseColorOption", "we-select.o_we_so_color_palette"),
+    changeOption("BaseColorOption", "button[data-color='black-50']", "background color", "bottom", true),
     ...clickOnSave(),
     {
         content: "Check that the breadcrumb is in black-50",

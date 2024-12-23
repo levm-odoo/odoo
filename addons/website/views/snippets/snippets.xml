@@ -1448,7 +1448,7 @@
 
         <we-row string="Background">
             <we-colorpicker data-customize-website-color="" data-color="breadcrumb"
-                            data-customize-website-layer2-color="" data-layer-color="breadcrumb-custom" data-layer-gradient="breadcrumb-gradient"
+                            data-customize-website-layer2-color="" data-layer-color="breadcrumb" data-layer-gradient="breadcrumb-gradient"
                             data-no-bundle-reload="true"
                             data-null-value="'NULL'"
                             data-with-combinations="customizeWebsiteColor"

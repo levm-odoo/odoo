@@ -151,7 +151,6 @@ $-actual-user-color-palette: map-merge($-palette-default, $o-user-color-palette)
     'header-sales_four': 'header-sales_four-custom',
     'footer': 'footer-custom',
     'copyright': 'copyright-custom',
-    'breadcrumb': 'breadcrumb-custom',
 ) {
     $-base-value: map-get($-actual-user-color-palette, $name);
     @if $-base-value and $-base-value != 'NULL' and type-of($-base-value) != 'number' {
