@@ -8,6 +8,10 @@
                 <t t-call="website_payment.donation_information"/>
             </div>
         </xpath>
+        <xpath expr="//form[@id='o_payment_form']" position="attributes">
+            <attribute name="data-snippet" add="s_website_form"></attribute>
+            <attribute name="data-model_name" add="mail.mail"></attribute>
+        </xpath>
     </template>
 
     <!-- Display of /donation/pay -->
@@ -22,7 +26,7 @@
                     <t t-call="payment.portal_breadcrumb"/>
                     <!-- Payment page -->
                     <div class="row">
-                        <div class="col-lg-7">
+                        <div class="s_website_form o_editable col-lg-7">
                             <div t-if="not amount" class="alert alert-info">
                                 There is nothing to pay.
                             </div>
@@ -40,23 +44,26 @@
 
     <template id="website_payment.donation_information" name="Donation Information">
         <h3 class="o_page_header mt16 mb4">Donation</h3>
-        <div class="row">
-            <div t-attf-class="mb-3 #{error.get('name') and 'o_has_error' or ''} col-lg-12 div_name">
-                <label class="col-form-label fw-bold" for="name">Name
+        <div class="s_website_form_rows row">
+            <div data-type="char" data-name="Field" t-attf-class="s_website_form_field s_website_form_custom mb-3 s_website_form_required #{error.get('name') and 'o_has_error' or ''} col-lg-12 div_name">
+                <label class="s_website_form_label col-form-label fw-bold" for="name">
+                    <span class="s_website_form_label_content">Name</span>
                     <span class="s_website_form_mark"> *</span>
                 </label>
-                <input t-att-readonly="'1' if 'name' in partner_details and partner_id else None" type="text" name="name" t-attf-class="form-control #{error.get('name') and 'is-invalid' or ''}" t-att-value="partner_details.get('name')" />
+                <input t-att-readonly="'1' if 'name' in partner_details and partner_id else None" type="text" name="name" data-fill-with="name" t-attf-class="form-control s_website_form_input #{error.get('name') and 'is-invalid' or ''}" t-att-value="partner_details.get('name')" />
             </div>
             <div class="w-100"/>
-            <div t-attf-class="mb-3 #{error.get('email') and 'o_has_error' or ''} col-lg-6" id="div_email">
-                <label class="col-form-label fw-bold" for="email">Email
+            <div data-name="Field" t-attf-class="s_website_form_field s_website_form_custom mb-3 s_website_form_required #{error.get('email') and 'o_has_error' or ''} col-lg-6" id="div_email" data-type="char">
+                <label class="s_website_form_label col-form-label fw-bold" for="email">
+                    <span class="s_website_form_label_content">Email</span>
                     <span class="s_website_form_mark"> *</span>
                 </label>
-                <input t-att-readonly="'1' if 'email' in partner_details and partner_id else None" type="email" name="email" t-attf-class="form-control #{error.get('email') and 'is-invalid' or ''}" t-att-value="partner_details.get('email')" />
+                <input t-att-readonly="'1' if 'email' in partner_details and partner_id else None" type="email" name="email"  data-fill-with="email" t-attf-class="form-control s_website_form_input #{error.get('email') and 'is-invalid' or ''}" t-att-value="partner_details.get('email')" />
             </div>
             <t t-set="country_id" t-value="partner_details.get('country_id')"/>
-            <div t-attf-class="mb-3 #{error.get('country_id') and 'o_has_error' or ''} col-lg-6 div_country">
-                <label class="col-form-label fw-bold" for="country_id">Country
+            <div  data-name="Field" t-attf-class="s_website_form_field s_website_form_custom mb-3 #{error.get('country_id') and 'o_has_error' or ''} col-lg-6 div_country">
+                <label class="s_website_form_label col-form-label fw-bold" for="country_id">
+                    <span class="s_website_form_label_content">Country</span>
                     <span class="s_website_form_mark"> *</span>
                 </label>
                 <select t-att-disabled="'1' if country_id and partner_id else None" id="country_id" name="country_id" t-attf-class="form-select #{error.get('country_id') and 'is-invalid' or ''}">
