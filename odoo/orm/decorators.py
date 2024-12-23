@@ -242,6 +242,90 @@ def depends_context(*args):
     return attrsetter('_depends_context', args)
 
 
+def cron_generic(*, xmlid=''):  # XXX typing
+    """EXAMPLES"""
+
+    @cron_generic()
+    def ex_cron_fetch_mail(self):
+        for server in self.search([('state', '=', 'done')]):
+            with server.connect() as connection:
+                for mail_data in connection.fetch_some_mail():
+                    result = yield lambda env: server.with_env(env).parse_mail(mail_data)
+
+    @cron_generic()
+    def ex_vacuum(self):
+        methods = self.env.list_vacuum_methods()
+        progress_stats = {...}
+        for method in methods:
+            try:
+                yield lambda env: method()  # bind env
+                yield progress_stats
+            except:
+                logging.exception("failed to run")
+
+    def ex_somefunction():
+        # if xmlid is defined, trigger it
+        ex_cron_fetch_mail.trigger()
+
+    def dec(method):
+        def real_cron_method(self):
+            results = []
+            for val in method(self):
+                if isinstance(val, dict):
+                    progress_notify(**val)
+                elif is_testing and callable(val):
+                    results.append(val(self.env))
+                elif callable(val):
+                    with self.env.cursor() as new_cr:
+                        env = self.env(cr=new_cr)
+                        result = val(env)
+                    results.append(result)
+                    method.send(result)
+            yield from results
+        method = model(real_cron_method)
+        if not method.__name__.startswith('_cron_'):
+            _logger.warning("cron method should start with '_cron_'")
+        method._cron_xmlid = xmlid
+        return method
+    return dec
+
+
+def cron_process_records(*, xmlid='', domain, additional_domain=None, limit=1, order=None, lock=True):  # XXX typing
+    """EXAMPLES"""
+    @cron_process_records(domain=[('status', '=', 'to_send')])
+    def ex_cron_send_mail(self):
+        self.ensure_one()
+        self.send()
+
+    @cron_process_records(domain=lambda self: self._inactive_visitors_domain(), limit=1000)
+    def ex_cron_unlink_visitors(self):
+        self.unlink()
+
+    def dec(method):
+        def process_record(record):
+            record = record.exists_locked(lock).filtered_domain(domain).with_prefetch()
+            if not record:
+                return
+            method(record)
+            # increase done
+            model.env['ir.cron']._notify_progress()
+
+        @cron_generic(xmlid=xmlid)
+        def process_records(model):
+            limit_search = limit if limit > 1 else 1000  # batch simple search and then perform by limit
+            records = model.search(domain & additional_domain, limit=limit_search, order=order)
+            progress_dict = dict(
+                done = 0,
+                remaining = len(records) + (111 if limit else 0),
+            )
+            for record in records:
+                yield lambda env: process_record(record.with_env(env).with_context(progress=progress_dict))
+                # XXX update progress here?
+
+        return process_records
+    return dec
+
+
 def autovacuum(method):
     """
     Decorate a method so that it is called by the daily vacuum cron job (model
