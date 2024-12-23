@@ -1310,11 +1310,8 @@ def _operator_hierarchy(condition, model):
         hierarchy = _operator_parent_of_domain
     else:
         hierarchy = _operator_child_of_domain
-    value = condition.value
-    if value is False:
-        _logger.warning('Using %s with False value, the result will be empty', condition.operator)
     # Get:
-    # - field: used in the resulting domain)
+    # - field: used for parent name
     # - parent (str | None): field name to find parent in the hierarchy
     # - comodel_sudo: used to resolve the hierarchy
     # - comodel: used to search for ids based on the value
@@ -1334,8 +1331,19 @@ def _operator_hierarchy(condition, model):
             parent = condition.field_expr
         if field.type == 'many2one':
             field = model._fields['id']
+    else:
+        """XXX lot of queries like ('company_id', 'child_of', [1]) - accept for now
+        warnings.warn(
+            "Hierarchy operators require a field with the same comodel"
+            f", use [({condition.field_expr!r}, 'in', ['id', {condition.operator!r}, value])]",
+            DeprecationWarning)
+        """
+        return Domain(condition.field_expr, 'in', Domain('id', condition.operator, condition.value)._optimize(comodel))
     # Get the initial ids and bind them to comodel_sudo before resolving the hierarchy
-    coids = _value_to_ids(value, comodel, 'in')
+    value = condition.value
+    if value is False:
+        return _FALSE_DOMAIN
+    coids = _value_to_ids(value, comodel, 'in')  # XXX depends on removal of this function
     if field.type == 'many2many' or isinstance(coids, (SQL, Query)):
         # always search for many2many
         coids = comodel.search(Domain('id', 'in', coids), order='id').ids
@@ -1343,11 +1351,7 @@ def _operator_hierarchy(condition, model):
         return _FALSE_DOMAIN
     result = hierarchy(comodel_sudo.browse(coids), parent)
     # Format the resulting domain
-    if isinstance(result, Domain):
-        if field.name == 'id':
-            return result
-        return DomainCondition(field.name, 'any', result)
-    return DomainCondition(field.name, 'in', result)
+    return result if isinstance(result, Domain) else DomainCondition('id', 'in', result)
 
 
 def _operator_child_of_domain(comodel: BaseModel, parent):
@@ -1362,6 +1366,7 @@ def _operator_child_of_domain(comodel: BaseModel, parent):
         # recursively retrieve all children nodes with sudo(); the
         # filtering of forbidden records is done by the rest of the
         # domain
+        # XXX recursive query
         child_ids: OrderedSet[int] = OrderedSet()
         while comodel:
             child_ids.update(comodel._ids)
@@ -1383,6 +1388,7 @@ def _operator_parent_of_domain(comodel: BaseModel, parent):
         # recursively retrieve all parent nodes with sudo() to avoid
         # access rights errors; the filtering of forbidden records is
         # done by the rest of the domain
+        # XXX recursive query
         parent_ids = OrderedSet()
         while comodel:
             parent_ids.update(comodel._ids)
