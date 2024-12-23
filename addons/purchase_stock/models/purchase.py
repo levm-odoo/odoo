@@ -345,7 +345,6 @@ class PurchaseOrderLine(models.Model):
         return moves
 
     def _get_po_line_invoice_lines_su(self):
-        #TODO remove in master: un-used
         return self.sudo().invoice_lines
 
     @api.depends('move_ids.state', 'move_ids.product_uom_qty', 'move_ids.product_uom')
