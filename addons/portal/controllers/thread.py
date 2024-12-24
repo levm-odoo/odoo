@@ -16,6 +16,7 @@ class ThreadController(thread.ThreadController):
                 post_data["author_id"] = partner.id
         return post_data
 
+    @classmethod
     def _can_edit_message(self, message, **access_params):
         self.ensure_one()
         if message.model and message.res_id and message.env.user._is_public():
