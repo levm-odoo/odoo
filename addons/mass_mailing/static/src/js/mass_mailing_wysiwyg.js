@@ -194,7 +194,9 @@ export class MassMailingWysiwyg extends Wysiwyg {
             this.toolbarEl.querySelector('#create-link').classList.toggle('d-none', true);
         }
         //remove checklist command for mass_mailing
-        const checklistCommand = this.odooEditor.powerbox.commands.find(command => command.fontawesome === "fa-check-square-o");
+        const checklistCommand = this.odooEditor.powerbox.commands.find(
+            command => command.fontawesome === "fa-check-square-o"
+        );
         if (checklistCommand) {
             checklistCommand.isDisabled = () => true;
         }
@@ -205,10 +207,14 @@ export class MassMailingWysiwyg extends Wysiwyg {
      */
     _getEditorOptions() {
         const options = super._getEditorOptions(...arguments);
-        const finalOptions = { ...options, autoActivateContentEditable: false, allowCommandVideo: false, toolbarOptions: {
+        const finalOptions = {
+            ...options, autoActivateContentEditable: false,
+            allowCommandVideo: false,
+            toolbarOptions: {
                 ...options.toolbarOptions,
                 showChecklist: false,
-            }};
+            }
+        };
         return finalOptions;
     }
 }

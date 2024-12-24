@@ -156,7 +156,8 @@ export class PowerboxPlugin extends Plugin {
     getAvailablePowerboxCommands() {
         const selection = this.dependencies.selection.getEditableSelection();
         return this.powerboxCommands.filter(
-            (cmd) => cmd.isAvailable === undefined || cmd.isAvailable(selection)
+            (cmd) =>
+                !cmd.isDisabled && (cmd.isAvailable === undefined || cmd.isAvailable(selection))
         );
     }
 
@@ -174,7 +175,7 @@ export class PowerboxPlugin extends Plugin {
         return powerboxItems.map((/** @type {PowerboxItem} */ item) => {
             const command = this.dependencies.userCommand.getCommand(item.commandId);
             return {
-                ...pick(command, "title", "description", "icon", "isAvailable"),
+                ...pick(command, "title", "description", "icon", "isAvailable", "isDisabled"),
                 ...omit(item, "commandId", "commandParams"),
                 categoryName: categoryDict[item.categoryId].name,
                 run: () => command.run(item.commandParams),

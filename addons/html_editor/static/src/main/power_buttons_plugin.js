@@ -57,6 +57,9 @@ export class PowerButtonsPlugin extends Plugin {
         /** @returns {HTMLButtonElement} */
         const itemToButton = (/**@type {PowerButton} */ item) => {
             const command = this.dependencies.userCommand.getCommand(item.commandId);
+            if (command.isDisabled) {
+                return;
+            }
             const composedPowerButton = {
                 ...pick(command, "title", "icon"),
                 ...omit(item, "commandId", "commandParams"),
@@ -74,7 +77,7 @@ export class PowerButtonsPlugin extends Plugin {
 
         /** @type {PowerButton[]} */
         const powerButtons = this.getResource("power_buttons");
-        this.powerButtonsContainer.append(...powerButtons.map(itemToButton));
+        this.powerButtonsContainer.append(...powerButtons.map(itemToButton).filter(Boolean));
         this.powerButtonsOverlay.append(this.powerButtonsContainer);
     }
 
