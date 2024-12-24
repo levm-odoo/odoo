@@ -47,8 +47,7 @@ class DeliveryCarrier(models.Model):
     )
     is_collect_on_delivery = fields.Boolean(
         string="Cash on delivery",
-        help="When activated, users on e-commerce will see `Cash on delivery` as payment"
-             " method. Meaning no payment will be required to check out.",
+        help="When activated, users will see `Cash on delivery` as payment method.",
         default=False,
     )
     integration_level = fields.Selection([('rate', 'Get Rate'), ('rate_and_ship', 'Get Rate and Create Shipment')], string="Integration Level", default='rate_and_ship', help="Action while validating Delivery Orders")
