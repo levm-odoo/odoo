@@ -809,7 +809,7 @@ class ResPartner(models.Model):
                 _logger.debug('Another transaction already locked partner rows. Cannot update partner ranks.')
 
     @api.model
-    def _run_vat_test(self, vat_number, default_country, partner_is_company=True):
+    def _run_vat_test(self, vat_number, country_code):
         """ Checks a VAT number syntactically to ensure its validity upon saving.
 
         :param vat_number: a string with the VAT number to check.
@@ -823,7 +823,7 @@ class ResPartner(models.Model):
                  against the provided or guessed country. None if no country was available
                  for the check, and no conclusion could be made with certainty.
         """
-        return default_country.code.lower()
+        return country_code.lower()
 
     @api.model
     def _build_vat_error_message(self, country_code, wrong_vat, record_label):

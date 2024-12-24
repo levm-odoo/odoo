@@ -99,14 +99,48 @@ class ResPartner(models.Model):
     )
     # Field representing whether vies_valid is relevant for selecting a fiscal position on this partner
     perform_vies_validation = fields.Boolean(compute='_compute_perform_vies_validation')
-    # We put on inverse to allow for different
-    vat = fields.Char(inverse="_compute_vat", store=True)
+    # We put on inverse because a compute with a dependency to itself is not well managed in the ORM (it should be triggered first)
+    vat = fields.Char(inverse="_inverse_vat", store=True)
 
-    @api.onchange('vat', 'country_id')
-    def _compute_vat(self):
+    def _inverse_vat(self):
         for partner in self:
-            if partner.country_id:
-                partner.vat = partner._fix_vat_number(partner.vat, partner.country_id.id)
+            if not partner.vat or len(partner.vat) == 1:
+                continue
+
+            country = partner.commercial_partner_id.country_id
+            vat = partner.vat
+            if not country:
+                continue
+
+            vat_country, vat_number = self._split_vat(vat)
+
+            if len(vat) > 2 and vat_country == 'eu' and country not in self.env.ref('base.europe').country_ids:
+                # Foreign companies that trade with non-enterprises in the EU
+                # may have a VATIN starting with "EU" instead of a country code.
+                continue
+
+            prefixed_country = ''
+            if country in self._get_eu_prefixed_countries():
+                prefixed_country = country.code
+                if vat_country.isalpha():
+                    country_code = _eu_country_vat_inverse.get(vat_country, vat_country)
+                    if country_code.upper() in self._get_eu_prefixed_countries().mapped('code'):
+                        vat = vat_number
+                        prefixed_country = vat_country
+
+            code_to_check = prefixed_country or country.code.lower()
+            vat = partner._fix_vat_number(vat, code_to_check)
+            partner.vat = prefixed_country.upper() + vat
+
+            # The context key 'no_vat_validation' allows you to store/set a VAT number without doing validations.
+            # This is for API pushes from external platforms where you have no control over VAT numbers.
+            if self.env.context.get('no_vat_validation'):
+                continue
+
+            if not self._run_vat_test(vat, code_to_check):
+                partner_label = _("partner [%s]", partner.name)
+                msg = partner._build_vat_error_message(code_to_check, partner.vat, partner_label)
+                raise ValidationError(msg)
 
     @api.depends_context('company')
     @api.depends('vat')
@@ -121,24 +155,6 @@ class ResPartner(models.Model):
                 and self.env.company.vat_check_vies
             )
 
-    @api.constrains('vat', 'country_id')
-    def check_vat(self):
-        # The context key 'no_vat_validation' allows you to store/set a VAT number without doing validations.
-        # This is for API pushes from external platforms where you have no control over VAT numbers.
-        if self.env.context.get('no_vat_validation'):
-            return
-
-        for partner in self:
-            # Skip checks when only one character is used. Some users like to put '/' or other as VAT to differentiate between
-            # A partner for which they didn't input VAT, and the one not subject to VAT
-            if not partner.vat or len(partner.vat) == 1:
-                continue
-
-            country = partner.commercial_partner_id.country_id
-            if self._run_vat_test(partner.vat, country, partner.is_company) is False:
-                partner_label = _("partner [%s]", partner.name)
-                msg = partner._build_vat_error_message(country and country.code.lower() or None, partner.vat, partner_label)
-                raise ValidationError(msg)
 
     @api.depends('vat')
     def _compute_vies_valid(self):
@@ -185,21 +201,13 @@ class ResPartner(models.Model):
         )
 
     @api.model
-    def simple_vat_check(self, country_code, vat_number):
+    def _simple_vat_check(self, country_code, vat_number):
         '''
-        Check the VAT number depending of the country.
-        http://sima-pc.com/nif.php
+        Check the VAT number depending on the country.
         '''
-        if not country_code.encode().isalpha():
-            return False
         check_func_name = 'check_vat_' + country_code
         check_func = getattr(self, check_func_name, None) or getattr(stdnum.util.get_cc_module(country_code, 'vat'), 'is_valid', None)
-        if not check_func:
-            # No VAT validation available, default to check that the country code exists
-            country_code = _eu_country_vat_inverse.get(country_code, country_code)
-            return bool(self.env['res.country'].search([('code', '=ilike', country_code)]))
-        return check_func(vat_number)
-
+        return check_func(vat_number) if check_func else True
 
     @api.model
     def fix_eu_vat_number(self, country_id, vat):
@@ -212,37 +220,12 @@ class ResPartner(models.Model):
         return vat
 
     @api.model
-    def _run_vat_test(self, vat_number, default_country, partner_is_company=True):
+    def _run_vat_test(self, vat_number, country_code):
         # OVERRIDE account
-        check_result = None
+        check_result = self._simple_vat_check(country_code, vat_number)
+        if check_result:
+            return country_code
 
-        if len(vat_number) > 2 and vat_number[:2].lower() == 'eu' and default_country not in self.env.ref('base.europe').country_ids:
-            # Foreign companies that trade with non-enterprises in the EU
-            # may have a VATIN starting with "EU" instead of a country code.
-            return True
-
-        country_code_to_check = default_country and default_country.code.lower()
-        vat_number_split = vat_number
-        if default_country and default_country in self._get_eu_prefixed_countries():
-            # First check with country code as prefix of the TIN
-            vat_country_code, vat_number_split_maybe = self._split_vat(vat_number)
-            vat_has_legit_country_code = self.env['res.country'].search([('code', '=', vat_country_code.upper())],
-                                                                        limit=1)
-            if not vat_has_legit_country_code:
-                vat_has_legit_country_code = vat_country_code.lower() in _region_specific_vat_codes
-            if vat_has_legit_country_code:
-                country_code_to_check = vat_country_code
-                vat_number_split = vat_number_split_maybe
-
-        if country_code_to_check:
-            check_result = self.simple_vat_check(country_code_to_check, vat_number_split)
-            if check_result:
-                return country_code_to_check
-
-        # We allow any number if it doesn't start with a country code and the partner has no country.
-        # This is necessary to support an ORM limitation: setting vat and country_id together on a company
-        # triggers two distinct write on res.partner, one for each field, both triggering this constraint.
-        # If vat is set before country_id, the constraint must not break.
         return check_result
 
     @api.model
@@ -704,25 +687,14 @@ class ResPartner(models.Model):
         stdnum_vat_format = stdnum.util.get_cc_module('sm', 'vat').compact
         return stdnum_vat_format('SM' + vat)[2:]
 
-    def _fix_vat_number(self, vat, country_id):
-        if not country_id or not vat:
-            return vat
-        country = self.env['res.country'].browse(country_id)
-        vat_country = False
-        if country in self._get_eu_prefixed_countries():
-            vat_country, vat_number = self._split_vat(vat)
-            if not vat_country.isalpha():
-                vat_country = False
-            else:
-                vat = vat_number
-        to_check_country = vat_country or country.code.lower()
-        stdnum_vat_fix_func = getattr(stdnum.util.get_cc_module(to_check_country, 'vat'), 'compact', None)
+    def _fix_vat_number(self, vat, country_code):
+        stdnum_vat_fix_func = getattr(stdnum.util.get_cc_module(country_code, 'vat'), 'compact', None)
         # If any localization module needs to define vat fix method for its country then we give first priority to it.
-        format_func_name = 'format_vat_' + to_check_country
+        format_func_name = 'format_vat_' + country_code
         format_func = getattr(self, format_func_name, None) or stdnum_vat_fix_func
         if format_func:
             vat = format_func(vat)
-        return vat_country.upper() + vat if vat_country else vat
+        return vat
 
     @api.model
     def _convert_hu_local_to_eu_vat(self, local_vat):
