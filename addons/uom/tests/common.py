@@ -22,7 +22,3 @@ class UomCommon(BaseCommon):
         # existing database configuration (e.g. implied when sale_timesheet is installed, ...)
         if cls.group_uom in cls.group_user.implied_ids:
             cls.group_user._remove_group(cls.group_uom)
-
-    @classmethod
-    def _enable_uom(cls):
-        cls._enable_feature(cls.group_uom)

@@ -17,7 +17,7 @@ class TestMrpOrder(TestMrpCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls._enable_feature(cls.quick_ref('stock.group_production_lot'))
+        cls._enable_feature('stock.group_production_lot')
 
     def test_access_rights_manager(self):
         """ Checks an MRP manager can create, confirm and cancel a manufacturing order. """
@@ -4914,8 +4914,10 @@ class TestTourMrpOrder(HttpCase):
             the detailed operation modal for manufacturings and by-products.
         """
 
-        self.env['res.config.settings'].create({'group_stock_multi_locations': True}).execute()
-        self.env['res.config.settings'].create({'group_mrp_byproducts': True}).execute()
+        self.env['res.config.settings'].create({
+            'group_stock_multi_locations': True,
+            'group_mrp_byproducts': True,
+        }).execute()
 
         location = self.env.ref('stock.stock_location_stock')
         product = self.env['product.product']

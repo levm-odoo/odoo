@@ -27,6 +27,10 @@ class BaseCommon(TransactionCase):
         # Hack to use with_context and avoid manual context dict modification
         cls.env = cls.env['base'].with_context(**cls.default_env_context()).env
 
+        cls.group_portal = cls.quick_ref('base.group_portal')
+        cls.group_user = cls.quick_ref('base.group_user')
+        cls.group_system = cls.quick_ref('base.group_system')
+
         independent_user = cls.setup_independent_user()
         if independent_user:
             cls.env = cls.env(user=independent_user)
@@ -48,10 +52,6 @@ class BaseCommon(TransactionCase):
         cls.partner = cls.env['res.partner'].create({
             'name': 'Test Partner',
         })
-
-        cls.group_portal = cls.quick_ref('base.group_portal')
-        cls.group_user = cls.quick_ref('base.group_user')
-        cls.group_system = cls.quick_ref('base.group_system')
 
     @classmethod
     def default_env_context(cls):
@@ -145,8 +145,14 @@ class BaseCommon(TransactionCase):
         )
 
     @classmethod
-    def _enable_feature(cls, feature_groups):
-        cls.group_user.implied_ids = [Command.link(group.id) for group in feature_groups]
+    def _enable_feature(cls, feature_groups, portal=False):
+        xml_ids = feature_groups.split(',')
+        feature_groups = [cls.quick_ref(xml_id.strip()) for xml_id in xml_ids]
+        commands = [Command.link(group.id) for group in feature_groups]
+        cls.group_user.implied_ids = commands
+
+        if portal:
+            cls.group_portal.implied_ids = commands
 
     @classmethod
     def quick_ref(cls, xmlid):

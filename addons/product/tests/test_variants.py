@@ -1103,7 +1103,7 @@ class TestVariantsArchive(ProductVariantsCommon):
         """ Changing the uom on the template do not behave the same
         as changing on the product product."""
         # Required for `uom_id` to be visible in the view
-        self._enable_uom()
+        self._enable_feature('uom.group_uom')
 
         units = self.uom_unit
         cm = self.env.ref('uom.product_uom_cm')

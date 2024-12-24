@@ -1,13 +1,15 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-from datetime import date, timedelta
+
+from datetime import timedelta
 
 from odoo import Command
-from odoo.fields import Date
-from odoo.tools import float_is_zero
 from odoo.exceptions import UserError, ValidationError
-from odoo.addons.hr_timesheet.tests.test_timesheet import TestCommonTimesheet
-from odoo.addons.sale_timesheet.tests.common import TestCommonSaleTimesheet
+from odoo.fields import Date
 from odoo.tests import Form, tagged
+from odoo.tools import float_is_zero
+
+from odoo.addons.sale_timesheet.tests.common import TestCommonSaleTimesheet
+
 
 @tagged('-at_install', 'post_install')
 class TestSaleTimesheet(TestCommonSaleTimesheet):
@@ -920,20 +922,21 @@ class TestSaleTimesheet(TestCommonSaleTimesheet):
         self.assertEqual(5, sale_order_line_template_2.project_id.allocated_hours)
 
     def test_onchange_uom_service_product(self):
-        uom_unit = self.env.ref('uom.product_uom_unit')
-        uom_kg = self.env.ref('uom.product_uom_kgm')
+        self._enable_feature('uom.group_uom')
+        uom_unit = self.uom_unit
+        uom_kg = self.uom_kgm
 
         # Create product (consumable that will be switch to service)
-        product_1 = self.env['product.template'].create([
+        product_1, product_2 = self.env['product.template'].create([
             {
                 'name': "Consumable to convert to service 1",
                 'standard_price': 10,
             },
-        ])
-        product_2 = self.env['product.product'].create({
+            {
                 'name': "Consumable to convert to service 2",
                 'standard_price': 15,
-        })
+            },
+        ])
 
         # Initial uom should be unit
         self.assertEqual([product_1.uom_id.id, product_2.uom_id.id], [uom_unit.id]*2)

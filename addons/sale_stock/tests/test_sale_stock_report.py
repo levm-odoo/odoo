@@ -190,7 +190,7 @@ class TestSaleStockInvoices(TestSaleCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls._enable_feature(cls.quick_ref('stock.group_production_lot'))
+        cls._enable_feature('stock.group_production_lot')
         cls.product_by_lot, cls.product_by_usn = cls.env['product.product'].create([{
             'name': 'Product By Lot',
             'is_storable': True,

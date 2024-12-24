@@ -20,7 +20,7 @@ class TestTraceability(TestMrpCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls._enable_feature(cls.quick_ref('stock.group_production_lot'))
+        cls._enable_feature('stock.group_production_lot')
 
     def _create_product(self, tracking):
         return self.env['product.product'].create({

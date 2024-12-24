@@ -12,7 +12,6 @@ class ProductCommon(UomCommon):
         super().setUpClass()
 
         cls.group_product_pricelist = cls.quick_ref('product.group_product_pricelist')
-        cls.group_product_variant = cls.quick_ref('product.group_product_variant')
         cls.product_category = cls.env['product.category'].create({
             'name': 'Test Category',
         })

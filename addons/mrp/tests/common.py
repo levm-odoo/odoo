@@ -80,6 +80,13 @@ class TestMrpCommon(TestStockCommon):
             'is_storable': True,
         })
 
+
+        # Both groups below are required to make fields `product_uom_id` and
+        # `workorder_ids` to be visible in the view of `mrp.production`. The
+        # field `product_uom_id` must be set by many tests, and subviews of
+        # `workorder_ids` must be present in many tests to create records.
+        cls._enable_feature('uom.group_uom,mrp.group_mrp_routings,mrp.group_mrp_byproducts')
+
         # User Data: mrp user and mrp manager
         cls.user_mrp_user = mail_new_test_user(
             cls.env,
@@ -87,7 +94,7 @@ class TestMrpCommon(TestStockCommon):
             login='hilda',
             email='h.h@example.com',
             notification_type='inbox',
-            groups='mrp.group_mrp_user, stock.group_stock_user, mrp.group_mrp_byproducts, uom.group_uom',
+            groups='mrp.group_mrp_user',
         )
         cls.user_mrp_manager = mail_new_test_user(
             cls.env,
@@ -95,14 +102,7 @@ class TestMrpCommon(TestStockCommon):
             login='gary',
             email='g.g@example.com',
             notification_type='inbox',
-            groups='mrp.group_mrp_manager, stock.group_stock_user, mrp.group_mrp_byproducts, uom.group_uom',
-        )
-        # Both groups below are required to make fields `product_uom_id` and
-        # `workorder_ids` to be visible in the view of `mrp.production`. The
-        # field `product_uom_id` must be set by many tests, and subviews of
-        # `workorder_ids` must be present in many tests to create records.
-        cls._enable_feature(
-            cls.group_uom + cls.quick_ref('mrp.group_mrp_routings')
+            groups='mrp.group_mrp_manager',
         )
 
         cls.workcenter_1 = cls.env['mrp.workcenter'].create({

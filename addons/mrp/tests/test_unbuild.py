@@ -13,7 +13,7 @@ class TestUnbuild(TestMrpCommon):
     def setUpClass(cls):
         super().setUpClass()
         cls.stock_location = cls.env.ref('stock.stock_location_stock')
-        cls._enable_feature(cls.quick_ref('stock.group_production_lot'))
+        cls._enable_feature('stock.group_production_lot')
 
     def test_unbuild_standart(self):
         """ This test creates a MO and then creates 3 unbuild

@@ -17,7 +17,7 @@ class TestDeliveryCost(DeliveryCommon, SaleCommon):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls._enable_uom()
+        cls._enable_feature('uom.group_uom')
 
         # the tests hereunder assume all the prices in USD
         cls.env.company.country_id = cls.env.ref('base.us').id
@@ -216,9 +216,6 @@ class TestDeliveryCost(DeliveryCommon, SaleCommon):
 
     def test_01_taxes_on_delivery_cost(self):
         # Creating taxes and fiscal position
-
-        self._enable_feature(self.group_product_pricelist)
-
         tax_price_include, tax_price_exclude = self.env['account.tax'].create([{
             'name': '10% inc',
             'type_tax_use': 'sale',
@@ -247,8 +244,6 @@ class TestDeliveryCost(DeliveryCommon, SaleCommon):
         self.normal_delivery.product_id.taxes_id = tax_price_include
 
         # Create sales order
-        # Required to see `pricelist_id` in the view
-        self._enable_feature(self.group_product_pricelist)
         order_form = Form(self.env['sale.order'].with_context(tracking_disable=True))
         order_form.partner_id = self.partner
         order_form.fiscal_position_id = fiscal_position

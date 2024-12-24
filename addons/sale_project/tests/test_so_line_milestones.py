@@ -14,8 +14,8 @@ class TestSoLineMilestones(TestSaleCommon):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.env['res.config.settings'].create({'group_project_milestone': True}).execute()
-        uom_hour = cls.env.ref('uom.product_uom_hour')
+        cls._enable_feature('project.group_project_milestone', portal=True)
+        uom_hour = cls.uom_hour
 
         cls.product_delivery_milestones1 = cls.env['product.product'].create({
             'name': "Milestones 1, create project only",

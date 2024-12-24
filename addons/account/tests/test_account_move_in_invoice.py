@@ -130,7 +130,7 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
             'amount_tax': 168.0,
             'amount_total': 1128.0,
         }
-        cls._enable_uom()
+        cls._enable_feature('uom.group_uom')
 
     @classmethod
     def setup_armageddon_tax(cls, tax_name, company_data, **kwargs):
@@ -2544,11 +2544,14 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
         Ensure that taxes are recomputed correctly when product uom and
         price unit are changed for users without 'uom.group_uom' group
         """
+        # Enabled in the setUpClass, must be removed manually
+        self.group_user._remove_group(self.group_uom)
+        self.env.user.groups_id -= self.group_uom
         self.assertNotIn(self.group_uom, self.env.user.groups_id)
         tax = self.company_data['default_tax_purchase']
         product = self.env['product.product'].create({
             'name': 'product',
-            'uom_id': self.env.ref('uom.product_uom_unit').id,
+            'uom_id': self.uom_unit.id,
             'standard_price': 0.0,
             'supplier_taxes_id': [Command.set(tax.ids)],
         })

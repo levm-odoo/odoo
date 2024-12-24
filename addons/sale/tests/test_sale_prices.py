@@ -19,7 +19,7 @@ class TestSalePrices(SaleCommon):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls._enable_discounts()
+        cls._enable_feature('sale.group_discount_per_so_line')
         cls.discount = 10  # %
 
         # Needed when run without demo data
@@ -634,10 +634,6 @@ class TestSalePrices(SaleCommon):
         """Test application of a fiscal position mapping
         price included to price included tax
         """
-        # If test is run without demo data
-        # pricelists are not automatically enabled
-        self._enable_feature(self.group_product_pricelist)
-        pricelist = self.pricelist
         partner = self.partner
 
         (
@@ -745,7 +741,6 @@ class TestSalePrices(SaleCommon):
         # Test Mapping included to included
         order_form = Form(SaleOrder)
         order_form.partner_id = partner
-        order_form.pricelist_id = pricelist
         order_form.fiscal_position_id = fpos_incl_incl
         with order_form.order_line.new() as line:
             line.name = product_tmpl_a.product_variant_id.name
@@ -757,7 +752,6 @@ class TestSalePrices(SaleCommon):
         # Test Mapping excluded to included
         order_form = Form(SaleOrder)
         order_form.partner_id = partner
-        order_form.pricelist_id = pricelist
         order_form.fiscal_position_id = fpos_excl_incl
         with order_form.order_line.new() as line:
             line.name = product_tmpl_b.product_variant_id.name
@@ -769,7 +763,6 @@ class TestSalePrices(SaleCommon):
         # Test Mapping included to excluded
         order_form = Form(SaleOrder)
         order_form.partner_id = partner
-        order_form.pricelist_id = pricelist
         order_form.fiscal_position_id = fpos_incl_excl
         with order_form.order_line.new() as line:
             line.name = product_tmpl_a.product_variant_id.name
@@ -781,7 +774,6 @@ class TestSalePrices(SaleCommon):
         # Test Mapping excluded to excluded
         order_form = Form(SaleOrder)
         order_form.partner_id = partner
-        order_form.pricelist_id = pricelist
         order_form.fiscal_position_id = fpos_excl_excl
         with order_form.order_line.new() as line:
             line.name = product_tmpl_b.product_variant_id.name
@@ -793,7 +785,6 @@ class TestSalePrices(SaleCommon):
         # Test Mapping (included,excluded) to (included, included)
         order_form = Form(SaleOrder)
         order_form.partner_id = partner
-        order_form.pricelist_id = pricelist
         order_form.fiscal_position_id = fpos_excl_incl
         with order_form.order_line.new() as line:
             line.name = product_tmpl_c.product_variant_id.name
@@ -805,7 +796,6 @@ class TestSalePrices(SaleCommon):
         # Test Mapping (excluded,included) to (excluded, excluded)
         order_form = Form(SaleOrder)
         order_form.partner_id = partner
-        order_form.pricelist_id = pricelist
         order_form.fiscal_position_id = fpos_incl_excl
         with order_form.order_line.new() as line:
             line.name = product_tmpl_d.product_variant_id.name

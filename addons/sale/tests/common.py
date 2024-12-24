@@ -18,9 +18,6 @@ class SaleCommon(
 
         cls.env.company.country_id = cls.quick_ref('base.us')
 
-        # Not defined in product common because only used in sale
-        cls.group_discount_per_so_line = cls.quick_ref('sale.group_discount_per_so_line')
-
         (cls.product + cls.service_product).write({
             'taxes_id': [Command.clear()],
         })
@@ -42,10 +39,6 @@ class SaleCommon(
                 ]
             },
         ])
-
-    @classmethod
-    def _enable_discounts(cls):
-        cls._enable_feature(cls.group_discount_per_so_line)
 
 
 class TestSaleCommon(AccountTestInvoicingCommon):

@@ -42,7 +42,7 @@ class TestPricelist(ProductCommon):
                 }),
             ],
         })
-        cls._enable_feature(cls.group_product_pricelist)
+        cls._enable_feature('product.group_product_pricelist')
 
     def test_10_discount(self):
         # Make sure the price using a pricelist is the same than without after

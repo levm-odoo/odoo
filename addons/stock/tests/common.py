@@ -118,8 +118,7 @@ class TestStockCommon(TestProductCommon):
         cls.kgB = cls.ProductObj.create({'name': 'kg-B', 'is_storable': True, 'uom_id': cls.uom_kg.id, 'uom_po_id': cls.uom_kg.id})
         cls.gB = cls.ProductObj.create({'name': 'g-B', 'is_storable': True, 'uom_id': cls.uom_gm.id, 'uom_po_id': cls.uom_gm.id})
 
-        cls.group_production_lot = cls.quick_ref('stock.group_production_lot')
-        cls._enable_feature(cls.group_production_lot)
+        cls._enable_feature('stock.group_production_lot')
 
         #######################################################################
         # TODO: refactor these changes from common2.py

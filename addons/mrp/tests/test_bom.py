@@ -13,7 +13,7 @@ class TestBoM(TestMrpCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls._enable_feature(cls.quick_ref('mrp.group_mrp_routings') + cls.group_product_variant)
+        cls._enable_feature('mrp.group_mrp_routings,product.group_product_variant')
 
     def test_01_explode(self):
         boms, lines = self.bom_1.explode(self.product_4, 3)

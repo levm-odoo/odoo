@@ -22,7 +22,7 @@ class TestPurchaseMrpFlow(AccountTestInvoicingCommon):
         cls.warehouse = cls.env['stock.warehouse'].search([('company_id', '=', cls.env.company.id)])
         cls.stock_location = cls.warehouse.lot_stock_id
 
-        cls._enable_feature(cls.group_uom)
+        cls._enable_feature('uom.group_uom')
 
         cls.uom_kg = cls.env['uom.uom'].search([('category_id', '=', cls.categ_kgm.id), ('uom_type', '=', 'reference')],
                                                  limit=1)

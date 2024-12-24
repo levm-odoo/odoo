@@ -9,9 +9,7 @@ class TestSaleProjectCommon(TestSaleCommon):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.env['res.config.settings'] \
-            .create({'group_project_milestone': True}) \
-            .execute()
+        cls._enable_feature('project.group_project_milestone', portal=True)
 
         cls.uom_hour = cls.env.ref('uom.product_uom_hour')
         cls.account_sale = cls.company_data['default_account_revenue']

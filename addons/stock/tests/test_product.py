@@ -227,7 +227,7 @@ class TestVirtualAvailable(TestStockCommon):
         calling `name_search` with a negative operator will exclude T from the
         result.
         """
-        self._enable_feature(self.group_product_variant)
+        self._enable_feature('product.group_product_variant')
         template = self.env['product.template'].create({
             'name': 'Super Product',
         })
