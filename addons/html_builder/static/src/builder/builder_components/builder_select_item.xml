@@ -5,7 +5,8 @@
     <BuilderComponent dependencies="props.dependencies">
         <div
             class="d-flex flex-column cursor-pointer"
-            t-att-class="{'active': this.state.isActive}"
+            t-att-class="className"
+            t-att-style="props.style"
             t-att-data-action-id="props.action"
             t-att-data-class-action="this.props.classAction"
             t-att-data-attribute-action-id="props.attributeAction || this.env.weContext.attributeAction"

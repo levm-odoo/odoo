@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="html_builder.snippet_options_border_line_widgets">
+    <BuilderRow label="label" applyTo="applyTo">
+        <BuilderNumberInput id="'border_width_opt'" styleAction="'border-'+ (direction and (direction+'-') or '') +'width'" unit="'px'"></BuilderNumberInput>
+        <BuilderSelect dependencies="'border_width_opt'" styleAction="'border-'+ (direction and (direction+'-') or '') +'style'">
+            <BuilderSelectItem styleActionValue="'solid'" class="'o_we_fake_img_item o_we_border_preview'" style="'border-style: solid;'">Solid</BuilderSelectItem>
+            <BuilderSelectItem styleActionValue="'dashed'" class="'o_we_fake_img_item o_we_border_preview'" style="'border-style: dashed;'">Dashed</BuilderSelectItem>
+            <BuilderSelectItem styleActionValue="'dotted'" class="'o_we_fake_img_item o_we_border_preview'" style="'border-style: dotted;'">Dotted</BuilderSelectItem>
+            <BuilderSelectItem styleActionValue="'double'" class="'o_we_fake_img_item o_we_border_preview'" style="'border-style: double; border-left: none; border-right: none;'">Double</BuilderSelectItem>
+        </BuilderSelect>
+        <BuilderColorPicker dependencies="'border_width_opt'" styleAction="'border-'+ (direction and (direction+'-') or '') +'color'"/>
+    </BuilderRow>
+</t>
+</templates>

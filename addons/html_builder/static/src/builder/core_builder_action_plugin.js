@@ -1,5 +1,6 @@
 import { Plugin } from "@html_editor/plugin";
 import { registry } from "@web/core/registry";
+import hbUtils from "@html_builder/builder/utils/utils_css";
 
 class CoreBuilderActionPlugin extends Plugin {
     static id = "CoreBuilderAction";
@@ -8,6 +9,25 @@ class CoreBuilderActionPlugin extends Plugin {
     };
 }
 registry.category("website-plugins").add(CoreBuilderActionPlugin.id, CoreBuilderActionPlugin);
+
+const applyStyleAction = ({ editingElement, param: styleName, value, unit }) => {
+    // Always reset the inline style first to not put inline style on an
+    // element which already has this style through css stylesheets.
+    const cssProps = hbUtils.CSS_SHORTHANDS[styleName] || [styleName];
+    for (const cssProp of cssProps) {
+        editingElement.style.setProperty(cssProp, "");
+    }
+    const customStyle = styleMap[styleName];
+    if (customStyle) {
+        customStyle?.apply(editingElement, value);
+    } else {
+        value = value + (unit ? unit : "");
+        const styles = window.getComputedStyle(editingElement);
+        if (!hbUtils.areCssValuesEqual(styles.getPropertyValue(styleName), value, styleName)) {
+            editingElement.style.setProperty(styleName, value);
+        }
+    }
+};
 
 function getNumericStyle(styleName) {
     return {
@@ -70,21 +90,28 @@ export const coreBuilderActions = {
         },
     },
     styleAction: {
-        getValue: ({ editingElement, param: styleName }) => {
+        getValue: ({ editingElement, param: styleName, unit }) => {
             const customStyle = styleMap[styleName];
             if (customStyle) {
                 return customStyle.getValue(editingElement);
             } else {
-                return getComputedStyle(editingElement).getPropertyValue(styleName);
+                let value = getComputedStyle(editingElement).getPropertyValue(styleName);
+                value = value.replace(unit, "");
+                if (!isNaN(value)) {
+                    return parseInt(value);
+                }
+                return value;
             }
         },
-        apply: ({ editingElement, param: styleName, value }) => {
-            const customStyle = styleMap[styleName];
-            if (customStyle) {
-                customStyle?.apply(editingElement, value);
-            } else {
-                editingElement.style.setProperty(styleName, value);
+        apply: applyStyleAction,
+        clean: applyStyleAction,
+        isApplied: ({ editingElement, param: styleName, value, unit }) => {
+            if (!value) {
+                return false;
             }
+            value = value + (unit ? unit : "");
+            const styles = window.getComputedStyle(editingElement);
+            return hbUtils.areCssValuesEqual(styles.getPropertyValue(styleName), value, styleName);
         },
     },
     attributeAction: {

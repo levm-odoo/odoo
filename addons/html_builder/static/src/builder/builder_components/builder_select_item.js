@@ -13,6 +13,8 @@ export class BuilderSelectItem extends Component {
         id: { type: String, optional: true },
         title: { type: String, optional: true },
         slots: { type: Object, optional: true },
+        class: { type: String, optional: true },
+        style: { type: String, optional: true },
     };
     static defaultProps = defaultBuilderComponentProps;
     static components = { BuilderComponent };
@@ -33,5 +35,10 @@ export class BuilderSelectItem extends Component {
         };
         this.onMouseenter = operation.preview;
         this.onMouseleave = operation.revert;
+    }
+
+    get className() {
+        const activeClass = this.state.isActive ? " active" : "";
+        return this.props.class + activeClass;
     }
 }

@@ -1,5 +1,5 @@
 import { expect, test } from "@odoo/hoot";
-import { animationFrame, click, fill, queryFirst } from "@odoo/hoot-dom";
+import { animationFrame, clear, click, fill, queryFirst } from "@odoo/hoot-dom";
 import { xml } from "@odoo/owl";
 import { contains } from "@web/../tests/web_test_helpers";
 import {
@@ -120,4 +120,59 @@ test("hide/display base on applyTo", async () => {
     expect("[data-class-action='my-custom-class']").toHaveClass("active");
     expect("[data-action-id='customAction']").toHaveCount(1);
     expect("[data-action-id='customAction'] input").toHaveValue("customValue");
+});
+test("should commit changes after an undo", async () => {
+    addActionOption({
+        customAction: {
+            getValue: ({ editingElement }) => editingElement.innerHTML,
+            apply: ({ editingElement, value }) => {
+                expect.step(`customAction ${value}`);
+                editingElement.innerHTML = value;
+            },
+        },
+    });
+    addOption({
+        selector: ".test-options-target",
+        template: xml`<BuilderNumberInput action="'customAction'"/>`,
+    });
+    await setupWebsiteBuilder(`
+                <div class="test-options-target">10</div>
+            `);
+    await contains(":iframe .test-options-target").click();
+    await click(".options-container input");
+    await fill(2);
+    expect(":iframe .test-options-target").toHaveInnerHTML("102");
+    await click(document.body);
+    expect.verifySteps(["customAction 102", "customAction 102"]);
+    await animationFrame();
+    click(".o-snippets-top-actions .fa-undo");
+    await animationFrame();
+    expect(":iframe .test-options-target").toHaveInnerHTML("10");
+    await click(".options-container input");
+    await fill("2");
+    expect(":iframe .test-options-target").toHaveInnerHTML("102");
+    await click(document.body);
+    expect.verifySteps(["customAction 102", "customAction 102"]);
+});
+test("test classAction on input component", async () => {
+    addOption({
+        selector: ".test-options-target",
+        template: xml`<BuilderNumberInput classAction="'testAction'" styleAction="'--custom-property'"/>`,
+    });
+    await setupWebsiteBuilder(`
+                <div class="test-options-target">10</div>
+            `);
+    await contains(":iframe .test-options-target").click();
+    expect(":iframe .test-options-target").not.toHaveClass("testAction");
+    await click(".options-container input");
+    await fill(2);
+    await contains(document.body).click();
+    expect(":iframe .test-options-target").toHaveStyle({
+        "--custom-property": "2",
+    });
+    expect(":iframe .test-options-target").toHaveClass("testAction");
+    await click(".options-container input");
+    await clear();
+    await contains(document.body).click();
+    expect(":iframe .test-options-target").not.toHaveClass("testAction");
 });

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "@odoo/hoot";
-import { animationFrame, queryAllTexts, queryFirst } from "@odoo/hoot-dom";
+import { animationFrame, clear, fill, queryAllTexts, queryFirst } from "@odoo/hoot-dom";
 import { Component, onWillStart, xml } from "@odoo/owl";
 import { contains, patchWithCleanup } from "@web/../tests/web_test_helpers";
 import { addOption, defineWebsiteModels, setupWebsiteBuilder } from "../helpers";
@@ -503,5 +503,29 @@ describe("dependencies", () => {
         expect(
             "[data-attribute-action='my-attribute2'][data-attribute-action-value='2']"
         ).not.toBeDisplayed();
+    });
+    test("a button should not be visible if it depends of an input that is not set/set to zero", async () => {
+        addOption({
+            selector: ".test-options-target",
+            template: xml`
+                <BuilderRow label="'test'">
+                    <BuilderNumberInput id="'x'" styleAction="'--custom-property'"></BuilderNumberInput>
+                    <BuilderButton classAction="'b1'" dependencies="'x'">b1</BuilderButton>
+                </BuilderRow>
+            `,
+        });
+        await setupWebsiteBuilder(`<div class="test-options-target a">a</div>`);
+        await contains(":iframe .test-options-target").click();
+        expect(".options-container").toBeDisplayed();
+        expect("[data-class-action='b1']").not.toBeDisplayed();
+        await contains(".options-container input").click();
+        await fill("2");
+        await contains(document.body).click();
+        expect("[data-class-action='b1']").toBeDisplayed();
+        await contains(".options-container input").click();
+        await clear();
+        await fill("0");
+        await contains(document.body).click();
+        expect("[data-class-action='b1']").not.toBeDisplayed();
     });
 });

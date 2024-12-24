@@ -440,12 +440,14 @@ export function useInputBuilderComponent() {
     const getAction = comp.env.editor.shared.builderActions.getAction;
     const state = useDomState(getState);
     const applyValue = comp.env.editor.shared.history.makePreviewableOperation((value) => {
+        const action = !value || !parseInt(value) ? "clean" : "apply";
         for (const [actionId, actionParam] of getActions()) {
             for (const editingElement of comp.env.getEditingElements()) {
-                getAction(actionId).apply({
+                getAction(actionId)[action]({
                     editingElement,
                     param: actionParam,
                     value,
+                    unit: comp.props.unit,
                 });
             }
         }
@@ -455,13 +457,18 @@ export function useInputBuilderComponent() {
             // TODO try to remove it. We need to move hook in BuilderComponent
             return {};
         }
-        const [actionId, actionParam] = getActions()[0];
-        return {
-            value: getAction(actionId).getValue({
-                editingElement,
-                param: actionParam,
-            }),
-        };
+        for (const [actionId, actionParam] of getActions()) {
+            const action = getAction(actionId);
+            if (action.getValue) {
+                return {
+                    value: action.getValue({
+                        editingElement,
+                        param: actionParam,
+                        unit: comp.props.unit,
+                    }),
+                };
+            }
+        }
     }
     function getActions() {
         const actions = [];
@@ -482,22 +489,49 @@ export function useInputBuilderComponent() {
         }
         return actions;
     }
-    let lastCommitedValue;
     function onChange(e) {
         const value = e.target.value;
-        if (value === lastCommitedValue) {
-            return;
-        }
-        lastCommitedValue = value;
         applyValue.commit(value);
     }
     function onInput(e) {
         applyValue.preview(e.target.value);
     }
+    function isApplied() {
+        // TODO group stuffs common with useClickableBuilderComponent
+        const editingElements = comp.env.getEditingElements();
+        if (!editingElements.length) {
+            return;
+        }
+        const value = getState(comp.env.getEditingElement()).value;
+        const areActionsActiveTabs = getActions().map((o) => {
+            const [actionId, actionParam] = o;
+            const editingElement = editingElements[0];
+            const isApplied = getAction(actionId).isApplied?.({
+                editingElement,
+                param: actionParam,
+                value: value,
+                unit: comp.props.unit,
+            });
+            return comp.props.inverseAction ? !isApplied : isApplied;
+        });
+        // If there is no `isApplied` method for the widget return false
+        if (areActionsActiveTabs.every((el) => el === undefined)) {
+            return false;
+        }
+        // If `isApplied` is explicitly false for an action return false
+        if (areActionsActiveTabs.some((el) => el === false)) {
+            return false;
+        }
+        // `isApplied` is true for at least one action
+        return true;
+        // return !!getState(comp.env.getEditingElement()).value;
+    }
     return {
         state,
         onChange,
         onInput,
+        getActions,
+        isApplied,
     };
 }
 
