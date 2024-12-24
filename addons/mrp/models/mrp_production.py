@@ -1825,6 +1825,8 @@ class MrpProduction(models.Model):
             production.with_context(skip_compute_move_raw_ids=True).product_qty = amounts[production][0]
 
             next_seq = max(production.procurement_group_id.mrp_production_ids.mapped("backorder_sequence"), default=1)
+            for workorder in backorder_vals['workorder_ids']:
+                workorder[2]['employee_assigned_ids'] = production.workorder_ids.filtered(lambda w: w.name == workorder[2]['name']).employee_assigned_ids
 
             for qty_to_backorder in backorder_qtys:
                 next_seq += 1
