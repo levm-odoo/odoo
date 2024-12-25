@@ -10,6 +10,38 @@
     </t>
 </template>
 
+<template id="s_live_event">
+<section class="s_live_event"/>
+</template>
+
+<template id="s_live_event_123" name="Live Events">
+    <section class="s_live_event m-3">
+    <t t-esc="hhehehehehehe"/>
+        <t t-if="event">
+            <div class="d-flex mx-2 align-items-center justify-content-center">
+                <h4 class="px-3 py-1 text-white bg-danger rounded m-2">
+                    LIVE
+                </h4>
+                <h2 class="event-title mt-2">
+                    <t t-out="event['name']"/>
+                </h2>
+            </div>
+            <t t-set="cover_props" t-value="json.loads(event['cover_properties'] or '{}')"/>
+            <t t-set="background_image" t-value="cover_props.get('background-image').replace('url(', '').replace(')', '').replace(&quot;'&quot;, '')"/>
+            <a t-att-href="'/live_event_redirect/%s' % event['id']" target="_blank" class="d-flex justify-content-center">
+                <div class="m-3 rounded overflow-hidden">
+                    <img t-att-src="background_image" class="img-fluid rounded"/>
+                </div>
+            </a>
+        </t>
+        <t t-else="">
+            <h3 class="d-flex justify-content-center m-5">
+                No Live Events!
+            </h3>
+        </t>
+    </section>
+</template>
+
 <!--TEMPLATES-->
 
 <template id="dynamic_filter_template_event_event_picture" name="Picture Layout" priority="5">

@@ -410,6 +410,20 @@ class WebsiteEventController(http.Controller):
             'iCal_url': urls.get('iCal_url')
         }
 
+    @http.route(['/live_event_redirect/<model("event.event"):event>'], type='http', auth="public", website=True, sitemap=False, readonly=True)
+    def live_event_redirect(self, event):
+        if 'track_ids' in event:
+            live_track = next((track for track in event.track_ids if track.is_track_live), None)
+            if live_track:
+                return request.redirect(live_track.website_url)
+        return request.redirect(event.website_url)
+
+    @http.route(['/live_event'], type='jsonrpc', auth='public', website=True, readonly=True)
+    def get_live_event_snippet(self):
+        event = request.env['event.event'].search([('is_ongoing', '=', True)], limit=1)
+        template = 'website_event.s_live_event_123'
+        return request.render(template, {'event': event})
+
     # ------------------------------------------------------------
     # TOOLS (HELPERS)
     # ------------------------------------------------------------
