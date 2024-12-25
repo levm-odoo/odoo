@@ -4851,11 +4851,8 @@ test("prevent drag and drop of record if grouped by readonly", async () => {
     expect.verifySteps([]);
 });
 
-test("prevent drag and drop if grouped by date/datetime field", async () => {
-    Partner._records[0].date = "2017-01-08";
-    Partner._records[1].date = "2017-01-09";
-    Partner._records[2].date = "2017-02-08";
-    Partner._records[3].date = "2017-02-10";
+test.tags("desktop");
+test("prevent drag and drop if grouped by datetime field", async () => {
     Partner._records[0].datetime = "2017-01-08 10:55:05";
     Partner._records[1].datetime = "2017-01-09 11:31:10";
     Partner._records[2].datetime = "2017-02-08 09:20:25";
@@ -4872,15 +4869,11 @@ test("prevent drag and drop if grouped by date/datetime field", async () => {
                     </t>
                 </templates>
             </kanban>`,
-        searchViewArch: `
-            <search>
-                <filter name="group_by_datetime" domain="[]" string="GroupBy Datetime" context="{ 'group_by': 'datetime' }"/>
-            </search>`,
-        groupBy: ["date:month"],
+        groupBy: ["datetime:month"],
     });
 
     expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(2, {
+    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2, {
         message: "1st column should contain 2 records of January month",
     });
     expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(2, {
@@ -4898,31 +4891,6 @@ test("prevent drag and drop if grouped by date/datetime field", async () => {
     });
     expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(2, {
         message: "Should remain same records in 2nd column (2 record)",
-    });
-
-    await toggleSearchBarMenu();
-    await toggleMenuItem("GroupBy Datetime");
-    await toggleMenuItemOption("GroupBy Datetime", "Month");
-
-    expect(".o_kanban_group").toHaveCount(2);
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2, {
-        message: "1st column should contain 2 records of January month",
-    });
-    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(2, {
-        message: "2nd column should contain 2 records of February month",
-    });
-
-    // drag&drop a record in another column
-    await contains(".o_kanban_group:first-child .o_kanban_record").dragAndDrop(
-        ".o_kanban_group:nth-child(2)"
-    );
-
-    // should not drag&drop record
-    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2, {
-        message: "Should remain same records in first column(2 records)",
-    });
-    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(2, {
-        message: "Should remain same records in 2nd column(2 record)",
     });
 });
 
@@ -9245,7 +9213,7 @@ test("d&d records grouped by date with progressbar with aggregates", async () =>
                     </t>
                 </templates>
             </kanban>`,
-        groupBy: ["date:month"],
+        groupBy: ["date:day"],
     });
 
     expect(getKanbanCounters()).toEqual(["13", "19"]);
@@ -13518,4 +13486,133 @@ test("display the field's falsy_value_label for false group, if defined", async 
     });
 
     expect(".o_kanban_group:first-child .o_column_title").toHaveText("I'm the false group\n(1)");
+});
+
+test.tags("desktop");
+test("drag and drop if grouped month by date field", async () => {
+    Partner._records[0].date = "2017-01-08";
+    Partner._records[1].date = "2017-01-09";
+    Partner._records[2].date = "2017-02-08";
+    Partner._records[3].date = "2017-02-10";
+
+    await mountView({
+        type: "kanban",
+        resModel: "partner",
+        arch: `
+            <kanban>
+                <templates>
+                    <t t-name="card">
+                        <field name="foo"/>
+                    </t>
+                </templates>
+            </kanban>`,
+        groupBy: ["date:month"],
+    });
+
+    expect(".o_kanban_group").toHaveCount(2);
+    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(2, {
+        message: "1st column should contain 2 records of January month",
+    });
+    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(2, {
+        message: "2nd column should contain 2 records of February month",
+    });
+
+    // attempt to drag&drop a record in another column
+    await contains(".o_kanban_group:first-child .o_kanban_record").dragAndDrop(
+        ".o_kanban_group:nth-child(2)"
+    );
+
+    // should not drag&drop record
+    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(2, {
+        message: "1st column should contain 2 records of January month (2 records)",
+    });
+    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(2, {
+        message: "2nd column should contain 2 records of February month (2 records)",
+    });
+});
+
+test.tags("desktop");
+test("drag and drop if grouped interval day by date field", async () => {
+    Partner._records[0].date = "2017-01-08";
+    Partner._records[1].date = "2017-01-09";
+    Partner._records[2].date = "2017-02-08";
+    Partner._records[3].date = "2017-02-10";
+
+    await mountView({
+        type: "kanban",
+        resModel: "partner",
+        arch: `
+            <kanban>
+                <templates>
+                    <t t-name="card">
+                        <field name="foo"/>
+                    </t>
+                </templates>
+            </kanban>`,
+        groupBy: ["date:day"],
+    });
+
+    expect(".o_kanban_group").toHaveCount(4);
+    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(1, {
+        message: "1st column should contain 1 records of 08-01-2017",
+    });
+    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(1, {
+        message: "2nd column should contain 1 records of 09-01-2017",
+    });
+
+    // drag&drop a record in another column
+    await contains(".o_kanban_group:first-child .o_kanban_record").dragAndDrop(
+        ".o_kanban_group:nth-child(2)"
+    );
+
+    // drag&drop record
+    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(0, {
+        message: "1st column should contain 0 records of 08-01-2017",
+    });
+    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(2, {
+        message: "2nd column should contain 2 records of 09-01-2017",
+    });
+});
+
+test.tags("desktop");
+test("drag and drop if grouped interval day by datetime field", async () => {
+    Partner._records[0].datetime = "2017-01-08 10:55:05";
+    Partner._records[1].datetime = "2017-01-09 11:31:10";
+    Partner._records[2].datetime = "2017-02-08 09:20:25";
+    Partner._records[3].datetime = "2017-02-10 08:05:51";
+
+    await mountView({
+        type: "kanban",
+        resModel: "partner",
+        arch: `
+            <kanban>
+                <templates>
+                    <t t-name="card">
+                        <field name="foo"/>
+                    </t>
+                </templates>
+            </kanban>`,
+        groupBy: ["datetime:day"],
+    });
+
+    expect(".o_kanban_group").toHaveCount(4);
+    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(1, {
+        message: "1st column should contain 1 records of 08-01-2017",
+    });
+    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(1, {
+        message: "2nd column should contain 1 records of 09-01-2017",
+    });
+
+    // drag&drop a record in another column
+    await contains(".o_kanban_group:first-child .o_kanban_record").dragAndDrop(
+        ".o_kanban_group:nth-child(2)"
+    );
+
+    // drag&drop record
+    expect(".o_kanban_group:first-child .o_kanban_record").toHaveCount(0, {
+        message: "1st column should contain 0 records of 08-01-2017",
+    });
+    expect(".o_kanban_group:nth-child(2) .o_kanban_record").toHaveCount(2, {
+        message: "2nd column should contain 2 records of 09-01-2017",
+    });
 });
