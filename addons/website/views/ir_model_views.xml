@@ -17,7 +17,7 @@
             </xpath>
 
             <xpath expr="//page[@name='base']/group/group/field[@name='translate']" position="after">
-                <field name="website_form_blacklisted"/>
+                <field name="frontend_form_blacklisted"/>
             </xpath>
         </field>
     </record>
@@ -28,7 +28,7 @@
         <field name="inherit_id" ref="base.view_model_fields_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='translate']" position="after">
-                <field name="website_form_blacklisted"/>
+                <field name="frontend_form_blacklisted"/>
             </xpath>
         </field>
     </record>

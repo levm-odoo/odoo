@@ -178,13 +178,5 @@ response = DynamicFilter._get_products('alternative_products', product_template_
             <field name="website_form_access">True</field>
             <field name="website_form_label">Create a Customer</field>
         </record>
-        <function model="ir.model.fields" name="formbuilder_whitelist">
-            <value>res.partner</value>
-            <value eval="[
-                'name', 'phone', 'email',
-                'city', 'zip', 'street', 'street2', 'state_id', 'country_id',
-                'vat', 'company_name'
-            ]"/>
-        </function>
     </data>
 </odoo>
