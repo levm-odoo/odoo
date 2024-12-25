@@ -66,6 +66,12 @@ class PaymentLinkWizard(models.TransientModel):
             installments = wizard.open_installments or []
             wizard.display_open_installments = len(installments) > 1
 
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        res.pop('installment_state', None)
+        return res
+
     def _prepare_url(self, base_url, related_document):
         """ Override of `payment` to use the portal page URL. """
         res = super()._prepare_url(base_url, related_document)
