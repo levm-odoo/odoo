@@ -11,3 +11,5 @@ from . import res_config_settings
 from . import res_country_state
 from . import res_partner
 from . import uom_uom
+from . import account_payment_term
+from . import account_payment_register
