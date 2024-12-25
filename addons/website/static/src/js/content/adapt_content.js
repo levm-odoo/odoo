@@ -27,4 +27,31 @@ document.addEventListener('DOMContentLoaded', () => {
         searchDivEl.appendChild(searchModalEl);
         mainEl.appendChild(searchDivEl);
     }
+    // Hack: on page load we adjust the breadcrumb position.
+    adjustBreadcrumb();
 });
+
+function adjustBreadcrumb() {
+    // Hack: on the header overlay, the breadcrumb should be below the header.
+    // checking wheather 'o_header_overlay' class is present on 'wrapwrap' div
+    // and adjusting the breadcrumb position accordingly.
+    const wrapwrapEl = document?.querySelector("div#wrapwrap");
+    const breadcrumbEl = wrapwrapEl?.querySelector("div.o_page_breadcrumb");
+    const headerHeight = wrapwrapEl?.querySelector("header#top")?.getBoundingClientRect().height;
+    if(breadcrumbEl && headerHeight){
+        if (wrapwrapEl.classList.contains("o_header_overlay")) {
+            if (!breadcrumbEl.classList.contains("o_header_breadcrumb")) {
+                breadcrumbEl.classList.add("o_header_breadcrumb");
+            }
+            breadcrumbEl.style.top = "";
+            breadcrumbEl.style.top = `${headerHeight}px`;
+        } else {
+            breadcrumbEl.classList.remove("o_header_breadcrumb");
+            breadcrumbEl.style.top = "";
+        }
+    }
+}
+// binding the adjustBreadcrumb function to window resize event
+// as 'resize' is dispatched when changing the position option of the header
+// see 'VisibilityPageOptionUpdate` class in snippets.options.js.
+window.addEventListener("resize", adjustBreadcrumb);

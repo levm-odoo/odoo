@@ -201,6 +201,12 @@ body {
         @include body-image-bg-style();
     }
 
+    > main div.o_page_breadcrumb.o_header_breadcrumb{
+        position: absolute;
+        z-index: 1;
+        width: 100%;
+    }
+
     > main:not(.o_breadcrumb_overlay) {
         > div.o_page_breadcrumb {
             background-color: transparent !important;
@@ -217,7 +223,7 @@ body {
     > main.o_breadcrumb_overlay {
         > div.o_page_breadcrumb {
             @include o-position-absolute(auto, 0, auto, 0);
-            z-index: 1000 !important;
+            z-index: 1 !important;
             a {
                 color: inherit !important;
             }
