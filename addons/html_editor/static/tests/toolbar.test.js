@@ -296,6 +296,43 @@ test("toolbar works: can select font size", async () => {
     expect(".o-we-toolbar [name='font-size']").toHaveText(oSmallSize);
 });
 
+test("toolbar works: show the correct text alignment", async () => {
+    const { el } = await setupEditor("<p>test</p>");
+    expect(getContent(el)).toBe("<p>test</p>");
+
+    // set selection to open toolbar
+    expect(".o-we-toolbar").toHaveCount(0);
+    setContent(el, "<p>[test]</p>");
+    await waitFor(".o-we-toolbar");
+    expect("button[title='Text align']").toHaveCount(1);
+    expect("button[title='Text align'] span").toHaveInnerHTML(`<i class="fa fa-align-left"> </i>`);
+    await click("button[title='Text align']");
+    await animationFrame();
+    await contains(".o_align_selector_menu .dropdown-item .fa-align-right").click();
+    expect(getContent(el)).toBe(`<p style="text-align: right;">[test]</p>`);
+    expect("button[title='Text align'] span").toHaveInnerHTML(`<i class="fa fa-align-right"> </i>`);
+});
+
+test("toolbar works: show the correct text alignment after undo", async () => {
+    const { el } = await setupEditor("<p>[test]</p>");
+    await waitFor(".o-we-toolbar");
+    expect("button[title='Text align']").toHaveCount(1);
+    expect("button[title='Text align'] span").toHaveInnerHTML(`<i class="fa fa-align-left"> </i>`);
+    await click("button[title='Text align']");
+    await animationFrame();
+    await contains(".o_align_selector_menu .dropdown-item .fa-align-right").click();
+    expect(getContent(el)).toBe(`<p style="text-align: right;">[test]</p>`);
+    expect("button[title='Text align'] span").toHaveInnerHTML(`<i class="fa fa-align-right"> </i>`);
+    await press(["ctrl", "z"]);
+    await animationFrame();
+    expect(getContent(el)).toBe(`<p>[test]</p>`);
+    expect("button[title='Text align'] span").toHaveInnerHTML(`<i class="fa fa-align-left"> </i>`);
+    await press(["ctrl", "y"]);
+    await animationFrame();
+    expect(getContent(el)).toBe(`<p style="text-align: right;">[test]</p>`);
+    expect("button[title='Text align'] span").toHaveInnerHTML(`<i class="fa fa-align-right"> </i>`);
+});
+
 test.tags("desktop");
 test("toolbar works: display correct font size on select all", async () => {
     const { el } = await setupEditor("<p>test</p>");

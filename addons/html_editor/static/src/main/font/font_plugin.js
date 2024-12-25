@@ -149,7 +149,7 @@ export class FontPlugin extends Plugin {
             withSequence(10, {
                 id: "font",
             }),
-            withSequence(29, {
+            withSequence(28, {
                 id: "font-size",
             }),
         ],
