@@ -565,7 +565,6 @@ class AccountPayment(models.Model):
                     pay.destination_account_id = self.env['account.account'].with_company(pay.company_id).search([
                         *self.env['account.account']._check_company_domain(pay.company_id),
                         ('account_type', '=', 'asset_receivable'),
-                        ('deprecated', '=', False),
                     ], limit=1)
             elif pay.partner_type == 'supplier':
                 # Send money to pay a bill or receive money to refund it.
@@ -575,7 +574,6 @@ class AccountPayment(models.Model):
                     pay.destination_account_id = self.env['account.account'].with_company(pay.company_id).search([
                         *self.env['account.account']._check_company_domain(pay.company_id),
                         ('account_type', '=', 'liability_payable'),
-                        ('deprecated', '=', False),
                     ], limit=1)
 
     @api.depends('partner_bank_id', 'amount', 'memo', 'currency_id', 'journal_id', 'move_id.state',

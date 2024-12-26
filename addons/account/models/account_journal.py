@@ -69,7 +69,6 @@ class AccountJournal(models.Model):
 
     def _get_default_account_domain(self):
         return """[
-            ('deprecated', '=', False),
             ('account_type', 'in', ('asset_cash', 'liability_credit_card') if type == 'bank'
                                    else ('liability_credit_card',) if type == 'credit'
                                    else ('asset_cash',) if type == 'cash'
@@ -109,7 +108,7 @@ class AccountJournal(models.Model):
     autocheck_on_post = fields.Boolean(string="Auto-Check on Post", default=True)
     account_control_ids = fields.Many2many('account.account', 'journal_account_control_rel', 'journal_id', 'account_id', string='Allowed accounts',
         check_company=True,
-        domain="[('deprecated', '=', False), ('account_type', '!=', 'off_balance')]")
+        domain="[('account_type', '!=', 'off_balance')]")
     default_account_type = fields.Char(string='Default Account Type', compute="_compute_default_account_type")
     default_account_id = fields.Many2one(
         comodel_name='account.account', check_company=True, copy=False, ondelete='restrict',
@@ -120,7 +119,7 @@ class AccountJournal(models.Model):
         compute='_compute_suspense_account_id',
         help="Bank statements transactions will be posted on the suspense account until the final reconciliation "
              "allowing finding the right account.", string='Suspense Account',
-        domain="[('deprecated', '=', False), ('account_type', '=', 'asset_current')]",
+        domain="[('account_type', '=', 'asset_current')]",
     )
     restrict_mode_hash_table = fields.Boolean(string="Secure Posted Entries with Hash",
         help="If ticked, when an entry is posted, we retroactively hash all moves in the sequence from the entry back to the last hashed entry. The hash can also be performed on demand by the Secure Entries wizard.")
@@ -204,14 +203,12 @@ class AccountJournal(models.Model):
         comodel_name='account.account', check_company=True,
         help="Used to register a profit when the ending balance of a cash register differs from what the system computes",
         string='Profit Account',
-        domain="[('deprecated', '=', False), \
-                ('account_type', 'in', ('income', 'income_other'))]")
+        domain="[('account_type', 'in', ('income', 'income_other'))]")
     loss_account_id = fields.Many2one(
         comodel_name='account.account', check_company=True,
         help="Used to register a loss when the ending balance of a cash register differs from what the system computes",
         string='Loss Account',
-        domain="[('deprecated', '=', False), \
-                ('account_type', '=', 'expense')]")
+        domain="[('account_type', '=', 'expense')]")
 
     # Bank journals fields
     company_partner_id = fields.Many2one('res.partner', related='company_id.partner_id', string='Account Holder', readonly=True, store=False)
