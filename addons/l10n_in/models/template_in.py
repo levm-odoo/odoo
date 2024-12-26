@@ -87,6 +87,7 @@ class AccountChartTemplate(models.AbstractModel):
             'fiscal_position_in_lut_sez': {
                 'name': _('LUT - Export/SEZ'),
                 'sequence': 4,
+                'auto_apply': False,
                 'note': _('SUPPLY MEANT FOR EXPORT/SUPPLY TO SEZ UNIT OR SEZ DEVELOPER FOR AUTHORISED OPERATIONS UNDER BOND OR LETTER OF UNDERTAKING WITHOUT PAYMENT OF INTEGRATED TAX.'),
                 'tax_ids': (
                     self._get_l10n_in_fiscal_tax_vals(use_zero_rated_igst=True, trailing_id='_sez_exp_lut')
@@ -113,3 +114,9 @@ class AccountChartTemplate(models.AbstractModel):
             })
             for zero_tax in ["exempt_sale", "nil_rated_sale"]
         ]
+
+    def _post_load_data(self, template_code, company, template_data):
+        super()._post_load_data(template_code, company, template_data)
+        if template_code == 'in':
+            company = company or self.env.company
+            company._update_l10n_in_fiscal_position_based_on_lut()
