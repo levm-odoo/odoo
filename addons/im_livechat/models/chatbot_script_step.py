@@ -365,16 +365,16 @@ class ChatbotScriptStep(models.Model):
         # handle edge case where we found yourself as available operator -> don't do anything
         # it will act as if no-one is available (which is fine)
         if human_operator and human_operator != self.env.user:
+            # sudo - discuss.channel: let the chat bot proceed to the forward step (change channel operator, add human operator
+            # as member, remove bot from channel, rename channel and finally broadcast the channel to the new operator).
+            channel_sudo = discuss_channel.sudo()
+            channel_sudo.livechat_operator_id = human_operator.partner_id
             if self.message:
                 # first post the message of the step (if we have one)
                 posted_message = discuss_channel._chatbot_post_message(self.chatbot_script_id, plaintext2html(self.message))
 
             # next, add the human_operator to the channel and post a "Operator joined the channel" notification
             discuss_channel.with_user(human_operator).sudo().add_members(human_operator.partner_id.ids, open_chat_window=True)
-            # sudo - discuss.channel: let the chat bot proceed to the forward step (change channel operator, add human operator
-            # as member, remove bot from channel, rename channel and finally broadcast the channel to the new operator).
-            channel_sudo = discuss_channel.sudo()
-            channel_sudo.livechat_operator_id = human_operator.partner_id
             if bot_member := channel_sudo.channel_member_ids.filtered(
                 lambda m: m.partner_id == self.chatbot_script_id.operator_partner_id
             ):
@@ -390,6 +390,7 @@ class ChatbotScriptStep(models.Model):
                     else human_operator.name,
                 ]
             )
+            channel_sudo._bus_send_store(channel_sudo, [Store.One("livechat_operator_id", rename="operator")])
             channel_sudo._broadcast(human_operator.partner_id.ids)
             discuss_channel.channel_pin(pinned=True)
 
