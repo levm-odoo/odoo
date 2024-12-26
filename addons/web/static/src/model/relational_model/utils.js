@@ -325,11 +325,9 @@ export function getFieldDomain(record, fieldName, domain) {
 }
 
 export function getBasicEvalContext(config) {
-    const { allowed_company_ids } = config.context;
     return {
         context: config.context,
-        allowed_company_ids,
-        current_company_id: user.activeCompany?.id,
+        current_company_id: user.activeCompany?.id, //Deprecated, to be removed !!!
         ...user.evalContext,
     };
 }

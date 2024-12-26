@@ -19,6 +19,13 @@ _relaxng_cache = {}
 READONLY = re.compile(r"\breadonly\b")
 
 # predefined symbols for evaluating attributes (invisible, readonly...)
+# this symbols are deprecated, a warning will be add to the console.
+DEPRECATED_IGNORED_IN_EXPRESSION = {
+    'allowed_company_ids',
+    'current_company_id',
+}
+
+# predefined symbols for evaluating attributes (invisible, readonly...)
 IGNORED_IN_EXPRESSION = {
     'True', 'False', 'None',    # those are identifiers in Python 2.7
     'self',
@@ -26,8 +33,6 @@ IGNORED_IN_EXPRESSION = {
     'context',
     'companies',
     'context_today',
-    'allowed_company_ids',
-    'current_company_id',
     'time',
     'datetime',
     'relativedelta',
@@ -146,7 +151,10 @@ def get_domain_value_names(domain):
             continue
         root = name.split('.')[0]
         if root not in IGNORED_IN_EXPRESSION:
-            value_names.add(name if root == 'parent' else root)
+            if root not in DEPRECATED_IGNORED_IN_EXPRESSION:
+                value_names.add(name if root == 'parent' else root)
+            else:
+                _logger.warning("DEPRECATED TERME USED: %s", root)
     return field_names, value_names
 
 
@@ -253,7 +261,10 @@ def get_expression_field_names(expression):
             continue
         root = name.split('.')[0]
         if root not in IGNORED_IN_EXPRESSION:
-            value_names.add(name if root == 'parent' else root)
+            if root not in DEPRECATED_IGNORED_IN_EXPRESSION:
+                value_names.add(name if root == 'parent' else root)
+            else:
+                _logger.warning("DEPRECATED TERME USED: %s", root)
 
     return value_names
 

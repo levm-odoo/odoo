@@ -1759,7 +1759,7 @@ test("many2many basic keys in field evalcontext -- in list", async () => {
         resModel: "partner",
         arch: `
             <list editable="top">
-                <field name="timmy" widget="many2many_tags" context="{ 'default_partner_id': uid, 'allowed_company_ids': allowed_company_ids, 'company_id': current_company_id}"/>
+                <field name="timmy" widget="many2many_tags" context="{ 'default_partner_id': uid, 'allowed_company_ids': companies.active_ids, 'company_id': companies.active_id}"/>
             </list>`,
     });
 
@@ -1800,7 +1800,7 @@ test("many2many basic keys in field evalcontext -- in form", async () => {
         resModel: "partner",
         arch: `
             <form>
-                <field name="timmy" widget="many2many_tags" context="{ 'default_partner_id': uid, 'allowed_company_ids': allowed_company_ids, 'company_id': current_company_id}"/>
+                <field name="timmy" widget="many2many_tags" context="{ 'default_partner_id': uid, 'allowed_company_ids': companies.active_ids, 'company_id': companies.active_id}"/>
             </form>`,
     });
 
@@ -1844,7 +1844,7 @@ test("many2many basic keys in field evalcontext -- in a x2many in form", async (
                 <form>
                 <field name="p">
                     <list editable="top">
-                        <field name="timmy" widget="many2many_tags" context="{ 'default_partner_id': uid, 'allowed_company_ids': allowed_company_ids, 'company_id': current_company_id}"/>
+                        <field name="timmy" widget="many2many_tags" context="{ 'default_partner_id': uid, 'allowed_company_ids': companies.active_ids, 'company_id': companies.active_id}"/>
                     </list>
                 </field>
                 </form>`,

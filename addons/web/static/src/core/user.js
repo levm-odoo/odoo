@@ -197,7 +197,11 @@ export function _makeUser(session) {
             return Object.assign({}, context, { uid: this.userId });
         },
         get evalContext() {
-            return { uid: this.userId, companies: companyEvalContext };
+            return {
+                uid: this.userId,
+                companies: companyEvalContext,
+                allowed_company_ids: this.context.allowed_company_ids, //Deprecated, to be removed !!!
+            };
         },
         get lang() {
             return lang;
