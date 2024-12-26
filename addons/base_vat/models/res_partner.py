@@ -103,46 +103,64 @@ class ResPartner(models.Model):
     country_id = fields.Many2one(inverse="_inverse_vat", store=True)
     vat = fields.Char(inverse="_inverse_vat", store=True)
 
+    @api.model
+    def _run_vat_checks(self, country, vat, partner_name='', validation='error'):
+        """Returns vat, country. Raises an error
+         Validation can be 'error', 'none' (only fixing) or 'setnull'
+         partner_name is just for the error message
+          """
+        if not country:
+            return vat
+        if not vat or len(vat) == 1:
+            return vat
+        vat_country, vat_number = self._split_vat(vat)
+
+        if len(vat) > 2 and vat_country == 'eu' and country not in self.env.ref('base.europe').country_ids:
+            # Foreign companies that trade with non-enterprises in the EU
+            # may have a VATIN starting with "EU" instead of a country code.
+            return vat
+
+        prefixed_country = ''
+        if country in self._get_eu_prefixed_countries():
+            prefixed_country = country.code
+            if vat_country.isalpha():
+                country_code = _eu_country_vat_inverse.get(vat_country, vat_country)
+                if country_code.upper() in self._get_eu_prefixed_countries().mapped('code'):
+                    vat = vat_number
+                    prefixed_country = vat_country
+
+        code_to_check = prefixed_country or country.code.lower()
+        vat = self._fix_vat_number(vat, code_to_check)
+        vat_to_return = prefixed_country.upper() + vat
+
+        # The context key 'no_vat_validation' allows you to store/set a VAT number without doing validations.
+        # This is for API pushes from external platforms where you have no control over VAT numbers.
+        if validation == 'none':
+            return vat_to_return
+
+        if not self._run_vat_test(vat, code_to_check):
+            partner_label = _("partner [%s]", partner_name)
+            msg = self._build_vat_error_message(code_to_check, vat, partner_label)
+            if validation == 'error':
+                raise ValidationError(msg)
+            else:
+                return ''
+        return vat_to_return
 
     def _inverse_vat(self):
         for partner in self:
-            if not partner.vat or len(partner.vat) == 1:
-                continue
+            validation = self._context.get('empty_bad_vat') and 'setnull' or 'error'
+            partner.vat = self._run_vat_checks(partner.commercial_partner_id.country_id,
+                                               partner.vat,
+                                               partner_name=partner.name,
+                                               validation=validation)
 
-            country = partner.commercial_partner_id.country_id
-            vat = partner.vat
-            if not country:
-                continue
-
-            vat_country, vat_number = self._split_vat(vat)
-
-            if len(vat) > 2 and vat_country == 'eu' and country not in self.env.ref('base.europe').country_ids:
-                # Foreign companies that trade with non-enterprises in the EU
-                # may have a VATIN starting with "EU" instead of a country code.
-                continue
-
-            prefixed_country = ''
-            if country in self._get_eu_prefixed_countries():
-                prefixed_country = country.code
-                if vat_country.isalpha():
-                    country_code = _eu_country_vat_inverse.get(vat_country, vat_country)
-                    if country_code.upper() in self._get_eu_prefixed_countries().mapped('code'):
-                        vat = vat_number
-                        prefixed_country = vat_country
-
-            code_to_check = prefixed_country or country.code.lower()
-            vat = partner._fix_vat_number(vat, code_to_check)
-            partner.vat = prefixed_country.upper() + vat
-
-            # The context key 'no_vat_validation' allows you to store/set a VAT number without doing validations.
-            # This is for API pushes from external platforms where you have no control over VAT numbers.
-            if self.env.context.get('no_vat_validation'):
-                continue
-
-            if not self._run_vat_test(vat, code_to_check):
-                partner_label = _("partner [%s]", partner.name)
-                msg = partner._build_vat_error_message(code_to_check, partner.vat, partner_label)
-                raise ValidationError(msg)
+    @api.onchange('vat', 'country_id')
+    def _onchange_vat(self):
+        for partner in self:
+            partner.vat = self._run_vat_checks(partner.commercial_partner_id.country_id,
+                                               partner.vat,
+                                               validation='none')
 
     @api.depends_context('company')
     @api.depends('vat')
@@ -689,6 +707,7 @@ class ResPartner(models.Model):
         stdnum_vat_format = stdnum.util.get_cc_module('sm', 'vat').compact
         return stdnum_vat_format('SM' + vat)[2:]
 
+    @api.model
     def _fix_vat_number(self, vat, country_code):
         stdnum_vat_fix_func = getattr(stdnum.util.get_cc_module(country_code, 'vat'), 'compact', None)
         # If any localization module needs to define vat fix method for its country then we give first priority to it.

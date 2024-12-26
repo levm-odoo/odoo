@@ -19,5 +19,5 @@ class ResPartner(models.Model):
             if vat_country.isnumeric():
                 vat_country = 'be'
                 vat_number = partner.vat
-            if vat_country == 'be' and self.simple_vat_check(vat_country, vat_number):
+            if vat_country == 'be' and self._simple_vat_check(vat_country, vat_number):
                 partner.company_registry = vat_number
