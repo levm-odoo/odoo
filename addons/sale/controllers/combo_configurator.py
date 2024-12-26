@@ -4,6 +4,7 @@ from datetime import datetime
 
 from odoo.http import Controller, request, route
 from odoo.tools import groupby
+from odoo.tools.image import image_data_uri
 
 
 class SaleComboConfiguratorController(Controller):
@@ -141,11 +142,22 @@ class SaleComboConfiguratorController(Controller):
             )
         )
 
+        # If the combo product is published, but not its item product, the image of the item will
+        # not be accessible to portal users. Therefore, we send the raw image from here
+        image_src = (
+            image_data_uri(combo_item.product_id.image_128)
+            if (
+                not combo_item.product_id.is_published
+                and combo_item.product_id.image_128
+            ) else ''  # falls back to the default image url
+        )
+
         return {
             'id': combo_item.id,
             'extra_price': combo_item.extra_price,
             'is_selected': bool(selected_combo_item),
             'is_preselected': is_preselected,
+            'image_src': image_src,
             'product': {
                 'id': combo_item.product_id.id,
                 'product_tmpl_id': combo_item.product_id.product_tmpl_id.id,
