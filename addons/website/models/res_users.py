@@ -4,6 +4,7 @@ import logging
 from odoo import api, fields, models, _, Command
 from odoo.exceptions import ValidationError
 from odoo.http import request
+from odoo.tools import SQL
 
 _logger = logging.getLogger(__name__)
 
@@ -100,3 +101,9 @@ class ResUsers(models.Model):
         internal_users = self.env.ref('base.group_user').users & self
         if any(user.website_id for user in internal_users):
             raise ValidationError(_("Remove website on related partner before they become internal user."))
+
+    def _find_duplicate_query(self, values):
+        query = super()._find_duplicate_query(values)
+        additional_query = SQL("AND website_id = %s", values['website_id']) if values.get('website_id') else \
+            SQL("AND website_id IS NULL")
+        return SQL.join(SQL(' '), [query, additional_query])

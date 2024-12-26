@@ -7,7 +7,7 @@ import odoo
 from odoo import http
 from odoo.addons.base.tests.common import HttpCaseWithUserPortal, HttpCaseWithUserDemo
 from odoo.exceptions import AccessError
-
+from odoo.addons.auth_signup.models.res_partner import SignupError
 
 class TestAuthSignupFlow(HttpCaseWithUserPortal, HttpCaseWithUserDemo):
 
@@ -76,3 +76,17 @@ class TestAuthSignupFlow(HttpCaseWithUserPortal, HttpCaseWithUserDemo):
             self.env['res.users'].search_count([]),
             initial_user_count + len(users)
         )
+
+    def test_duplicate_user_signup(self):
+        values = {
+            'login': 'me@example.com',
+            'name': 'user',
+            'password': 'mypassword',
+        }
+
+        self.env['res.users']._create_user_from_template(values)
+
+        # Try to create a user from a portal template having duplicate capital login
+        values['login'] = 'Me@Example.com'
+        with self.assertRaises(SignupError):
+            self.env['res.users']._create_user_from_template(values)

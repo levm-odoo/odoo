@@ -14,6 +14,7 @@ from odoo.http import request
 
 from odoo.addons.base.models.ir_mail_server import MailDeliveryException
 from odoo.addons.auth_signup.models.res_partner import SignupError
+from odoo.tools import SQL
 
 _logger = logging.getLogger(__name__)
 
@@ -135,6 +136,16 @@ class ResUsers(models.Model):
                 "res.users/connection", {"username": user.name, "partnerId": user.partner_id.id}
             )
 
+    def _find_duplicate_query(self, values):
+        return SQL("SELECT login FROM res_users WHERE lower(login) = %s", values['login'].lower())
+
+
+    def _check_duplicate_user(self, values):
+        self._cr.execute(self._find_duplicate_query(values))
+        if self._cr.dictfetchone():
+            raise SignupError(_("User is already registered!"))
+
+
     def _create_user_from_template(self, values):
         template_user_id = literal_eval(self.env['ir.config_parameter'].sudo().get_param('base.template_portal_user_id', 'False'))
         template_user = self.browse(template_user_id)
@@ -145,7 +156,7 @@ class ResUsers(models.Model):
             raise ValueError(_('Signup: no login given for new user'))
         if not values.get('partner_id') and not values.get('name'):
             raise ValueError(_('Signup: no name or partner given for new user'))
-
+        self._check_duplicate_user(values)
         # create a copy of the template user (attached to a specific partner_id if given)
         values['active'] = True
         try:

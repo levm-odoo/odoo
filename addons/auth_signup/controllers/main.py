@@ -42,6 +42,8 @@ class AuthSignupHome(Home):
 
         if 'error' not in qcontext and request.httprequest.method == 'POST':
             try:
+                if 'login' in qcontext:
+                    qcontext['login'] = qcontext['login'].strip()
                 self.do_signup(qcontext)
 
                 # Set user to public if they were not signed in by do_signup
