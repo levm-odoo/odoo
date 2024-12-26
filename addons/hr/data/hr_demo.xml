@@ -48,7 +48,7 @@
             <field name="color" eval="10"/>
         </record>
 
-        <record id="dep_rd_be" model="hr.department">
+        <record id="dep_rd_us" model="hr.department">
             <field name="name">R&amp;D USA</field>
             <field name="parent_id" ref="dep_rd"/>
             <field name="color" eval="10"/>
@@ -56,7 +56,7 @@
 
         <record id="dep_rd_ltp" model="hr.department">
             <field name="name">Long Term Projects</field>
-            <field name="parent_id" ref="dep_rd_be"/>
+            <field name="parent_id" ref="dep_rd_us"/>
             <field name="color" eval="10"/>
         </record>
 
@@ -230,6 +230,14 @@ If you have development competencies, we can propose you specific traineeships</
 
     <!--Employees-->
 
+        <record id="res_partner_bank_account_admin" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="base.partner_admin"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_admin" model="hr.employee">
             <field name="private_street">215 Vine St</field>
             <field name="private_city">Scranton</field>
@@ -241,9 +249,11 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-125-2389</field>
             <field name="work_email">admin@yourcompany.example.com</field>
+            <field name="bank_account_id" ref="res_partner_bank_account_admin"/>
             <field name="category_ids" eval="[Command.set([ref('employee_category_4'), ref('employee_category_3')])]"/>
             <field name="job_id" ref="hr.job_ceo"/>
             <field name="job_title">Chief Executive Officer</field>
+            <field name="identification_id">000000000</field>
             <field name="department_id" ref="dep_management"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
@@ -254,18 +264,36 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_ngh-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_ngh" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_ngh"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_ngh" model="hr.employee">
             <field name="name">Jeffrey Kelly</field>
             <field name="department_id" ref="dep_sales"/>
             <field name="parent_id" ref="employee_admin"/>
             <field name="job_id" ref="hr.job_marketing"/>
             <field name="job_title">Marketing and Community Manager</field>
+            <field name="identification_id">000000000</field>
             <field name="category_ids" eval="[Command.set([ref('employee_category_4'), ref('employee_category_2')])]"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-264-7362</field>
             <field name="work_contact_id" ref="hr.work_contact_ngh"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_ngh"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_ngh-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
+        </record>
+
+        <record id="res_partner_bank_account_qdp" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="base.partner_demo"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
         </record>
 
         <record id="employee_qdp" model="hr.employee">
@@ -281,10 +309,12 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="private_email">demo@yourcompany.example.com</field>
             <field name="job_id" ref="hr.job_developer"/>
             <field name="job_title">Experienced Developer</field>
+            <field name="identification_id">000000000</field>
             <field name="category_ids" eval="[Command.set([ref('employee_category_4')])]"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">+3281813700</field>
             <field name="work_contact_id" ref="base.partner_demo"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_qdp"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
 
@@ -294,16 +324,26 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_al-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_al" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_al"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_al" model="hr.employee">
             <field name="name">Ronnie Hart</field>
             <field name="department_id" ref="dep_rd"/>
             <field name="parent_id" ref="employee_qdp"/>
             <field name="job_id" ref="hr.job_cto"/>
             <field name="job_title">Team Leader</field>
+            <field name="identification_id">000000000</field>
             <field name="category_ids" eval="[Command.set([ref('employee_category_4'), ref('employee_category_3')])]"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-310-7863</field>
             <field name="work_contact_id" ref="hr.work_contact_al"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_al"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_al-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
@@ -314,16 +354,26 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_vad-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_vad" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_vad"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_vad" model="hr.employee">
             <field name="name">Tina Williamson</field>
             <field name="department_id" ref="dep_administration"/>
             <field name="parent_id" ref="employee_admin"/>
             <field name="job_id" ref="hr.job_hrm"/>
             <field name="job_title">Human Resources Manager</field>
+            <field name="identification_id">000000000</field>
             <field name="category_ids" eval="[Command.set([ref('employee_category_4')])]"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-694-7266</field>
             <field name="work_contact_id" ref="hr.work_contact_vad"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_vad"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_vad-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
@@ -334,17 +384,27 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_hne-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_hne" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_hne"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_hne" model="hr.employee">
             <field name="name">Abigail Peterson</field>
             <field name="department_id" ref="dep_ps"/>
             <field name="parent_id" ref="employee_ngh"/>
             <field name="job_id" ref="hr.job_consultant"/>
             <field name="job_title">Consultant</field>
+            <field name="identification_id">000000000</field>
             <field name="private_country_id" ref="base.us"/>
             <field name="private_email">abigail.peterson33@example.com</field>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-233-3393</field>
             <field name="work_contact_id" ref="hr.work_contact_hne"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_hne"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_hne-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
             <field name="marital">married</field>
@@ -356,18 +416,28 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_fpi-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_fpi" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_fpi"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_fpi" model="hr.employee">
             <field name="name">Audrey Peterson</field>
             <field name="department_id" ref="dep_ps"/>
             <field name="parent_id" ref="employee_ngh"/>
             <field name="job_id" ref="hr.job_consultant"/>
             <field name="job_title">Consultant</field>
+            <field name="identification_id">000000000</field>
             <field name="category_ids" eval="[Command.set([ref('employee_category_4'), ref('employee_category_5')])]"/>
             <field name="private_country_id" ref="base.us"/>
             <field name="private_email">Audrey.peterson2020@example.com</field>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-276-7903</field>
             <field name="work_contact_id" ref="hr.work_contact_fpi"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_fpi"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_fpi-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
@@ -378,15 +448,25 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_lur-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_lur" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_lur"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_lur" model="hr.employee">
             <field name="name">Eli Lambert</field>
             <field name="department_id" ref="dep_sales"/>
             <field name="parent_id" ref="employee_ngh"/>
             <field name="job_id" ref="hr.job_marketing"/>
             <field name="job_title">Marketing and Community Manager</field>
+            <field name="identification_id">000000000</field>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-169-1352</field>
             <field name="work_contact_id" ref="hr.work_contact_lur"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_lur"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_lur-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
@@ -397,15 +477,25 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_jod-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_jod" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_jod"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_jod" model="hr.employee">
             <field name="name">Rachel Perry</field>
             <field name="department_id" ref="dep_sales"/>
             <field name="parent_id" ref="employee_ngh"/>
             <field name="job_id" ref="hr.job_marketing"/>
             <field name="job_title">Marketing and Community Manager</field>
+            <field name="identification_id">000000000</field>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-267-3735</field>
             <field name="work_contact_id" ref="hr.work_contact_jod"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_jod"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_jod-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
@@ -416,16 +506,26 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_fme-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_fme" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_fme"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_fme" model="hr.employee">
             <field name="name">Keith Byrd</field>
             <field name="department_id" ref="dep_rd"/>
             <field name="parent_id" ref="employee_al"/>
             <field name="job_id" ref="hr.job_developer"/>
             <field name="job_title">Experienced Developer</field>
+            <field name="identification_id">000000000</field>
             <field name="category_ids" eval="[Command.set([ref('employee_category_4')])]"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-505-5146</field>
             <field name="work_contact_id" ref="hr.work_contact_fme"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_fme"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_fme-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
@@ -436,17 +536,27 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_jep-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_jep" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_jep"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_jep" model="hr.employee">
             <field name="name">Doris Cole</field>
             <field name="department_id" ref="dep_ps"/>
             <field name="parent_id" ref="employee_vad"/>
             <field name="job_id" ref="hr.job_consultant"/>
             <field name="job_title">Consultant</field>
+            <field name="identification_id">000000000</field>
             <field name="private_country_id" ref="base.us"/>
             <field name="private_email">Doris.cole.LoveSong@example.com</field>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-331-5378</field>
             <field name="work_contact_id" ref="hr.work_contact_jep"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_jep"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_jep-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
@@ -457,15 +567,25 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_jgo-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_jgo" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_jgo"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_jgo" model="hr.employee">
             <field name="name">Ernest Reed</field>
             <field name="department_id" ref="dep_ps"/>
             <field name="parent_id" ref="employee_vad"/>
             <field name="job_id" ref="hr.job_consultant"/>
             <field name="job_title">Consultant</field>
+            <field name="identification_id">000000000</field>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-518-8232</field>
             <field name="work_contact_id" ref="hr.work_contact_jgo"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_jgo"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_jgo-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
@@ -476,16 +596,26 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_jth-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_jth" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_jth"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_jth" model="hr.employee">
             <field name="name">Toni Jimenez</field>
             <field name="department_id" ref="dep_ps"/>
             <field name="parent_id" ref="employee_vad"/>
             <field name="job_id" ref="hr.job_consultant"/>
             <field name="job_title">Consultant</field>
+            <field name="identification_id">000000000</field>
             <field name="category_ids" eval="[Command.set([ref('employee_category_4'), ref('employee_category_5'), ref('employee_category_6')])]"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-707-8451</field>
             <field name="work_contact_id" ref="hr.work_contact_jth"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_jth"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_jth-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
             <field name="resource_calendar_id" ref="resource_calendar_std_20h"/>
@@ -498,12 +628,21 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_mit-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_mit" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_mit"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_mit" model="hr.employee">
             <field name="name">Anita Oliver</field>
-            <field name="department_id" ref="dep_rd_be"/>
+            <field name="department_id" ref="dep_rd_us"/>
             <field name="parent_id" ref="employee_fme"/>
             <field name="job_id" ref="hr.job_developer"/>
             <field name="job_title">Experienced Developer</field>
+            <field name="identification_id">000000000</field>
             <field name="category_ids" eval="[Command.set([ref('employee_category_4')])]"/>
             <field name="private_country_id" ref="base.us"/>
             <field name="private_phone">(538)-672-3185</field>
@@ -511,6 +650,7 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-497-4804</field>
             <field name="work_contact_id" ref="hr.work_contact_mit"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_mit"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_mit-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
@@ -521,16 +661,26 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_niv-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_niv" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_niv"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_niv" model="hr.employee">
             <field name="name">Sharlene Rhodes</field>
             <field name="department_id" ref="dep_management"/>
             <field name="parent_id" ref="employee_qdp"/>
             <field name="job_id" ref="hr.job_developer"/>
             <field name="job_title">Experienced Developer</field>
+            <field name="identification_id">000000000</field>
             <field name="category_ids" eval="[Command.set([ref('employee_category_4')])]"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-719-4182</field>
             <field name="work_contact_id" ref="hr.work_contact_niv"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_niv"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_niv-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
@@ -541,16 +691,26 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_stw-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_stw" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_stw"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_stw" model="hr.employee">
             <field name="name">Randall Lewis</field>
             <field name="department_id" ref="dep_rd"/>
             <field name="parent_id" ref="employee_qdp"/>
             <field name="job_id" ref="hr.job_developer"/>
             <field name="job_title">Experienced Developer</field>
+            <field name="identification_id">000000000</field>
             <field name="category_ids" eval="[Command.set([ref('employee_category_4')])]"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-775-6660</field>
             <field name="work_contact_id" ref="hr.work_contact_stw"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_stw"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_stw-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
@@ -561,16 +721,26 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_chs-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_chs" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_chs"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_chs" model="hr.employee">
             <field name="name">Jennie Fletcher</field>
             <field name="department_id" ref="dep_rd"/>
             <field name="parent_id" ref="employee_fme"/>
             <field name="job_id" ref="hr.job_developer"/>
             <field name="job_title">Experienced Developer</field>
+            <field name="identification_id">000000000</field>
             <field name="category_ids" eval="[Command.set([ref('employee_category_4')])]"/>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-363-8229</field>
             <field name="work_contact_id" ref="hr.work_contact_chs"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_chs"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_chs-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
@@ -581,15 +751,25 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_jve-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_jve" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_jve"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_jve" model="hr.employee">
             <field name="name">Paul Williams</field>
             <field name="department_id" ref="dep_rd_ltp"/>
             <field name="parent_id" ref="employee_qdp"/>
             <field name="job_id" ref="hr.job_developer"/>
             <field name="job_title">Experienced Developer</field>
+            <field name="identification_id">000000000</field>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-262-1607</field>
             <field name="work_contact_id" ref="hr.work_contact_jve"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_jve"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_jve-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
@@ -600,15 +780,25 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_han-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_han" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_han"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_han" model="hr.employee">
             <field name="name">Walter Horton</field>
             <field name="department_id" ref="dep_rd"/>
             <field name="parent_id" ref="employee_jve"/>
             <field name="job_id" ref="hr.job_developer"/>
             <field name="job_title">Experienced Developer</field>
+            <field name="identification_id">000000000</field>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-912-1201</field>
             <field name="work_contact_id" ref="hr.work_contact_han"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_han"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_han-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
@@ -619,17 +809,27 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="image_1920" type="base64" file="hr/static/img/employee_jog-image.jpg"/>
         </record>
 
+        <record id="res_partner_bank_account_jog" model="res.partner.bank">
+            <field name="acc_number">US13719713158835300</field>
+            <field name="bank_id" ref="base.bank_ing"/>
+            <field name="partner_id" ref="work_contact_jog"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="allow_out_payment">True</field>
+        </record>
+
         <record id="employee_jog" model="hr.employee">
             <field name="name">Beth Evans</field>
             <field name="department_id" ref="dep_rd"/>
             <field name="parent_id" ref="employee_jve"/>
             <field name="job_id" ref="hr.job_developer"/>
             <field name="job_title">Experienced Developer</field>
+            <field name="identification_id">000000000</field>
             <field name="private_country_id" ref="base.us"/>
             <field name="private_email">beth.evans@example.com</field>
             <field name="work_location_id" ref="work_location_1"/>
             <field name="work_phone">(555)-532-3841</field>
             <field name="work_contact_id" ref="hr.work_contact_jog"/>
+            <field name="bank_account_id" ref="res_partner_bank_account_jog"/>
             <field name="image_1920" type="base64" file="hr/static/img/employee_jog-image.jpg"/>
             <field name="create_date">2010-01-01 00:00:00</field>
         </record>
@@ -647,7 +847,7 @@ If you have development competencies, we can propose you specific traineeships</
             <field name="manager_id" ref="employee_qdp"/>
         </record>
 
-        <record id="dep_rd_be" model="hr.department">
+        <record id="dep_rd_us" model="hr.department">
             <field name="manager_id" ref="employee_al"/>
         </record>
 
