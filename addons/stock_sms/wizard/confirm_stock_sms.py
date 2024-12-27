@@ -13,18 +13,18 @@ class ConfirmStockSms(models.TransientModel):
     def send_sms(self):
         self.ensure_one()
         for company in self.pick_ids.company_id:
-            if not company.has_received_warning_stock_sms:
-                company.sudo().write({'has_received_warning_stock_sms': True})
+            if not company.has_received_text_warning:
+                company.sudo().write({'has_received_text_warning': True})
         pickings_to_validate = self.env['stock.picking'].browse(self.env.context.get('button_validate_picking_ids'))
         return pickings_to_validate.button_validate()
 
     def dont_send_sms(self):
         self.ensure_one()
         for company in self.pick_ids.company_id:
-            if not company.has_received_warning_stock_sms:
+            if not company.has_received_text_warning:
                 company.sudo().write({
-                    'has_received_warning_stock_sms': True,
-                    'stock_move_sms_validation': False,
+                    'has_received_text_warning': True,
+                    'text_confirmation': False,
                 })
         pickings_to_validate = self.env['stock.picking'].browse(self.env.context.get('button_validate_picking_ids'))
         return pickings_to_validate.button_validate()
