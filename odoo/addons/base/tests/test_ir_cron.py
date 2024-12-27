@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-# ruff: noqa: E201, E272, E301, E306
+# ruff: noqa: E201, E241, E272, E301, E306
 
 import secrets
 import textwrap
+import time
 from contextlib import closing
 from datetime import timedelta
 from unittest.mock import patch
@@ -140,13 +140,13 @@ class TestIrCron(TransactionCase, CronMixinCase):
 
     def test_cron_ready_jobs_order(self):
         cron_avg = self.cron.copy()
-        cron_avg.priority = 5  # average priority
+        cron_avg.stat_mean_duration = 5  # average priority
 
         cron_high = self.cron.copy()
-        cron_high.priority = 0  # highest priority
+        cron_high.stat_mean_duration = 0  # highest priority
 
         cron_low = self.cron.copy()
-        cron_low.priority = 10  # lowest priority
+        cron_low.stat_mean_duration = 10  # lowest priority
 
         crons = cron_high | cron_avg | cron_low  # order is important
         crons.write({'nextcall': fields.Datetime.now()})
@@ -215,17 +215,6 @@ class TestIrCron(TransactionCase, CronMixinCase):
                 state['call_count'] += 1
             return f, state
 
-        def eleven_success(cron):
-            state = {'call_count': 0}
-            CALL_TARGET = 11
-            def f(self):
-                state['call_count'] += 1
-                self.env['ir.cron']._notify_progress(
-                    done=1,
-                    remaining=CALL_TARGET - state['call_count']
-                )
-            return f, state
-
         def five_success(cron):
             state = {'call_count': 0}
             CALL_TARGET = 5
@@ -271,8 +260,6 @@ class TestIrCron(TransactionCase, CronMixinCase):
             #       callback, curr_failures, trigger, call_count, done_count, fail_count, active,
             (        nothing,             0,   False,          1,          0,          0,  True),
             (        nothing, almost_failed,   False,          1,          0,          0,  True),
-            ( eleven_success,             0,    True,         10,         10,          0,  True),
-            ( eleven_success, almost_failed,    True,         10,         10,          0,  True),
             (   five_success,             0,   False,          5,          5,          0,  True),
             (   five_success, almost_failed,   False,          5,          5,          0,  True),
             (        failure,             0,   False,          1,          0,          1,  True),
@@ -320,22 +307,29 @@ class TestIrCron(TransactionCase, CronMixinCase):
 
         def make_run(cron):
             state = {'call_count': 0}
-            CALL_TARGET = 11
+            CALL_TARGET = 23
 
             def run(self):
                 state['call_count'] += 1
                 self.env['ir.cron']._notify_progress(done=1, remaining=CALL_TARGET - state['call_count'])
-            return run, state
+
+            def mocked_time():
+                return float(state['call_count'])
+            return run, state, mocked_time
 
         self.cron._trigger()
         self.env.flush_all()
+        mocked_run, mocked_run_state, mocked_time = make_run(self.cron)
         with self.enter_registry_test_mode():
-            mocked_run, mocked_run_state = make_run(self.cron)
-            with patch.object(self.registry['ir.actions.server'], 'run', mocked_run):
+            with (
+                patch.object(self.registry['ir.actions.server'], 'run', mocked_run),
+                patch.object(time, 'monotonic', mocked_time),
+            ):
                 self.registry['ir.cron']._process_job(
                     self.registry.db_name,
                     self.registry.cursor(),
-                    {**self.cron.read(load=None)[0], **default_progress_values}
+                    {**self.cron.read(load=None)[0], **default_progress_values},
+                    end_time=10.1,
                 )
 
         self.assertEqual(
@@ -368,12 +362,12 @@ class TestIrCron(TransactionCase, CronMixinCase):
             'The cron has finished executing'
         )
         self.assertEqual(
-            mocked_run_state['call_count'], 10 + 1,
-            '`run` should have been called one additional time',
+            mocked_run_state['call_count'], 23,
+            '`run` should have been called for all additional runs',
         )
         self.assertEqual(
-            Progress.search_count([('done', '=', 1), ('cron_id', '=', self.cron.id)]), 11,
-            'There should be 11 progress log for this cron',
+            Progress.search_count([('done', '=', 1), ('cron_id', '=', self.cron.id)]), 23,
+            'There should be 23 progress log for this cron',
         )
 
     def test_cron_failed_increase(self):

@@ -24,11 +24,11 @@ _logger = logging.getLogger(__name__)
 
 BASE_VERSION = odoo.modules.get_manifest('base')['version']
 MAX_FAIL_TIME = timedelta(hours=5)  # chosen with a fair roll of the dice
-MAX_BATCH_PER_CRON_JOB = 10
 CONSECUTIVE_TIMEOUT_FOR_FAILURE = 3
 MIN_FAILURE_COUNT_BEFORE_DEACTIVATION = 5
 MIN_DELTA_BEFORE_DEACTIVATION = timedelta(days=7)
 # crons must satisfy both minimum thresholds before deactivation
+DEFAULT_JOB_TIME_LIMIT = 60
 
 # custom function to call instead of default PostgreSQL's `pg_notify`
 ODOO_NOTIFY_FUNCTION = os.getenv('ODOO_NOTIFY_FUNCTION', 'pg_notify')
@@ -83,7 +83,7 @@ class IrCron(models.Model):
                                       ('months', 'Months')], string='Interval Unit', default='months', required=True)
     nextcall = fields.Datetime(string='Next Execution Date', required=True, default=fields.Datetime.now, help="Next planned execution date for this job.")
     lastcall = fields.Datetime(string='Last Execution Date', help="Previous time the cron ran successfully, provided to the job through the context on the `lastcall` key")
-    priority = fields.Integer(default=5, help='The priority of the job, as an integer: 0 means higher priority, 10 means lower priority.')
+    priority = fields.Integer(string='Priority (deprecated)', default=5, help='The priority of the job, as an integer: 0 means higher priority, 10 means lower priority.')
     failure_count = fields.Integer(default=0, help="The number of consecutive failures of this job. It is automatically reset on success.")
     first_failure_date = fields.Datetime(string='First Failure Date', help="The first time the cron failed. It is automatically reset on success.")
 
@@ -173,7 +173,7 @@ class IrCron(models.Model):
                     return
                 cls._check_modules_state(cron_cr, jobs)
 
-                for job_id in (job['id'] for job in jobs):
+                for index, job_id in enumerate(job['id'] for job in jobs):
                     if end_time <= time.monotonic():
                         _logger.info("Database %s soft-time limit reached", db_name)
                         break
@@ -187,9 +187,13 @@ class IrCron(models.Model):
                         _logger.debug("another worker is processing job %s, skip", job_id)
                         continue
                     _logger.debug("job %s acquired", job_id)
+                    # split remaining time between remaining jobs
+                    jobs_remaining = len(jobs) - index
+                    start_job_time = time.monotonic()
+                    job_end_time = start_job_time + (end_time - start_job_time) / jobs_remaining
                     # take into account overridings of _process_job() on that database
                     registry = Registry(db_name)
-                    registry[cls._name]._process_job(db, cron_cr, job)
+                    registry[cls._name]._process_job(db, cron_cr, job, end_time=job_end_time)
                     cron_cr.commit()
                     _logger.debug("job %s updated and released", job_id)
 
@@ -268,7 +272,7 @@ class IrCron(models.Model):
             SELECT *
             FROM ir_cron
             WHERE %s
-            ORDER BY failure_count, priority, id
+            ORDER BY failure_count, stat_mean_duration, id
         """, IrCron._get_ready_sql_condition(cr)))
         return cr.dictfetchall()
 
@@ -364,7 +368,7 @@ class IrCron(models.Model):
         _logger.warning(message)
 
     @classmethod
-    def _process_job(cls, db, cron_cr, job):
+    def _process_job(cls, db, cron_cr, job, *, end_time=None):
         """
         Execute the cron's server action in a dedicated transaction.
 
@@ -405,7 +409,7 @@ class IrCron(models.Model):
         )
 
         if not failed_by_timeout:
-            status = cls._run_job(job)
+            status = cls._run_job(job, end_time=end_time)
         else:
             status = CompletionStatus.FAILED
             cron_cr.execute("""
@@ -428,10 +432,13 @@ class IrCron(models.Model):
             raise RuntimeError("unreachable")
 
     @classmethod
-    def _run_job(cls, job):
+    def _run_job(cls, job, *, end_time=None):
         """
         Execute the job's server action multiple times until it
         completes. The completion status is returned.
+        The the current cursor must own a lock on the cron record.
+        The execution happens in a separate cursor and environment where
+        the user is the one of defined in the cron job.
 
         It is considered completed when either:
 
@@ -439,8 +446,8 @@ class IrCron(models.Model):
           and notified that all records has been processed: ``'fully done'``;
 
         - the server action returned and notified that there are
-          remaining records to process, but this cron worker ran this
-          server action 10 times already: ``'partially done'``;
+          remaining records to process, but this cron worker reached an
+          execution limit: ``'partially done'``;
 
         - the server action was able to commit and notify some work done,
           but later crashed due to an exception: ``'partially done'``;
@@ -449,20 +456,25 @@ class IrCron(models.Model):
           was notified: ``'failed'``.
         """
         timed_out_counter = job['timed_out_counter']
+        if not end_time:
+            end_time = time.monotonic() + DEFAULT_JOB_TIME_LIMIT
 
         with cls.pool.cursor() as job_cr:
             env = api.Environment(job_cr, job['user_id'], {
                 'lastcall': job['lastcall'],
                 'cron_id': job['id'],
+                'cron_end_time': end_time,
             })
             cron = env[cls._name].browse(job['id'])
 
             status = None
-            for _i in range(MAX_BATCH_PER_CRON_JOB):
+            loop_count = 0
+            loop_start_time = time.monotonic()
+            while True:
                 cron, progress = cron._add_progress(timed_out_counter=timed_out_counter)
                 job_cr.commit()
 
-                start_time = time.time()
+                start_time = time.monotonic()
                 try:
                     # singaling check and commit is done inside `_callback`
                     cron._callback(job['cron_name'], job['ir_actions_server_id'])
@@ -488,12 +500,17 @@ class IrCron(models.Model):
                 finally:
                     done, remaining = progress.done, progress.remaining
                     progress.timed_out_counter = 0
-                    progress.duration = (time.time() - start_time)
+                    progress.duration = (time.monotonic() - start_time)
+                    loop_count += 1
                     timed_out_counter = 0
                     job_cr.commit()  # ensure we have no more leftovers
                     _logger.info('Job %r (%s) processed %s records, %s records remaining',
                         job['cron_name'], job['id'], done, remaining)
                 if status in (CompletionStatus.FULLY_DONE, CompletionStatus.FAILED):
+                    break
+                if end_time - (time.monotonic() - loop_start_time) / loop_count <= time.monotonic():
+                    _logger.debug("Job %s (%s) soft-timeout reached after %d iterations",
+                        job['cron_name'], job['id'], loop_count)
                     break
 
         return status
@@ -612,10 +629,10 @@ class IrCron(models.Model):
                 server_action_id,
             )
             _logger.info('Job %r (%s) starting', cron_name, self.id)
-            start_time = time.time()
+            start_time = time.monotonic()
             self.env['ir.actions.server'].browse(server_action_id).run()
             self.env.flush_all()
-            end_time = time.time()
+            end_time = time.monotonic()
             _logger.info('Job %r (%s) done in %.3fs', cron_name, self.id, end_time - start_time)
             if start_time and _logger.isEnabledFor(logging.DEBUG):
                 _logger.debug('Job %r (%s) server action #%s with uid %s executed in %.3fs',
