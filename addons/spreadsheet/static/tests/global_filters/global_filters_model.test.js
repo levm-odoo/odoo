@@ -454,6 +454,7 @@ test("Relational filter with undefined value", async function () {
         {
             id: "42",
             type: "relation",
+            operator: "in",
             label: "Relation Filter",
         },
         {
@@ -485,7 +486,7 @@ test("Relational filter including children", async function () {
             type: "relation",
             label: "Relation Filter",
             modelName: "product",
-            includeChildren: true,
+            operator: "child_of",
         },
         {
             pivot: {
@@ -511,6 +512,7 @@ test("Relational filter default to current user", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "relation",
+        operator: "in",
         label: "User Filter",
         modelName: "res.users",
         defaultValue: "current_user",
@@ -540,6 +542,7 @@ test("Get active filters with multiple filters", async function () {
     await addGlobalFilter(model, {
         id: "44",
         type: "relation",
+        operator: "in",
         label: "Relation Filter",
     });
     const [text] = model.getters.getGlobalFilters();
@@ -788,6 +791,7 @@ test("Get active filters with relation filter enabled", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "relation",
+        operator: "in",
         label: "Relation Filter",
     });
     const [filter] = model.getters.getGlobalFilters();
@@ -1002,6 +1006,7 @@ test("ODOO.FILTER.VALUE relation filter", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "relation",
+        operator: "in",
         label: "Relation Filter",
         modelName: "partner",
         defaultValue: [],
@@ -1155,7 +1160,7 @@ test("Can undo-redo a MOVE_GLOBAL_FILTER", async function () {
     expect(model.getters.getGlobalFilters()[1].id).toBe(lastYearFilterId);
 });
 
-test("pivot headers won't change when adding a filter ", async function () {
+test("pivot headers won't change when adding a filter", async function () {
     const { model } = await createSpreadsheetWithPivot({
         arch: /*xml*/ `
                 <pivot>
@@ -1173,6 +1178,7 @@ test("pivot headers won't change when adding a filter ", async function () {
             label: "Relation Filter",
             modelName: "product",
             defaultValue: [41],
+            operator: "in",
         },
         { pivot: { "PIVOT#1": { chain: "product_id", type: "many2one" } } }
     );
@@ -1940,6 +1946,7 @@ test("Can set a value to a relation filter from the SET_MANY_GLOBAL_FILTER_VALUE
     await addGlobalFilter(model, {
         id: "42",
         type: "relation",
+        operator: "in",
     });
     model.dispatch("SET_MANY_GLOBAL_FILTER_VALUE", {
         filters: [{ filterId: "42", value: [31] }],
@@ -1987,6 +1994,7 @@ test("getFiltersMatchingPivot return correctly matching filter according to cell
         {
             id: "42",
             type: "relation",
+            operator: "in",
             label: "relational filter",
         },
         {
@@ -2036,6 +2044,7 @@ test("getFiltersMatchingPivot return correctly matching filter according to cell
         {
             id: "42",
             type: "relation",
+            operator: "in",
             label: "relational filter",
         },
         {
@@ -2076,6 +2085,7 @@ test("getFiltersMatchingPivot return correctly matching filter according to cell
         {
             id: "42",
             type: "relation",
+            operator: "in",
             defaultValue: [],
         },
         { pivot: { "PIVOT#1": { chain: "product_id", type: "many2one" } } }
@@ -2103,6 +2113,7 @@ test("getFiltersMatchingPivot return correctly matching filter according to cell
         {
             id: "42",
             type: "relation",
+            operator: "in",
             defaultValue: [],
         },
         { pivot: { "PIVOT#1": { chain: "product_id", type: "many2one" } } }
@@ -2127,6 +2138,7 @@ test("getFiltersMatchingPivot return correctly matching filter when there is a f
     await addGlobalFilter(model, {
         id: "42",
         type: "relation",
+        operator: "in",
         defaultValue: [],
     });
     const filters = getFiltersMatchingPivot(model, getCellFormula(model, "B3"));
@@ -2147,6 +2159,7 @@ test("getFiltersMatchingPivot return empty filter for cell formula without any a
         {
             id: "42",
             type: "relation",
+            operator: "in",
             defaultValue: [],
         },
         { pivot: { "PIVOT#1": { chain: "product_id", type: "many2one" } } }
@@ -2167,6 +2180,7 @@ test("getFiltersMatchingPivot return empty filter when no records is related to 
     await addGlobalFilter(model, {
         id: "42",
         type: "relation",
+        operator: "in",
         defaultValue: [1],
         pivotFields: { 1: { field: "product_id", type: "many2one" } },
     });
@@ -2259,6 +2273,7 @@ test("getFiltersMatchingPivot return correctly matching filter with the 'measure
         id: "42",
         label: "fake",
         type: "relation",
+        operator: "in",
         defaultValue: [],
     });
     const filters = getFiltersMatchingPivot(model, getCellFormula(model, "B2"));
