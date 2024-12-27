@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import functools
 import imaplib
 import logging
 import poplib
@@ -15,6 +16,7 @@ from odoo.exceptions import UserError, ValidationError
 
 
 _logger = logging.getLogger(__name__)
+MAX_IMAP_MESSAGES = 50
 MAX_POP_MESSAGES = 50
 MAIL_TIMEOUT = 60
 
@@ -207,84 +209,87 @@ odoo_mailgate: "|/path/to/odoo-mailgate.py --host=localhost -u %(uid)d -p PASSWO
 
     def fetch_mail(self, raise_exception=True):
         """ WARNING: meant for cron usage only - will commit() after each email! """
-        additionnal_context = {
-            'fetchmail_cron_running': True
-        }
-        MailThread = self.env['mail.thread']
+        assert self.env.context.get('cron_id') == self.env.ref('mail.ir_cron_mail_gateway_action').id
+        MailThread = self.env['mail.thread'].with_context(fetchmail_cron_running=True)
+        cr = self.env.cr
+        total_done = 0  # number of processed messages
+        total_remaining = len(self)  # number of remaining messages + number of unchecked servers
         for server in self:
-            _logger.info('start checking for new emails on %s server %s', server.server_type, server.name)
-            additionnal_context['default_fetchmail_server_id'] = server.id
+            server_type_and_name = server.server_type, server.name  # avoid reading this after each commit
+            _logger.info('start checking for new emails on %s server %s', *server_type_and_name)
+            thread_process_message = functools.partialmethod(
+                MailThread.with_context(default_fetchmail_server_id=server.id).message_process,
+                server.object_id.model,
+                save_original=server.original,
+                strip_attachments=(not server.attach),
+            )
             count, failed = 0, 0
+
+            def process_message(message):
+                nonlocal count, failed, total_remaining
+                try:
+                    with cr.savepoint():
+                        thread_process_message(message)
+                except Exception:
+                    _logger.info('Failed to process mail from %s server %s.', *server_type_and_name, exc_info=True)
+                    failed += 1
+                count += 1
+                total_remaining -= 1
+                cr.commit()
+
             imap_server = None
             pop_server = None
-            connection_type = server._get_connection_type()
-            if connection_type == 'imap':
-                try:
+            try:
+                connection_type = server._get_connection_type()
+                if connection_type == 'imap':
                     imap_server = server.connect()
                     imap_server.select()
                     result, data = imap_server.search(None, '(UNSEEN)')
-                    for num in data[0].split():
-                        res_id = None
+                    message_nums = data[0].split()
+                    total_remaining += len(message_nums)
+                    for num in message_nums:
                         result, data = imap_server.fetch(num, '(RFC822)')
                         imap_server.store(num, '-FLAGS', '\\Seen')
-                        try:
-                            res_id = MailThread.with_context(**additionnal_context).message_process(server.object_id.model, data[0][1], save_original=server.original, strip_attachments=(not server.attach))
-                        except Exception:
-                            _logger.info('Failed to process mail from %s server %s.', server.server_type, server.name, exc_info=True)
-                            failed += 1
+                        process_message(data[0][1])
                         imap_server.store(num, '+FLAGS', '\\Seen')
-                        self._cr.commit()
-                        count += 1
-                    _logger.info("Fetched %d email(s) on %s server %s; %d succeeded, %d failed.", count, server.server_type, server.name, (count - failed), failed)
-                except Exception as e:
-                    if raise_exception:
-                        raise ValidationError(_("Couldn't get your emails. Check out the error message below for more info:\n%s", e)) from e
-                    else:
-                        _logger.info("General failure when trying to fetch mail from %s server %s.", server.server_type, server.name, exc_info=True)
-                finally:
-                    if imap_server:
-                        try:
-                            imap_server.close()
-                            imap_server.logout()
-                        except OSError:
-                            _logger.warning('Failed to properly finish imap connection: %s.', server.name, exc_info=True)
-            elif connection_type == 'pop':
-                try:
-                    while True:
-                        failed_in_loop = 0
-                        num = 0
-                        pop_server = server.connect()
-                        (num_messages, total_size) = pop_server.stat()
-                        pop_server.list()
-                        for num in range(1, min(MAX_POP_MESSAGES, num_messages) + 1):
-                            (header, messages, octets) = pop_server.retr(num)
-                            message = (b'\n').join(messages)
-                            res_id = None
-                            try:
-                                res_id = MailThread.with_context(**additionnal_context).message_process(server.object_id.model, message, save_original=server.original, strip_attachments=(not server.attach))
-                                pop_server.dele(num)
-                            except Exception:
-                                _logger.info('Failed to process mail from %s server %s.', server.server_type, server.name, exc_info=True)
-                                failed += 1
-                                failed_in_loop += 1
-                            self.env.cr.commit()
-                        _logger.info("Fetched %d email(s) on %s server %s; %d succeeded, %d failed.", num, server.server_type, server.name, (num - failed_in_loop), failed_in_loop)
-                        # Stop if (1) no more message left or (2) all messages have failed
-                        if num_messages < MAX_POP_MESSAGES or failed_in_loop == num:
+                        if count >= MAX_IMAP_MESSAGES:
                             break
+                elif connection_type == 'pop':
+                    pop_server = server.connect()
+                    (num_messages, total_size) = pop_server.stat()
+                    pop_server.list()
+                    total_remaining += num_messages
+                    for num in range(1, min(MAX_POP_MESSAGES, num_messages) + 1):
+                        (header, messages, octets) = pop_server.retr(num)
+                        message = (b'\n').join(messages)
+                        process_message(message)
+                        pop_server.dele(num)
+                else:
+                    _logger.warning('Unknown server type for %s: %r', server, connection_type)
+            except Exception as e:
+                if raise_exception:
+                    raise ValidationError(_("Couldn't get your emails. Check out the error message below for more info:\n%s", e)) from e
+                else:
+                    _logger.info("General failure when trying to fetch mail from %s server %s.", *server_type_and_name, exc_info=True)
+            finally:
+                if imap_server:
+                    try:
+                        imap_server.close()
+                        imap_server.logout()
+                    except OSError:
+                        _logger.warning('Failed to properly finish %s connection: %s.', *server_type_and_name, exc_info=True)
+                if pop_server:
+                    try:
                         pop_server.quit()
-                except Exception as e:
-                    if raise_exception:
-                        raise ValidationError(_("Couldn't get your emails. Check out the error message below for more info:\n%s", e)) from e
-                    else:
-                        _logger.info("General failure when trying to fetch mail from %s server %s.", server.server_type, server.name, exc_info=True)
-                finally:
-                    if pop_server:
-                        try:
-                            pop_server.quit()
-                        except OSError:
-                            _logger.warning('Failed to properly finish pop connection: %s.', server.name, exc_info=True)
+                    except OSError:
+                        _logger.warning('Failed to properly finish %s connection: %s.', *server_type_and_name, exc_info=True)
+            if count:
+                _logger.info("Fetched %d email(s) on %s server %s; %d succeeded, %d failed.", count, *server_type_and_name, (count - failed), failed)
+                total_done += count
             server.write({'date': fields.Datetime.now()})
+            total_remaining -= 1  # the server was checked
+            self.env['ir.cron']._notify_progress(done=total_done, remaining=total_remaining)
+            cr.commit()
         return True
 
     def _get_connection_type(self):
