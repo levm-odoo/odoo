@@ -1203,8 +1203,8 @@ class WorkerCron(Worker):
         db_name = db_names[self.db_index]
         self.setproctitle(db_name)
 
-        from odoo.addons.base.models import ir_cron  # noqa: PLC0415
-        ir_cron.IrCron._process_jobs(db_name)
+        from odoo.addons.base.models.ir_cron import IrCron  # noqa: PLC0415
+        IrCron._process_jobs(db_name)
 
         # dont keep cursors in multi database mode
         if len(db_names) > 1:
