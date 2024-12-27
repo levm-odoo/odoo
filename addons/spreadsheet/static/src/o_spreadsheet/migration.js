@@ -420,6 +420,9 @@ function migrate13to14(data) {
             globalFilter.operator = globalFilter.includeChildren ? "child_of" : "in";
             delete globalFilter.includeChildren;
         }
+        if (globalFilter.type === "text") {
+            globalFilter.operator = "ilike";
+        }
     }
     return data;
 }

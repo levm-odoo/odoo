@@ -33,6 +33,7 @@ test("basic text filter", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
     });
     await mountFilterValueComponent({ model, filter: model.getters.getGlobalFilter("42") });
@@ -47,6 +48,7 @@ test("text filter with range", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
         rangeOfAllowedValues: toRangeData(sheetId, "A1:A3"),
     });

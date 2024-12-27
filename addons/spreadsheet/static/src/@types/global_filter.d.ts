@@ -23,6 +23,7 @@ declare module "@spreadsheet" {
     export interface TextGlobalFilter {
         type: "text";
         id: string;
+        operator: "ilike";
         label: string;
         rangeOfAllowedValues?: Range;
         defaultValue?: string;
