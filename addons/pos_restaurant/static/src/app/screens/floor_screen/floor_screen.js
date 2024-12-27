@@ -559,7 +559,7 @@ export class FloorScreen extends Component {
             .filter(
                 (table) =>
                     parseInt(table.table_number.toString().slice(0, floorPrefixLength)) ===
-                        floorPrefix && table.table_number.toString().length > floorPrefixLength
+                        parseInt(floorPrefix) && table.table_number.toString().length > floorPrefixLength
             )
             .map((table) => parseInt(table.table_number.toString().slice(floorPrefixLength)))
             .sort(function (a, b) {
