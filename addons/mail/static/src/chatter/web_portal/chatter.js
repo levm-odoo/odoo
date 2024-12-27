@@ -26,7 +26,6 @@ import { browser } from "@web/core/browser/browser";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { useDropdownState } from "@web/core/dropdown/dropdown_hooks";
 import { _t } from "@web/core/l10n/translation";
-import { formatList } from "@web/core/l10n/utils";
 import { usePopover } from "@web/core/popover/popover_hook";
 import { useService } from "@web/core/utils/hooks";
 import { escape } from "@web/core/utils/strings";
@@ -237,18 +236,20 @@ export class Chatter extends Component {
                 const text = partner.email ? partner.emailWithoutDomain : partner.name;
                 return `<span class="text-muted" title="${escape(
                     partner.email || _t("no email address")
-                )}">${escape(text)}</span>`;
+                )}"> ${escape(text)}</span>`;
             });
+        return markup(recipients);
+    }
+
+    get recipientsCount() {
         if (this.state.thread && this.state.thread.recipients.length > 5) {
-            recipients.push(
-                escape(
-                    _t("%(recipientCount)s more", {
-                        recipientCount: this.state.thread.recipients.length - 5,
-                    })
-                )
+            return escape(
+                _t("out of %(recipientCount)s", {
+                    recipientCount: this.state.thread.recipients.length,
+                })
             );
         }
-        return markup(formatList(recipients));
+        return "";
     }
 
     changeThread(threadModel, threadId, webRecord) {
