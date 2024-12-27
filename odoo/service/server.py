@@ -93,6 +93,13 @@ def empty_pipe(fd):
         if e.errno not in [errno.EAGAIN]:
             raise
 
+
+def cron_database_list():
+    if db_names := config['db_name']:
+        return db_names
+    return odoo.service.db.list_dbs(True)
+
+
 #----------------------------------------------------------
 # Werkzeug WSGI servers patched
 #----------------------------------------------------------
@@ -467,17 +474,17 @@ class ThreadedServer(CommonServer):
                 time.sleep(number / 100)
                 pg_conn.poll()
 
-                registries = odoo.modules.registry.Registry.registries
+                # restrict to only notified databases
+                db_names = cron_database_list()
                 _logger.debug('cron%d polling for jobs', number)
-                for db_name, registry in registries.d.items():
-                    if registry.ready:
-                        thread = threading.current_thread()
-                        thread.start_time = time.time()
-                        try:
-                            IrCron._process_jobs(db_name)
-                        except Exception:
-                            _logger.warning('cron%d encountered an Exception:', number, exc_info=True)
-                        thread.start_time = None
+                for db_name in db_names:
+                    thread = threading.current_thread()
+                    thread.start_time = time.time()
+                    try:
+                        IrCron._process_jobs(db_name)
+                    except Exception:
+                        _logger.warning('cron%d encountered an Exception:', number, exc_info=True)
+                    thread.start_time = None
 
     def cron_spawn(self):
         """ Start the above runner function in a daemon thread.
@@ -1185,16 +1192,9 @@ class WorkerCron(Worker):
                 if e.args[0] != errno.EINTR:
                     raise
 
-    def _db_list(self):
-        if config['db_name']:
-            db_names = list(config['db_name'])
-        else:
-            db_names = odoo.service.db.list_dbs(True)
-        return db_names
-
     def process_work(self):
         _logger.debug("WorkerCron (%s) polling for jobs", self.pid)
-        db_names = self._db_list()
+        db_names = cron_database_list()
         if not len(db_names):
             self.db_index = 0
             return
