@@ -113,15 +113,22 @@ class IrCron(models.Model):
         return super().default_get(fields_list)
 
     def method_direct_trigger(self):
+        """Run the CRON job in the current (HTTP) thread."""
         self.ensure_one()
         self.browse().check_access('write')
-        self._try_lock()
-        _logger.info('Job %r (%s) started manually', self.name, self.id)
-        self, _ = self.with_user(self.user_id).with_context({'lastcall': self.lastcall})._add_progress()  # noqa: PLW0642
-        self.ir_actions_server_id.run()
-        self.lastcall = fields.Datetime.now()
-        self.env.flush_all()
-        _logger.info('Job %r (%s) done', self.name, self.id)
+        # cron will be run in a separate transaction, flush before and
+        # invalidate because data will be changed by that transaction
+        self.env.invalidate_all(flush=True)
+        cron_cr = self.env.cr
+        job = self._acquire_one_job(cron_cr, self.id, include_not_ready=True)
+        if not job:
+            raise UserError(_("Job '%s' already executing", self.name))
+        if (limit := config['limit_time_real']) > 0:
+            # similar logic to _process_jobs, halve the time
+            end_time = time.monotonic() + limit // 2
+        else:
+            end_time = None
+        self._process_job(cron_cr.dbname, cron_cr, job, end_time=end_time)
         return True
 
     @staticmethod
@@ -225,26 +232,31 @@ class IrCron(models.Model):
         reset_modules_state(cr.dbname)
 
     @staticmethod
-    def _get_all_ready_jobs(cr: BaseCursor) -> list[dict]:
-        """ Return a list of all jobs that are ready to be executed """
-        now = cr.now()
-        cr.execute("""
-            SELECT *
-            FROM ir_cron
-            WHERE active = true
-              AND (nextcall <= %s
-                OR id in (
+    def _get_ready_sql_condition(cr: BaseCursor) -> SQL:
+        return SQL("""
+            active IS TRUE
+            AND (nextcall <= %(now)s
+                OR id IN (
                     SELECT cron_id
                     FROM ir_cron_trigger
-                    WHERE call_at <= %s
+                    WHERE call_at <= %(now)s
                 )
-              )
+            )
+        """, now=cr.now())
+
+    @staticmethod
+    def _get_all_ready_jobs(cr: BaseCursor) -> list[dict]:
+        """ Return a list of all jobs that are ready to be executed """
+        cr.execute(SQL("""
+            SELECT *
+            FROM ir_cron
+            WHERE %s
             ORDER BY failure_count, priority, id
-        """, (now, now))
+        """, IrCron._get_ready_sql_condition(cr)))
         return cr.dictfetchall()
 
     @staticmethod
-    def _acquire_one_job(cr: BaseCursor, job_id: int) -> dict | None:
+    def _acquire_one_job(cr: BaseCursor, job_id: int, *, include_not_ready: bool = False) -> dict | None:
         """
         Acquire for update the job with id ``job_id``.
 
@@ -286,6 +298,9 @@ class IrCron(models.Model):
         #
         # Learn more: https://www.postgresql.org/docs/current/explicit-locking.html#LOCKING-ROWS
 
+        where_clause = SQL("id = %s", job_id)
+        if not include_not_ready:
+            where_clause = SQL("%s AND %s", where_clause, IrCron._get_ready_sql_condition(cr))
         query = SQL("""
             WITH last_cron_progress AS (
                 SELECT id as progress_id, cron_id, timed_out_counter, done, remaining
@@ -297,19 +312,9 @@ class IrCron(models.Model):
             SELECT *
             FROM ir_cron
             LEFT JOIN last_cron_progress lcp ON lcp.cron_id = ir_cron.id
-            WHERE ir_cron.active = true
-              AND (nextcall <= %(now)s
-                OR EXISTS (
-                    SELECT cron_id
-                    FROM ir_cron_trigger
-                    WHERE call_at <=  %(now)s
-                      AND cron_id = ir_cron.id
-                )
-              )
-              AND id = %(cron_id)s
-            ORDER BY priority
+            WHERE %(where)s
             FOR NO KEY UPDATE SKIP LOCKED
-        """, cron_id=job_id, now=cr.now())
+        """, cron_id=job_id, where=where_clause)
         try:
             cr.execute(query, log_exceptions=False)
         except psycopg2.extensions.TransactionRollbackError:
@@ -600,7 +605,7 @@ class IrCron(models.Model):
             self.env.cr.rollback()
             raise
 
-    def _try_lock(self, lockfk=False):
+    def _lock_records(self, lockfk=False):
         """Try to grab a dummy exclusive write-lock to the rows with the given ids,
            to make sure a following write() or unlink() will not block due
            to a process currently executing those cron tasks.
@@ -626,13 +631,13 @@ class IrCron(models.Model):
                               "Please try again in a few minutes"))
 
     def write(self, vals):
-        self._try_lock()
+        self._lock_records()
         if ('nextcall' in vals or vals.get('active')) and os.getenv('ODOO_NOTIFY_CRON_CHANGES'):
             self._cr.postcommit.add(self._notifydb)
         return super().write(vals)
 
     def unlink(self):
-        self._try_lock(lockfk=True)
+        self._lock_records(lockfk=True)
         return super().unlink()
 
     def try_write(self, values):

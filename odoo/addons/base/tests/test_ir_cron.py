@@ -93,7 +93,8 @@ class TestIrCron(TransactionCase, CronMixinCase):
             )
         """)
 
-        self.cron.method_direct_trigger()
+        with self.enter_registry_test_mode():
+            self.cron.method_direct_trigger()
 
         self.assertEqual(self.cron.lastcall, fields.Datetime.now())
         self.assertEqual(self.partner.name, 'You have been CRONWNED')
