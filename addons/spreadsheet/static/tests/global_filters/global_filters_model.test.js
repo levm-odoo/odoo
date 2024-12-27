@@ -531,6 +531,7 @@ test("Get active filters with multiple filters", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
     });
     await addGlobalFilter(model, {
@@ -559,6 +560,7 @@ test("Get active filters with text filter enabled", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
     });
     const [filter] = model.getters.getGlobalFilters();
@@ -578,6 +580,7 @@ test("restrict text filter to a range of values", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
         rangeOfAllowedValues: toRangeData(sheetId, "A1:A2"),
     });
@@ -596,6 +599,7 @@ test("duplicated values appear once in text filter with range", async function (
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
         rangeOfAllowedValues: toRangeData(sheetId, "A1:A2"),
     });
@@ -613,6 +617,7 @@ test("numbers and dates are formatted in text filter with range", async function
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
         rangeOfAllowedValues: toRangeData(sheetId, "A1:A2"),
     });
@@ -632,6 +637,7 @@ test("falsy values appears (but not empty string) in text filter with range", as
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
         rangeOfAllowedValues: toRangeData(sheetId, "A1:A3"),
     });
@@ -649,6 +655,7 @@ test("default value appears in text filter with range", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
         rangeOfAllowedValues: toRangeData(sheetId, "A1"),
         defaultValue: "World",
@@ -668,6 +675,7 @@ test("current value appears in text filter with range", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
         rangeOfAllowedValues: toRangeData(sheetId, "A1:A2"),
     });
@@ -691,6 +699,7 @@ test("default value appears once if the same value is in the text filter range",
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
         rangeOfAllowedValues: toRangeData(sheetId, "A1"),
         defaultValue: "Hello", // same value as in A1
@@ -708,6 +717,7 @@ test("formatted default value appears once if the same value is in the text filt
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
         rangeOfAllowedValues: toRangeData(sheetId, "A1"),
         defaultValue: "0.3",
@@ -730,6 +740,7 @@ test("errors and empty cells if the same value is in the text filter range", asy
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
         rangeOfAllowedValues: toRangeData(sheetId, "A1:A3"),
         defaultValue: "Hello", // same value as in A1
@@ -745,6 +756,7 @@ test("add column before a text filter range", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
         rangeOfAllowedValues: toRangeData(sheetId, "A1:A2"),
     });
@@ -759,6 +771,7 @@ test("delete a text filter range", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
         rangeOfAllowedValues: toRangeData(sheetId, "A1:A2"),
     });
@@ -773,6 +786,7 @@ test("import/export a text filter range", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
         rangeOfAllowedValues: toRangeData(sheetId, "A1:A2"),
     });
@@ -846,6 +860,7 @@ test("ODOO.FILTER.VALUE text filter", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Text Filter",
     });
     await animationFrame();
@@ -1046,6 +1061,7 @@ test("ODOO.FILTER.VALUE with escaped quotes in the filter label", async function
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: 'my "special" filter',
         defaultValue: "Jean-Jacques",
     });
@@ -1082,6 +1098,7 @@ test("Exporting data does not remove value from model", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Cuillère",
     });
     await setGlobalFilterValue(model, {
@@ -1099,6 +1116,7 @@ test("Can undo-redo a ADD_GLOBAL_FILTER", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Cuillère",
     });
     expect(model.getters.getGlobalFilters().length).toBe(1);
@@ -1113,6 +1131,7 @@ test("Can undo-redo a REMOVE_GLOBAL_FILTER", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Cuillère",
     });
     await removeGlobalFilter(model, "42");
@@ -1128,11 +1147,13 @@ test("Can undo-redo a EDIT_GLOBAL_FILTER", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Cuillère",
     });
     await editGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label: "Arthouuuuuur",
     });
     expect(model.getters.getGlobalFilters()[0].label).toBe("Arthouuuuuur");
@@ -1428,6 +1449,7 @@ test("Default value defines value", async function () {
     await addGlobalFilter(model, {
         id: "42",
         type: "text",
+        operator: "ilike",
         label,
         defaultValue,
     });
@@ -1439,7 +1461,9 @@ test("Default value defines value at model loading", async function () {
     const label = "This year";
     const defaultValue = "value";
     const model = new Model({
-        globalFilters: [{ type: "text", label, defaultValue, fields: {}, id: "1" }],
+        globalFilters: [
+            { type: "text", operator: "ilike", label, defaultValue, fields: {}, id: "1" },
+        ],
     });
     const [filter] = model.getters.getGlobalFilters();
     expect(model.getters.getGlobalFilterValue(filter.id)).toBe(defaultValue);

@@ -515,7 +515,7 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
             return new Domain();
         }
         const field = fieldMatching.chain;
-        return new Domain([[field, "ilike", value]]);
+        return new Domain([[field, filter.operator, value]]);
     }
 
     /**
