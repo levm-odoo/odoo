@@ -87,6 +87,23 @@ class IrCron(models.Model):
     failure_count = fields.Integer(default=0, help="The number of consecutive failures of this job. It is automatically reset on success.")
     first_failure_date = fields.Datetime(string='First Failure Date', help="The first time the cron failed. It is automatically reset on success.")
 
+    # stats
+    stat_mean_duration = fields.Float(string="Mean Duration",
+        readonly=True,
+        help="Exponentially weighted mean duration in seconds per run.")
+    stat_variance_duration = fields.Float(string="Mean Variance",
+        readonly=True,
+        help="Exponentially weighted variance duration in seconds per run.")
+    stat_total_duration = fields.Float(string="Total Duration (all runs, seconds)", readonly=True)
+    stat_total_count = fields.Integer(string="Total Run Count", readonly=True)
+    stat_total_failure_count = fields.Integer(string="Total Failure Count", readonly=True)
+    stat_last_duration = fields.Float(string="Last Duration (seconds)", readonly=True)
+    stat_has_progress = fields.Boolean(string="Uses Progress?",
+        readonly=True,
+        help="The progress API was used at least once to signal processed records")
+    stat_date = fields.Datetime(string="Stats Date", readonly=True)
+    stat_first_date = fields.Datetime(string="First Execution Date", readonly=True)
+
     _check_strictly_positive_interval = models.Constraint(
         'CHECK(interval_number > 0)',
         "The interval number must be a strictly positive number.",
@@ -376,6 +393,8 @@ class IrCron(models.Model):
           times over a given time span; otherwise it is rescheduled
           later.
         """
+        # IMPORTANT: when running, updating of ir_cron should be exclusively
+        # done by using direct SQL to avoid any hooks from the ORM
         env = api.Environment(cron_cr, job['user_id'], {})
         ir_cron = env[cls._name]
 
@@ -397,6 +416,7 @@ class IrCron(models.Model):
             _logger.error("Job %r (%s) timed out", job['cron_name'], job['id'])
 
         ir_cron._update_failure_count(job, status)
+        ir_cron._update_stats(job)
 
         if status in (CompletionStatus.FULLY_DONE, CompletionStatus.FAILED):
             ir_cron._reschedule_later(job)
@@ -442,6 +462,7 @@ class IrCron(models.Model):
                 cron, progress = cron._add_progress(timed_out_counter=timed_out_counter)
                 job_cr.commit()
 
+                start_time = time.time()
                 try:
                     # singaling check and commit is done inside `_callback`
                     cron._callback(job['cron_name'], job['ir_actions_server_id'])
@@ -465,11 +486,13 @@ class IrCron(models.Model):
                     if status == CompletionStatus.FULLY_DONE and progress.deactivate:
                         job['active'] = False
                 finally:
+                    done, remaining = progress.done, progress.remaining
                     progress.timed_out_counter = 0
+                    progress.duration = (time.time() - start_time)
                     timed_out_counter = 0
                     job_cr.commit()  # ensure we have no more leftovers
-                _logger.info('Job %r (%s) processed %s records, %s records remaining',
-                             job['cron_name'], job['id'], progress.done, progress.remaining)
+                    _logger.info('Job %r (%s) processed %s records, %s records remaining',
+                        job['cron_name'], job['id'], done, remaining)
                 if status in (CompletionStatus.FULLY_DONE, CompletionStatus.FAILED):
                     break
 
@@ -604,6 +627,66 @@ class IrCron(models.Model):
             _logger.exception('Job %r (%s) server action #%s failed', cron_name, self.id, server_action_id)
             self.env.cr.rollback()
             raise
+
+    def _update_stats(self, job: dict | None) -> None:
+        if job is None:
+            # to be able to update stats on a recordset
+            self.flush_recordset()
+            for data in self.read():
+                self.browse()._update_stats(data)
+            self.invalidate_recordset()
+            return
+
+        ALPHA = 0.05
+        values = {
+            k: v or 0  # update the type afterwards
+            for k, v in job.items()
+            if k.startswith('stat_')
+        }
+        for k, v in (('stat_has_progress', False), ('stat_first_date', None)):
+            if not values[k]:
+                values[k] = v
+        for progress in self.env['ir.cron.progress'].search_fetch(
+            [
+                ('cron_id', '=', job['id']),
+                ('create_date', '>', values['stat_date'] or datetime.fromtimestamp(0)),
+            ],
+            ['duration', 'done', 'timed_out_counter'],
+            order='create_date, id',
+        ):
+            duration = progress.duration
+            if progress.timed_out_counter:
+                # count a time-out as max between execution limits and 10 minutes
+                duration = max(config['limit_time_real'], config['limit_time_real_cron'], 10 * 60)
+                values['stat_total_failure_count'] += 1
+            if progress.done:
+                values['stat_has_progress'] = True
+            values['stat_last_duration'] = duration
+            values['stat_total_count'] += 1
+            values['stat_total_duration'] += duration
+            # see https://stats.stackexchange.com/questions/111851/standard-deviation-of-an-exponentially-weighted-mean
+            prev_mean_duration = values['stat_mean_duration']
+            if values['stat_total_count'] < 1 / ALPHA:
+                # compute a simple mean when we have just a few observations
+                values['stat_mean_duration'] = values['stat_total_duration'] / values['stat_total_count']
+            else:
+                values['stat_mean_duration'] = ALPHA * duration + (1 - ALPHA) * prev_mean_duration
+            values['stat_variance_duration'] = (1 - ALPHA) * (values['stat_variance_duration'] + ALPHA * (duration - prev_mean_duration) ** 2)
+            if not values['stat_first_date']:
+                values['stat_first_date'] = progress.create_date
+        values['stat_date'] = self.env.cr.now().replace(microsecond=0)
+        self.env.cr.execute(SQL("""
+        UPDATE ir_cron
+        SET %s
+        WHERE id = %s
+        """, SQL(', ').join(
+            SQL("%s = %s", SQL.identifier(field), value)
+            for field, value in values.items()
+        ), job['id']))
+
+    def reset_stats(self):
+        values = dict.fromkeys((fname for fname in self._fields if fname.startswith('stat_')), False)
+        self.write(values)
 
     def _lock_records(self, lockfk=False):
         """Try to grab a dummy exclusive write-lock to the rows with the given ids,
@@ -746,6 +829,7 @@ class IrCron(models.Model):
         :return: a pair ``(cron, progress)``, where the progress has
             been injected inside the cron's context
         """
+        self.ensure_one()
         progress = self.env['ir.cron.progress'].sudo().create([{
             'cron_id': self.id,
             'remaining': 0,
@@ -774,6 +858,7 @@ class IrCron(models.Model):
             'remaining': remaining,
             'done': done,
             'deactivate': deactivate,
+            'duration': (datetime.now() - progress.create_date).total_seconds(),  # approximation
         })
 
 
@@ -805,6 +890,7 @@ class IrCronProgress(models.Model):
     done = fields.Integer(default=0)
     deactivate = fields.Boolean()
     timed_out_counter = fields.Integer(default=0)
+    duration = fields.Float()
 
     @api.autovacuum
     def _gc_cron_progress(self):
