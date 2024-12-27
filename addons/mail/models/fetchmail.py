@@ -202,12 +202,22 @@ odoo_mailgate: "|/path/to/odoo-mailgate.py --host=localhost -u %(uid)d -p PASSWO
                     pass
         return True
 
+    def fetch_mail(self):
+        """The button on the interface.
+
+        We cannot execute the fetch directly as it does commit. Let's run
+        the CRON job instead.
+        """
+        self.check_access('write')
+        cron = self.env.ref('mail.ir_cron_mail_gateway_action').sudo()
+        return cron.method_direct_trigger()
+
     @api.model
     def _fetch_mails(self):
         """ Method called by cron to fetch mails from servers """
-        return self.search([('state', '=', 'done'), ('server_type', '!=', 'local')]).fetch_mail(raise_exception=False)
+        return self.search([('state', '=', 'done'), ('server_type', '!=', 'local')])._fetch_mail()
 
-    def fetch_mail(self, raise_exception=True):
+    def _fetch_mail(self):
         """ WARNING: meant for cron usage only - will commit() after each email! """
         assert self.env.context.get('cron_id') == self.env.ref('mail.ir_cron_mail_gateway_action').id
         MailThread = self.env['mail.thread'].with_context(fetchmail_cron_running=True)
@@ -226,7 +236,7 @@ odoo_mailgate: "|/path/to/odoo-mailgate.py --host=localhost -u %(uid)d -p PASSWO
             count, failed = 0, 0
 
             def process_message(message):
-                nonlocal count, failed, total_remaining
+                nonlocal count, failed, total_done, total_remaining
                 try:
                     with cr.savepoint():
                         thread_process_message(message)
@@ -234,7 +244,9 @@ odoo_mailgate: "|/path/to/odoo-mailgate.py --host=localhost -u %(uid)d -p PASSWO
                     _logger.info('Failed to process mail from %s server %s.', *server_type_and_name, exc_info=True)
                     failed += 1
                 count += 1
+                total_done += 1
                 total_remaining -= 1
+                self.env['ir.cron']._notify_progress(done=total_done, remaining=total_remaining)
                 cr.commit()
 
             imap_server = None
@@ -267,10 +279,7 @@ odoo_mailgate: "|/path/to/odoo-mailgate.py --host=localhost -u %(uid)d -p PASSWO
                 else:
                     _logger.warning('Unknown server type for %s: %r', server, connection_type)
             except Exception as e:
-                if raise_exception:
-                    raise ValidationError(_("Couldn't get your emails. Check out the error message below for more info:\n%s", e)) from e
-                else:
-                    _logger.info("General failure when trying to fetch mail from %s server %s.", *server_type_and_name, exc_info=True)
+                _logger.info("General failure when trying to fetch mail from %s server %s.", *server_type_and_name, exc_info=True)
             finally:
                 if imap_server:
                     try:
@@ -285,7 +294,6 @@ odoo_mailgate: "|/path/to/odoo-mailgate.py --host=localhost -u %(uid)d -p PASSWO
                         _logger.warning('Failed to properly finish %s connection: %s.', *server_type_and_name, exc_info=True)
             if count:
                 _logger.info("Fetched %d email(s) on %s server %s; %d succeeded, %d failed.", count, *server_type_and_name, (count - failed), failed)
-                total_done += count
             server.write({'date': fields.Datetime.now()})
             total_remaining -= 1  # the server was checked
             self.env['ir.cron']._notify_progress(done=total_done, remaining=total_remaining)
