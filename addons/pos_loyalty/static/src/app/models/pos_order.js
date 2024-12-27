@@ -1109,7 +1109,7 @@ patch(PosOrder.prototype, {
         const discountProduct = reward.discount_line_product_id;
         if (["ewallet", "gift_card"].includes(reward.program_id.program_type)) {
             const new_price = computePriceForcePriceInclude(
-                discountProduct.taxes_id,
+                discountProduct.tax_ids,
                 -Math.min(maxDiscount, discountable),
                 discountProduct,
                 this.config._product_default_values,
@@ -1128,7 +1128,7 @@ patch(PosOrder.prototype, {
                     coupon_id: coupon_id,
                     points_cost: pointCost,
                     reward_identifier_code: rewardCode,
-                    tax_ids: discountProduct.taxes_id,
+                    tax_ids: discountProduct.tax_ids,
                 },
             ];
         }
@@ -1395,7 +1395,7 @@ patch(PosOrder.prototype, {
                     product.getPrice(this.pricelist_id, freeQuantity, 0, false, product),
                     this.currency.decimal_places
                 ),
-                tax_ids: product.taxes_id,
+                tax_ids: product.tax_ids,
                 qty: freeQuantity,
                 reward_id: reward,
                 is_reward_line: true,

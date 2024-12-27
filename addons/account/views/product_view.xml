@@ -10,8 +10,8 @@
                     <field name="default_code"/>
                     <field name="name"/>
                     <field name="list_price"/>
-                    <field name="taxes_id" widget="many2many_tax_tags"/>
-                    <field name="supplier_taxes_id" widget="many2many_tax_tags"/>
+                    <field name="tax_ids" widget="many2many_tax_tags"/>
+                    <field name="supplier_tax_ids" widget="many2many_tax_tags"/>
                     <field name="activity_exception_decoration" widget="activity_exception"/>
                 </list>
             </field>
@@ -71,10 +71,10 @@
                     </page>
                 </page>
                 <div name="list_price_uom" position="after">
-                    <label for="taxes_id" invisible="type == 'combo'"/>
+                    <label for="tax_ids" invisible="type == 'combo'"/>
                     <div name="taxes_div" class="o_row" invisible="type == 'combo'">
                         <field
-                            name="taxes_id"
+                            name="tax_ids"
                             widget="many2many_tax_tags"
                             class="oe_inline"
                             context="{
@@ -88,7 +88,7 @@
                     </div>
                 </div>
                 <div name="standard_price_uom" position="after">
-                    <field name="supplier_taxes_id"
+                    <field name="supplier_tax_ids"
                         invisible="not purchase_ok or type == 'combo'"
                         widget="many2many_tax_tags"
                         context="{

@@ -429,7 +429,7 @@ export class PosOrderline extends Base {
         const priceUnit = this.getlstPrice();
         const product = this.getProduct();
 
-        let taxes = product.taxes_id;
+        let taxes = product.tax_ids;
 
         // Fiscal position.
         const order = this.order_id;
@@ -484,7 +484,7 @@ export class PosOrderline extends Base {
      */
     _getProductTaxesAfterFiscalPosition() {
         const product = this.getProduct();
-        let taxes = this.tax_ids || product.taxes_id;
+        let taxes = this.tax_ids || product.tax_ids;
 
         // Fiscal position.
         const fiscalPosition = this.order_id.fiscal_position_id;
@@ -501,7 +501,7 @@ export class PosOrderline extends Base {
         const discount = this.getDiscount();
         const priceUnitAfterDiscount = priceUnit * (1.0 - discount / 100.0);
 
-        let taxes = this.tax_ids || product.taxes_id;
+        let taxes = this.tax_ids || product.tax_ids;
 
         // Fiscal position.
         const fiscalPosition = this.order_id.fiscal_position_id;
@@ -668,7 +668,7 @@ export class PosOrderline extends Base {
     get taxGroupLabels() {
         return [
             ...new Set(
-                this.product_id.taxes_id
+                this.product_id.tax_ids
                     ?.map((tax) => tax.tax_group_id.pos_receipt_label)
                     .filter((label) => label)
             ),

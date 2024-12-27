@@ -23,7 +23,7 @@ export class ProductTemplate extends Base {
         const basePrice = this?.lst_price || productTemplate.getPrice(pricelist, 1);
         const selectedPrice = price === undefined ? basePrice : price;
 
-        let taxes = productTemplate.taxes_id;
+        let taxes = productTemplate.tax_ids;
 
         // Fiscal position.
         if (fiscalPosition) {

@@ -208,7 +208,7 @@ class TestWebsitePriceList(WebsiteSaleCommon):
         product = self.env['product.product'].create({
             'name': 'Super Product',
             'list_price': 100,
-            'taxes_id': False,
+            'tax_ids': False,
         })
         self.website.pricelist_id.write({
             'item_ids': [Command.clear(), Command.create({
@@ -253,7 +253,7 @@ class TestWebsitePriceList(WebsiteSaleCommon):
         product = self.env['product.product'].create({
             'name': 'Super Product',
             'list_price': 0,
-            'taxes_id': False,
+            'tax_ids': False,
         })
         self.website.pricelist_id.write({
             'item_ids': [
@@ -349,7 +349,7 @@ class TestWebsitePriceList(WebsiteSaleCommon):
             'name': 'Test Product',
             'type': 'consu',
             'list_price': 61.98,  # 75 tax incl.
-            'taxes_id': [
+            'tax_ids': [
                 Command.create({
                     'name': '21%',
                     'type_tax_use': 'sale',
