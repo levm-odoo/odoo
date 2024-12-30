@@ -822,7 +822,9 @@ class ProjectTask(models.Model):
                 default = {
                     'parent_id': False,
                 }
-                vals['child_ids'] = [Command.create(child_id.copy_data(default)[0]) for child_id in task.child_ids]
+                vals['child_ids'] = [Command.create(child_id.copy_data(default)[0]) for child_id in task.child_ids.filtered('active')]
+            if task.user_ids:
+                vals['user_ids'] = task.user_ids.filtered('active').ids
         return vals_list
 
     def _create_task_mapping(self, copied_tasks):
