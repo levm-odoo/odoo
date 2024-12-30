@@ -737,7 +737,9 @@ class IrCron(models.Model):
             return
         if done < 0 or remaining < 0:
             raise ValueError("`done` and `remaining` must be positive integers.")
-        self.env['ir.cron.progress'].sudo().browse(progress_id).write({
+        progress = self.env['ir.cron.progress'].sudo().browse(progress_id)
+        assert progress.cron_id.id == self.env.context.get('cron_id'), "Progress on the wrong cron_id"
+        progress.write({
             'remaining': remaining,
             'done': done,
             'deactivate': deactivate,
