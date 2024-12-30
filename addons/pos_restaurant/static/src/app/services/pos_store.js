@@ -318,7 +318,9 @@ patch(PosStore.prototype, {
             this.bus.subscribe("SYNC_ORDERS", this.wsSyncTableCount.bind(this));
         }
 
-        return await super.afterProcessServerData(...arguments);
+        const data = await super.afterProcessServerData(...arguments);
+        this.restoreSampleDataSate();
+        return data;
     },
     //@override
     addNewOrder(data = {}) {
@@ -397,14 +399,16 @@ patch(PosStore.prototype, {
         try {
             this.loadingOrderState = true;
             const orders = await this.syncAllOrders({ throw: true });
-            const orderUuids = orders.map((order) => order.uuid);
-            for (const order of table.getOrders()) {
-                if (
-                    !orderUuids.includes(order.uuid) &&
-                    typeof order.id === "number" &&
-                    order.uiState.screen_data?.value?.name !== "TipScreen"
-                ) {
-                    order.delete();
+            if (orders) {
+                const orderUuids = orders.map((order) => order.uuid);
+                for (const order of table.getOrders()) {
+                    if (
+                        !orderUuids.includes(order.uuid) &&
+                        typeof order.id === "number" &&
+                        order.uiState.screen_data?.value?.name !== "TipScreen"
+                    ) {
+                        order.delete();
+                    }
                 }
             }
         } finally {
@@ -722,5 +726,38 @@ patch(PosStore.prototype, {
             return;
         }
         return this.floorScrollPositions[floorId];
+    },
+
+    async loadSampleData() {
+        if (this.config.module_pos_restaurant) {
+            const data = { screen: "ProductScreen" };
+            const table_number = this.getOrder()?.table_id?.table_number;
+            if (table_number) {
+                data.tableNumber = table_number;
+            }
+            sessionStorage.setItem("posPreSampleDataLoadState", JSON.stringify(data));
+        }
+        return super.loadSampleData();
+    },
+
+    restoreSampleDataSate() {
+        if (this.config.module_pos_restaurant) {
+            let parsedState = sessionStorage.getItem("posPreSampleDataLoadState");
+            if (!parsedState) {
+                return;
+            }
+            try {
+                sessionStorage.removeItem("posPreSampleDataLoadState");
+                parsedState = JSON.parse(parsedState);
+                const { tableNumber, screen } = parsedState;
+                if (tableNumber) {
+                    this.searchOrder(tableNumber);
+                } else if (screen) {
+                    this.showScreen(screen);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
     },
 });

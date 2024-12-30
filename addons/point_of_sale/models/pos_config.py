@@ -825,103 +825,142 @@ class PosConfig(models.Model):
 
         return journal, payment_methods.ids
 
-    @api.model
-    def _load_furniture_data(self):
-        product_module = self.env['ir.module.module'].search([('name', '=', 'product')])
-        if not product_module.demo:
-            convert.convert_file(self.env, 'product', 'data/product_category_demo.xml', None, noupdate=True, mode='init', kind='data')
-            convert.convert_file(self.env, 'product', 'data/product_attribute_demo.xml', None, noupdate=True, mode='init', kind='data')
-            convert.convert_file(self.env, 'product', 'data/product_demo.xml', None, noupdate=True, mode='init', kind='data')
-
-        convert.convert_file(self.env, 'point_of_sale', 'data/scenarios/furniture_data.xml', None, noupdate=True, mode='init', kind='data')
-
     def get_record_by_ref(self, recordRefs):
         # filters out unavailable external id
         return [self.env.ref(record).id for record in recordRefs if self.env.ref(record, raise_if_not_found=False)]
 
+    def load_demo_data(self):
+        self = self.with_context(bypass_categories_forbidden_change=True)
+        xml_id = self.get_external_id().get(self.id, "")
+        # Determine the appropriate function to call based on the XML id
+        if xml_id:
+            for key, loader in self._get_demo_data_loader_methods().items():
+                if key in xml_id:
+                    loader()
+                    return
+        self._load_default_demo_data()
+
+    def _get_demo_data_loader_methods(self):
+        """ Returns a mapping between a portion of the XML ID and the corresponding demo data loader method. """
+        return {
+            'point_of_sale.pos_config_clothes': self._load_onboarding_clothes_demo_data,
+            'point_of_sale.pos_config_bakery': self._load_onboarding_bakery_demo_data,
+            'point_of_sale.pos_config_furniture': self._load_onboarding_furniture_demo_data,
+        }
+
+    def _load_default_demo_data(self):
+        return self._load_onboarding_furniture_demo_data()
+
     @api.model
-    def load_onboarding_clothes_scenario(self):
-        ref_name = 'point_of_sale.pos_config_clothes'
-        if not self.env.ref(ref_name, raise_if_not_found=False):
-            convert.convert_file(self.env, 'point_of_sale', 'data/scenarios/clothes_data.xml', None, noupdate=True, mode='init', kind='data')
+    def load_onboarding_clothes_scenario(self, with_demo_data=True):
+        journal, payment_methods_ids = self._create_journal_and_payment_methods(
+            cash_journal_vals={'name': 'Cash Clothes Shop', 'show_on_dashboard': False})
+        config = self.env['pos.config'].create([{
+            'name': _('Clothes Shop'),
+            'company_id': self.env.company.id,
+            'journal_id': journal.id,
+            'payment_method_ids': payment_methods_ids
+        }])
+        self.env['ir.model.data']._update_xmlids([{
+            'xml_id': self._get_suffixed_ref_name('point_of_sale.pos_config_clothes'),
+            'record': config,
+            'noupdate': True,
+        }])
+        if with_demo_data:
+            config._load_onboarding_clothes_demo_data()
+        return {'config_id': config.id}
+
+    def _load_onboarding_clothes_demo_data(self):
+        self.ensure_one()
+        if not self.env.ref('point_of_sale.product_category_clothes', raise_if_not_found=False):
+            convert.convert_file(self.env, 'point_of_sale', 'data/scenarios/clothes_data.xml', None, noupdate=True,
+                                 mode='init', kind='data')
 
         clothes_categories = self.get_record_by_ref([
             'point_of_sale.pos_category_upper',
             'point_of_sale.pos_category_lower',
             'point_of_sale.pos_category_others'
         ])
-        journal, payment_methods_ids = self._create_journal_and_payment_methods(cash_journal_vals={'name': 'Cash Clothes Shop', 'show_on_dashboard': False})
-        config = self.env['pos.config'].create([{
-            'name': _('Clothes Shop'),
-            'company_id': self.env.company.id,
-            'journal_id': journal.id,
-            'payment_method_ids': payment_methods_ids,
-            'limit_categories': True,
-            'iface_available_categ_ids': clothes_categories,
-        }])
-        self.env['ir.model.data']._update_xmlids([{
-            'xml_id': self._get_suffixed_ref_name(ref_name),
-            'record': config,
-            'noupdate': True,
-        }])
+        if clothes_categories:
+            self.limit_categories = True
+            self.iface_available_categ_ids = clothes_categories
 
     @api.model
-    def load_onboarding_bakery_scenario(self):
-        ref_name = 'point_of_sale.pos_config_bakery'
-        if not self.env.ref(ref_name, raise_if_not_found=False):
-            convert.convert_file(self.env, 'point_of_sale', 'data/scenarios/bakery_data.xml', None, mode='init', noupdate=True, kind='data')
-
-        journal, payment_methods_ids = self._create_journal_and_payment_methods(cash_journal_vals={'name': 'Cash Bakery', 'show_on_dashboard': False})
-        bakery_categories = self.get_record_by_ref([
-            'point_of_sale.pos_category_breads',
-            'point_of_sale.pos_category_pastries',
-        ])
+    def load_onboarding_bakery_scenario(self, with_demo_data=True):
+        journal, payment_methods_ids = self._create_journal_and_payment_methods(
+            cash_journal_vals={'name': 'Cash Bakery', 'show_on_dashboard': False})
         config = self.env['pos.config'].create({
             'name': _('Bakery Shop'),
             'company_id': self.env.company.id,
             'journal_id': journal.id,
-            'payment_method_ids': payment_methods_ids,
-            'limit_categories': True,
-            'iface_available_categ_ids': bakery_categories,
+            'payment_method_ids': payment_methods_ids
         })
         self.env['ir.model.data']._update_xmlids([{
-            'xml_id': self._get_suffixed_ref_name(ref_name),
+            'xml_id': self._get_suffixed_ref_name('point_of_sale.pos_config_bakery'),
             'record': config,
             'noupdate': True,
         }])
+        if with_demo_data:
+            config._load_onboarding_bakery_demo_data()
+        return {'config_id': config.id}
+
+    def _load_onboarding_bakery_demo_data(self):
+        self.ensure_one()
+        if not self.env.ref('point_of_sale.pos_category_breads', raise_if_not_found=False):
+            convert.convert_file(self.env, 'point_of_sale', 'data/scenarios/bakery_data.xml', None, mode='init', noupdate=True, kind='data')
+
+        bakery_categories = self.get_record_by_ref([
+            'point_of_sale.pos_category_breads',
+            'point_of_sale.pos_category_pastries',
+        ])
+        if bakery_categories:
+            self.limit_categories = True
+            self.iface_available_categ_ids = bakery_categories
 
     @api.model
-    def load_onboarding_furniture_scenario(self):
-        ref_name = 'point_of_sale.pos_config_main'
-        if not self.env.ref(ref_name, raise_if_not_found=False):
-            self._load_furniture_data()
-
+    def load_onboarding_furniture_scenario(self, with_demo_data=True):
         journal, payment_methods_ids = self._create_journal_and_payment_methods(
             cash_ref='point_of_sale.cash_payment_method_furniture',
             cash_journal_vals={'name': 'Cash Furn. Shop', 'show_on_dashboard': False},
         )
+        config = self.env['pos.config'].create([{
+            'name': _('Furniture Shop'),
+            'company_id': self.env.company.id,
+            'journal_id': journal.id,
+            'payment_method_ids': payment_methods_ids
+        }])
+        self.env['ir.model.data']._update_xmlids([{
+            'xml_id': self._get_suffixed_ref_name('point_of_sale.pos_config_main'),
+            'record': config,
+            'noupdate': True,
+        }])
+        if not with_demo_data:
+            return
+        config._load_onboarding_furniture_demo_data()
+        if self.env.company.id == self.env.ref('base.main_company').id:
+            existing_session = self.env.ref('point_of_sale.pos_closed_session_2', raise_if_not_found=False)
+            if not existing_session:
+                convert.convert_file(self.env, 'point_of_sale', 'data/orders_demo.xml', None, noupdate=True, mode='init', kind='data')
+        return {'config_id': config.id}
+
+    def _load_onboarding_furniture_demo_data(self):
+        self.ensure_one()
+        if not self.env.ref('point_of_sale.pos_category_miscellaneous', raise_if_not_found=False):
+            product_module = self.env['ir.module.module'].search([('name', '=', 'product')])
+            if not product_module.demo:
+                convert.convert_file(self.env, 'product', 'data/product_category_demo.xml', None, noupdate=True, mode='init', kind='data')
+                convert.convert_file(self.env, 'product', 'data/product_attribute_demo.xml', None, noupdate=True, mode='init', kind='data')
+                convert.convert_file(self.env, 'product', 'data/product_demo.xml', None, noupdate=True, mode='init', kind='data')
+            convert.convert_file(self.env, 'point_of_sale', 'data/scenarios/furniture_data.xml', None, noupdate=True, mode='init', kind='data')
+
         furniture_categories = self.get_record_by_ref([
             'point_of_sale.pos_category_miscellaneous',
             'point_of_sale.pos_category_desks',
             'point_of_sale.pos_category_chairs'
         ])
-        config = self.env['pos.config'].create([{
-            'name': _('Furniture Shop'),
-            'company_id': self.env.company.id,
-            'journal_id': journal.id,
-            'payment_method_ids': payment_methods_ids,
-            'limit_categories': True,
-            'iface_available_categ_ids': furniture_categories,
-        }])
-        self.env['ir.model.data']._update_xmlids([{
-            'xml_id': self._get_suffixed_ref_name(ref_name),
-            'record': config,
-            'noupdate': True,
-        }])
-        if self.env.company.id == self.env.ref('base.main_company').id:
-            existing_session = self.env.ref('point_of_sale.pos_closed_session_2', raise_if_not_found=False)
-            if not existing_session:
-                convert.convert_file(self.env, 'point_of_sale', 'data/orders_demo.xml', None, noupdate=True, mode='init', kind='data')
+        if furniture_categories:
+            self.limit_categories = True
+            self.iface_available_categ_ids = furniture_categories
 
     def _get_suffixed_ref_name(self, ref_name):
         """Suffix the given ref_name with the id of the current company if it's not the main company."""

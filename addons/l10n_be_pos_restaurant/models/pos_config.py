@@ -23,11 +23,12 @@ class PosConfig(models.Model):
                 'tax_dest_id': tax_6.id,
                 'position_id': fp.id
             })
-            config.write({'takeaway': True, 'takeaway_fp_id': fp.id})
+            takeout_preset = self.env.ref('pos_restaurant.pos_takeout_preset', raise_if_not_found=False)
+            if takeout_preset:
+                takeout_preset.fiscal_position_id = fp.id
 
-    @api.model
-    def load_onboarding_bar_scenario(self):
-        super().load_onboarding_bar_scenario()
+    def _load_bar_demo_data(self):
+        super()._load_bar_demo_data()
         if (self.env.company.chart_template or '').startswith('be'):
             ChartTemplate = self.env['account.chart.template'].with_company(self.env.company)
             tax_alcohol = ChartTemplate.ref('tax_alcohol_luxury')
@@ -38,9 +39,10 @@ class PosConfig(models.Model):
                 ]).write({'taxes_id': [(6, 0, [tax_alcohol.id])]})
 
     @api.model
-    def load_onboarding_restaurant_scenario(self):
-        super().load_onboarding_restaurant_scenario()
+    def load_onboarding_restaurant_scenario(self, with_demo_data=True):
+        res = super().load_onboarding_restaurant_scenario(with_demo_data)
         if (self.env.company.chart_template or '').startswith('be'):
             config = self.env.ref(self._get_suffixed_ref_name('pos_restaurant.pos_config_main_restaurant'), raise_if_not_found=False)
             if config:
                 self._create_takeaway_fiscal_position(config)
+        return res
