@@ -11,6 +11,7 @@ from werkzeug import urls
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
+from odoo.addons.payment import utils as payment_utils
 from odoo.addons.payment_paymob import const
 from odoo.addons.payment_paymob.controllers.main import PaymobController
 
@@ -83,7 +84,7 @@ class PaymentProvider(models.Model):
         url = self._paymob_get_api_url() + endpoint
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': f'Token {self.paymob_secret_key}'
+            'Authorization': f'Token {payment_utils.get_normalized_field(self.paymob_secret_key)}'
         }
         try:
             response = requests.post(url, headers=headers, json=data, timeout=10)
@@ -95,7 +96,7 @@ class PaymentProvider(models.Model):
                 _logger.exception(
                     "Invalid API request at %s with data:\n%s", url, pprint.pformat(payload)
                 )
-                msg = response.json().get('message', '')
+                msg = response.text
                 raise ValidationError(
                     "Paymob: " + _("The communication with the API failed. Details: %s", msg)
                 )
