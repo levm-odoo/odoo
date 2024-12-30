@@ -3,6 +3,7 @@
 #-----------------------------------------------------------
 import datetime
 import errno
+import gc
 import logging
 import os
 import os.path
@@ -967,6 +968,8 @@ class PreforkServer(CommonServer):
 
         # Empty the cursor pool, we dont want them to be shared among forked workers.
         odoo.sql_db.close_all()
+        # Make gc copy-on-write friendly for fork()
+        gc.freeze()
 
         _logger.debug("Multiprocess starting")
         while 1:
@@ -985,6 +988,7 @@ class PreforkServer(CommonServer):
                 _logger.exception(e)
                 self.stop(False)
                 return -1
+        gc.unfreeze()
 
 class Worker(object):
     """ Workers """
