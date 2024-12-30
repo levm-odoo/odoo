@@ -34,9 +34,6 @@ export function checkFilterValueIsValid(filter, value) {
                 return checkDateFilterValueIsValid(filter, value);
             }
             case "relation":
-                if (value === "current_user") {
-                    return true;
-                }
                 if (!Array.isArray(value)) {
                     return false;
                 }

@@ -82,12 +82,10 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
         if (filter.type === "date" && isEmpty(value) && filter.defaultValue) {
             return this._getValueOfCurrentPeriod(filterId);
         }
-        if (
-            ["in", "child_of"].includes(filter.operator) &&
-            isEmpty(value) &&
-            filter.defaultValue === "current_user"
-        ) {
-            return [user.userId];
+        if (["in", "child_of"].includes(filter.operator)) {
+            return (value || filter.defaultValue || []).map((id) =>
+                id === "uid" ? user.userId : id
+            );
         }
         return value || filter.defaultValue;
     }

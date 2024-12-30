@@ -515,7 +515,7 @@ test("Relational filter default to current user", async function () {
         operator: "in",
         label: "User Filter",
         modelName: "res.users",
-        defaultValue: "current_user",
+        defaultValue: ["uid"],
     });
     const [filter] = model.getters.getGlobalFilters();
     expect(model.getters.getGlobalFilterValue(filter.id)).toEqual([7]);
