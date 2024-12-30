@@ -35,6 +35,7 @@ class AccountMove(models.Model):
                                            and move.company_id.l10n_es_edi_tax_agency \
                                            and has_tax
 
+<<<<<<< 17.0
     @api.depends('l10n_es_edi_is_required')
     def _compute_edi_show_cancel_button(self):
         super()._compute_edi_show_cancel_button()
@@ -44,3 +45,11 @@ class AccountMove(models.Model):
     def _l10n_es_is_dua(self):
         self.ensure_one()
         return any(t.l10n_es_type == 'dua' for t in self.invoice_line_ids.tax_ids.flatten_taxes_hierarchy())
+||||||| cb9d31c0727a377d0c251eefb4b80790b46eb2e0
+    @api.depends('l10n_es_edi_is_required')
+    def _compute_edi_show_cancel_button(self):
+        super()._compute_edi_show_cancel_button()
+        for move in self.filtered('l10n_es_edi_is_required'):
+            move.edi_show_cancel_button = False
+=======
+>>>>>>> d4d01cd550b581348fc28a8603da16e8abd142c0
