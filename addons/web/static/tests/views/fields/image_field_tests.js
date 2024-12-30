@@ -7,9 +7,12 @@ import {
     triggerEvent,
     clickSave,
     editInput,
+    patchWithCleanup,
 } from "@web/../tests/helpers/utils";
 import { makeView, setupViewRegistries } from "@web/../tests/views/helpers";
 import { pagerNext } from "@web/../tests/search/helpers";
+import { ImageField } from "@web/views/fields/image/image_field";
+import { deserializeDateTime } from "@web/core/l10n/dates";
 
 const MY_IMAGE =
     "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
@@ -858,6 +861,118 @@ QUnit.module("Fields", (hooks) => {
             assert.strictEqual(
                 getUnique(target.querySelector(".o_field_image img")),
                 "1659688620000"
+            );
+        }
+    );
+
+    QUnit.test(
+        "url should not use the record last updated date when the field is related",
+        async function (assert) {
+            serverData.models.partner.fields.related = {
+                name: "Binary",
+                type: "binary",
+                related: "user.image",
+            };
+
+            serverData.models.partner.fields.user = {
+                name: "User",
+                type: "many2one",
+                relation: "user",
+                default: 1,
+            };
+
+            serverData.models.user = {
+                fields: {
+                    image: {
+                        name: "Image",
+                        type: "binary",
+                    },
+                },
+                records: [
+                    {
+                        id: 1,
+                        image: "3 kb",
+                    },
+                ],
+            };
+
+            serverData.models.partner.records[0].__last_update = "2017-02-08 10:00:00";
+
+            const dates = [
+                deserializeDateTime("2017-02-06 10:00:00"), // 1486375200000
+                deserializeDateTime("2017-02-09 10:00:00"), // 1486634400000
+                deserializeDateTime("2017-02-09 11:00:00"), // 1486638000000
+            ];
+
+            patchWithCleanup(ImageField.prototype, {
+                _now: function () {
+                    assert.step("now");
+                    return dates.shift();
+                },
+            });
+
+            await makeView({
+                type: "form",
+                resModel: "partner",
+                resId: 1,
+                serverData,
+                arch: `
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="foo" />
+                            <field name="user"/>
+                            <field name="related" widget="image"/>
+                        </group>
+                    </sheet>
+                </form>`,
+                async mockRPC(route, { args }, performRpc) {
+                    if (route === "/web/dataset/call_kw/partner/read") {
+                        const res = await performRpc(...arguments);
+                        // The mockRPC doesn't implement related fields
+                        res[0].related = "3 kb";
+                        return res;
+                    }
+                },
+            });
+
+            assert.verifySteps(["now"]);
+
+            assert.strictEqual(
+                getUnique(target.querySelector(".o_field_image img")),
+                "1486375200000"
+            );
+
+            await editInput(target, ".o_field_widget[name='foo'] input", "grrr");
+
+            assert.verifySteps([]);
+
+            // the unique should be the same
+            assert.strictEqual(
+                getUnique(target.querySelector(".o_field_image img")),
+                "1486375200000"
+            );
+
+            await editInput(
+                target,
+                "input[type=file]",
+                new File(
+                    [Uint8Array.from([...atob(MY_IMAGE)].map((c) => c.charCodeAt(0)))],
+                    "fake_file.png",
+                    { type: "png" }
+                )
+            );
+            assert.verifySteps(["now"]);
+            assert.strictEqual(
+                target.querySelector(".o_field_image img").dataset.src,
+                `data:image/png;base64,${MY_IMAGE}`
+            );
+
+            await clickSave(target);
+            assert.verifySteps(["now"]);
+            assert.strictEqual(
+                getUnique(target.querySelector(".o_field_image img")),
+                "1486638000000"
             );
         }
     );
