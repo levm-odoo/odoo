@@ -49,12 +49,10 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
             return new Domain();
         }
         switch (filter.type) {
-            case "text":
-                return this._getTextDomain(filter, fieldMatching);
             case "date":
                 return this._getDateDomain(filter, fieldMatching);
-            case "relation":
-                return this._getRelationDomain(filter, fieldMatching);
+            default:
+                return this._getDomain(filter, fieldMatching);
         }
     }
 
@@ -72,12 +70,10 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
         const preventDefaultValue = this.values[filterId]?.preventDefaultValue;
         if (!value && preventDefaultValue) {
             switch (filter.type) {
-                case "relation":
-                    return [];
-                case "text":
-                    return "";
-                default:
+                case "date":
                     return undefined;
+                default:
+                    return this._getEmptyValue(filter.operator);
             }
         }
         if (filter.type === "date" && filter.rangeType === "from_to") {
@@ -87,7 +83,7 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
             return this._getValueOfCurrentPeriod(filterId);
         }
         if (
-            filter.type === "relation" &&
+            ["in", "child_of"].includes(filter.operator) &&
             isEmpty(value) &&
             filter.defaultValue === "current_user"
         ) {
@@ -102,11 +98,9 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
      * @returns { boolean } true if the given filter is active
      */
     isGlobalFilterActive(id) {
-        const { type } = this.getters.getGlobalFilter(id);
+        const { type, operator } = this.getters.getGlobalFilter(id);
         const value = this.getGlobalFilterValue(id);
         switch (type) {
-            case "text":
-                return value;
             case "date":
                 return (
                     value &&
@@ -116,8 +110,8 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
                         value.from ||
                         value.to)
                 );
-            case "relation":
-                return value && value.length;
+            default:
+                return value && !this._isEmptyValue(operator, value);
         }
     }
 
@@ -141,8 +135,6 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
         }
         const value = this.getGlobalFilterValue(filter.id);
         switch (filter.type) {
-            case "text":
-                return [[{ value: value || "" }]];
             case "date": {
                 if (filter.rangeType === "from_to") {
                     const locale = this.getters.getLocale();
@@ -176,20 +168,26 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
                 }
                 return [[{ value: periodStr ? periodStr + "/" + year : year }]];
             }
-            case "relation":
-                if (!value?.length || !this.nameService) {
-                    return [[{ value: "" }]];
+            default:
+                switch (filter.operator) {
+                    case "ilike":
+                        return [[{ value: value || "" }]];
+                    case "in":
+                    case "child_of":
+                        if (!value?.length || !this.nameService) {
+                            return [[{ value: "" }]];
+                        }
+                        if (!this.recordsDisplayName[filter.id]) {
+                            const promise = this.nameService
+                                .loadDisplayNames(filter.modelName, value)
+                                .then((result) => {
+                                    this.recordsDisplayName[filter.id] = Object.values(result);
+                                });
+                            this.odooDataProvider.notifyWhenPromiseResolves(promise);
+                            return [[{ value: "" }]];
+                        }
+                        return [[{ value: this.recordsDisplayName[filter.id].join(", ") }]];
                 }
-                if (!this.recordsDisplayName[filter.id]) {
-                    const promise = this.nameService
-                        .loadDisplayNames(filter.modelName, value)
-                        .then((result) => {
-                            this.recordsDisplayName[filter.id] = Object.values(result);
-                        });
-                    this.odooDataProvider.notifyWhenPromiseResolves(promise);
-                    return [[{ value: "" }]];
-                }
-                return [[{ value: this.recordsDisplayName[filter.id].join(", ") }]];
         }
     }
 
@@ -201,7 +199,7 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
      */
     getTextFilterOptions(filterId) {
         const filter = this.getters.getGlobalFilter(filterId);
-        if (filter.type !== "text" || !filter.rangeOfAllowedValues) {
+        if (filter.operator !== "ilike" || !filter.rangeOfAllowedValues) {
             return [];
         }
         const additionOptions = [
@@ -392,8 +390,28 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
         }).domain;
     }
 
+    _getEmptyValue(operator) {
+        switch (operator) {
+            case "ilike":
+                return "";
+            case "in":
+            case "child_of":
+                return [];
+        }
+    }
+
+    _isEmptyValue(operator, value) {
+        switch (operator) {
+            case "ilike":
+                return false;
+            case "in":
+            case "child_of":
+                return value.length === 0;
+        }
+    }
+
     /**
-     * Get the domain relative to a text field
+     * Get the domain to apply to a field based on a global filter
      *
      * @private
      *
@@ -402,32 +420,13 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
      *
      * @returns {Domain}
      */
-    _getTextDomain(filter, fieldMatching) {
+    _getDomain(filter, fieldMatching) {
         const value = this.getGlobalFilterValue(filter.id);
-        if (!value || !fieldMatching.chain) {
+        if (!value || this._isEmptyValue(filter.operator, value) || !fieldMatching.chain) {
             return new Domain();
         }
         const field = fieldMatching.chain;
         return new Domain([[field, filter.operator, value]]);
-    }
-
-    /**
-     * Get the domain relative to a relation field
-     *
-     * @private
-     *
-     * @param {RelationalGlobalFilter} filter
-     * @param {FieldMatching} fieldMatching
-     *
-     * @returns {Domain}
-     */
-    _getRelationDomain(filter, fieldMatching) {
-        const values = this.getGlobalFilterValue(filter.id);
-        if (!values || values.length === 0 || !fieldMatching.chain) {
-            return new Domain();
-        }
-        const field = fieldMatching.chain;
-        return new Domain([[field, filter.operator, values]]);
     }
 
     /**
