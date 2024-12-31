@@ -17,58 +17,71 @@ import {
 import { DIRECTIONS } from "@html_editor/utils/position";
 import { _t } from "@web/core/l10n/translation";
 import { FontSelector } from "./font_selector";
+import { BaseContainerFactory } from "@html_editor/utils/base_container";
 import { withSequence } from "@html_editor/utils/resource";
 import { reactive } from "@odoo/owl";
 
-export const fontItems = [
-    {
-        name: _t("Header 1 Display 1"),
-        tagName: "h1",
-        extraClass: "display-1",
-    },
-    // TODO @phoenix use them if showExtendedTextStylesOptions is true
-    // {
-    //     name: _t("Header 1 Display 2"),
-    //     tagName: "h1",
-    //     extraClass: "display-2",
-    // },
-    // {
-    //     name: _t("Header 1 Display 3"),
-    //     tagName: "h1",
-    //     extraClass: "display-3",
-    // },
-    // {
-    //     name: _t("Header 1 Display 4"),
-    //     tagName: "h1",
-    //     extraClass: "display-4",
-    // },
-    // ----
+export const fontItems = () => {
+    const divContainerFactory = new BaseContainerFactory("DIV");
+    return [
+        {
+            name: _t("Header 1 Display 1"),
+            tagName: "h1",
+            extraClass: "display-1",
+        },
+        // TODO @phoenix use them if showExtendedTextStylesOptions is true
+        // {
+        //     name: _t("Header 1 Display 2"),
+        //     tagName: "h1",
+        //     extraClass: "display-2",
+        // },
+        // {
+        //     name: _t("Header 1 Display 3"),
+        //     tagName: "h1",
+        //     extraClass: "display-3",
+        // },
+        // {
+        //     name: _t("Header 1 Display 4"),
+        //     tagName: "h1",
+        //     extraClass: "display-4",
+        // },
+        // ----
 
-    { name: _t("Header 1"), tagName: "h1" },
-    { name: _t("Header 2"), tagName: "h2" },
-    { name: _t("Header 3"), tagName: "h3" },
-    { name: _t("Header 4"), tagName: "h4" },
-    { name: _t("Header 5"), tagName: "h5" },
-    { name: _t("Header 6"), tagName: "h6" },
+        { name: _t("Header 1"), tagName: "h1" },
+        { name: _t("Header 2"), tagName: "h2" },
+        { name: _t("Header 3"), tagName: "h3" },
+        { name: _t("Header 4"), tagName: "h4" },
+        { name: _t("Header 5"), tagName: "h5" },
+        { name: _t("Header 6"), tagName: "h6" },
 
-    { name: _t("Normal"), tagName: "p" },
+        {
+            name: _t("Normal"),
+            tagName: divContainerFactory.nodeName.toLowerCase(),
+            // for the setTag (dom_plugin)
+            identityClasses: [...divContainerFactory.classSet],
+            // for the FontSelector component
+            selector: divContainerFactory.selector,
+        },
+        { name: _t("Paragraph"), tagName: "p" },
 
-    // TODO @phoenix use them if showExtendedTextStylesOptions is true
-    // {
-    //     name: _t("Light"),
-    //     tagName: "p",
-    //     extraClass: "lead",
-    // },
-    // {
-    //     name: _t("Small"),
-    //     tagName: "p",
-    //     extraClass: "small",
-    // },
-    // ----
+        // TODO @phoenix use them if showExtendedTextStylesOptions is true
+        // consider baseContainer if enabling them
+        // {
+        //     name: _t("Light"),
+        //     tagName: "p",
+        //     extraClass: "lead",
+        // },
+        // {
+        //     name: _t("Small"),
+        //     tagName: "p",
+        //     extraClass: "small",
+        // },
+        // ----
 
-    { name: _t("Code"), tagName: "pre" },
-    { name: _t("Quote"), tagName: "blockquote" },
-];
+        { name: _t("Code"), tagName: "pre" },
+        { name: _t("Quote"), tagName: "blockquote" },
+    ];
+};
 
 export const fontSizeItems = [
     {
@@ -99,7 +112,7 @@ const handledElemSelector = [...headingTags, "PRE", "BLOCKQUOTE"].join(", ");
 
 export class FontPlugin extends Plugin {
     static id = "font";
-    static dependencies = ["input", "split", "selection", "dom", "format"];
+    static dependencies = ["baseContainer", "input", "split", "selection", "dom", "format"];
     resources = {
         user_commands: [
             {
@@ -128,7 +141,13 @@ export class FontPlugin extends Plugin {
                 title: _t("Text"),
                 description: _t("Paragraph block"),
                 icon: "fa-paragraph",
-                run: () => this.dependencies.dom.setTag({ tagName: "P" }),
+                run: () => {
+                    const baseContainerFactory = this.dependencies.baseContainer.getFactory();
+                    this.dependencies.dom.setTag({
+                        tagName: baseContainerFactory.nodeName,
+                        identityClasses: [...baseContainerFactory.classSet],
+                    });
+                },
             },
             {
                 id: "setTagQuote",
@@ -160,7 +179,7 @@ export class FontPlugin extends Plugin {
                 title: _t("Font style"),
                 Component: FontSelector,
                 props: {
-                    getItems: () => fontItems,
+                    getItems: () => fontItems(),
                     getDisplay: () => this.font,
                     onSelected: (item) => {
                         this.dependencies.dom.setTag({
@@ -257,8 +276,8 @@ export class FontPlugin extends Plugin {
         const block = closestBlock(anchorNode);
         const tagName = block.tagName.toLowerCase();
 
-        const matchingItems = fontItems.filter((item) => {
-            return item.tagName === tagName;
+        const matchingItems = fontItems().filter((item) => {
+            return item.selector ? block.matches(item.selector) : item.tagName === tagName;
         });
 
         const matchingItemsWitoutExtraClass = matchingItems.filter((item) => !item.extraClass);
@@ -327,10 +346,10 @@ export class FontPlugin extends Plugin {
             if (closestBlockNode.nodeName !== "PRE") {
                 closestBlockNode.remove();
             }
-            const p = this.document.createElement("p");
-            closestPre.after(p);
-            fillEmpty(p);
-            this.dependencies.selection.setCursorStart(p);
+            const baseContainer = this.dependencies.baseContainer.createBaseContainer();
+            closestPre.after(baseContainer);
+            fillEmpty(baseContainer);
+            this.dependencies.selection.setCursorStart(baseContainer);
         } else {
             const lineBreak = this.document.createElement("br");
             targetNode.insertBefore(lineBreak, targetNode.childNodes[targetOffset]);
@@ -364,10 +383,10 @@ export class FontPlugin extends Plugin {
             if (closestBlockNode.nodeName !== "BLOCKQUOTE") {
                 closestBlockNode.remove();
             }
-            const p = this.document.createElement("p");
-            closestQuote.after(p);
-            fillEmpty(p);
-            this.dependencies.selection.setCursorStart(p);
+            const baseContainer = this.dependencies.baseContainer.createBaseContainer();
+            closestQuote.after(baseContainer);
+            fillEmpty(baseContainer);
+            this.dependencies.selection.setCursorStart(baseContainer);
             return true;
         }
     }
@@ -392,10 +411,10 @@ export class FontPlugin extends Plugin {
                 headingTags.includes(newElement.tagName) &&
                 !descendants(newElement).some(isVisibleTextNode)
             ) {
-                const p = this.document.createElement("P");
-                newElement.replaceWith(p);
-                p.replaceChildren(this.document.createElement("br"));
-                this.dependencies.selection.setCursorStart(p);
+                const baseContainer = this.dependencies.baseContainer.createBaseContainer();
+                newElement.replaceWith(baseContainer);
+                baseContainer.replaceChildren(this.document.createElement("br"));
+                this.dependencies.selection.setCursorStart(baseContainer);
             }
             return true;
         }
@@ -420,11 +439,11 @@ export class FontPlugin extends Plugin {
         if (this.getResource("unremovable_node_predicates").some((p) => p(closestHandledElement))) {
             return;
         }
-        const p = this.document.createElement("p");
-        p.append(...closestHandledElement.childNodes);
-        closestHandledElement.after(p);
+        const baseContainer = this.dependencies.baseContainer.createBaseContainer();
+        baseContainer.append(...closestHandledElement.childNodes);
+        closestHandledElement.after(baseContainer);
         closestHandledElement.remove();
-        this.dependencies.selection.setCursorStart(p);
+        this.dependencies.selection.setCursorStart(baseContainer);
         return true;
     }
 

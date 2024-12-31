@@ -61,7 +61,7 @@ const getConnectedParents = (nodes) => {
 
 export class DomPlugin extends Plugin {
     static id = "dom";
-    static dependencies = ["selection", "history", "split", "delete", "lineBreak"];
+    static dependencies = ["baseContainer", "selection", "history", "split", "delete", "lineBreak"];
     static shared = ["insert", "copyAttributes", "setTag"];
     resources = {
         user_commands: [
@@ -162,9 +162,14 @@ export class DomPlugin extends Plugin {
             (isContentEditable(node) ||
                 (!node.isConnected && !closestElement(node, "[contenteditable]"))) &&
             !this.dependencies.split.isUnsplittable(node) &&
-            // TODO basecontainer, add: when PRE is considered a paragraphRelatedElement
-            // again, consider to unwrapping in PRE
-            [node.nodeName, "DIV"].includes(block.nodeName) &&
+            (node.nodeName === block.nodeName ||
+                (this.dependencies.baseContainer.isEligibleForBaseContainer(node) &&
+                    this.dependencies.baseContainer.isEligibleForBaseContainer(block)) ||
+                // TODO basecontainer, add: when PRE is considered a paragraphRelatedElement
+                // again, consider to unwrapping in PRE by re-enabling the following condition
+                // block.nodeName === "PRE" ||
+                // TODO baseContainer: do we need this spec ? (unwrap in unbreakable div specifically, why ?)
+                (block.nodeName === "DIV" && this.dependencies.split.isUnsplittable(block))) &&
             // If the selection anchorNode is the editable itself, the content
             // should not be unwrapped.
             !this.isEditionBoundary(selection.anchorNode);
@@ -182,8 +187,8 @@ export class DomPlugin extends Plugin {
         // tag, we take the all content of the <p> or <li> and avoid inserting the
         // <p> or <li>.
         if (container.childElementCount === 1 && shouldUnwrap(container.firstChild)) {
-            const p = container.firstElementChild;
-            container.replaceChildren(...childNodes(p));
+            const nodeToUnwrap = container.firstElementChild;
+            container.replaceChildren(...childNodes(nodeToUnwrap));
         } else if (container.childElementCount > 1) {
             const isSelectionAtStart =
                 firstLeaf(block) === selection.anchorNode && selection.anchorOffset === 0;
@@ -316,11 +321,26 @@ export class DomPlugin extends Plugin {
                         currentNode = insertBefore ? right : left;
                         const otherNode = insertBefore ? left : right;
                         if (
+                            // currentNode, left and right are all paragraphRelated elements
+                            // If the node to insert is ALONE AND splittable,
+                            // it can REPLACE currentNode. If not, currentNode should be conserved
+                            // TODO baseContainer: I don't understand why "unsplittable" would be used
+                            // here, are we virtually "merging" 2 nodes by replacing an empty one
+                            // with another ?
                             this.dependencies.split.isUnsplittable(nodeToInsert) &&
+                            // TODO baseContainer: I don't understand why the amount of nodes left to insert matters for
+                            // the removal in the next else if (removal of otherNode)
+                            // if this is assuming that because there are other nodes to insert
+                            // there must at least be one paragraphRelatedElement or something, this is wrong.
                             nodeSize(container) === 1
                         ) {
                             fillShrunkPhrasingParent(otherNode);
                         } else if (isEmptyBlock(otherNode)) {
+                            // If nodeToInsert IS splittable and otherNode
+                            // is empty, we can remove it (effectively replacing one by the other)
+                            // but this occurs ALSO if the container contains more than one element
+                            // no matter the splittability of nodeToInsert, WHY ?
+                            // TODO baseContainer: test inserting 1 - 2 - 3 - 4 elements from a fragment and check differences
                             otherNode.remove();
                         }
                     } else {
@@ -383,7 +403,9 @@ export class DomPlugin extends Plugin {
                 allowsParagraphRelatedElements(parent)
             ) {
                 // Ensure that edition boundaries do not have inline content.
-                wrapInlinesInBlocks(parent);
+                wrapInlinesInBlocks(parent, {
+                    baseContainerNodeName: this.dependencies.baseContainer.getDefaultNodeName(),
+                });
             }
         }
         insertedNodesParents = getConnectedParents(allInsertedNodes);
@@ -474,9 +496,16 @@ export class DomPlugin extends Plugin {
      * @param {Object} param0
      * @param {string} param0.tagName
      * @param {string} [param0.extraClass]
+     * @param {Array} [param0.identityClasses]
      */
-    setTag({ tagName, extraClass = "" }) {
-        tagName = tagName.toUpperCase();
+    setTag({ tagName, extraClass = "", identityClasses = [] }) {
+        const newCandidate = this.document.createElement(tagName.toUpperCase());
+        if (extraClass) {
+            newCandidate.classList.add(extraClass);
+        }
+        if (identityClasses.length) {
+            newCandidate.classList.add(...identityClasses);
+        }
         const cursors = this.dependencies.selection.preserveSelection();
         const selectedBlocks = [...this.dependencies.selection.getTraversedBlocks()];
         const deepestSelectedBlocks = selectedBlocks.filter(
@@ -490,7 +519,7 @@ export class DomPlugin extends Plugin {
                 block.nodeName === "PRE" || // TODO remove: PRE should be a paragraphRelatedElement
                 isListItemElement(block)
             ) {
-                if (tagName === "P") {
+                if (newCandidate.matches(this.dependencies.baseContainer.getGlobalSelector())) {
                     if (isListItemElement(block)) {
                         continue;
                     } else if (isListItemElement(block.parentNode)) {
@@ -515,13 +544,15 @@ export class DomPlugin extends Plugin {
                 if (extraClass) {
                     newEl.classList.add(extraClass);
                 }
+                if (identityClasses.length) {
+                    newEl.classList.add(...identityClasses);
+                }
             } else {
                 // eg do not change a <div> into a h1: insert the h1
                 // into it instead.
-                const newBlock = this.document.createElement(tagName);
-                newBlock.append(...childNodes(block));
-                block.append(newBlock);
-                cursors.remapNode(block, newBlock);
+                newCandidate.append(...childNodes(block));
+                block.append(newCandidate);
+                cursors.remapNode(block, newCandidate);
             }
         }
         cursors.restore();

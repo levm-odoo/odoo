@@ -54,7 +54,7 @@ describe("insert separator", () => {
         await testEditor({
             contentBefore: "<div>[]<br></div>",
             stepFunction: insertSeparator,
-            contentAfter: "<hr><div>[]<br></div>",
+            contentAfter: `<hr><div class="o-paragraph">[]<br></div>`,
         });
     });
 

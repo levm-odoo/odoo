@@ -96,7 +96,7 @@ describe("Selection collapsed", () => {
             await testEditor({
                 contentBefore: '<div>a<span class="a">b[]</span><p>c</p>d</div>',
                 stepFunction: deleteForward,
-                contentAfter: '<div>a<span class="a">b[]</span>c<br>d</div>',
+                contentAfter: '<div class="o-paragraph">a<span class="a">b[]</span>c<br>d</div>',
             });
         });
 
@@ -104,7 +104,7 @@ describe("Selection collapsed", () => {
             await testEditor({
                 contentBefore: '<div>a<span class="a">bc[]</span><span class="a">de</span>f</div>',
                 stepFunction: deleteForward,
-                contentAfter: '<div>a<span class="a">bc[]e</span>f</div>',
+                contentAfter: '<div class="o-paragraph">a<span class="a">bc[]e</span>f</div>',
             });
         });
 
@@ -112,7 +112,7 @@ describe("Selection collapsed", () => {
             await testEditor({
                 contentBefore: '<div>a<span class="a">b[]</span><p>c</p>d</div>',
                 stepFunction: deleteForward,
-                contentAfter: '<div>a<span class="a">b[]</span>c<br>d</div>',
+                contentAfter: '<div class="o-paragraph">a<span class="a">b[]</span>c<br>d</div>',
             });
         });
 
@@ -202,11 +202,11 @@ describe("Selection collapsed", () => {
 
         test('should remove contenteditable="false"', async () => {
             await testEditor({
-                contentBefore: `<div>[]<span contenteditable="false">abc</span>def</div>`,
+                contentBefore: `<p>[]<span contenteditable="false">abc</span>def</p>`,
                 stepFunction: async (editor) => {
                     deleteForward(editor);
                 },
-                contentAfter: `<div>[]def</div>`,
+                contentAfter: `<p>[]def</p>`,
             });
         });
 
@@ -404,7 +404,7 @@ describe("Selection collapsed", () => {
                     contentBefore:
                         '<div><span class="a">abc[]</span> <span class="a">def</span></div>',
                     stepFunction: deleteForward,
-                    contentAfter: '<div><span class="a">abc[]def</span></div>',
+                    contentAfter: `<div class="o-paragraph"><span class="a">abc[]def</span></div>`,
                 });
             });
 
@@ -412,7 +412,7 @@ describe("Selection collapsed", () => {
                 await testEditor({
                     contentBefore: '<div>abc[] <span class="a">def</span></div>',
                     stepFunction: deleteForward,
-                    contentAfter: '<div>abc[]<span class="a">def</span></div>',
+                    contentAfter: `<div class="o-paragraph">abc[]<span class="a">def</span></div>`,
                 });
             });
         });
@@ -447,7 +447,7 @@ describe("Selection collapsed", () => {
                     contentBefore:
                         '<div><span class="a">abc[]x</span> <span class="a">def</span></div>',
                     stepFunction: twoDeleteForward,
-                    contentAfter: '<div><span class="a">abc[]def</span></div>',
+                    contentAfter: `<div class="o-paragraph"><span class="a">abc[]def</span></div>`,
                 });
             });
 
@@ -455,7 +455,7 @@ describe("Selection collapsed", () => {
                 await testEditor({
                     contentBefore: '<div>abc[]x <span class="a">def</span></div>',
                     stepFunction: twoDeleteForward,
-                    contentAfter: '<div>abc[]<span class="a">def</span></div>',
+                    contentAfter: `<div class="o-paragraph">abc[]<span class="a">def</span></div>`,
                 });
             });
         });
@@ -1089,7 +1089,7 @@ describe("Selection not collapsed", () => {
         await testEditor({
             contentBefore: '<div>a<span class="a">b[c</span><p>d]e</p>f</div>',
             stepFunction: deleteForward,
-            contentAfter: '<div>a<span class="a">b[]</span>e<br>f</div>',
+            contentAfter: '<div class="o-paragraph">a<span class="a">b[]</span>e<br>f</div>',
         });
     });
 

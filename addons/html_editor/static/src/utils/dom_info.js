@@ -1,6 +1,13 @@
 import { closestBlock, isBlock } from "./blocks";
-import { childNodes, closestElement, firstLeaf, lastLeaf } from "./dom_traversal";
+import {
+    childNodes,
+    childNodesAnalysis,
+    closestElement,
+    firstLeaf,
+    lastLeaf,
+} from "./dom_traversal";
 import { DIRECTIONS, nodeSize } from "./position";
+import { BaseContainerFactory } from "@html_editor/utils/base_container";
 
 export function isEmpty(el) {
     if (isProtecting(el) || isProtected(el)) {
@@ -390,6 +397,48 @@ export function isPhrasingContent(node) {
     return false;
 }
 
+export function inlineAggregator(node, aggregate) {
+    // Style categories:
+    if (isBlock(node)) {
+        aggregate.block.push(node);
+    } else if (
+        node.nodeType === Node.ELEMENT_NODE ||
+        (node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== "")
+    ) {
+        aggregate.inline.push(node);
+    }
+}
+
+inlineAggregator.categories = {
+    inline: Array,
+    block: Array,
+};
+
+export function childNodesInlineAnalysis(element) {
+    return childNodesAnalysis(element, [inlineAggregator]);
+}
+
+export function phrasingContentAggregator(node, aggregate) {
+    // Content categories:
+    if (isPhrasingContent(node)) {
+        aggregate.phrasingContent.push(node);
+    } else {
+        aggregate.flowContent.push(node);
+    }
+}
+
+phrasingContentAggregator.categories = {
+    phrasingContent: Array,
+    flowContent: Array,
+};
+
+export function childNodesPhrasingAnalysis(element) {
+    // Any node that is not recorded in another content category in the analysis
+    // (<=> other flow content, since flow content ~is the superset for content
+    // categories)
+    return childNodesAnalysis(element, [phrasingContentAggregator]);
+}
+
 /**
  * A "protected" node will have its mutations filtered and not be registered
  * in an history step. Some editor features like selection handling, command
@@ -439,7 +488,8 @@ export function isUnprotecting(node) {
 }
 
 // This is a list of "paragraph-related elements", defined as elements that
-// behave like paragraphs.
+// behave like paragraphs. It is non-exhaustive and should not be used as a
+// standalone. @see isParagraphRelatedElement
 // TODO baseContainer, this list should contain PRE, but the spec currently is to
 // paste flow content inside the PRE, so it is removed temporarily.
 const paragraphRelatedElements = ["P", "H1", "H2", "H3", "H4", "H5", "H6"];
@@ -483,10 +533,16 @@ export function isParagraphRelatedElement(node) {
     if (!node) {
         return false;
     }
-    return paragraphRelatedElements.includes(node.nodeName);
+    return (
+        paragraphRelatedElements.includes(node.nodeName) ||
+        (node.nodeType === Node.ELEMENT_NODE && node.matches(BaseContainerFactory.selector))
+    );
 }
 
-export const paragraphRelatedElementsSelector = paragraphRelatedElements.join(",");
+export const paragraphRelatedElementsSelector = [
+    ...paragraphRelatedElements,
+    BaseContainerFactory.selector,
+].join(",");
 
 export function isListItemElement(node) {
     return [...listItems].includes(node.nodeName);
@@ -506,11 +562,15 @@ export const listContainersSelector = [...listContainers].join(",");
  * @returns {boolean}
  */
 export function isAllowedContent(parentBlock, nodes) {
-    const allowedContentSet = allowedContent[parentBlock.nodeName];
+    let allowedContentSet = allowedContent[parentBlock.nodeName];
     if (!allowedContentSet) {
         // Spec: a block not listed in allowedContent allows anything.
         // See "custom-block" in tests.
         return true;
+    }
+    if (parentBlock.matches(BaseContainerFactory.selector)) {
+        // A baseContainer DIV can only have phrasingContent, as a P would.
+        allowedContentSet = phrasingContent;
     }
     return nodes.every((node) => allowedContentSet.has(node.nodeName));
 }

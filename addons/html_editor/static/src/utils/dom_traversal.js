@@ -140,6 +140,38 @@ export function childNodes(node) {
 }
 
 /**
+ * Construct an object with childNodes categories constituted by given
+ * aggregators @see childNodesInlineAnalysis @see childNodesPhrasingAnalysis
+ * Useful when multiple aspects of childNodes must be evaluated.
+ *
+ * @param {Element} element
+ * @returns {Object} analysis with categories (Always contains childNodes list)
+ */
+export function childNodesAnalysis(element, aggregators = []) {
+    const result = {
+        childNodes: [],
+    };
+    for (const aggregator of aggregators) {
+        // allow aggregators to create empty categories
+        for (const [category, Category] of Object.entries(aggregator.categories || {})) {
+            result[category] = new Category();
+        }
+    }
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) {
+        return result;
+    }
+    let child = element.firstChild;
+    while (child) {
+        result.childNodes.push(child);
+        for (const aggregator of aggregators) {
+            aggregator(child, result);
+        }
+        child = child.nextSibling;
+    }
+    return result;
+}
+
+/**
  * Take a node, return all of its descendants, in depth-first order.
  *
  * @param {Node} node

@@ -100,7 +100,7 @@ test("media dialog: upload", async function () {
         </form>`,
     });
 
-    const anchorNode = queryOne(".odoo-editor-editable p");
+    const anchorNode = queryOne(".odoo-editor-editable div.o-paragraph");
     setSelection({ anchorNode, anchorOffset: 0 });
 
     // Open media dialog

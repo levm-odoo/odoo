@@ -41,7 +41,14 @@ import { omit, pick } from "@web/core/utils/objects";
 
 export class PowerButtonsPlugin extends Plugin {
     static id = "powerButtons";
-    static dependencies = ["selection", "position", "localOverlay", "powerbox", "userCommand"];
+    static dependencies = [
+        "baseContainer",
+        "selection",
+        "position",
+        "localOverlay",
+        "powerbox",
+        "userCommand",
+    ];
     resources = {
         layout_geometry_change_handlers: this.updatePowerButtons.bind(this),
         selectionchange_handlers: this.updatePowerButtons.bind(this),
@@ -95,7 +102,7 @@ export class PowerButtonsPlugin extends Plugin {
         const element = closestElement(editableSelection.anchorNode);
         if (
             editableSelection.isCollapsed &&
-            element?.tagName === "P" &&
+            element?.matches(this.dependencies.baseContainer.getGlobalSelector()) &&
             isEmptyBlock(block) &&
             !this.services.ui.isSmall &&
             !closestElement(editableSelection.anchorNode, "td") &&

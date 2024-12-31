@@ -83,7 +83,7 @@ describe("Selection collapsed", () => {
             await testEditor({
                 contentBefore: '<div>a<span class="a">b</span><p>[]c</p>d</div>',
                 stepFunction: deleteBackward,
-                contentAfter: '<div>a<span class="a">b[]</span>c<br>d</div>',
+                contentAfter: '<div class="o-paragraph">a<span class="a">b[]</span>c<br>d</div>',
             });
         });
 
@@ -122,27 +122,27 @@ describe("Selection collapsed", () => {
         });
         test("should keep inline block and then undo (1)", async () => {
             await testEditor({
-                contentBefore: "<div>ab<b>c[]</b>de</div>",
+                contentBefore: "<p>ab<b>c[]</b>de</p>",
                 stepFunction: async (editor) => {
                     deleteBackward(editor);
                     await insertText(editor, "x");
                     undo(editor);
                 },
-                contentAfterEdit: '<div>ab<b data-oe-zws-empty-inline="">[]\u200B</b>de</div>',
-                contentAfter: "<div>ab[]de</div>",
+                contentAfterEdit: '<p>ab<b data-oe-zws-empty-inline="">[]\u200B</b>de</p>',
+                contentAfter: "<p>ab[]de</p>",
             });
         });
         test("should keep inline block and then undo (2)", async () => {
             await testEditor({
-                contentBefore: "<div>ab<b>c[]</b>de</div>",
+                contentBefore: "<p>ab<b>c[]</b>de</p>",
                 stepFunction: async (editor) => {
                     deleteBackward(editor);
                     await insertText(editor, "x");
                     undo(editor);
                     undo(editor);
                 },
-                contentAfterEdit: "<div>ab<b>c[]</b>de</div>",
-                contentAfter: "<div>ab<b>c[]</b>de</div>",
+                contentAfterEdit: "<p>ab<b>c[]</b>de</p>",
+                contentAfter: "<p>ab<b>c[]</b>de</p>",
             });
         });
 
@@ -311,11 +311,11 @@ describe("Selection collapsed", () => {
 
         test('should remove contenteditable="false"', async () => {
             await testEditor({
-                contentBefore: `<div><span contenteditable="false">abc</span>[]def</div>`,
+                contentBefore: `<p><span contenteditable="false">abc</span>[]def</p>`,
                 stepFunction: async (editor) => {
                     deleteBackward(editor);
                 },
-                contentAfter: `<div>[]def</div>`,
+                contentAfter: `<p>[]def</p>`,
             });
         });
 
@@ -971,12 +971,12 @@ describe("Selection collapsed", () => {
             await testEditor({
                 contentBefore: "<div>ab<p>[]cd</p></div>",
                 stepFunction: deleteBackward,
-                contentAfter: "<div>ab[]cd</div>",
+                contentAfter: `<div class="o-paragraph">ab[]cd</div>`,
             });
             await testEditor({
                 contentBefore: "<div>ab<p>[]cd</p>ef</div>",
                 stepFunction: deleteBackward,
-                contentAfter: "<div>ab[]cd<br>ef</div>",
+                contentAfter: `<div class="o-paragraph">ab[]cd<br>ef</div>`,
             });
         });
     });
@@ -1360,7 +1360,7 @@ describe("Selection collapsed", () => {
                 // @phoenix content adapted to make it valid html
                 contentBefore: unformat(`<div>a[b<img style="display: block;">c]d</div>`),
                 stepFunction: deleteBackward,
-                contentAfter: unformat(`<div>a[]d</div>`),
+                contentAfter: unformat(`<div class="o-paragraph">a[]d</div>`),
             });
         });
     });
@@ -1422,7 +1422,7 @@ describe("Selection not collapsed", () => {
             // FIXME ?? : Maybe this should bing the content inside the <p>
             // Instead of removing the <p>,
             // ex : <div><p>a<span class="a">b[]</span>e</p>f<br>g</div>
-            contentAfter: '<div>a<span class="a">b[]</span>e<br>f<br>g</div>',
+            contentAfter: '<div class="o-paragraph">a<span class="a">b[]</span>e<br>f<br>g</div>',
         });
     });
 

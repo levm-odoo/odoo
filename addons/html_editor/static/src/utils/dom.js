@@ -4,6 +4,7 @@ import { callbacksForCursorUpdate } from "./selection";
 import { isEmptyBlock, isPhrasingContent } from "../utils/dom_info";
 import { childNodes } from "./dom_traversal";
 import { childNodeIndex, DIRECTIONS } from "./position";
+import { BaseContainerFactory } from "@html_editor/utils/base_container";
 
 /** @typedef {import("@html_editor/core/selection_plugin").Cursors} Cursors */
 
@@ -40,11 +41,15 @@ export function makeContentsInline(node) {
  * @param {HTMLElement} element - block element
  * @param {Cursors} [cursors]
  */
-export function wrapInlinesInBlocks(element, cursors = { update: () => {} }) {
+export function wrapInlinesInBlocks(
+    element,
+    { baseContainerNodeName = "P", cursors = { update: () => {} } } = {}
+) {
+    const baseContainerFactory = new BaseContainerFactory(baseContainerNodeName);
     // Helpers to manipulate preserving selection.
     const wrapInBlock = (node, cursors) => {
         const block = isPhrasingContent(node)
-            ? node.ownerDocument.createElement("P")
+            ? baseContainerFactory.create(node.ownerDocument)
             : node.ownerDocument.createElement("DIV");
         // TODO baseContainer: explanation of the change:
         // mutations are serialized with the final version of the elements
@@ -82,8 +87,8 @@ export function wrapInlinesInBlocks(element, cursors = { update: () => {} }) {
         return block;
     };
     const appendToCurrentBlock = (currentBlock, node, cursors) => {
-        if (currentBlock.tagName === "P" && !isPhrasingContent(node)) {
-            const block = document.createElement("DIV");
+        if (currentBlock.matches(BaseContainerFactory.selector) && !isPhrasingContent(node)) {
+            const block = currentBlock.ownerDocument.createElement("DIV");
             cursors.update(callbacksForCursorUpdate.before(currentBlock, block));
             currentBlock.before(block);
             for (const child of childNodes(currentBlock)) {
