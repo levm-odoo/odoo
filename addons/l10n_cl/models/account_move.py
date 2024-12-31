@@ -125,8 +125,9 @@ class AccountMove(models.Model):
 
             param['company_id'] = self.company_id.id or False
             param['l10n_latam_document_type_id'] = self.l10n_latam_document_type_id.id or 0
-            param['move_type'] = (('in_invoice', 'in_refund') if
-                  self.l10n_latam_document_type_id._is_doc_type_vendor() else ('out_invoice', 'out_refund'))
+            param['move_type'] = (('in_invoice', 'in_refund')
+                if self.l10n_latam_document_type_id._is_doc_type_vendor() and self.is_purchase_document()
+                else ('out_invoice', 'out_refund'))
         return where_string, param
 
     def _get_name_invoice_report(self):
