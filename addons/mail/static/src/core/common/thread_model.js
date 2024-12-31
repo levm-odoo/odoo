@@ -446,6 +446,7 @@ export class Thread extends Record {
             return this.store["mail.message"].insert(messages.reverse());
         } catch (e) {
             this.hasLoadingFailed = true;
+            console.warn(e);
             throw e;
         } finally {
             this.status = "ready";

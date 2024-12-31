@@ -159,7 +159,7 @@ class DiscussChannel(models.Model):
         self.ensure_one()
         parts = []
         # sudo: res.partner: accessing chat bot partner is acceptable to build channel history.
-        chatbot_op = self.chatbot_message_ids.sudo()[
+        chatbot_op = self.sudo().chatbot_message_ids[
             :1
         ].script_step_id.chatbot_script_id.operator_partner_id
         last_msg_from_chatbot = False
