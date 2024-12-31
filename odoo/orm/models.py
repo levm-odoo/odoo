@@ -2104,7 +2104,7 @@ class BaseModel(metaclass=MetaModel):
 
             field = self._fields.get(term)
             if (
-                traverse_many2one and field and field.type == 'many2one'
+                traverse_many2one and field and field.type in ['many2one', 'many2many']
                 and self.env[field.comodel_name]._order != 'id'
             ):
                 if sql_order := self._order_to_sql(f'{term} {direction} {nulls}', query):
@@ -5452,6 +5452,21 @@ class BaseModel(metaclass=MetaModel):
             if term:
                 terms.append(term)
             return SQL(", ").join(terms)
+        elif field.type == 'many2many':
+            comodel = self.env[field.comodel_name]
+            rel_alias = query.make_alias(alias, fname)
+            comodel_alias = query.make_alias(rel_alias, field_name)
+
+            # Check if the join for the comodel table already exists
+            if comodel_alias not in query._joins:
+                query.add_join('LEFT JOIN', comodel_alias, comodel._table, SQL(
+                    "%s = %s",
+                    SQL.identifier(rel_alias, field.column2),
+                    SQL.identifier(comodel_alias, 'id'),
+                ))
+
+            term = comodel._order_to_sql(comodel._order, query, alias=comodel_alias, reverse=direction.code == 'DESC')
+            return SQL(", ").join([term])
 
         sql_field = self._field_to_sql(alias, field_name, query)
         if field.type == 'boolean':
