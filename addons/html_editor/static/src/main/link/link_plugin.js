@@ -309,6 +309,8 @@ export class LinkPlugin extends Plugin {
     }
 
     normalizeLink() {
+        // Is it normal that in a normalize function, we don't normalize the
+        // stepcommonancestor, but something related to the selection instead ???
         const { anchorNode } = this.dependencies.selection.getEditableSelection();
         const linkEl = closestElement(anchorNode, "a");
         if (linkEl && linkEl.isContentEditable) {
