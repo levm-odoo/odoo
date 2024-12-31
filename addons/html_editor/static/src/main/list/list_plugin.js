@@ -4,9 +4,9 @@ import { removeClass, toggleClass, wrapInlinesInBlocks } from "@html_editor/util
 import {
     getDeepestPosition,
     isEmptyBlock,
+    isParagraphRelatedElement,
     isProtected,
     isProtecting,
-    paragraphRelatedElements,
 } from "@html_editor/utils/dom_info";
 import {
     closestElement,
@@ -608,7 +608,7 @@ export class ListPlugin extends Plugin {
         if (closestLI) {
             const block = closestBlock(selection.anchorNode);
             const isLiContainsUnSpittable =
-                paragraphRelatedElements.includes(block.nodeName) &&
+                isParagraphRelatedElement(block) &&
                 ancestors(block, closestLI).find((node) =>
                     this.dependencies.split.isUnsplittable(node)
                 );
@@ -632,7 +632,7 @@ export class ListPlugin extends Plugin {
         if (closestLI) {
             const block = closestBlock(selection.anchorNode);
             const isLiContainsUnSpittable =
-                paragraphRelatedElements.includes(block.nodeName) &&
+                isParagraphRelatedElement(block) &&
                 ancestors(block, closestLI).find((node) =>
                     this.dependencies.split.isUnsplittable(node)
                 );

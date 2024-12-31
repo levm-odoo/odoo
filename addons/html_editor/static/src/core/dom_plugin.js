@@ -18,13 +18,17 @@ import {
     getDeepestPosition,
     isContentEditable,
     isEmptyBlock,
+    isListContainerElement,
+    isListItemElement,
+    isParagraphRelatedElement,
     isProtecting,
     isProtected,
     isSelfClosingElement,
     isShrunkBlock,
     isTangible,
     isUnprotecting,
-    paragraphRelatedElements,
+    listContainersSelector,
+    paragraphRelatedElementsSelector,
 } from "../utils/dom_info";
 import {
     childNodes,
@@ -129,15 +133,17 @@ export class DomPlugin extends Plugin {
 
         // In case the html inserted starts with a list and will be inserted within
         // a list, unwrap the list elements from the list.
-        const isList = (node) => ["UL", "OL"].includes(node.nodeName);
-        const hasSingleChild = container.childNodes.length === 1;
-        if (closestElement(selection.anchorNode, "UL, OL") && isList(container.firstChild)) {
+        const hasSingleChild = nodeSize(container) === 1;
+        if (
+            closestElement(selection.anchorNode, listContainersSelector) &&
+            isListContainerElement(container.firstChild)
+        ) {
             unwrapContents(container.firstChild);
         }
         // Similarly if the html inserted ends with a list.
         if (
-            closestElement(selection.focusNode, "UL, OL") &&
-            isList(container.lastChild) &&
+            closestElement(selection.focusNode, listContainersSelector) &&
+            isListContainerElement(container.lastChild) &&
             !hasSingleChild
         ) {
             unwrapContents(container.lastChild);
@@ -147,7 +153,7 @@ export class DomPlugin extends Plugin {
         const block = closestBlock(selection.anchorNode);
 
         const shouldUnwrap = (node) =>
-            [...paragraphRelatedElements, "LI"].includes(node.nodeName) &&
+            (isParagraphRelatedElement(node) || isListItemElement(node)) &&
             !isEmptyBlock(block) &&
             !isEmptyBlock(node) &&
             (isContentEditable(node) ||
@@ -183,7 +189,7 @@ export class DomPlugin extends Plugin {
             if (shouldUnwrap(container.firstChild) && !isSelectionAtStart) {
                 // Unwrap the deepest nested first <li> element in the
                 // container to extract and paste the text content of the list.
-                if (container.firstChild.nodeName === "LI") {
+                if (isListItemElement(container.firstChild)) {
                     const deepestBlock = closestBlock(firstLeaf(container.firstChild));
                     this.dependencies.split.splitAroundUntil(deepestBlock, container.firstChild);
                     container.firstElementChild.replaceChildren(...childNodes(deepestBlock));
@@ -195,7 +201,7 @@ export class DomPlugin extends Plugin {
             if (shouldUnwrap(container.lastChild) && !isSelectionAtEnd) {
                 // Unwrap the deepest nested last <li> element in the container
                 // to extract and paste the text content of the list.
-                if (container.lastChild.nodeName === "LI") {
+                if (isListItemElement(container.lastChild)) {
                     const deepestBlock = closestBlock(lastLeaf(container.lastChild));
                     this.dependencies.split.splitAroundUntil(deepestBlock, container.lastChild);
                     container.lastElementChild.replaceChildren(...childNodes(deepestBlock));
@@ -223,7 +229,7 @@ export class DomPlugin extends Plugin {
         // If we have isolated block content, first we split the current focus
         // element if it's a block then we insert the content in the right places.
         let currentNode = startNode;
-        const currentList = currentNode && closestElement(currentNode, "UL, OL");
+        const currentList = currentNode && closestElement(currentNode, listContainersSelector);
         const mode = currentList && getListMode(currentList);
 
         const _insertAt = (reference, nodes, insertBefore) => {
@@ -277,7 +283,7 @@ export class DomPlugin extends Plugin {
                 while (
                     !this.isEditionBoundary(currentNode.parentElement) &&
                     (!allowsParagraphRelatedElements(currentNode.parentElement) ||
-                        (currentNode.parentElement.nodeName === "LI" &&
+                        (isListItemElement(currentNode.parentElement) &&
                             !this.dependencies.split.isUnsplittable(nodeToInsert)))
                 ) {
                     if (this.dependencies.split.isUnsplittable(currentNode.parentElement)) {
@@ -321,7 +327,7 @@ export class DomPlugin extends Plugin {
                     doesCurrentNodeAllowsP = allowsParagraphRelatedElements(currentNode);
                 }
                 if (
-                    currentNode.parentElement.nodeName === "LI" &&
+                    isListItemElement(currentNode.parentElement) &&
                     isBlock(nodeToInsert) &&
                     this.dependencies.split.isUnsplittable(nodeToInsert)
                 ) {
@@ -333,10 +339,7 @@ export class DomPlugin extends Plugin {
             }
             // Ensure that all adjacent paragraph elements are converted to
             // <li> when inserting in a list.
-            if (
-                block.nodeName === "LI" &&
-                paragraphRelatedElements.includes(nodeToInsert.nodeName)
-            ) {
+            if (isListItemElement(block) && isParagraphRelatedElement(nodeToInsert)) {
                 const ignoredAttrs = {
                     class: new Set(this.getResource("system_classes")),
                 };
@@ -345,8 +348,9 @@ export class DomPlugin extends Plugin {
             }
             if (
                 currentList &&
-                ((nodeToInsert.nodeName === "LI" && nodeToInsert.classList.contains("oe-nested")) ||
-                    isList(nodeToInsert))
+                ((isListItemElement(nodeToInsert) &&
+                    nodeToInsert.classList.contains("oe-nested")) ||
+                    isListContainerElement(nodeToInsert))
             ) {
                 const ignoredAttrs = {
                     class: new Set(this.getResource("system_classes")),
@@ -408,11 +412,12 @@ export class DomPlugin extends Plugin {
                 break;
             }
         }
-        let lastPosition = [...paragraphRelatedElements, "LI", "OL", "UL"].includes(
-            currentNode.nodeName
-        )
-            ? rightPos(lastLeaf(currentNode))
-            : rightPos(currentNode);
+        let lastPosition =
+            isParagraphRelatedElement(currentNode) ||
+            isListItemElement(currentNode) ||
+            isListContainerElement(currentNode)
+                ? rightPos(lastLeaf(currentNode))
+                : rightPos(currentNode);
 
         if (!this.config.allowInlineAtRoot && this.isEditionBoundary(lastPosition[0])) {
             // Correct the position if it happens to be in the editable root.
@@ -475,15 +480,11 @@ export class DomPlugin extends Plugin {
                 block.isContentEditable
         );
         for (const block of deepestSelectedBlocks) {
-            if (
-                ["P", "PRE", "H1", "H2", "H3", "H4", "H5", "H6", "LI", "BLOCKQUOTE"].includes(
-                    block.nodeName
-                )
-            ) {
+            if (isParagraphRelatedElement(block) || isListItemElement(block)) {
                 if (tagName === "P") {
-                    if (block.nodeName === "LI") {
+                    if (isListItemElement(block)) {
                         continue;
-                    } else if (block.parentNode.nodeName === "LI") {
+                    } else if (isListItemElement(block.parentNode)) {
                         cursors.update(callbacksForCursorUpdate.unwrap(block));
                         unwrapContents(block);
                         continue;
@@ -523,9 +524,8 @@ export class DomPlugin extends Plugin {
         const sep = this.document.createElement("hr");
         const block = closestBlock(selection.startContainer);
         const element =
-            closestElement(selection.startContainer, (el) =>
-                paragraphRelatedElements.includes(el.tagName)
-            ) || (block && block.nodeName !== "LI" ? block : null);
+            closestElement(selection.startContainer, paragraphRelatedElementsSelector) ||
+            (block && !isListItemElement(block) ? block : null);
 
         if (element && element !== this.editable) {
             element.before(sep);
