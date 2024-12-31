@@ -1,3 +1,4 @@
+import { BASE_CONTAINER_CLASS } from "@html_editor/utils/base_container";
 import { isBlock } from "@html_editor/utils/blocks";
 import { rgbToHex } from "@html_editor/utils/color";
 import { getAdjacentPreviousSiblings } from "@html_editor/utils/dom_traversal";
@@ -608,6 +609,11 @@ export function classToStyle(element, cssRules) {
     }
     writes.forEach((fn) => fn());
 }
+function removeBaseContainerAttributes(element) {
+    for (const baseContainer of element.querySelectorAll(BASE_CONTAINER_CLASS)) {
+        baseContainer.classList.remove(BASE_CONTAINER_CLASS);
+    }
+}
 /**
  * Add styles to all table rows and columns, that are necessary for them to be
  * responsive. This only works if columns have a max-width so the styles are
@@ -814,6 +820,7 @@ export async function toInline(element, cssRules) {
     }
 
     classToStyle(element, cssRules);
+    removeBaseContainerAttributes(element);
     bootstrapToTable(element);
     cardToTable(element);
     listGroupToTable(element);
