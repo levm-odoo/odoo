@@ -1,6 +1,7 @@
 import { mailDataHelpers } from "@mail/../tests/mock_server/mail_mock_server";
 
 import { fields, getKwArgs, makeKwArgs, webModels } from "@web/../tests/web_test_helpers";
+import { Domain } from "@web/core/domain";
 import { DEFAULT_MAIL_SEARCH_ID, DEFAULT_MAIL_VIEW_ID } from "./constants";
 
 /** @typedef {import("@web/../tests/web_test_helpers").ModelRecord} ModelRecord */
@@ -100,77 +101,264 @@ export class ResPartner extends webModels.ResPartner {
         search = kwargs.search || "";
         limit = kwargs.limit || 8;
 
-        /** @type {import("mock_models").DiscussChannelMember} */
+        // /** @type {import("mock_models").DiscussChannelMember} */
+        // const DiscussChannelMember = this.env["discuss.channel.member"];
+        // /** @type {import("mock_models").ResUsers} */
+        // const ResUsers = this.env["res.users"];
+        // /** @type {import("mock_models").DiscussChannel} */
+        // const channel = this.env["discuss.channel"].browse(channel_id)[0];
+
+        // search = search.toLowerCase();
+        // /**
+        //  * Returns the given list of partners after filtering it according to
+        //  * the logic of the Python method `get_mention_suggestions` for the
+        //  * given search term. The result is truncated to the given limit and
+        //  * formatted as expected by the original method.
+        //  *
+        //  * @param {ModelRecord[]} partners
+        //  * @param {string} search
+        //  * @param {number} limit
+        //  * @returns {Object[]}
+        //  */
+        // const mentionSuggestionsFilter = (partners, search, limit) => {
+        //     ResUsers._filter([])
+        //         .filter((user) => {
+        //             const [partner] = this.browse(user.partner_id);
+        //             // user must have a partner
+        //             if (!partner) {
+        //                 return false;
+        //             }
+        //             // user should not already be a member of the channel
+        //             if (memberPartnerIds.has(partner.id)) {
+        //                 return false;
+        //             }
+        //             // no name is considered as return all
+        //             if (!search_term) {
+        //                 return true;
+        //             }
+        //             if (partner.name && partner.name.toLowerCase().includes(search_term)) {
+        //                 return true;
+        //             }
+        //             return false;
+        //         })
+        //         .map((user) => user.partner_id);
+
+        //     const matchingPartners = partners.filter((partner) => {
+        //         // debugger
+        //         // if (partner.partner_share === false && partner.user_ids !== false) {
+        //         //     const [user] = ResUsers._filter([
+        //         //         ["partner_id", "=", partner.id],
+        //         //         ["groups_id", "in", channel.group_public_id],
+        //         //         ["active", "=", true],
+        //         //     ]);
+        //         //     if (
+        //         //         user &&
+        //         //         user.groups_id.includes(channel.group_public_id) &&
+        //         //         user.active === true
+        //         //     ) {
+        //         //         return true;
+        //         //     }
+        //         // }
+        //         const [member] = DiscussChannelMember._filter([
+        //             ["channel_id", "=", channel_id],
+        //             ["partner_id", "=", partner.id],
+        //         ]);
+        //         if (!member) {
+        //             return false;
+        //         }
+        //         // no search term is considered as return all
+        //         if (!search) {
+        //             return true;
+        //         }
+        //         // otherwise name or email must match search term
+        //         if (partner.name && partner.name.toLowerCase().includes(search)) {
+        //             return true;
+        //         }
+        //         if (partner.email && partner.email.toLowerCase().includes(search)) {
+        //             return true;
+        //         }
+        //         return false;
+        //     });
+        //     // reduce results to max limit
+        //     matchingPartners.length = Math.min(matchingPartners.length, limit);
+        //     return matchingPartners;
+        // };
+
+        // // add main suggestions based on users
+        // const partnersFromUsers = ResUsers._filter([])
+        //     .map((user) => this.browse(user.partner_id)[0])
+        //     .filter((partner) => partner);
+        // const mainMatchingPartners = mentionSuggestionsFilter(partnersFromUsers, search, limit);
+        // let extraMatchingPartners = [];
+        // // if not enough results add extra suggestions based on partners
+        // const remainingLimit = limit - mainMatchingPartners.length;
+        // debugger;
+        // if (mainMatchingPartners.length < limit) {
+        //     const partners = this._filter([
+        //         ["id", "not in", mainMatchingPartners.map((partner) => partner.id)],
+        //     ]);
+        //     extraMatchingPartners = mentionSuggestionsFilter(partners, search, remainingLimit);
+        // }
+        // const store = new mailDataHelpers.Store();
+        // for (const partner of mainMatchingPartners.concat(extraMatchingPartners)) {
+        //     // const [user] = ResUsers._filter([["partner_id", "=", partner.id]]);
+        //     // if (user) {
+        //     //     store.add(this.browse(partner.id), {
+        //     //         groups_id: user?.groups_id.includes(channel.group_public_id)
+        //     //             ? channel.group_public_id
+        //     //             : false,
+        //     //     });
+        //     // } else {
+        //     store.add(this.browse(partner.id));
+        //     // }
+        //     const [member] = DiscussChannelMember._filter([
+        //         ["channel_id", "=", channel_id],
+        //         ["partner_id", "=", partner.id],
+        //     ]);
+        //     store.add(
+        //         DiscussChannelMember.browse(member.id),
+        //         makeKwArgs({ fields: { channel: [], persona: [] } })
+        //     );
+        // }
+
+        // let extra_domain = Domain.and([
+        //     [["user_ids", "!=", false]],
+        //     [["user_ids.active", "=", true]],
+        //     [["partner_share", "=", false]],
+        // ]);
+        // // if (channel.group_public_id.id) {
+        // //     extra_domain = Domain.and([
+        // //         extra_domain,
+        // //         [("user_ids.groups_id", "in", channel.group_public_id.id)],
+        // //     ]);
+        // // }
+        // const partners = this.search([
+        //     [["user_ids", "!=", false]],
+        //     [["user_ids.active", "=", true]],
+        //     [["partner_share", "=", false]],
+        // ]);
+
+        // const internalUsers = ResUsers._filter([
+        //     ["user_ids", "!=", false],
+        //     ["groups_id", "in", channel.group_public_id],
+        //     ["active", "=", true],
+        //     ["partner_share", "=", false], // Add this directly if possible
+        // ]);
+        // for (const user of internalUsers) {
+        //     store.add(this.browse(user.partner_id), {
+        //         groups_id: user.groups_id.includes(channel.group_public_id)
+        //             ? channel.group_public_id
+        //             : undefined,
+        //     });
+        // }
+        // return store.get_result();
         const DiscussChannelMember = this.env["discuss.channel.member"];
-        /** @type {import("mock_models").ResUsers} */
-        const ResUsers = this.env["res.users"];
+        // const ResUsers = this.env["res.users"];
+        const channel = this.env["discuss.channel"].browse(channel_id)[0];
 
-        search = search.toLowerCase();
-        /**
-         * Returns the given list of partners after filtering it according to
-         * the logic of the Python method `get_mention_suggestions` for the
-         * given search term. The result is truncated to the given limit and
-         * formatted as expected by the original method.
-         *
-         * @param {ModelRecord[]} partners
-         * @param {string} search
-         * @param {number} limit
-         * @returns {Object[]}
-         */
-        const mentionSuggestionsFilter = (partners, search, limit) => {
-            const matchingPartners = partners.filter((partner) => {
-                const [member] = DiscussChannelMember._filter([
-                    ["channel_id", "=", channel_id],
-                    ["partner_id", "=", partner.id],
-                ]);
-                if (!member) {
-                    return false;
-                }
-                // no search term is considered as return all
-                if (!search) {
-                    return true;
-                }
-                // otherwise name or email must match search term
-                if (partner.name && partner.name.toLowerCase().includes(search)) {
-                    return true;
-                }
-                if (partner.email && partner.email.toLowerCase().includes(search)) {
-                    return true;
-                }
-                return false;
-            });
-            // reduce results to max limit
-            matchingPartners.length = Math.min(matchingPartners.length, limit);
-            return matchingPartners;
-        };
+        // Prepare filtering domains
+        const searchLower = search.toLowerCase();
+        // debugger;
+        const extra_domain = new Domain([
+            ["user_ids", "!=", false],
+            ["active", "=", true],
+            ["partner_share", "=", false],
+        ]).toList();
 
-        // add main suggestions based on users
-        const partnersFromUsers = ResUsers._filter([])
-            .map((user) => this.browse(user.partner_id)[0])
-            .filter((partner) => partner);
-        const mainMatchingPartners = mentionSuggestionsFilter(partnersFromUsers, search, limit);
-        let extraMatchingPartners = [];
-        // if not enough results add extra suggestions based on partners
-        const remainingLimit = limit - mainMatchingPartners.length;
-        if (mainMatchingPartners.length < limit) {
-            const partners = this._filter([
-                ["id", "not in", mainMatchingPartners.map((partner) => partner.id)],
-            ]);
-            extraMatchingPartners = mentionSuggestionsFilter(partners, search, remainingLimit);
+        if (channel.group_public_id) {
+            extra_domain.push(["groups_id", "in", channel.group_public_id]);
         }
+
+        const baseDomain = search
+            ? new Domain([
+                  "|", // Logical OR
+                  ["name", "ilike", searchLower],
+                  ["email", "ilike", searchLower],
+              ]).toList()
+            : [];
+        const partners = this._search_mention_suggestions(
+            baseDomain,
+            limit,
+            extra_domain,
+            channel_id
+        );
+        // Fetch and filter partners based on search criteria
+
         const store = new mailDataHelpers.Store();
-        for (const partner of mainMatchingPartners.concat(extraMatchingPartners)) {
-            store.add(this.browse(partner.id));
+
+        partners.forEach((id) => {
+            // Fetch the DiscussChannelMember record for the given partner ID
             const [member] = DiscussChannelMember._filter([
                 ["channel_id", "=", channel_id],
-                ["partner_id", "=", partner.id],
+                ["partner_id", "=", id],
             ]);
-            store.add(
-                DiscussChannelMember.browse(member.id),
-                makeKwArgs({ fields: { channel: [], persona: [] } })
-            );
+
+            if (member) {
+                // Add the partner and member to the store
+                store.add(this.browse(id));
+                store.add(
+                    DiscussChannelMember.browse(member.id),
+                    makeKwArgs({ fields: { channel: [], persona: [] } })
+                );
+            }
+        });
+
+        for (const p of partners) {
+            const [user] = this.env["res.users"]._filter([["partner_id", "=", p]]);
+
+            if (user) {
+                // Add to the store with the appropriate group_id
+                store.add(this.browse(p), {
+                    groups_id: user.groups_id.includes(channel.group_public_id)
+                        ? channel.group_public_id
+                        : undefined,
+                });
+            }
         }
+
+        // Return the final result
         return store.get_result();
+    }
+
+    _search_mention_suggestions(domain, limit, extra_domain, channel_id) {
+        const ResUsers = this.env["res.users"];
+        const DiscussChannelMember = this.env["discuss.channel.member"];
+
+        let partners = [];
+
+        // If the domain is empty or null, fetch channel members and internal users directly
+        if (!domain || domain.length === 0) {
+            if (channel_id) {
+                const channelMembers = DiscussChannelMember._filter([
+                    ["channel_id", "=", channel_id],
+                ]);
+
+                channelMembers.forEach((member) => {
+                    if (!partners.includes(member.partner_id)) {
+                        partners.push(member.partner_id);
+                    }
+                });
+            }
+        } else {
+            // Fetch all partners matching the domain
+            partners = ResUsers._filter(domain).map((user) => user.partner_id);
+        }
+
+        // Fetch internal users if extra_domain is provided
+        const internalUsers = extra_domain
+            ? ResUsers._filter(extra_domain)
+                  .map((user) => user.partner_id)
+                  .filter((partnerId) => !partners.includes(partnerId))
+            : [];
+
+        // Combine and deduplicate all partner IDs
+        const uniquePartners = Array.from(new Set(partners.concat(internalUsers)));
+
+        // Apply limit if specified
+        const limitedPartners = limit ? uniquePartners.slice(0, limit) : uniquePartners;
+
+        // Return the deduplicated list of partner IDs
+        return limitedPartners;
     }
 
     /**
