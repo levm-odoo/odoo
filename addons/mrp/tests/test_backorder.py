@@ -666,6 +666,7 @@ class TestMrpProductionBackorder(TestMrpCommon):
         check that "priority" is correctly disabled as part of the expected
         "done" values that are written to the original MO.
         """
+        self.bom_1.product_id.uom_id = self.uom_unit
         mo = self.env['mrp.production'].create({
             'product_qty': 10,
             'bom_id': self.bom_1.id,
@@ -705,6 +706,7 @@ class TestMrpProductionBackorder(TestMrpCommon):
         product_qty = 10.0  # for MOs with no backorder, qty_produced = product_qty
         qty_produced = 3.0  # for MOs where qty_produced < product_qty
 
+        self.bom_1.product_id.uom_id = self.uom_unit
         def create_mo(picking_type_id=False):
             return self.env['mrp.production'].create({
             'product_qty': product_qty,

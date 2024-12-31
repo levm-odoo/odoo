@@ -891,6 +891,7 @@ class TestUnbuild(TestMrpCommon):
         - unbuild 4 units
         - the move lines should be created with the correct quantity
         """
+        self.bom_1.product_id.uom_id = self.uom_unit
         mo_form = Form(self.env['mrp.production'])
         mo_form.bom_id = self.bom_1
         mo = mo_form.save()
