@@ -28,8 +28,6 @@ class AccountEdiFormat(models.Model):
             1. base on IRN, IRN is number created when we do E-invoice
             2. direct call, when E-invoice not aplicable or it"s credit not
         """
-        if move.move_type == "out_refund":
-            return "direct"
         einvoice_in_edi_format = move.journal_id.edi_format_ids.filtered(lambda f: f.code == "in_einvoice_1_03")
         return einvoice_in_edi_format and einvoice_in_edi_format._get_move_applicability(move) and "irn" or "direct"
 
@@ -52,7 +50,7 @@ class AccountEdiFormat(models.Model):
         if self.code != 'in_ewaybill_1_03':
             return super()._get_move_applicability(invoice)
 
-        if invoice.is_invoice() and invoice.country_code == 'IN':
+        if invoice.move_type in ('out_invoice', 'in_invoice', 'in_refund') and invoice.country_code == 'IN':
             res = {
                 'post': self._l10n_in_edi_ewaybill_post_invoice_edi,
                 'cancel': self._l10n_in_edi_ewaybill_cancel_invoice,
@@ -63,7 +61,7 @@ class AccountEdiFormat(models.Model):
                 res.update({
                     'post': self._l10n_in_edi_ewaybill_irn_post_invoice_edi,
                     'edi_content': self._l10n_in_edi_ewaybill_irn_json_invoice_content,
-                    })
+                })
             return res
 
     def _needs_web_services(self):
@@ -410,7 +408,7 @@ class AccountEdiFormat(models.Model):
         json_payload = {
             # Note:
             # Customer Invoice, Sales Receipt and Vendor Credit Note are Outgoing
-            # Vendor Bill, Purchase Receipt, and Customer Credit Note are Incoming
+            # Vendor Bill and Purchase Receipt are Incoming
             "supplyType": invoices.is_outbound() and "I" or "O",
             "subSupplyType": invoices.l10n_in_type_id.sub_type_code,
             "docType": invoices.l10n_in_type_id.code,
