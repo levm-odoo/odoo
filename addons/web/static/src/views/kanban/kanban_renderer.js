@@ -445,6 +445,11 @@ export class KanbanRenderer extends Component {
             await group.toggle();
             this.props.scrollTop();
         }
+        const unfoled = this.rootRef.el.querySelector(".o_column_folded");
+        if (unfoled) {
+            // Use scrollIntoView to make it visible
+            unfoled.scrollIntoView({ behavior: 'smooth', inline: 'end'});
+        }
     }
 
     /**
