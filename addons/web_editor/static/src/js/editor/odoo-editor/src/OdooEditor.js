@@ -5110,11 +5110,13 @@ export class OdooEditor extends EventTarget {
             // table can be included in the clipboard as an image file. In that
             // particular case the html table is given a higher priority than
             // the clipboard picture.
-            if (files.length && !clipboardElem.querySelector('table')) {
+            if (files.length && !this.options.preventPastingFiles && !clipboardElem.querySelector('table')) {
                 this.addImagesFiles(files).then(html => {
                     this._applyCommand('insert', html);
                 });
             } else {
+                if (this.options.preventPastingFiles)
+                    clipboardElem.querySelectorAll('img').forEach(img => img.remove());
                 if (closestElement(sel.anchorNode, 'a')) {
                     this._applyCommand('insert', clipboardElem.textContent);
                 }

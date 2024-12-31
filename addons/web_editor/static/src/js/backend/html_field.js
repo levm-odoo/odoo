@@ -760,6 +760,11 @@ export const htmlField = {
             // can be set elsewhere otherwise.
             wysiwygOptions.allowCommandImage = Boolean(options.allowCommandImage);
         }
+        if ('preventPastingFiles' in options) {
+            // Set the option only if it is explicitly set in the view so a default
+            // can be set elsewhere otherwise.
+            wysiwygOptions.preventPastingFiles = Boolean(options.preventPastingFiles);
+        }
         if ('allowCommandVideo' in options) {
             // Set the option only if it is explicitly set in the view so a default
             // can be set elsewhere otherwise.
