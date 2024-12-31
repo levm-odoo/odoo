@@ -46,9 +46,38 @@ export function wrapInlinesInBlocks(element, cursors = { update: () => {} }) {
         const block = isPhrasingContent(node)
             ? node.ownerDocument.createElement("P")
             : node.ownerDocument.createElement("DIV");
-        cursors.update(callbacksForCursorUpdate.before(node, block));
-        node.before(block);
+        // TODO baseContainer: explanation of the change:
+        // mutations are serialized with the final version of the elements
+        // they affect, instead of the actual value they had when the mutation
+        // occurred. Using:
+        // `cursors.update(callbacksForCursorUpdate.before(node, block));
+        // node.before(block);`
+        // instead of the following conditions sequence creates a serialized
+        // mutation where the parent of a node must become the sibling of that
+        // node and therefore be a child of itself. This issue is caused by the
+        // current implementation of `stageRecords`.
+        // Cursors adjustment is a bit tricky because we have to actually
+        // remove the node before adding its replacement, and then adding it
+        // back inside its replacement, without loosing track of the cursor:
+        // 1) adjust cursors to point inside the block if it was pointing to node
+        // 2) this may have the effect of reducing the offset in the current node
+        // parent for cursors pointing after node, which is not correct, since
+        // block will take the place of node (they should be unchanged).
         cursors.update(callbacksForCursorUpdate.append(block, node));
+        // 3) to correct 2), adjust cursors that were pointing after node as
+        // block is inserted at the position where node was removed, but still
+        // without having done any actual change in the dom, to keep the information
+        // of node current position (before removal)
+        cursors.update(callbacksForCursorUpdate.before(node, block));
+        if (node.nextSibling) {
+            const sibling = node.nextSibling;
+            node.remove();
+            sibling.before(block);
+        } else {
+            const parent = node.parentElement;
+            node.remove();
+            parent.append(block);
+        }
         block.append(node);
         return block;
     };

@@ -1048,6 +1048,11 @@ export class HistoryPlugin extends Plugin {
             for (const node of [unserializedNode, ...descendants(unserializedNode)]) {
                 const id = nodeMap.get(node);
                 if (id) {
+                    // TODO baseContainer: if there is an existing node with id in
+                    // nodeToIdMap, which is not `node`, mutations referring to
+                    // that node position will not have the desired effect.
+                    // see `wrapInlinesInBlocks` implementation change.
+                    // Add a test
                     this.nodeToIdMap.set(node, id);
                     this.idToNodeMap.set(id, node);
                 }
