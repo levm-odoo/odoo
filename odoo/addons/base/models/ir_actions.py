@@ -362,9 +362,11 @@ class IrActionsAct_Window(models.Model):
         self.env.registry.clear_cache()
         return super().unlink()
 
-    def exists(self):
+    def exists(self, **kwargs):
         ids = self._existing()
         existing = self.filtered(lambda rec: rec.id in ids)
+        if kwargs:
+            existing = super(IrActionsAct_Window, existing).exists(**kwargs)
         return existing
 
     @api.model

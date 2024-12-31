@@ -1065,10 +1065,10 @@ class StockQuant(models.Model):
         quant = None
         if quants:
             # see _acquire_one_job for explanations
-            self._cr.execute("SELECT id FROM stock_quant WHERE id IN %s ORDER BY lot_id LIMIT 1 FOR NO KEY UPDATE SKIP LOCKED", [tuple(quants.ids)])
-            stock_quant_result = self._cr.fetchone()
-            if stock_quant_result:
-                quant = self.browse(stock_quant_result[0])
+            select = quants.order(lambda q: q.lot_id.id)._as_query(order=True).select()
+            select = SQL("%s LIMIT 1 FOR NO KEY UPDATE SKIP LOCKED", select)
+            for [quant_id] in self.env.execute_query(select):
+                quant = self.browse(quant_id)
 
         if quant:
             vals = {'in_date': in_date}

@@ -5751,7 +5751,12 @@ class BaseModel(metaclass=MetaModel):
             old_record.copy_translations(new_record, excluded=default or ())
         return new_records
 
-    def exists(self) -> Self:
+    def exists(
+        self, *,
+        for_update: bool | typing.Literal['row'] = False,
+        nowait: bool = False,
+        skip_locked: bool = False,
+    ) -> Self:
         """  exists() -> records
 
         Returns the subset of records in ``self`` that exist.
@@ -5767,8 +5772,22 @@ class BaseModel(metaclass=MetaModel):
             return self
         query = Query(self.env, self._table, self._table_sql)
         query.add_where(SQL("%s IN %s", SQL.identifier(self._table, 'id'), tuple(ids)))
-        self.env.cr.execute(query.select())
-        valid_ids = set([r[0] for r in self._cr.fetchall()] + new_ids)
+        parts = [query.select()]
+        if for_update:
+            parts.append(SQL("FOR NO KEY UPDATE") if for_update == 'row' else SQL("FOR UPDATE"))
+        if nowait:
+            parts.append(SQL("NOWAIT"))
+        if skip_locked:
+            parts.append(SQL("SKIP LOCKED"))
+        select = SQL(" ").join(parts)
+        if nowait and not skip_locked:
+            try:
+                valid_ids = {id_ for [id_] in self.env.execute_query(select)}
+            except psycopg2.errors.LockNotAvailable as e:
+                raise MissingError("Cannot grab a lock on some records") from e
+        else:
+            valid_ids = {id_ for [id_] in self.env.execute_query(select)}
+        valid_ids.update(new_ids)
         return self.browse(i for i in self._ids if i in valid_ids)
 
     def _has_cycle(self, field_name=None) -> bool:
