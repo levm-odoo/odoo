@@ -183,9 +183,10 @@ publicWidget.registry.WebsiteSaleCheckout = publicWidget.Widget.extend({
         const checkedRadio = document.querySelector('input[name="o_delivery_radio"]:checked');
         const pickupLocation = this._getPickupLocationContainer(checkedRadio);
         pickupLocation.querySelector('[name="o_pickup_location_name"]').innerText = location.name;
-        pickupLocation.querySelector(
-            '[name="o_pickup_location_address"]'
-        ).innerText = `${location.street} ${location.zip_code} ${location.city}`;
+        this._updatePickupLocationAddress(
+            pickupLocation.querySelector('[name="o_pickup_location_address"]'),
+            location
+        );
         const editPickupLocationButton = pickupLocation.querySelector(
             'span[name="o_pickup_location_selector"]'
         );
@@ -198,6 +199,10 @@ publicWidget.registry.WebsiteSaleCheckout = publicWidget.Widget.extend({
 
         // Remove the button.
         pickupLocation.querySelector('button[name="o_pickup_location_selector"]')?.remove();
+    },
+
+    _updatePickupLocationAddress(container, location){
+        container.innerText = `${location.street} ${location.zip_code} ${location.city}`;
     },
 
     /**
@@ -481,7 +486,6 @@ publicWidget.registry.WebsiteSaleCheckout = publicWidget.Widget.extend({
         if (!radio.dataset.isPickupLocationRequired || radio.disabled) {
             return;  // Fetching the delivery rate failed.
         }
-        // const deliveryMethodContainer = this._getDeliveryMethodContainer(radio);
         const pickupLocation = this._getPickupLocationContainer(radio);
         const editPickupLocationButton = pickupLocation.querySelector(
             'span[name="o_pickup_location_selector"]'
@@ -577,9 +581,8 @@ publicWidget.registry.WebsiteSaleCheckout = publicWidget.Widget.extend({
      * @return {boolean} Whether a required pickup location is missing.
      */
     _isPickupLocationMissing(radio) {
-        const deliveryMethodContainer = this._getDeliveryMethodContainer(radio);
         if (!this._isPickupLocationRequired(radio)) return false;
-        return !deliveryMethodContainer.querySelector(
+        return !this._getPickupLocationContainer(radio).querySelector(
             'span[name="o_pickup_location_selector"]'
         ).dataset.locationId;
     },
