@@ -15,14 +15,15 @@ export function getListMode(pnode) {
  *
  * @param {HTMLOListElement|HTMLUListElement} list - The list element to switch the mode of.
  * @param {"UL"|"OL"|"CL"} newMode - The new mode to switch to.
+ * @param {Object} ignoredAttrs
  * @returns {HTMLOListElement|HTMLUListElement} The modified list element.
  */
-export function switchListMode(list, newMode) {
+export function switchListMode(list, newMode, ignoredAttrs = {}) {
     if (getListMode(list) === newMode) {
         return;
     }
     const newTag = newMode === "CL" ? "UL" : newMode;
-    const newList = setTagName(list, newTag);
+    const newList = setTagName(list, newTag, ignoredAttrs);
     // Clear list style (@todo @phoenix - why??)
     newList.style.removeProperty("list-style");
     for (const li of newList.children) {
@@ -50,16 +51,16 @@ export function switchListMode(list, newMode) {
  * @returns {HTMLUListElement|HTMLOListElement|HTMLLIElement} node - Modified
  * list element after conversion.
  */
-export function convertList(node, newMode) {
+export function convertList(node, newMode, ignoredAttrs = {}) {
     if (!["UL", "OL", "LI"].includes(node.tagName)) {
         return;
     }
     const listMode = getListMode(node);
     if (listMode && newMode !== listMode) {
-        node = switchListMode(node, newMode);
+        node = switchListMode(node, newMode, ignoredAttrs);
     }
     for (const child of node.children) {
-        convertList(child, newMode);
+        convertList(child, newMode, ignoredAttrs);
     }
     return node;
 }

@@ -235,7 +235,10 @@ export class ListPlugin extends Plugin {
         if (listsToSwitch.size || nonListBlocks.size) {
             for (const list of listsToSwitch) {
                 const cursors = this.dependencies.selection.preserveSelection();
-                const newList = switchListMode(list, mode);
+                const ignoredAttrs = {
+                    class: new Set(this.getResource("system_classes")),
+                };
+                const newList = switchListMode(list, mode, ignoredAttrs);
                 cursors.remapNode(list, newList).restore();
             }
             for (const block of nonListBlocks) {

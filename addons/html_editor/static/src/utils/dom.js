@@ -144,24 +144,47 @@ export function unwrapContents(node) {
 // This utils seem to handle a particular case of LI element.
 // If only relevant to the list plugin, a specific util should be created
 // that plugin instead.
-export function setTagName(el, newTagName) {
+export function setTagName(el, newTagName, ignoredAttrs = {}) {
     const document = el.ownerDocument;
     if (el.tagName === newTagName) {
         return el;
     }
     const newEl = document.createElement(newTagName);
-    while (el.firstChild) {
-        newEl.append(el.firstChild);
-    }
+    const content = childNodes(el);
     if (el.tagName === "LI") {
         el.append(newEl);
+        newEl.replaceChildren(...content);
     } else {
-        for (const attribute of el.attributes) {
-            newEl.setAttribute(attribute.name, attribute.value);
+        if (el.parentElement) {
+            el.before(newEl);
         }
-        el.parentNode.replaceChild(newEl, el);
+        copyAttributes(el, newEl, ignoredAttrs);
+        newEl.replaceChildren(...content);
+        el.remove();
     }
     return newEl;
+}
+
+export function copyAttributes(source, target, ignoredAttrs = {}) {
+    if (!source || !target) {
+        return;
+    }
+    for (const attr of source.attributes) {
+        if (attr.name === "class") {
+            const classes = [...source.classList];
+            if (ignoredAttrs.class) {
+                for (const className of classes) {
+                    if (!ignoredAttrs.class.has(className)) {
+                        target.classList.add(className);
+                    }
+                }
+            } else {
+                target.classList.add(...source.classList);
+            }
+        } else if (!(attr in ignoredAttrs)) {
+            target.setAttribute(attr.name, attr.value);
+        }
+    }
 }
 
 /**

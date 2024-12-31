@@ -3,6 +3,7 @@ import { Plugin } from "../plugin";
 import { closestBlock, isBlock } from "../utils/blocks";
 import {
     cleanTrailingBR,
+    copyAttributes,
     fillEmpty,
     fillShrunkPhrasingParent,
     makeContentsInline,
@@ -336,15 +337,21 @@ export class DomPlugin extends Plugin {
                 block.nodeName === "LI" &&
                 paragraphRelatedElements.includes(nodeToInsert.nodeName)
             ) {
+                const ignoredAttrs = {
+                    class: new Set(this.getResource("system_classes")),
+                };
                 // TODO baseContainer: this change may be related to the fix for isConnected on cleanTrailingBR
-                nodeToInsert = setTagName(nodeToInsert, "LI");
+                nodeToInsert = setTagName(nodeToInsert, "LI", ignoredAttrs);
             }
             if (
                 currentList &&
                 ((nodeToInsert.nodeName === "LI" && nodeToInsert.classList.contains("oe-nested")) ||
                     isList(nodeToInsert))
             ) {
-                nodeToInsert = convertList(nodeToInsert, mode);
+                const ignoredAttrs = {
+                    class: new Set(this.getResource("system_classes")),
+                };
+                nodeToInsert = convertList(nodeToInsert, mode, ignoredAttrs);
             }
             if (insertBefore) {
                 currentNode.before(nodeToInsert);
@@ -434,13 +441,10 @@ export class DomPlugin extends Plugin {
      */
     copyAttributes(source, target) {
         this.dispatchTo("clean_handlers", source);
-        for (const attr of source.attributes) {
-            if (attr.name === "class") {
-                target.classList.add(...source.classList);
-            } else {
-                target.setAttribute(attr.name, attr.value);
-            }
-        }
+        const ignoredAttrs = {
+            class: new Set(this.getResource("system_classes")),
+        };
+        copyAttributes(source, target, ignoredAttrs);
     }
 
     // --------------------------------------------------------------------------
@@ -485,8 +489,10 @@ export class DomPlugin extends Plugin {
                         continue;
                     }
                 }
-
-                const newEl = setTagName(block, tagName);
+                const ignoredAttrs = {
+                    class: new Set(this.getResource("system_classes")),
+                };
+                const newEl = setTagName(block, tagName, ignoredAttrs);
                 cursors.remapNode(block, newEl);
                 // We want to be able to edit the case `<h2 class="h3">`
                 // but in that case, we want to display "Header 2" and
