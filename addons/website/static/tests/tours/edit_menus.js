@@ -39,7 +39,7 @@ registerWebsitePreviewTour('edit_menus', {
     },
     {
         content: "Confirm the mega menu label",
-        trigger: ".modal:not(.o_inactive_modal) .modal-footer .btn-primary:contains(ok)",
+        trigger: ".modal:not(.o_inactive_modal) .modal-footer .btn-primary:contains(Continue)",
         run: "click",
     },
     {
@@ -83,7 +83,7 @@ registerWebsitePreviewTour('edit_menus', {
     },
     {
         content: "Confirm the new menu entry without a label",
-        trigger: ".modal:not(.o_inactive_modal) .modal-footer .btn-primary:contains(ok)",
+        trigger: ".modal:not(.o_inactive_modal) .modal-footer .btn-primary:contains(Continue)",
         run: "click",
     },
     {
@@ -93,7 +93,7 @@ registerWebsitePreviewTour('edit_menus', {
     },
     {
         content: "Confirm the new menu entry without a url",
-        trigger: ".modal:not(.o_inactive_modal) .modal-footer .btn-primary:contains(ok)",
+        trigger: ".modal:not(.o_inactive_modal) .modal-footer .btn-primary:contains(Continue)",
         run: "click",
     },
     {
@@ -106,7 +106,7 @@ registerWebsitePreviewTour('edit_menus', {
     },
     {
         content: "Confirm the new menu entry",
-        trigger: ".modal:not(.o_inactive_modal) .modal-footer .btn-primary:contains(ok)",
+        trigger: ".modal:not(.o_inactive_modal) .modal-footer .btn-primary:contains(Continue)",
         run: "click",
     },
     {
@@ -187,7 +187,7 @@ registerWebsitePreviewTour('edit_menus', {
     },
     {
         content: "Confirm the new menu label",
-        trigger: ".modal:not(.o_inactive_modal) .modal-footer button:contains(ok)",
+        trigger: ".modal:not(.o_inactive_modal) .modal-footer button:contains(Continue)",
         run: "click",
     },
     {
@@ -219,7 +219,7 @@ registerWebsitePreviewTour('edit_menus', {
     },
     {
         content: `Drag "Contact Us" menu below "Home" menu`,
-        trigger: '.oe_menu_editor li:contains("Contact us") .fa-bars',
+        trigger: '.oe_menu_editor li:contains("Contact us") .oi-draggable',
         run(helpers) {
             return helpers.drag_and_drop('.oe_menu_editor li:contains("Home")', {
                 position: {
@@ -232,7 +232,7 @@ registerWebsitePreviewTour('edit_menus', {
     },
     {
         content: "Drag 'Contact Us' item as a child of the 'Home' item",
-        trigger: '.oe_menu_editor li:contains("Contact us") .fa-bars',
+        trigger: '.oe_menu_editor li:contains("Contact us") .oi-draggable',
         run: 'drag_and_drop .oe_menu_editor li:contains("Contact us") .form-control',
     },
     {
@@ -242,7 +242,7 @@ registerWebsitePreviewTour('edit_menus', {
     // Drag the Mega menu to the first position.
     {
         content: "Drag Mega at the top",
-        trigger: '.oe_menu_editor li:contains("Megaaaaa!") .fa-bars',
+        trigger: '.oe_menu_editor li:contains("Megaaaaa!") .oi-draggable',
         run(helpers) {
             return helpers.drag_and_drop('.oe_menu_editor li:contains("Home")', {
                 position: {
@@ -375,7 +375,7 @@ registerWebsitePreviewTour('edit_menus', {
     },
     {
         content: "Confirm the new menu entry",
-        trigger: '.modal:not(.o_inactive_modal) .modal-footer .btn-primary:contains(ok)',
+        trigger: '.modal:not(.o_inactive_modal) .modal-footer .btn-primary:contains(Continue)',
         run: "click",
     },
     {
@@ -399,7 +399,7 @@ registerWebsitePreviewTour('edit_menus', {
     },
     {
         content: "Confirm the new menu entry",
-        trigger: '.modal:not(.o_inactive_modal) .modal-footer .btn-primary:contains(ok)',
+        trigger: '.modal:not(.o_inactive_modal) .modal-footer .btn-primary:contains(Continue)',
         run: "click",
     },
     {
@@ -408,21 +408,21 @@ registerWebsitePreviewTour('edit_menus', {
     },
     {
         content: "Nest 'new_nested_menu' under 'new_menu'",
-        trigger: '.oe_menu_editor li:contains("new_nested_menu") .fa-bars',
+        trigger: '.oe_menu_editor li:contains("new_nested_menu") .oi-draggable',
         run: "drag_and_drop .oe_menu_editor li:contains('new_menu') .form-control",
     },
     {
         content: "Drag 'Modnar !!' below 'new_menu'",
-        trigger: '.oe_menu_editor li:contains("Modnar !!") .fa-bars',
+        trigger: '.oe_menu_editor li:contains("Modnar !!") .oi-draggable',
         async run(helpers) {
-            await helpers.drag_and_drop('.oe_menu_editor li:contains("new_menu") .fa-bars', {
+            await helpers.drag_and_drop('.oe_menu_editor li:contains("new_menu") .oi-draggable', {
                 position: "bottom",
             });
         },
     },
     {
         content: "Nest 'Modnar !!' under 'new_menu'",
-        trigger: '.oe_menu_editor li:contains("Modnar !!") .fa-bars',
+        trigger: '.oe_menu_editor li:contains("Modnar !!") .oi-draggable',
         run: "drag_and_drop .oe_menu_editor li:contains('new_menu') .form-control",
     },
     {
@@ -431,9 +431,9 @@ registerWebsitePreviewTour('edit_menus', {
     },
     {
         content: "Move 'Modnar !!' below 'new_nested_menu' inside the 'new_menu'",
-        trigger: '.oe_menu_editor  li:contains("new_menu") > ul > li:contains("Modnar !!") .fa-bars',
+        trigger: '.oe_menu_editor  li:contains("new_menu") > ul > li:contains("Modnar !!") .oi-draggable',
         async run(helpers) {
-            await helpers.drag_and_drop(".oe_menu_editor  li:contains('new_menu') > ul > li:contains('new_nested_menu') .fa-bars", {
+            await helpers.drag_and_drop(".oe_menu_editor  li:contains('new_menu') > ul > li:contains('new_nested_menu') .oi-draggable", {
                 position: "bottom",
             });
         },
