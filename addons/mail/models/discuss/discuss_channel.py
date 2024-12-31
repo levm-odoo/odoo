@@ -1228,11 +1228,11 @@ class DiscussChannel(models.Model):
         ) % {
             "user": self.env.user.display_name,
             "goto": Markup(
-                "<a href='#' class='o_channel_redirect' data-oe-id='%s' data-oe-model='discuss.channel'>"
+                "<a class='o_channel_redirect cursor-pointer' data-oe-id='%s' data-oe-model='discuss.channel'>"
             )
             % sub_channel.id,
             "goto_end": Markup("</a>"),
-            "goto_all": Markup("<a href='#' data-oe-type='sub-channels-menu'>"),
+            "goto_all": Markup("<a data-oe-type='sub-channels-menu' class='cursor-pointer'>"),
             "goto_all_end": Markup("</a>"),
             "thread_name": sub_channel.name,
         }

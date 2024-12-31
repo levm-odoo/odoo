@@ -1923,8 +1923,8 @@
                         </t>
                         <t t-call="website_sale.cart_line_description_following_lines"/>
                         <div name="o_wsale_cart_line_button_container">
-                            <a href='#'
-                               class="js_delete_product d-none d-md-inline-block small"
+                            <a
+                               class="js_delete_product d-none d-md-inline-block small cursor-pointer"
                                aria-label="Remove from cart"
                                title="Remove from cart">Remove</a>
                             <button class="js_delete_product btn btn-light d-inline-block d-md-none"
