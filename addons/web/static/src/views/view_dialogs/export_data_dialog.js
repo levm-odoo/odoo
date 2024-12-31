@@ -408,9 +408,18 @@ export class ExportDataDialog extends Component {
     }
 
     async setDefaultExportList() {
-        this.state.exportList = Object.values(this.knownFields).filter(
-            (e) => e.default_export || this.props.defaultExportList.find((i) => i.name === e.id)
+        const defaultExportList = this.props.defaultExportList
+            .map((defaultField) => {
+                const field = this.knownFields[defaultField.name];
+                return field && field.id === defaultField.name ? field : null;
+            })
+            .filter((field) => field);
+
+        const defaultExportfields = Object.values(this.knownFields).filter(
+            (field) => field.default_export && !defaultExportList.includes(field)
         );
+
+        this.state.exportList = [...defaultExportList, ...defaultExportfields];
     }
 
     setFormat(ev) {
