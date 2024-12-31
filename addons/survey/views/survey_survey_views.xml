@@ -11,7 +11,7 @@
                 <field name="question_ids" invisible="1"/>
                 <field name="session_available" invisible="1"/>
                 <header>
-                    <button name="action_send_survey" string="Share" type="object" class="oe_highlight" invisible="not active"/>
+                    <button name="action_send_survey" string="Share" type="object" class="oe_highlight" invisible="not active" disabled="disabled" data-hotkey="q"/>
                     <button name="action_result_survey" string="See results" type="object" class="oe_highlight"
                       invisible="answer_done_count &lt;= 0"/>
                     <button name="action_start_session" string="Create Live Session" type="object" class="d-none d-sm-block"
