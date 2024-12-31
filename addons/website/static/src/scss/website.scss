@@ -203,25 +203,29 @@ body {
 
     > main:not(.o_breadcrumb_overlay) {
         div.o_page_breadcrumb {
-            background-color: transparent !important;
+            @include o-apply-colors('breadcrumb');
+            @include o-add-gradient('breadcrumb-gradient');
             a {
                 color: inherit !important;
-            }
-            > nav {
-                @include o-apply-colors('breadcrumb');
-                @include o-add-gradient('breadcrumb-gradient');
             }
         }
     }
 
-    &.o_header_overlay, > main.o_breadcrumb_overlay {
+    &.o_header_overlay div.o_page_breadcrumb {
+        @include o-position-absolute(auto, auto, auto, auto);
+        z-index: 1 !important;
+        width: -webkit-fill-available;
+    }
+
+    > main.o_breadcrumb_overlay {
         div.o_page_breadcrumb {
             @include o-position-absolute(auto, auto, auto, auto);
             z-index: 1 !important;
+            width: -webkit-fill-available;
             a {
                 color: inherit !important;
             }
-            > nav {
+            nav {
                 @include o-apply-colors(1);
                 background-color: transparent !important;
                 background-image: none !important;

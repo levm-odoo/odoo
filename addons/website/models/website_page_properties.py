@@ -147,7 +147,7 @@ class WebsitePageProperties(models.TransientModel):
     groups_id = fields.Many2many(related='target_model_id.groups_id', readonly=False)
     is_new_page_template = fields.Boolean(related='target_model_id.is_new_page_template', readonly=False)
     has_parent_page = fields.Boolean(compute="_compute_has_parent_page", readonly=False)
-    parent_id = fields.Many2one(related='target_model_id.parent_id', readonly=False)
+    parent_id = fields.Many2one(related="target_model_id.parent_id", readonly=False)
     old_url = fields.Char()
     redirect_old_url = fields.Boolean(default=False, store=False)
     redirect_type = fields.Selection(
@@ -196,12 +196,10 @@ class WebsitePageProperties(models.TransientModel):
         return records
 
     def write(self, vals):
-        write_result = super().write(vals)
-        # If the page is set as homepage, we need to remove the parent page.
+         # If the page is set as homepage, we need to remove the parent page.
         if 'is_homepage' in vals:
-            for record in self:
-                if record.is_homepage and record.parent_id:
-                    record.parent_id = False
+            vals['parent_id'] = False
+        write_result = super().write(vals)
 
         # Once website.page has been written, the url might have been modified.
         # We can now create the redirects.

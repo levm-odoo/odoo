@@ -1,8 +1,10 @@
 import publicWidget from "@web/legacy/js/public/public_widget";
 import animations from "@website/js/content/snippets.animation";
+import { extraMenuUpdateCallbacks } from "@website/js/content/menu";
 
 publicWidget.registry.AnimatedPageBreadcrumb = animations.Animation.extend({
     selector: "div.o_page_breadcrumb",
+    disabledInEditableMode: false,
     effects: [
         {
             startEvents: "resize",
@@ -15,7 +17,19 @@ publicWidget.registry.AnimatedPageBreadcrumb = animations.Animation.extend({
      */
     start: function () {
         this._updatePageBreadcrumbOnResize();
+        this._updatePageBreadcrumbOnResizeBound = this._updatePageBreadcrumbOnResize.bind(this);
+        extraMenuUpdateCallbacks.push(this._updatePageBreadcrumbOnResizeBound);
         return this._super(...arguments);
+    },
+    /**
+     * @override
+     */
+    destroy() {
+        const indexCallback = extraMenuUpdateCallbacks.indexOf(this._updatePageBreadcrumbOnResizeBound);
+        if (indexCallback >= 0) {
+            extraMenuUpdateCallbacks.splice(indexCallback, 1);
+        }
+        this._super(...arguments);
     },
 
     //--------------------------------------------------------------------------
@@ -28,18 +42,12 @@ publicWidget.registry.AnimatedPageBreadcrumb = animations.Animation.extend({
      * @private
      */
     _updatePageBreadcrumbOnResize: function () {
-        const wrapwrapEl = document?.querySelector("div#wrapwrap");
-        const breadcrumbEl = wrapwrapEl?.querySelector("div.o_page_breadcrumb");
+        const wrapwrapEl = document.querySelector("div#wrapwrap");
         const headerHeight = wrapwrapEl
             ?.querySelector("header#top")
             ?.getBoundingClientRect().height;
-        if (breadcrumbEl && headerHeight) {
-            if (wrapwrapEl.classList.contains("o_header_overlay")) {
-                breadcrumbEl.style.top = "";
-                breadcrumbEl.style.top = `${headerHeight}px`;
-            } else {
-                breadcrumbEl.style.top = "";
-            }
+        if (headerHeight && wrapwrapEl.classList.contains("o_header_overlay")) {
+            this.el.style.top = `${headerHeight}px`;
         }
     },
 });

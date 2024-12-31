@@ -2709,12 +2709,12 @@ const VisibilityPageOptionUpdate = options.Class.extend({
         await new Promise((resolve, reject) => {
             this.trigger_up('action_demand', {
                 actionName: 'toggle_page_option',
-                params: [{ name: this.pageOptionName, value: show }],
-                onSuccess: resolve,
+                params: [{name: this.pageOptionName, value: show}],
+                onSuccess: () => resolve(),
                 onFailure: reject,
             });
         });
-        this.trigger_up('snippet_option_visibility_update', { show: show });
+        this.trigger_up('snippet_option_visibility_update', {show: show});
     },
 
     /**
