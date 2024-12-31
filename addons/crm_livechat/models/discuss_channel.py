@@ -2,12 +2,13 @@
 
 from markupsafe import Markup
 
-from odoo import models, _
+from odoo import fields, models, _
 from odoo.tools import html2plaintext
 
 
 class DiscussChannel(models.Model):
     _inherit = 'discuss.channel'
+    crm_lead_ids = fields.One2many("crm.lead", "channel_id")
 
     def execute_command_lead(self, **kwargs):
         key = kwargs['body']

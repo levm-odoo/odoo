@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import _, models, fields
+from odoo.tools import html2plaintext
 
 
 class ChatbotScriptStep(models.Model):
@@ -15,13 +16,18 @@ class ChatbotScriptStep(models.Model):
              "assign the created lead/opportunity to the defined team")
 
     def _chatbot_crm_prepare_lead_values(self, discuss_channel, description):
+        name = self.env._("%s's New Lead", self.chatbot_script_id.title)
+        if msg := self._find_first_user_free_input(discuss_channel):
+            name = html2plaintext(msg.body)[:100]
         return {
-            'description': description + discuss_channel._get_channel_history(),
-            'name': _("%s's New Lead", self.chatbot_script_id.title),
-            'source_id': self.chatbot_script_id.source_id.id,
-            'team_id': self.crm_team_id.id,
-            'type': 'lead' if self.crm_team_id.use_leads else 'opportunity',
-            'user_id': False,
+            "channel_id": discuss_channel.id,
+            # sudo - discuss.channel: can access messages to build the description
+            "description": description + discuss_channel._get_channel_history(),
+            "name": name,
+            "source_id": self.chatbot_script_id.source_id.id,
+            "team_id": self.crm_team_id.id,
+            "type": "lead" if self.crm_team_id.use_leads else "opportunity",
+            "user_id": False,
         }
 
     def _process_step(self, discuss_channel):
