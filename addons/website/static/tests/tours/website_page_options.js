@@ -25,8 +25,8 @@ registerWebsitePreviewTour('website_page_options', {
     },
     ...clickOnEditAndWaitEditMode(),
     ...clickOnSnippet({id: 'o_header_standard', name: 'Header'}),
-    changeOption("BaseColorOption", "we-select.o_we_so_color_palette"),
-    changeOption("BaseColorOption", "button[data-color='black-50']", "background color", "bottom", true),
+    changeOption("BaseColorOption", 'we-select.o_we_so_color_palette'),
+    changeOption("BaseColorOption", 'button[data-color="black-50"]', "background color", "bottom", true),
     ...clickOnSave(),
     {
         content: "Check that the header is in black-50",
@@ -152,8 +152,8 @@ registerWebsitePreviewTour(
         },
         ...clickOnEditAndWaitEditMode(),
         ...clickOnSnippet(breadcrumb),
-        changeOption("BreadcrumbOptions", "we-select:has([data-visibility]) we-toggler"),
-        changeOption("BreadcrumbOptions", "we-button[data-visibility='transparent']"),
+        changeOption("BreadcrumbOptions", 'we-select:has([data-visibility]) we-toggler'),
+        changeOption("BreadcrumbOptions", 'we-button[data-visibility="transparent"]'),
         ...clickOnSave(),
         {
             content: "Check that the breadcrumb is transparent",
@@ -164,7 +164,7 @@ registerWebsitePreviewTour(
         changeOption("BaseColorOption", "we-select.o_we_so_color_palette"),
         changeOption(
             "BaseColorOption",
-            "button[data-color='black-50']",
+            'button[data-color="black-50"]',
             "background color",
             "bottom",
             true
@@ -176,8 +176,8 @@ registerWebsitePreviewTour(
         },
         ...clickOnEditAndWaitEditMode(),
         ...clickOnSnippet(breadcrumb),
-        changeOption("BreadcrumbOptions", "we-select:has([data-visibility]) we-toggler"),
-        changeOption("BreadcrumbOptions", "we-button[data-visibility='hidden']"),
+        changeOption("BreadcrumbOptions", 'we-select:has([data-visibility]) we-toggler'),
+        changeOption("BreadcrumbOptions", 'we-button[data-visibility="hidden"]'),
         ...clickOnSave(),
         {
             content: "Check that the breadcrumb is hidden",

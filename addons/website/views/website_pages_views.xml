@@ -79,7 +79,7 @@
             <div class="d-flex" invisible="is_homepage">
                 <field name="has_parent_page" class="w-25" widget="boolean_toggle" options="{'autosave': False}" invisible="is_homepage"/>
                 <label for="parent_id" string="/" invisible="not has_parent_page"/>
-                <field name="parent_id" widget="many2one" invisible="not has_parent_page" required="has_parent_page" domain="[('website_id','=',website_id),('id','!=',target_model_id)]"/>
+                <field name="parent_id" widget="many2one" invisible="not has_parent_page" required="has_parent_page and not is_homepage" domain="[('website_id','=',website_id),('id','!=',target_model_id)]"/>
             </div>
         </xpath>
         <xpath expr="//group/field[@name='is_published']" position="after">

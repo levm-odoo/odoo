@@ -203,8 +203,10 @@ body {
 
     > main:not(.o_breadcrumb_overlay) {
         div.o_page_breadcrumb {
-            @include o-apply-colors('breadcrumb');
-            @include o-add-gradient('breadcrumb-gradient');
+            nav {
+                @include o-apply-colors('breadcrumb');
+                @include o-add-gradient('breadcrumb-gradient');
+            }
             a {
                 color: inherit !important;
             }
@@ -215,6 +217,19 @@ body {
         @include o-position-absolute(auto, auto, auto, auto);
         z-index: 1 !important;
         width: -webkit-fill-available;
+    }
+
+    &.o_header_overlay header#top.d-none ~ main {
+        div.o_page_breadcrumb {
+            position: static;
+        }
+    }
+
+    &.o_header_overlay header#top.d-none ~ main.o_breadcrumb_overlay {
+        div.o_page_breadcrumb {
+            position: absolute;
+            top: 0 !important;
+        }
     }
 
     > main.o_breadcrumb_overlay {
