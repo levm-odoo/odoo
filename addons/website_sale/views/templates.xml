@@ -2304,6 +2304,12 @@
 
     <!-- /shop/address route -->
     <template id="website_sale.address_details" inherit_id="portal.address_details" primary="True">
+        <!-- Display/Hide b2b fields based on conuntry and settings for shop address -->
+        <t name="o_b2b_fields" position="attributes">
+            <attribute name="t-if">
+                partner_sudo._display_b2b_fields(country_code)
+            </attribute>
+        </t>
         <!-- Hide use same address from shop address form -->
         <div name="use_same_address" position="attributes">
             <attribute name="class">d-none</attribute>

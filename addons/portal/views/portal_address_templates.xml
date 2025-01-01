@@ -143,7 +143,7 @@
                 class="form-control"
             />
         </div>
-        <t name="o_b2b_fields" t-if="partner_sudo._display_b2b_fields(country_code)">
+        <t name="o_b2b_fields">
             <div class="w-100"/>
             <t t-if="show_vat">
                 <t t-set="vat_warning" t-value="partner_sudo.vat and not can_edit_vat"/>

@@ -4,6 +4,7 @@ from odoo import _, api, fields, models
 from odoo.http import request
 
 from odoo.addons.website.models import ir_http
+from odoo.addons.website_sale import const
 
 
 class ResPartner(models.Model):
@@ -68,8 +69,8 @@ class ResPartner(models.Model):
         )
 
     def _display_b2b_fields(self, country_code):
-        """ Override `portal` to display/hide b2b based on address_b2b view active or not. """
+        """ This method is to check whether address form should display b2b fields. """
         return (
-            super()._display_b2b_fields(country_code)
-            or request.website.is_view_active('website_sale.address_b2b')
+            request.website.is_view_active('website_sale.address_b2b')
+            or country_code in const.DISPLAY_B2B_FIELDS_COUNTRY_CODE
         )

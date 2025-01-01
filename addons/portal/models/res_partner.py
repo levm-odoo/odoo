@@ -1,8 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models
-
-from odoo.addons.portal import const
+from odoo import api, models
 
 
 class ResPartner(models.Model):
@@ -38,8 +36,3 @@ class ResPartner(models.Model):
     def _is_anonymous_customer(self):
         """ Check if customer is anonymous or not. """
         return not self and self.env.user._is_public()
-
-    @api.model
-    def _display_b2b_fields(self, country_code):
-        """ This method is to check whether address form should display b2b fields. """
-        return country_code in const.DISPLAY_B2B_FIELDS_COUNTRY_CODE
