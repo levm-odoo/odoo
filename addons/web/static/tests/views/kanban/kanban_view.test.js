@@ -13519,3 +13519,31 @@ test("display the field's falsy_value_label for false group, if defined", async 
 
     expect(".o_kanban_group:first-child .o_column_title").toHaveText("I'm the false group\n(1)");
 });
+
+test.tags("desktop");
+test("scroll right when unfold in kanban view", async () => {
+    for (let i = 0; i < 12; i++) {
+        Product._records.push({ id: 8 + i, name: `column ${i}` });
+        Partner._records.push({ id: 20 + i, foo: "dumb entry", product_id: 8 + i });
+    }
+    Product._records[2].fold = true;
+    Product._records[8].fold = true;
+
+    await mountView({
+        type: "kanban",
+        resModel: "partner",
+        arch: `
+            <kanban>
+                <templates>
+                    <t t-name="card">
+                        <field name="foo"/>
+                    </t>
+                </templates>
+            </kanban>`,
+        groupBy: ["product_id"],
+    });
+
+    await contains(".o_content").scroll({ left: 650 });
+    await contains(".o_kanban_renderer div:nth-child(9)").click();
+    expect(".o_content").toHaveProperty("scrollLeft", 950);
+});

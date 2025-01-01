@@ -207,6 +207,18 @@ export class KanbanRenderer extends Component {
         });
         onPatched(() => {
             this.rootRef.el.scrollTop = previousScrollTop;
+            const container = document.querySelector(".o_content");
+
+            if (container) {
+                //Calculate the maximum allowable horizontal scroll position
+                const maxScrollLeft = container.scrollWidth - container.clientWidth;
+
+                if (container.scrollLeft < maxScrollLeft && container.scrollLeft > 0) {
+                    container.scrollTo({
+                        left: container.scrollLeft += 300
+                    });
+                }
+            }
         });
     }
 
