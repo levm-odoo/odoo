@@ -207,6 +207,10 @@ export class KanbanRenderer extends Component {
         });
         onPatched(() => {
             this.rootRef.el.scrollTop = previousScrollTop;
+            const container = document.querySelector(".o_content")
+            if (container && container.scrollLeft > 0) {
+                container.scrollLeft += 300;
+            }
         });
     }
 
