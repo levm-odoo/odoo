@@ -28,7 +28,7 @@
     <template id="portal.address_row">
         <div
             name="address_row"
-            t-attf-class="row row-cols-md-2 row-cols-lg-3 g-3 flex-nowrap flex-md-wrap all_{{address_type}}"
+            t-attf-class="row row-cols-md-2 row-cols-lg-3 g-3 flex-nowrap flex-md-wrap o_portal_address_row"
         >
             <t
                 t-set="new_address_url"

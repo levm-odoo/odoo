@@ -448,7 +448,7 @@ img, .media_iframe_video, .o_image {
 }
 
 // Address
-.all_delivery, .all_billing {
+.o_portal_address_row {
     @include media-breakpoint-down(md) {
         overflow-x: auto;
 
@@ -457,7 +457,7 @@ img, .media_iframe_video, .o_image {
         }
     }
 
-    .o_portal_add_address {
+    .o_portal_add_address, .o_portal_address_card {
         min-height: 12rem;
     }
 }
