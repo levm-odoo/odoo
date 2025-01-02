@@ -43,7 +43,6 @@
 .o-mail-Composer-actions {
 
     button {
-        aspect-ratio: 1;
         &.o-small {
             margin: map-get($spacers, 1) / 2 !important;
             padding: map-get($spacers, 1) / 2 !important;
@@ -67,7 +66,11 @@
                 opacity: 40%;
             }
         }
+        &[name='add-gifs'], &[name='add-emoji'] {
+            aspect-ratio: 1;
+        }
         &.o-sendMessageActive {
+            aspect-ratio: 1;
             background-color: rgba($o-action, .75);
             opacity: 100% !important;
             &:focus-visible {
