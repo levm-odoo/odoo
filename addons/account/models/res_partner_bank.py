@@ -32,6 +32,8 @@ class ResPartnerBank(models.Model):
     partner_supplier_rank = fields.Integer(related='partner_id.supplier_rank')
     partner_customer_rank = fields.Integer(related='partner_id.customer_rank')
     related_moves = fields.One2many('account.move', inverse_name='partner_bank_id')
+    duplicated_bank_id = fields.Many2one('res.partner.bank', compute='_compute_duplicated_bank')
+    duplicated_bank_name = fields.Char(compute='_compute_duplicated_bank')
 
     # Add tracking to the base fields
     bank_id = fields.Many2one(tracking=True)
@@ -335,3 +337,31 @@ class ResPartnerBank(models.Model):
                 else:
                     name = f'{acc.acc_number} ({trusted_label})'
                 acc.display_name = name
+
+    @api.depends('sanitized_acc_number')
+    def _compute_duplicated_bank(self):
+        for bank in self:
+            if not bank.sanitized_acc_number:
+                bank.duplicated_bank_id = False
+                bank.duplicated_bank_name = False
+                continue
+            domain = [
+                ('sanitized_acc_number', '=', bank.sanitized_acc_number),
+            ]
+            if bank.ids:  # this is false if it's a newly created record
+                domain.append(('id', '!=', bank.id))
+            bank.duplicated_bank_id = self.env['res.partner.bank'].search(domain, limit=1)
+            bank.duplicated_bank_name = f"{bank.duplicated_bank_id.display_name} ({bank.duplicated_bank_id.partner_id.name})" if bank.duplicated_bank_id else False
+
+    def action_open_duplicated_bank(self):
+        self.ensure_one()
+        res_id = self.duplicated_bank_id.id
+        self.unlink()  # Delete auto created record
+        return {
+            'name': _('Duplicated Bank Account'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'res.partner.bank',
+            'view_mode': 'form',
+            'res_id': res_id,
+            'target': 'current',
+        }

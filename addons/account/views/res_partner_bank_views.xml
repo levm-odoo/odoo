@@ -16,6 +16,16 @@
                     </div>
                 </xpath>
 
+                <xpath expr="//form[@name='bank_account_form']/sheet/widget" position="after">
+                    <field name="duplicated_bank_id" invisible="1"/>
+                    <div class="alert alert-warning text-center" role="alert" invisible="not duplicated_bank_id">
+                        This Bank Account could be a duplicate of
+                        <button class="oe_link alert-link" type="object" name="action_open_duplicated_bank">
+                            <field name="duplicated_bank_name" class="oe_inline"/>
+                        </button>
+                    </div>
+                </xpath>
+
                 <xpath expr="//field[@name='acc_number']" position="attributes">
                     <attribute name="readonly">lock_trust_fields</attribute>
                     <attribute name="force_save">1</attribute>
