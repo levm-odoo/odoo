@@ -25,3 +25,10 @@ class ResConfigSettings(models.TransientModel):
         test_mode = self.env.registry.in_test_mode() or getattr(threading.current_thread(), 'testing', False)
         if self.env.context.get('install_mode', False) or test_mode:
             return
+
+    @api.onchange('resource_calendar_id')
+    def _onchange_resource_calendar_id(self):
+        new_full_hours = self.resource_calendar_id.hours_per_week
+        company_calendars = self.env['resource.calendar'].search([('company_id', '=', self.company_id.id)])
+        for calendar in company_calendars:
+            calendar.full_time_required_hours = new_full_hours
