@@ -63,6 +63,30 @@ export function clickPaymentlineDelButton(name, amount, mobile = false) {
         },
     ];
 }
+export function clickCancelButton() {
+    return [
+        {
+            trigger: ".paymentlines .paymentline .send_payment_cancel",
+            run: "click",
+        },
+    ];
+}
+export function clickRetryButton() {
+    return [
+        {
+            trigger: ".paymentlines .paymentline .send_payment_request:contains('Retry')",
+            run: "click",
+        },
+    ];
+}
+export function clickRefundButton() {
+    return [
+        {
+            trigger: ".paymentlines .send_refund_request:contains('Refund')",
+            run: "click",
+        },
+    ];
+}
 /**
  * Click the paymentline having the given payment method name and amount.
  * @param {String} name payment method
