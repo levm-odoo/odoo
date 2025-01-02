@@ -9,6 +9,9 @@
             <field name="show_on_dashboard" position="after">
                 <field name="l10n_in_is_sandwich_leave" string="Sandwich Leaves" invisible="country_code != 'IN'" />
             </field>
+            <field name="support_document" position="after">
+                <field name="is_limited_to_optional_days" string="Limited to Available Days" invisible="country_code != 'IN'"/>
+            </field>
         </field>
     </record>
 
