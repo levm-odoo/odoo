@@ -732,8 +732,21 @@ class TestPoSCommon(ValuationReconciliationTestCommon):
             # We allow partial checks of the lines of the account move if `line_ids_predicate` is specified.
             # This means that only those that satisfy the predicate are compared to the expected account move line_ids.
             line_ids_predicate = expected_account_move_vals.pop('line_ids_predicate', lambda _: True)
-            self.assertRecordValues(account_move.line_ids.filtered(line_ids_predicate), expected_account_move_vals.pop('line_ids'))
+            line_ids = expected_account_move_vals.pop('line_ids')
+            partially_reconciled_lines = []
+            for line in line_ids:
+                is_partially_reconciled = line.pop('partially_reconciled', False)
+                partially_reconciled_lines.append(is_partially_reconciled)
+            account_move_line_ids = account_move.line_ids.filtered(line_ids_predicate)
+            self.assertRecordValues(account_move_line_ids, line_ids)
             self.assertRecordValues(account_move, [expected_account_move_vals])
+            # Check reconciliation state
+            for index, line in enumerate(account_move_line_ids):
+                if line.reconciled:
+                    if not partially_reconciled_lines[index] and line.matching_number:
+                        self.assertTrue(line.full_reconcile_id)
+                    else:
+                        self.assertFalse(line.full_reconcile_id)
         else:
             # if the expected_account_move_vals is falsy, the account_move should be falsy.
             self.assertFalse(account_move)
