@@ -1220,47 +1220,15 @@ class SaleOrder(models.Model):
         self.locked = False
 
     def action_cancel(self):
-        """ Cancel SO after showing the cancel wizard when needed. (cfr :meth:`_show_cancel_wizard`)
-
-        For post-cancel operations, please only override :meth:`_action_cancel`.
-
-        note: self.ensure_one() if the wizard is shown.
-        """
+        """ Cancel sales order and related draft invoices. """
         if any(order.locked for order in self):
             raise UserError(_("You cannot cancel a locked order. Please unlock it first."))
-        cancel_warning = self._show_cancel_wizard()
-        if cancel_warning:
-            self.ensure_one()
-            ctx = {
-                'default_order_id': self.id,
-                'mark_so_as_canceled': True,
-            }
-            return {
-                'name': _('Confirmation'),
-                'view_mode': 'form',
-                'res_model': 'sale.order.cancel',
-                'view_id': self.env.ref('sale.sale_order_cancel_view_form').id,
-                'type': 'ir.actions.act_window',
-                'context': ctx,
-                'target': 'new'
-            }
-        else:
-            return self._action_cancel()
+        return self._action_cancel()
 
     def _action_cancel(self):
         inv = self.invoice_ids.filtered(lambda inv: inv.state == 'draft')
         inv.button_cancel()
         return self.write({'state': 'cancel'})
-
-    def _show_cancel_wizard(self):
-        """ Decide whether the sale.order.cancel wizard should be shown to cancel specified orders.
-
-        :return: True if there is any non-draft order in the given orders
-        :rtype: bool
-        """
-        if self.env.context.get('disable_cancel_warning'):
-            return False
-        return any(so.state != 'draft' for so in self)
 
     @api.readonly
     def action_preview_sale_order(self):
