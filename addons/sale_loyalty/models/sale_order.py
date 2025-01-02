@@ -33,6 +33,7 @@ class SaleOrder(models.Model):
     # Display Fields
     gift_card_count = fields.Integer(compute='_compute_gift_card_count')
     loyalty_data = fields.Json(compute='_compute_loyalty_data')
+    claimable_rewards_count = fields.Integer(compute='_compute_claimable_rewards_count')
 
     @api.depends('order_line')
     def _compute_reward_total(self):
@@ -93,6 +94,16 @@ class SaleOrder(models.Model):
         )
         for order in self:
             order.gift_card_count = gift_card_data.get(order, 0)
+
+    @api.depends(
+        'code_enabled_rule_ids',
+        'coupon_point_ids.coupon_id',
+        'applied_coupon_ids',
+        'order_line.coupon_id'
+    )
+    def _compute_claimable_rewards_count(self):
+        for order in self:
+            order.claimable_rewards_count = len(order._get_claimable_rewards())
 
     def _add_loyalty_history_lines(self):
         self.ensure_one()
