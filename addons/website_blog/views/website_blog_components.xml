@@ -345,4 +345,27 @@ Display a sidebar beside the post content.
     </xpath>
 </template>
 
+<!--  Template: Blog Post Information-->
+<template id="blog_post_info" name="Blog Post Info">
+    <div class="text-muted mb-2">
+        <i class="fa fa-clock-o fa-fw"/>
+        <span t-field="blog_post.post_date" class="text-muted" t-options="{'format': 'long', 'date_only': 'true'}"/>
+        <span>by
+            <t t-call="website_blog.post_author">
+                <t t-set="additionnal_classes" t-value="'d-inline-flex me-2'"/>
+                <t t-set="hide_date" t-value="True"/>
+            </t>
+        </span>
+        <span t-if="len(blog_post.message_ids) > 0" class="text-nowrap ps-2 o_not_editable">|
+            <i class="fa fa-comment text-muted me-1"/>
+            <a href="#discussion">
+                <t t-esc="len(blog_post.message_ids)"/>
+                <t t-if="len(blog_post.message_ids)>1">Comments</t>
+                <t t-else="">Comment</t>
+            </a>
+        </span>
+        <span t-elif="is_view_active('website_blog.opt_blog_post_comment')">| No comments yet</span>
+    </div>
+</template>
+
 </odoo>
