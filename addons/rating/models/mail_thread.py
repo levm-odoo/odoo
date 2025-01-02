@@ -3,7 +3,8 @@
 import datetime
 import markupsafe
 
-from odoo import _, fields, models, tools
+from odoo import _, api, fields, models, tools
+from odoo.tools import html2plaintext
 from odoo.addons.mail.tools.discuss import Store
 
 
@@ -191,9 +192,6 @@ class MailThread(models.AbstractModel):
             rating.message_id = message.id
         super()._message_post_after_hook(message, msg_values)
 
-    def _get_allowed_message_post_params(self):
-        return super()._get_allowed_message_post_params() | {"rating_value"}
-
     def _thread_to_store(self, store: Store, fields, *, request_list=None):
         super()._thread_to_store(store, fields, request_list=request_list)
         for thread in self:
@@ -205,3 +203,22 @@ class MailThread(models.AbstractModel):
                 store.add(
                     thread, {"rating_stats": thread.sudo().rating_get_stats()}, as_thread=True
                 )
+
+    def _get_allowed_message_post_params(self):
+        return super()._get_allowed_message_post_params() | {"rating_value"}
+
+    @api.model
+    def _get_allowed_access_params(self):
+        return super()._get_allowed_access_params() | {"rating_value"}
+
+    @api.model
+    def _get_allowed_message_update_params(self):
+        return super()._get_allowed_message_update_params() | {"rating_value"}
+
+    def _message_update_content(self, message, body, *args, rating_value=None, **kwargs):
+        if rating_value:
+            message.rating_id.rating = rating_value
+            message.rating_id.feedback = html2plaintext(body)
+        return super()._message_update_content(
+            message, body, *args, rating_value=rating_value, **kwargs
+        )

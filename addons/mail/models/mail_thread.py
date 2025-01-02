@@ -4829,6 +4829,10 @@ class MailThread(models.AbstractModel):
         return set()
 
     @api.model
+    def _get_allowed_message_update_params(self):
+        return {"scheduled_date"}
+
+    @api.model
     def _get_thread_with_access(self, thread_id, mode="read", **kwargs):
         # sanity check on kwargs
         allowed_params = self._get_allowed_access_params()

@@ -67,6 +67,18 @@ PortalComposer.include({
      */
     _prepareMessageData: function () {
         const options = this._super(...arguments);
+        if (this.options.force_submit_url === "/mail/message/update_content") {
+            return {
+                attachment_ids: this.options.post_data.attachment_ids,
+                attachment_tokens: this.attachments.map((a) => a.access_token),
+                body: this.options.post_data.body,
+                message_id: this.options.default_message_id,
+                hash: this.options.hash,
+                pid: this.options.pid,
+                rating_value: this.$input.val(),
+                token: this.options.token,
+            };
+        }
         return Object.assign(options || {}, {
             message_id: this.options.default_message_id,
             post_data: { ...options.post_data, rating_value: this.$input.val() },
