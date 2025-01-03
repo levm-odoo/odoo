@@ -15,10 +15,11 @@
     </t>
 
     <t t-name="partner_autocomplete.CharFieldDropdownOption">
-        <img t-att-src="option.logo" onerror="this.src='/base/static/img/company_image.png'" alt="Placeholder"/>
         <div class="o_partner_autocomplete_info">
-            <strong t-esc="option.label or '&#160;'"/>
-            <div t-esc="option.description"/>
+            <strong t-esc="option.name or '&#160;'"/>
+            <div>
+                <span t-esc="option.city"/>, <span t-esc="option.country_id.display_name"/>
+            </div>
         </div>
     </t>
 

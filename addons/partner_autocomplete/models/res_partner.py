@@ -107,11 +107,9 @@ class ResPartner(models.Model):
             return []
 
     @api.model
-    def enrich_company(self, company_domain, partner_gid, vat, timeout=15):
+    def enrich_company(self, duns, timeout=15):
         response, error = self.env['iap.autocomplete.api']._request_partner_autocomplete('enrich', {
-            'domain': company_domain,
-            'partner_gid': partner_gid,
-            'vat': vat,
+            'duns': duns,
         }, timeout=timeout)
         if response and response.get('company_data'):
             result = self._format_data_company(response.get('company_data'))

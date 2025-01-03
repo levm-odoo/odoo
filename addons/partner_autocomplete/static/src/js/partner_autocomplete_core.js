@@ -16,7 +16,6 @@ import { getDataURLFromFile } from "@web/core/utils/urls";
  */
 export function usePartnerAutocomplete() {
     const keepLastOdoo = new KeepLast();
-    const keepLastClearbit = new KeepLast();
 
     const http = useService("http");
     const notification = useService("notification");
@@ -63,47 +62,13 @@ export function usePartnerAutocomplete() {
         value = value.trim();
 
         const isVAT = await isTAXNumber(value);
-        let odooSuggestions = [];
-        let clearbitSuggestions = [];
         return new Promise((resolve, reject) => {
-            const odooPromise = getOdooSuggestions(value, isVAT).then((suggestions) => {
-                odooSuggestions = suggestions;
-            });
-
-            // Only get Clearbit suggestions if not a VAT number
-            const clearbitPromise = isVAT ? false : getClearbitSuggestions(value).then((suggestions) => {
-                suggestions.forEach((suggestion) => {
-                    suggestion.label = suggestion.name;
-                    suggestion.website = suggestion.domain;
-                    suggestion.description = suggestion.website;
-                });
-                clearbitSuggestions = suggestions;
-            });
-
-            const concatResults = () => {
-                // Add Clearbit result with Odoo result (with unique domain)
-                if (clearbitSuggestions && clearbitSuggestions.length) {
-                    const websites = odooSuggestions.map((suggestion) => {
-                        return suggestion.website;
-                    });
-                    clearbitSuggestions.forEach((suggestion) => {
-                        if (websites.indexOf(suggestion.domain) < 0) {
-                            websites.push(suggestion.domain);
-                            odooSuggestions.push(suggestion);
-                        }
-                    });
-                }
-
-                odooSuggestions = odooSuggestions.filter((suggestion) => {
+            getOdooSuggestions(value, isVAT).then((suggestions) => {
+                const odooSuggestions = suggestions.filter((suggestion) => {
                     return !suggestion.ignored;
                 });
-                odooSuggestions.forEach((suggestion) => {
-                    delete suggestion.ignored;
-                });
-                return resolve(odooSuggestions);
-            };
-
-            whenAll([odooPromise, clearbitPromise]).then(concatResults, concatResults);
+                resolve(odooSuggestions);
+            });
         });
     }
 
@@ -121,7 +86,7 @@ export function usePartnerAutocomplete() {
         return orm.call(
             'res.partner',
             'enrich_company',
-            [company.website, company.partner_gid, company.vat]
+            [company.duns]
         );
     }
 
@@ -239,19 +204,6 @@ export function usePartnerAutocomplete() {
             xhr.onerror = reject;
             xhr.send();
         });
-    }
-
-    /**
-     * Use Clearbit Autocomplete API to return suggestions
-     *
-     * @param {string} value
-     * @returns {Promise}
-     * @private
-     */
-    async function getClearbitSuggestions(value) {
-        const url = `https://autocomplete.clearbit.com/v1/companies/suggest?query=${value}`;
-        const prom = http.get(url);
-        return keepLastClearbit.add(prom);
     }
 
     /**

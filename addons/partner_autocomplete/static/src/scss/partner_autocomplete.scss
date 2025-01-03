@@ -8,7 +8,6 @@
                     height: 32px;
                 }
                 > .o_partner_autocomplete_info {
-                    margin-left: 50px;
                     > * {
                         @include o-text-overflow(block);
                     }

@@ -217,7 +217,7 @@ QUnit.module('partner_autocomplete', {
             autocompleteContainer,
             ".o-autocomplete--dropdown-item.partner_autocomplete_dropdown_many2one",
             6,
-            "Clearbit and Odoo autocomplete options should be shown"
+            "Odoo autocomplete options should be shown"
         );
 
         // Click on the first option - "First company"
