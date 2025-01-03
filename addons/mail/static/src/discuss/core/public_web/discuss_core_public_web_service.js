@@ -32,8 +32,9 @@ export class DiscussCorePublicWeb {
             // BroadcastChannel API is not supported (e.g. Safari < 15.4), so disabling it.
         }
         this.busService.subscribe("discuss.channel/joined", async (payload) => {
-            const { channel, invited_by_user_id: invitedByUserId } = payload;
-            const thread = this.store.Thread.insert(channel);
+            const { data, invited_by_user_id: invitedByUserId } = payload;
+            const { Thread: threads } = this.store.insert(data);
+            const thread = threads[0];
             await thread.fetchChannelInfo();
             if (invitedByUserId && invitedByUserId !== this.store.self.userId) {
                 this.notificationService.add(
