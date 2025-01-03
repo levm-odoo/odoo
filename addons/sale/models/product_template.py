@@ -249,6 +249,34 @@ class ProductTemplate(models.Model):
         product_accounts['downpayment'] = self.categ_id.property_account_downpayment_categ_id
         return product_accounts
 
+    @api.model
+    def name_search(self, name='', args=None, operator='ilike', limit=100):
+        """
+        Returns the product templates in a prioritized sequence for the sale order line product selection.
+        First, it lists all products that have been invoiced to the specified customer,
+        sorted from the most recent to the oldest invoice date.
+        Afterward, it includes the remaining products in their default order of display.
+        """
+        args = args or []
+        context = self.env.context
+        partner_id = context.get('partner_id')
+        if not name and partner_id:
+            prioritized_product_templates = self.env['account.move'].search([
+                ('partner_id', '=', partner_id),
+                ('state', '=', 'posted'),
+                ('journal_id.type', '=', 'sale')
+            ]).sorted('invoice_date', reverse=True).mapped('invoice_line_ids.product_id.product_tmpl_id')
+
+            remaining_product_templates = self.search(
+                [('id', 'not in', prioritized_product_templates.ids)] + args,
+                limit=limit - len(prioritized_product_templates)
+            )
+
+            product_templates = prioritized_product_templates + remaining_product_templates
+            return [(product_template.id, product_template.display_name) for product_template in product_templates]
+        else:
+            return super().name_search(name, args, operator, limit)
+
     ####################################
     # Product/combo configurator hooks #
     ####################################
