@@ -36,7 +36,7 @@ class ProductRibbon(models.Model):
         required=True,
         default='manual'
     )
-    new_period = fields.Integer(default=30)\
+    new_period = fields.Integer(default=30)
 
     @api.constrains('assign')
     def _check_assign(self):
