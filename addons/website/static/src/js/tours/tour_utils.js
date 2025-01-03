@@ -464,9 +464,10 @@ export function registerThemeHomepageTour(name, steps) {
     if (typeof steps !== "function") {
         throw new Error(`tour.steps has to be a function that returns TourStep[]`);
     }
-    return registerWebsitePreviewTour(name, {
-        url: '/',
-        saveAs: "homepage", // disable manual mode for theme homepage tours - FIXME
+    return registerWebsitePreviewTour(
+        "homepage",
+        {
+            url: "/",
         },
         () => [
             ...clickOnEditAndWaitEditMode(),
@@ -474,7 +475,8 @@ export function registerThemeHomepageTour(name, steps) {
                 steps().concat(clickOnSave()),
                 ".o_website_preview[data-view-xmlid='website.homepage'] "
             ),
-    ]);
+        ]
+    );
 }
 
 export function registerBackendAndFrontendTour(name, options, steps) {

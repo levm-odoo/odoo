@@ -19,7 +19,6 @@ import { Macro } from "@web/core/macro";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { session } from "@web/session";
-import { tourState } from "@web_tour/tour_service/tour_state";
 
 describe.current.tags("desktop");
 
@@ -147,22 +146,6 @@ test("Step Tour validity", async () => {
     await getService("tour_service").startTour("tour1");
     await animationFrame();
     expect.verifySteps([waited_error1, waited_error2, waited_error3]);
-});
-
-test("override existing tour by using saveAs", async () => {
-    tourRegistry
-        .add("Tour 1", {
-            steps: () => [{ trigger: "#1" }],
-            saveAs: "homepage",
-        })
-        .add("Tour 2", {
-            steps: () => [{ trigger: "#2" }],
-            saveAs: "homepage",
-        });
-    await makeMockEnv({});
-    await getService("tour_service").startTour("homepage");
-    await animationFrame();
-    expect(tourState.getCurrentTour()).toBe("Tour 2");
 });
 
 test("points to next step", async () => {

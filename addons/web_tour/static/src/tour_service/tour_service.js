@@ -45,7 +45,6 @@ const StepSchema = {
 const TourSchema = {
     checkDelay: { type: Number, optional: true },
     name: { type: String, optional: true },
-    saveAs: { type: String, optional: true },
     steps: Function,
     url: { type: String, optional: true },
     wait_for: { type: [Function, Object], optional: true },
@@ -77,27 +76,14 @@ export const tourService = {
             sequence: 30,
         }));
 
-        function getTourFromRegistry(tourName) {
-            let tour = null;
-            if (tourRegistry.contains(tourName)) {
-                tour = tourRegistry.get(tourName);
-            }
-            const tourFromSaveAs = tourRegistry
-                .getEntries()
-                .findLast(([n, t]) => t.saveAs == tourName);
-            if (tourFromSaveAs) {
-                tourName = tourFromSaveAs[0];
-                tour = tourFromSaveAs[1];
-            }
-
+        function getTourFromRegistry(name) {
+            const tour = tourRegistry.get(name);
             if (!tour) {
                 return;
             }
-
             return {
                 ...tour,
                 steps: tour.steps(),
-                name: tourName,
                 wait_for: tour.wait_for || Promise.resolve(),
             };
         }
