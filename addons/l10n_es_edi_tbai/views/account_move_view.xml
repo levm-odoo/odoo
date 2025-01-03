@@ -12,12 +12,25 @@
                         <field name="move_type" invisible="1"/>
                         <field name="l10n_es_tbai_chain_index" groups="base.group_no_one"/>
                         <field name="l10n_es_tbai_refund_reason"
+<<<<<<< 17.0
                             invisible="move_type not in ('out_refund', 'in_refund')"
                             readonly="state != 'draft'"/>
                         <field name="l10n_es_tbai_post_xml" invisible="1"/>
                         <field name="reversed_entry_id"
                                invisible="move_type not in ('in_refund', 'out_refund') or not l10n_es_tbai_is_required"
                                readonly="l10n_es_tbai_post_xml"/>
+||||||| 1b999e4b358eabe80cb3d636cd7bc348c5b85a1b
+                            attrs="{
+                            'readonly': [('state', '!=', 'draft')], 
+                            'invisible': [('l10n_es_tbai_refund_reason', '=', False)]
+                        }"/>
+=======
+                            attrs="{
+                            'readonly': [('state', '!=', 'draft')],
+                            'invisible': [('move_type', 'not in', ('in_refund', 'out_refund'))]
+                        }"/>
+                        <field name="reversed_entry_id" attrs="{'invisible': [('move_type', '!=', 'in_refund')]}"/>
+>>>>>>> e97c112b3cb6ed04909bb706e6c343e62a34910b
                     </group>
                 </xpath>
             </field>
