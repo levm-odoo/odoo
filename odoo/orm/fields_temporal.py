@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing
+import warnings
 from datetime import date, datetime, time
 
 import pytz
@@ -134,7 +135,10 @@ class Date(BaseDate[date]):
 
     # kept for backwards compatibility, but consider `from_string` as deprecated, will probably
     # be removed after V12
-    from_string = to_date
+    @staticmethod
+    def from_string(value):
+        warnings.warn("Deprecated since 12.0, use Date.to_date() instead", DeprecationWarning)
+        return Date.to_date(value)
 
     @staticmethod
     def to_string(value):
@@ -241,7 +245,10 @@ class Datetime(BaseDate[datetime]):
 
     # kept for backwards compatibility, but consider `from_string` as deprecated, will probably
     # be removed after V12
-    from_string = to_datetime
+    @staticmethod
+    def from_string(value):
+        warnings.warn("Deprecated since 12.0, use Date.to_datetime() instead", DeprecationWarning)
+        return Datetime.to_datetime(value)
 
     @staticmethod
     def to_string(value):
@@ -268,7 +275,7 @@ class Datetime(BaseDate[datetime]):
         if not value:
             return ''
         value = self.convert_to_display_name(value, record)
-        return self.from_string(value)
+        return self.to_datetime(value)
 
     def convert_to_display_name(self, value, record):
         if not value:
