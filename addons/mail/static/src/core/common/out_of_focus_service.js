@@ -86,11 +86,7 @@ export class OutOfFocusService {
      * service when native notifications can't be sent.
      */
     sendNotification({ message, sound = true, title, type }) {
-        if (!this.canSendNativeNotification) {
-            this.sendOdooNotification(message, { sound, title, type });
-            return;
-        }
-        if (!this.multiTab.isOnMainTab()) {
+        if (!this.canSendNativeNotification || !this.multiTab.isOnMainTab()) {
             return;
         }
         try {
@@ -128,7 +124,7 @@ export class OutOfFocusService {
      * @param {string} message
      */
     sendNativeNotification(title, message, { sound = true } = {}) {
-        const notification = new Notification(title, {
+        const notification = new browser.Notification(title, {
             body: message,
             icon: "/mail/static/src/img/odoobot_transparent.png",
         });
