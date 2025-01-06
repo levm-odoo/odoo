@@ -29,14 +29,15 @@ class AccountMoveLine(models.Model):
     # ==============================================================================================
 
     deductible_amount = fields.Float("Deductability", default=100)
-    deductable_key = fields.Binary(compute='_compute_deductable_key', exportable=False)
-    is_deductible_dirty = fields.Boolean(compute='_compute_deductible_needed')
+    deductible_key = fields.Binary(compute='_compute_deductible_key', exportable=False)
+    deductible_needed = fields.Binary(compute='_compute_deductible_needed', exportable=False)
+    deductible_dirty = fields.Boolean(compute='_compute_deductible_needed')
 
     @api.depends('tax_ids', 'account_id', 'company_id')
-    def _compute_deductable_key(self):
+    def _compute_deductible_key(self):
         for line in self:
-            if line.display_type == 'product' and float_compare(line.deductible_amount, 100.00, precision_rounding=2):
-                line.deductable_key = frozendict({
+            if line.display_type == 'deductible' and float_compare(line.deductible_amount, 100.00, precision_digits=2):
+                line.deductible_key = frozendict({
                     'account_id': line.account_id.id,
                     'analytic_distribution': line.analytic_distribution,
                     'tax_ids': [Command.set(line.tax_ids.ids)],
@@ -44,12 +45,58 @@ class AccountMoveLine(models.Model):
                     'move_id': line.move_id.id,
                 })
             else:
-                line.deductable_key = False
+                line.deductible_key = False
 
-    @api.depends('deductible_amount')
+    @api.depends('deductible_amount', 'account_id', 'analytic_distribution', 'tax_ids', 'tax_tag_ids', 'company_id')
     def _compute_deductible_needed(self):
         for line in self:
-            line.is_deductible_dirty = bool(float_compare(line.deductible_amount, 100.00, precision_rounding=2))
+            if (
+                line.display_type != 'product'
+                or not float_compare(line.deductible_amount, 100.00, precision_digits=2)
+                or line.move_type != 'in_invoice'
+            ):
+                line.deductible_dirty = False
+                line.deductible_needed = False
+                continue
+
+            line.deductible_dirty = True
+            line.deductible_needed = False
+
+            deductible_needed = {}
+            taxes = line.tax_ids.filtered(lambda t: t.amount_type != 'fixed')
+            deductible_needed_vals = deductible_needed.setdefault(
+                frozendict({
+                    'move_id': line.move_id.id,
+                    'account_id': line.account_id.id,
+                    'display_type': 'deductible',
+                }),
+                {
+                    'name': line.name + _(" Non-deductible"),
+                    'amount_currency': 0.0,
+                    'tax_ids': [Command.set(taxes.ids)],
+                },
+            )
+
+            percentage = line.deductible_amount / 100
+            amount_currency = line.currency_id.round(line.price_subtotal * percentage)
+            deductible_needed_vals['amount_currency'] = -amount_currency
+
+            # epd_needed_vals = epd_needed.setdefault(
+            #     frozendict({
+            #         'move_id': line.move_id.id,
+            #         'account_id': line.account_id.id,
+            #         'display_type': 'epd',
+            #     }),
+            #     {
+            #         'name': _("Early Payment Discount (%s)", discount_percentage_name),
+            #         'amount_currency': 0.0,
+            #         'balance': 0.0,
+            #         'tax_ids': [Command.clear()],
+            #     },
+            # )
+            # epd_needed_vals['amount_currency'] += amount_currency
+            # epd_needed_vals['balance'] += balance
+            line.deductible_needed = {k: frozendict(v) for k, v in deductible_needed.items()}
 
     @api.constrains('deductible_amount')
     def _constrains_deductible_amount(self):
@@ -337,7 +384,8 @@ class AccountMoveLine(models.Model):
             ('payment_term', 'Payment Term'),
             ('line_section', 'Section'),
             ('line_note', 'Note'),
-            ('epd', 'Early Payment Discount')
+            ('epd', 'Early Payment Discount'),
+            ('deductible', 'Deductible Percentage'),
         ],
         compute='_compute_display_type', store=True, readonly=False, precompute=True,
         required=True,
