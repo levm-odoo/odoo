@@ -3737,6 +3737,7 @@ class AccountMove(models.Model):
         for move, reverse_move in zip(self, reverse_moves):
             group = (move.line_ids + reverse_move.line_ids) \
                 .filtered(lambda l: not l.reconciled) \
+                .sorted(lambda l: l.display_type == 'payment_term') \
                 .grouped(lambda l: (l.account_id, l.currency_id))
             for (account, _currency), lines in group.items():
                 if account.reconcile or account.account_type in ('asset_cash', 'liability_credit_card'):
