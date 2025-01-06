@@ -5,17 +5,39 @@ import {
     asyncStep,
     Command,
     mockService,
+    patchWithCleanup,
     serverState,
     waitForSteps,
 } from "@web/../tests/web_test_helpers";
 
+import { browser } from "@web/core/browser/browser";
 import { rpc } from "@web/core/network/rpc";
 import { defineLivechatModels } from "./livechat_test_helpers";
 
-describe.current.tags("desktop");
+describe.current.tags("mobile");
 defineLivechatModels();
 
-test("Notify message received out of focus", async () => {
+test("Fallback to Odoo notification on ServiceWorkerError", async () => {
+    patchWithCleanup(browser, {
+        Notification: class Notification {
+            static get permission() {
+                return "granted";
+            }
+            constructor() {
+                throw new Error("ServiceWorkerRegistration error");
+            }
+        },
+    });
+    patchWithCleanup(window, {
+        Notification: class Notification {
+            static get permission() {
+                return "granted";
+            }
+            constructor() {
+                throw new Error("ServiceWorkerRegistration error");
+            }
+        },
+    });
     const pyEnv = await startServer();
     const guestId = pyEnv["mail.guest"].create({ name: "Visitor" });
     const channelId = pyEnv["discuss.channel"].create({
@@ -50,7 +72,7 @@ test("Notify message received out of focus", async () => {
     await withGuest(guestId, () =>
         rpc("/mail/message/post", {
             post_data: {
-                body: "Hello",
+                body: "Hello world!",
                 message_type: "comment",
                 subtype_xmlid: "mail.mt_comment",
             },
@@ -58,5 +80,5 @@ test("Notify message received out of focus", async () => {
             thread_id: channelId,
         })
     );
-    await contains(".o_notification:has(.o_notification_bar.bg-info)", { text: "Hello" });
+    await contains(".o_notification:has(.o_notification_bar.bg-info)", { text: "Hello world!" });
 });
