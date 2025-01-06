@@ -38,7 +38,11 @@ patch(Thread.prototype, {
                         !this.store.discuss.isActive &&
                         this.store.chatHub.opened.length < this.store.chatHub.maxOpened
                     ) {
-                        chatWindow.open();
+                        chatWindow.open({
+                            shouldFocus: !this.store.chatHub.opened.some(
+                                (cw) => cw.thread.composer.isFocused
+                            ),
+                        });
                     } else {
                         chatWindow.fold();
                     }

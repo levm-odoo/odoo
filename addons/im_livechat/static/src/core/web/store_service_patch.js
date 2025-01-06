@@ -33,7 +33,7 @@ patch(Store.prototype, {
             return true;
         }
         const chatWindow = this.ChatWindow.insert({ thread: oldestUnreadThread });
-        chatWindow.open();
+        chatWindow.open({ shouldFocus: true });
         chatWindow.focus();
         return true;
     },

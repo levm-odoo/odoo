@@ -7,8 +7,7 @@ export const websiteLivechatNotifications = {
             const { Thread } = store.insert(payload);
             for (const thread of Thread) {
                 const chatWindow = store.ChatWindow.insert({ thread });
-                chatWindow.open();
-                chatWindow.focus();
+                chatWindow.open({ shouldFocus: true });
             }
         });
     },

@@ -70,7 +70,7 @@ export class ChatWindow extends Record {
         this.notifyState();
     }
 
-    open({ notifyState = true } = {}) {
+    open({ notifyState = true, shouldFocus = false } = {}) {
         this.store.chatHub.opened.delete(this);
         this.store.chatHub.opened.unshift(this);
         if (this.thread) {
@@ -79,7 +79,9 @@ export class ChatWindow extends Record {
                 this.notifyState();
             }
         }
-        this.focus();
+        if (shouldFocus) {
+            this.focus();
+        }
     }
 
     notifyState() {
