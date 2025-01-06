@@ -229,6 +229,17 @@
                                     <group name="application_group" string="Application Settings" invisible="1"/>
                                 </group>
                             </page>
+                            <page name="logs_history" string="History" groups="hr.group_hr_user">
+                                <field name="log_ids">
+                                    <list editable="top" open_form_view="True">
+                                        <field name="date"/>
+                                        <field name="field_id"/>
+                                        <field name="last_user"/>
+                                        <field name="change_reason"/>
+                                        <field name="value_display"/>
+                                    </list>
+                                </field>
+                            </page>
                         </notebook>
                     </sheet>
                     <chatter reload_on_follower="True"/>

@@ -27,7 +27,7 @@ class HrEmployee(models.Model):
     _name = 'hr.employee'
     _description = "Employee"
     _order = 'name'
-    _inherit = ['hr.employee.base', 'mail.thread.main.attachment', 'mail.activity.mixin', 'resource.mixin', 'avatar.mixin']
+    _inherit = ['hr.employee.base', 'mail.thread.main.attachment', 'mail.activity.mixin', 'resource.mixin', 'avatar.mixin', 'hr.log.mixin']
     _mail_post_access = 'read'
     _primary_email = 'work_email'
 
@@ -444,6 +444,10 @@ class HrEmployee(models.Model):
             res['res_model'] = 'hr.employee.public'
 
         return res
+
+    @api.model
+    def _get_tracked_fields(self):
+        return self.company_id.hr_employee_log_field_ids
 
     @api.constrains('pin')
     def _verify_pin(self):

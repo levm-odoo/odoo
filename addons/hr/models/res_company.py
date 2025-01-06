@@ -13,3 +13,4 @@ class ResCompany(models.Model):
     hr_presence_control_email = fields.Boolean(string="Based on number of emails sent")
     hr_presence_control_ip = fields.Boolean(string="Based on IP Address")
     hr_presence_control_attendance = fields.Boolean(string="Based on attendances")
+    hr_employee_log_field_ids = fields.Many2many(string="Employee Tracked Fields", comodel_name='ir.model.fields')
