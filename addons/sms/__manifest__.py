@@ -48,4 +48,5 @@ The service is provided by the In App Purchase Odoo platform.
         ],
     },
     'license': 'LGPL-3',
+    'uninstall_hook': 'uninstall_hook',
 }

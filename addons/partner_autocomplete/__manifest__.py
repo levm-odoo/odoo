@@ -35,4 +35,5 @@ Auto-complete partner companies' data
         ],
     },
     'license': 'LGPL-3',
+    'uninstall_hook': 'uninstall_hook',
 }

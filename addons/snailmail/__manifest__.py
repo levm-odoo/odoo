@@ -42,4 +42,5 @@ Allows users to send documents by post
         ],
     },
     'license': 'LGPL-3',
+    'uninstall_hook': 'uninstall_hook',
 }
