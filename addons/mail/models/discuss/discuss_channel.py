@@ -495,6 +495,7 @@ class DiscussChannel(models.Model):
             all_new_members += new_members
             for member in new_members:
                 payload = {
+                    "channel_id": member.channel.id,
                     "data": Store(
                         member.channel_id,
                         member.channel_id._to_store_defaults(for_current_user=False),

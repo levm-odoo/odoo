@@ -282,7 +282,10 @@ class ChatbotCase(chatbot_common.ChatbotCase):
                             "id": discuss_channel.id,
                         },
                     },
-                    {"type": "discuss.channel/joined", "payload": {"data": channel_data_join}},
+                    {
+                        "type": "discuss.channel/joined",
+                        "payload": {"channel_id": discuss_channel.id, "data": channel_data_join},
+                    },
                     {
                         "type": "mail.record/insert",
                         "payload": {
