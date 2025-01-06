@@ -12,8 +12,8 @@ export class HoverableDropdown extends Interaction {
         },
         ".dropdown-menu": {
             "t-att-style": () => ({
-                "top": this.isSmall ? "" : "unset",
-                "margin-top": this.isSmall ? "" : "0",
+                "top": this.isSmall() ? "" : "unset",
+                "margin-top": this.isSmall() ? "" : "0",
             }),
         },
         _window: {
@@ -22,7 +22,6 @@ export class HoverableDropdown extends Interaction {
     };
 
     setup() {
-        this.isSmall = undefined;
         this.dropdownMenuEls = this.el.querySelectorAll(".dropdown-menu");
         this.breakpointSize = SIZES.LG; // maybe need to check in .navbar elem like in BaseHeader?
     }
@@ -42,7 +41,7 @@ export class HoverableDropdown extends Interaction {
     updateDropdownVisibility(dropdownEl, show) {
         const dropdownToggleEl = dropdownEl.querySelector(".dropdown-toggle");
         if (
-            this.isSmall
+            this.isSmall()
             || !dropdownToggleEl
             || dropdownEl.closest(".o_extra_menu_items")
         ) {
@@ -85,7 +84,6 @@ export class HoverableDropdown extends Interaction {
     }
 
     onResize() {
-        this.isSmall = uiUtils.getSize() < SIZES.LG;
         for (const dropdownMenuEl of this.dropdownMenuEls) {
             dropdownMenuEl.setAttribute("data-bs-popper", "none");
         }
