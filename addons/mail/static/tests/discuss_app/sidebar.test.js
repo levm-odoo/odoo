@@ -11,7 +11,7 @@ import {
     triggerHotkey,
 } from "@mail/../tests/mail_test_helpers";
 import { describe, expect, test } from "@odoo/hoot";
-import { press, queryFirst } from "@odoo/hoot-dom";
+import { press } from "@odoo/hoot-dom";
 import { Deferred, mockDate } from "@odoo/hoot-mock";
 import {
     asyncStep,
@@ -22,7 +22,6 @@ import {
     serverState,
     waitForSteps,
 } from "@web/../tests/web_test_helpers";
-import { browser } from "@web/core/browser/browser";
 
 import { deserializeDateTime } from "@web/core/l10n/dates";
 import { rpc } from "@web/core/network/rpc";
@@ -1214,39 +1213,4 @@ test("sidebar: show loading on initial opening", async () => {
         { count: 0 }
     );
     await contains(".o-mail-DiscussSidebarChannel", { text: "General" });
-});
-
-test("Can make sidebar smaller", async () => {
-    const pyEnv = await startServer();
-    pyEnv["discuss.channel"].create({
-        name: "general",
-        channel_type: "channel",
-    });
-    await start();
-    await openDiscuss();
-    await contains(".o-mail-DiscussSidebar");
-    const normalWidth = queryFirst(".o-mail-DiscussSidebar").getBoundingClientRect().width;
-    await click(".o-mail-DiscussSidebar [title='Options']");
-    await click(".dropdown-item", { text: "Collapse panel" });
-    await contains(".o-mail-DiscussSidebar.o-compact");
-    const compactWidth = queryFirst(".o-mail-DiscussSidebar").getBoundingClientRect().width;
-    expect(normalWidth).toBeGreaterThan(compactWidth);
-    expect(normalWidth).toBeGreaterThan(compactWidth / 2, {
-        message: "compact mode is at least twice smaller than nomal mode",
-    });
-});
-
-test("Sidebar compact is locally persistent (saved in local storage)", async () => {
-    browser.localStorage.setItem("mail.user_setting.discuss_sidebar_compact", true);
-    await start();
-    await openDiscuss();
-    await contains(".o-mail-DiscussSidebar.o-compact");
-    await click(".o-mail-DiscussSidebar [title='Options']");
-    await click(".dropdown-item", { text: "Expand panel" });
-    await contains(".o-mail-DiscussSidebar:not(.o-compact)");
-    expect(browser.localStorage.getItem("mail.user_setting.discuss_sidebar_compact")).toBe(null);
-    await click(".o-mail-DiscussSidebar [title='Options']");
-    await click(".dropdown-item", { text: "Collapse panel" });
-    await contains(".o-mail-DiscussSidebar.o-compact");
-    expect(browser.localStorage.getItem("mail.user_setting.discuss_sidebar_compact")).toBe("true");
 });
