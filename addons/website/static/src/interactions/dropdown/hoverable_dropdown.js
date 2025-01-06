@@ -23,10 +23,15 @@ export class HoverableDropdown extends Interaction {
 
     setup() {
         this.dropdownMenuEls = this.el.querySelectorAll(".dropdown-menu");
+        this.breakpointSize = SIZES.LG; // maybe need to check in .navbar elem like in BaseHeader?
     }
 
     start() {
         this.onResize();
+    }
+
+    isSmall() {
+        return uiUtils.getSize() < this.breakpointSize;
     }
 
     /**

@@ -2,9 +2,6 @@ import { Interaction } from "@web/public/interaction";
 import { compensateScrollbar } from "@web/core/utils/scrolling";
 import { SIZES, utils as uiUtils } from "@web/core/ui/ui_service";
 
-const isSmall = function () {
-    return uiUtils.getSize() < SIZES.LG
-}
 
 export class BaseHeader extends Interaction {
     dynamicContent = {
@@ -67,7 +64,11 @@ export class BaseHeader extends Interaction {
         this.hideElHeight = this.hideEl?.getBoundingClientRect().height;
 
         this.scrollingElement = document.scrollingElement;
-    }
+        const navbarEl = this.el.querySelector(".navbar");
+        const navBreakpoint = Object.keys(SIZES).find((size) =>
+            navbarEl.classList.contains(`navbar-expand-${size.toLowerCase()}`)
+        );
+        this.breakpointSize = SIZES[navBreakpoint || "LG"];    }
 
     start() {
         this.services.website_menus.triggerCallbacks();
@@ -76,12 +77,16 @@ export class BaseHeader extends Interaction {
         }
     }
 
+    isSmall() {
+        return uiUtils.getSize() < this.breakpointSize;
+    }
+    
     //--------------------------------------------------------------
     // Event Handlers
     //--------------------------------------------------------------
 
     disableScroll() {
-        if (isSmall()) {
+        if (this.isSmall()) {
             this.bodyNoScroll = true;
         }
     }
@@ -109,7 +114,7 @@ export class BaseHeader extends Interaction {
         this.adjustScrollbar();
         if (
             document.body.classList.contains('overflow-hidden')
-            && !isSmall()
+            && !this.isSmall()
         ) {
             const offCanvasEls = this.el.querySelectorAll(".offcanvas.show");
             for (const offCanvasEl of offCanvasEls) {
@@ -202,7 +207,7 @@ export class BaseHeader extends Interaction {
     //--------------------------------------------------------------
 
     getHeaderHeight() {
-        if (isSmall()) {
+        if (this.isSmall()) {
             // Ensure we don't consider the hiddenOnScroll element on mobile
             return this.el.getBoundingClientRect().height;
         }
