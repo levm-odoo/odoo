@@ -1567,7 +1567,8 @@ class AccountMoveLine(models.Model):
                 and 'balance' not in protected.get(line, {})
                 and (not changed('balance') or (line not in before and not line.balance))
             ):
-                balance = line.company_id.currency_id.round(line.amount_currency / line.currency_rate)
+                discounted_pu = line.price_unit * (1 - (line.discount / 100.0))
+                balance = line.currency_id._convert(discounted_pu * line.quantity, line.company_id.currency_id, date=line.date)
                 line.balance = balance
         # Since this method is called during the sync, inside of `create`/`write`, these fields
         # already have been computed and marked as so. But this method should re-trigger it since
