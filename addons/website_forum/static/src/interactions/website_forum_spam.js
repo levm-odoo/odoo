@@ -1,15 +1,15 @@
-import { browser } from "@web/core/browser/browser";
-import { registry } from "@web/core/registry";
-import { KeepLast } from "@web/core/utils/concurrency";
-import { renderToElement } from "@web/core/utils/render";
 import { Interaction } from "@web/public/interaction";
+import { registry } from "@web/core/registry";
+
+import { browser } from "@web/core/browser/browser";
+import { KeepLast } from "@web/core/utils/concurrency";
 import { cloneContentEls } from "@website/js/utils";
 
-class WebsiteForumSpam extends Interaction {
+export class WebsiteForumSpam extends Interaction {
     static selector = ".o_wforum_moderation_queue";
     dynamicContent = {
         ".o_wforum_select_all_spam": { "t-on-click": this.onSelectAllSpamClick },
-        ".o_wforum_mark_spam": { "t-on-click": this.blockedUntilDone(this.onMarkSpamClick, true) },
+        ".o_wforum_mark_spam": { "t-on-click": this.locked(this.onMarkSpamClick, true) },
         "#spamSearch": { "t-on-input": this.debounced(this.onSpamSearchInput, 200) },
     };
 
@@ -32,13 +32,13 @@ class WebsiteForumSpam extends Interaction {
         const toSearch = ev.target.value;
         const posts = await this.keepLast.add(
             this.waitFor(this.services.orm.searchRead(
-               "forum.post",
-               [["id", "in", this.spamIDs],
-                   "|",
-                   ["name", "ilike", toSearch],
-                   ["content", "ilike", toSearch]],
-               ["name", "content"]
-           ))
+                "forum.post",
+                [["id", "in", this.spamIDs],
+                    "|",
+                ["name", "ilike", toSearch],
+                ["content", "ilike", toSearch]],
+                ["name", "content"]
+            ))
         );
         const postSpamEl = this.el.querySelector("div.post_spam");
         const postSpamElContent = postSpamEl.children;
@@ -51,7 +51,8 @@ class WebsiteForumSpam extends Interaction {
             const childEl = cloneContentEls(post.content).firstElementChild;
             post.content = childEl.textContent.substring(0, 250);
         });
-        this.insert(renderToElement("website_forum.spam_search_name", { posts }), postSpamEl);
+        // No need for cleanup, it's already done above.
+        this.renderAt("website_forum.spam_search_name", { posts }, postSpamEl);
     }
 
     async onMarkSpamClick() {
@@ -67,4 +68,6 @@ class WebsiteForumSpam extends Interaction {
     }
 }
 
-registry.category("public.interactions").add("website_forum.website_forum_spam", WebsiteForumSpam);
+registry
+    .category("public.interactions")
+    .add("website_forum.website_forum_spam", WebsiteForumSpam);
