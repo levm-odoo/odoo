@@ -64,7 +64,7 @@ class ResourceResource(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for values in vals_list:
-            if values.get('company_id') and not 'calendar_id' in values:
+            if values.get('company_id') and 'calendar_id' not in values:
                 values['calendar_id'] = self.env['res.company'].browse(values['company_id']).resource_calendar_id.id
             if not values.get('tz'):
                 # retrieve timezone on user or calendar
@@ -99,19 +99,15 @@ class ResourceResource(models.Model):
         if self.user_id:
             self.tz = self.user_id.tz
 
-    def _get_work_interval(self, start, end):
-        # Deprecated method. Use `_adjust_to_calendar` instead
-        return self._adjust_to_calendar(start, end)
-
     def _adjust_to_calendar(self, start, end, compute_leaves=True):
         """Adjust the given start and end datetimes to the closest effective hours encoded
         in the resource calendar. Only attendances in the same day as `start` and `end` are
         considered (respectively). If no attendance is found during that day, the closest hour
         is None.
         e.g. simplified example:
-             given two attendances: 8am-1pm and 2pm-5pm, given start=9am and end=6pm
-             resource._adjust_to_calendar(start, end)
-             >>> {resource: (8am, 5pm)}
+            given two attendances: 8am-1pm and 2pm-5pm, given start=9am and end=6pm
+            resource._adjust_to_calendar(start, end)
+            >>> {resource: (8am, 5pm)}
         :return: Closest matching start and end of working periods for each resource
         :rtype: dict(resource, tuple(datetime | None, datetime | None))
         """

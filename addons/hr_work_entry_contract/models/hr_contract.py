@@ -89,21 +89,7 @@ class HrContract(models.Model):
         return self.env['resource.calendar.leaves'].search(self._get_leave_domain(start_dt, end_dt))
 
     def _get_attendance_intervals(self, start_dt, end_dt):
-        # {resource: intervals}
-        employees_by_calendar = defaultdict(lambda: self.env['hr.employee'])
-        for contract in self:
-            if contract.work_entry_source != 'calendar':
-                continue
-            employees_by_calendar[contract.resource_calendar_id] |= contract.employee_id
-        result = dict()
-        for calendar, employees in employees_by_calendar.items():
-            result.update(calendar._attendance_intervals_batch(
-                start_dt,
-                end_dt,
-                resources=employees.resource_id,
-                tz=pytz.timezone(calendar.tz)
-            ))
-        return result
+        return self.employee_id._get_attendance_intervals(start_dt, end_dt)
 
     def _get_lunch_intervals(self, start_dt, end_dt):
         # {resource: intervals}
@@ -137,7 +123,7 @@ class HrContract(models.Model):
         contract_vals = []
         bypassing_work_entry_type_codes = self._get_bypassing_work_entry_type_codes()
 
-        attendances_by_resource = self._get_attendance_intervals(start_dt, end_dt)
+        attendances_by_employee = self._get_attendance_intervals(start_dt, end_dt)
 
         resource_calendar_leaves = self._get_resource_calendar_leaves(start_dt, end_dt)
         # {resource: resource_calendar_leaves}
@@ -152,7 +138,7 @@ class HrContract(models.Model):
             resource = employee.resource_id
             # if the contract is fully flexible, we refer to the employee's timezone
             tz = pytz.timezone(resource.tz) if contract._is_fully_flexible() else pytz.timezone(calendar.tz)
-            attendances = attendances_by_resource[resource.id]
+            attendances = attendances_by_employee[employee]
 
             # Other calendars: In case the employee has declared time off in another calendar
             # Example: Take a time off, then a credit time.

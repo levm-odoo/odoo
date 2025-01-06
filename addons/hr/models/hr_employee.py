@@ -659,14 +659,6 @@ class HrEmployee(models.Model):
         # Returns a dict {employee_id: tz}
         return {emp.id: emp._get_tz() for emp in self}
 
-    def _employee_attendance_intervals(self, start, stop, lunch=False):
-        self.ensure_one()
-        calendar = self.resource_calendar_id or self.company_id.resource_calendar_id
-        if not lunch:
-            return self._get_expected_attendances(start, stop)
-        else:
-            return calendar._attendance_intervals_batch(start, stop, self.resource_id, lunch=True)[self.resource_id.id]
-
     def _get_expected_attendances(self, date_from, date_to):
         self.ensure_one()
         employee_timezone = timezone(self.tz) if self.tz else None
