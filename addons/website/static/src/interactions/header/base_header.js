@@ -55,7 +55,6 @@ export class BaseHeader extends Interaction {
         this.isScrolled = false;
         this.forcedScroll = 0;
 
-        this.isSmall = uiUtils.getSize() < SIZES.LG;
         this.isOverlay = !!this.el.closest(".o_header_overlay, .o_header_overlay_theme");
 
         this.mainEl = this.el.parentElement.querySelector("main");
@@ -64,10 +63,10 @@ export class BaseHeader extends Interaction {
 
         this.scrollingElement = document.scrollingElement;
         const navbarEl = this.el.querySelector(".navbar");
-        const navBreakpoint = Object.keys(SIZES).find((size) =>
+        const navBreakpoint = navbarEl ? Object.keys(SIZES).find((size) =>
             navbarEl.classList.contains(`navbar-expand-${size.toLowerCase()}`)
-        );
-        this.breakpointSize = SIZES[navBreakpoint || "LG"];    }
+        ) : "LG";
+        this.breakpointSize = SIZES[navBreakpoint];    }
 
     start() {
         this.services.website_menus.triggerCallbacks();
