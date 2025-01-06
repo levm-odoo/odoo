@@ -1,0 +1,14 @@
+.accrual {
+  .o_input {
+    text-align: center;
+    font-weight: bold;
+    border-bottom: solid #017e84 1px; //TODO find the color var
+  }
+
+  select {
+    padding-right: 0 !important;
+    display: inline-table;
+    min-width: 0;
+    background: none;
+  }
+}

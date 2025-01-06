@@ -44,7 +44,7 @@ class HrLeaveAccrualPlan(models.Model):
     carryover_date = fields.Selection([
         ("year_start", "At the start of the year"),
         ("allocation", "At the allocation date"),
-        ("other", "Other")],
+        ("other", "Custom date")],
         default="year_start", required=True, string="Carry-Over Time")
     carryover_day = fields.Integer(default=1)
     carryover_day_display = fields.Selection(
@@ -68,25 +68,32 @@ class HrLeaveAccrualPlan(models.Model):
 
     @api.depends('transition_mode', 'show_transition_mode', 'is_based_on_worked_time', 'accrued_gain_time', 'is_carryover', 'carryover_date', 'carryover_day_display', 'carryover_month')
     def _compute_summary(self):
-        self.summary = "This accrual plan is accrued at the "
-        self.summary += "<b>start</b> " if self.accrued_gain_time == "start" else " end "
-        self.summary += "of each period, based on "
-        self.summary += "the worked time. " if self.is_based_on_worked_time else " the whole calendar days. "
-        self.summary += "Accrued days are "
-        self.summary += "" if self.is_carryover else "not "
-        self.summary += "carried over from year to year"
+        message = "This accrual plan is accrued at the <b>%(start_or_end)s of each period</b>, <b>based on %(worked_times)s.</b>"
+        message += "<br/>Accrued days <b>are %(carried_over)s carried over</b> from year to year"
         if self.is_carryover:
-            self.summary += " on "
+            message += " <b>at "
             if self.carryover_date == "year_start":
-                self.summary += "the start of the year"
+                message += "the start of the year"
             elif self.carryover_date == "allocation":
-                self.summary += "the allocation date"
+                message += "the allocation date"
             else:
-                self.summary += "the " + str(dict(self._fields["carryover_day_display"].get_description(self.env).get("selection")).get(self.carryover_day_display)) + " of " + str(dict(self._fields["carryover_month"].get_description(self.env).get("selection")).get(self.carryover_month))
-        self.summary += ". "
+                message += "the %(day)s of %(month)s"
+        message += ".</b>"
         if self.show_transition_mode:
-            self.summary += "If an accrual level changes mid-pay period, employees will be placed on the next accrual level "
-            self.summary += "immediately, in the exact date during the ongoing pay period." if self.transition_mode == "immediately" else "in the next pay period."
+            message += "<br/>If an accrual level changes in the middle of a pay period, <b>employees are %(transition)s placed on the next accrual level "
+            if self.transition_mode == "immediately":
+                message += "on the exact date during the current pay period."
+            else:
+                message += "in the next pay period.</b>"
+
+        self.summary = _(message,
+                         start_or_end=self.accrued_gain_time,
+                         worked_times="the worked time" if self.is_based_on_worked_time else "on the whole calendar days",
+                         carried_over="" if self.is_carryover else "not ",
+                         day = str(dict(self._fields["carryover_day_display"].get_description(self.env).get("selection")).get(self.carryover_day_display)),
+                         month = str(dict(self._fields["carryover_month"].get_description(self.env).get("selection")).get(self.carryover_month)),
+                         transition = "immediately </b>" if self.transition_mode == "immediately" else ""
+                         )
 
     @api.depends('level_ids')
     def _compute_show_transition_mode(self):

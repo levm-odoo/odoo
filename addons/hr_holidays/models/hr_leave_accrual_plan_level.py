@@ -38,21 +38,24 @@ class HrLeaveAccrualLevel(models.Model):
 
     # Accrue of
     added_value = fields.Float(
-        "Rate", digits=(16, 5), required=True, default=1,
-        help="The number of hours/days that will be incremented in the specified Time Off Type for every period")
+        "Rate", digits=(16, 5), required=True, default=1)
     added_value_type = fields.Selection([
-        ('day', 'Days'),
-        ('hour', 'Hours')
+        ('day', 'days'),
+        ('hour', 'hours')
     ], compute="_compute_added_value_type", store=True, required=True, readonly=False, default="day")
     frequency = fields.Selection([
-        ('hourly', 'Hourly'),
-        ('daily', 'Daily'),
-        ('weekly', 'Weekly'),
-        ('bimonthly', 'Twice a month'),
-        ('monthly', 'Monthly'),
-        ('biyearly', 'Twice a year'),
-        ('yearly', 'Yearly'),
+        ('hourly', 'hourly'),
+        ('daily', 'daily'),
+        ('weekly', 'weekly'),
+        ('bimonthly', 'twice a month'),
+        ('monthly', 'monthly'),
+        ('biyearly', 'twice a year'),
+        ('yearly', 'yearly'),
     ], default='daily', required=True, string="Frequency")
+    based_on = fields.Selection([
+        ('working_schedule', 'his working schedule'),
+        ('attendance', 'the Attendance application'),
+    ], default='working_schedule', required=True, string="Accrual based on")
     week_day = fields.Selection([
         ('mon', 'Monday'),
         ('tue', 'Tuesday'),
