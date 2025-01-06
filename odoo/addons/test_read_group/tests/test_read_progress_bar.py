@@ -78,10 +78,13 @@ class TestReadProgressBar(common.TransactionCase):
                     'field_description': 'State',
                     'name': 'x_state',
                     'ttype': 'selection',
-                    'selection': "[('foo', 'Foo'), ('bar', 'Bar'), ('baz', 'Baz')]",
                 }),
             ],
         })
+        self.env['ir.model.fields.selection']._update_selection(
+            model.model, 'x_state',
+            [('foo', 'Foo'), ('bar', 'Bar'), ('baz', 'Baz')]
+        )
 
         c1, c2, c3 = self.env['res.country'].search([], limit=3)
 
@@ -131,13 +134,16 @@ class TestReadProgressBar(common.TransactionCase):
                 'field_description': 'Related State',
                 'name': 'x_state_computed',
                 'ttype': 'selection',
-                'selection': "[('foo', 'Foo'), ('bar', 'Bar'), ('baz', 'Baz')]",
                 'compute': "for rec in self: rec['x_state_computed'] = rec.x_state",
                 'depends': 'x_state',
                 'readonly': True,
                 'store': False,
             }),
         ]})
+        self.env['ir.model.fields.selection']._update_selection(
+            model.model, 'x_state_computed',
+            [('foo', 'Foo'), ('bar', 'Bar'), ('baz', 'Baz')]
+        )
 
         progress_bar = {
             'field': 'x_state_computed',

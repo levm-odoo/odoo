@@ -548,8 +548,6 @@ class IrModelFields(models.Model):
     field_description = fields.Char(string='Field Label', default='', required=True, translate=True)
     help = fields.Text(string='Field Help', translate=True)
     ttype = fields.Selection(selection=FIELD_TYPES, string='Field Type', required=True)
-    selection = fields.Char(string="Selection Options (Deprecated)",
-                            compute='_compute_selection', inverse='_inverse_selection')
     selection_ids = fields.One2many("ir.model.fields.selection", "field_id",
                                     string="Selection Options", copy=True)
     copied = fields.Boolean(string='Copied',
