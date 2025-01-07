@@ -39,7 +39,7 @@ class Survey(http.Controller):
             ], limit=1)
         return survey_sudo, answer_sudo
 
-    def _check_validity(self, survey_token, answer_token, ensure_token=True, check_partner=True):
+    def _check_validity(self, survey_token, answer_token, ensure_token=True, check_partner=True, general_print=False):
         """ Check survey is open and can be taken. This does not checks for
         security rules, only functional / business rules. It returns a string key
         allowing further manipulation of validity issues
@@ -68,10 +68,11 @@ class Survey(http.Controller):
         if answer_token and not answer_sudo:
             return 'token_wrong'
 
-        if not answer_sudo and ensure_token:
-            return 'token_required'
-        if not answer_sudo and survey_sudo.access_mode == 'token':
-            return 'token_required'
+        if not general_print:
+            if not answer_sudo and ensure_token:
+                return 'token_required'
+            if not answer_sudo and survey_sudo.access_mode == 'token':
+                return 'token_required'
 
         if survey_sudo.users_login_required and request.env.user._is_public():
             return 'survey_auth'
@@ -105,7 +106,8 @@ class Survey(http.Controller):
         survey_sudo, answer_sudo = request.env['survey.survey'].sudo(), request.env['survey.user_input'].sudo()
         has_survey_access, can_answer = False, False
 
-        validity_code = self._check_validity(survey_token, answer_token, ensure_token=ensure_token, check_partner=check_partner)
+        validity_code = self._check_validity(survey_token, answer_token, ensure_token=ensure_token, check_partner=check_partner,
+            general_print=request.context.get('general_print', False))
         if validity_code != 'survey_wrong':
             survey_sudo, answer_sudo = self._fetch_from_access_token(survey_token, answer_token)
             try:
@@ -635,22 +637,7 @@ class Survey(http.Controller):
     def survey_print(self, survey_token, review=False, answer_token=None, **post):
         '''Display an survey in printable view; if <answer_token> is set, it will
         grab the answers of the user_input_id that has <answer_token>.'''
-
-        # Requesting general print of the survey: We need dummy answer when survey is set to participants only
-        if not answer_token:
-            survey_sudo = self._fetch_from_access_token(survey_token, answer_token)[0]
-            try:
-                survey_user = survey_sudo.with_user(request.env.user)
-                user_access = True
-                survey_user.check_access_rights('read', raise_exception=True)
-                survey_user.check_access_rule('read')
-            except:
-                user_access = False
-            else:
-                user_access = True
-            if survey_sudo and user_access and survey_sudo.access_mode == 'token':
-                dummy_answer = survey_sudo._create_answer(user=request.env.user, test_entry=True)
-                answer_token = dummy_answer.access_token
+        request.update_context(general_print=True)  # that should be coming from the button
 
         access_data = self._get_access_data(survey_token, answer_token, ensure_token=False, check_partner=False)
         if access_data['validity_code'] is not True and (

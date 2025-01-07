@@ -1019,7 +1019,10 @@ class Survey(models.Model):
             'type': 'ir.actions.act_url',
             'name': "Print Survey",
             'target': 'new',
-            'url': url
+            'url': url,
+            'context': {                        # that won't work
+                'general_print': True,
+            }
         }
 
     def action_result_survey(self):

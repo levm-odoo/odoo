@@ -124,4 +124,3 @@ class TestSurveyController(common.TestSurveyCommon, HttpCase):
         # Not enough to check status code, cause odoo tend to rollback to main page if it can't open the print
         self.assertIn("Test Survey with one question accessible by token", str(req.content),
             "Survey should be printable (even without answers, empty survey should be generated)")
-
