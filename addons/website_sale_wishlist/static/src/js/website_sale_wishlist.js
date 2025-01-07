@@ -6,6 +6,7 @@ import wSaleUtils from "@website_sale/js/website_sale_utils";
 // VariantMixin events are overridden on purpose here
 // to avoid registering them more than once since they are already registered
 // in website_sale.js
+// TODO VFE extend WebsiteSale class instead ?
 publicWidget.registry.ProductWishlist = publicWidget.Widget.extend(VariantMixin, {
     selector: '.oe_website_sale',
     events: {
@@ -85,6 +86,7 @@ publicWidget.registry.ProductWishlist = publicWidget.Widget.extend(VariantMixin,
             templateId = $el.data('product-template-id');
         }
         $el.prop("disabled", true).addClass('disabled');
+        //TODO VFE isn't it already available, do we need to use selectOrCreateProduct here ?
         var productReady = this.selectOrCreateProduct(
             $el.closest('form'),
             productID,

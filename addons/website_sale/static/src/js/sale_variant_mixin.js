@@ -7,11 +7,6 @@ import { insertThousandsSep } from "@web/core/utils/numbers";
 import { throttleForAnimation } from "@web/core/utils/timing";
 
 var VariantMixin = {
-    events: {
-        'change .css_attribute_color input': '_onChangeColorAttribute',
-        'click .o_variant_pills': '_onChangePillsAttribute',
-    },
-
     //--------------------------------------------------------------------------
     // Public
     //--------------------------------------------------------------------------
@@ -534,30 +529,6 @@ var VariantMixin = {
         } else {
             $img.addClass('invisible');
         }
-    },
-
-    /**
-     * Highlight selected color
-     *
-     * @private
-     * @param {MouseEvent} ev
-     */
-    _onChangeColorAttribute: function (ev) {
-        var $parent = $(ev.target).closest('.js_product');
-        $parent.find('.css_attribute_color')
-            .removeClass("active")
-            .filter(':has(input:checked)')
-            .addClass("active");
-    },
-
-    _onChangePillsAttribute: function (ev) {
-        const radio = ev.target.closest('.o_variant_pills').querySelector("input");
-        radio.click();  // Trigger onChangeVariant.
-        var $parent = $(ev.target).closest('.js_product');
-        $parent.find('.o_variant_pills')
-            .removeClass("active")
-            .filter(':has(input:checked)')
-            .addClass("active");
     },
 
     /**
