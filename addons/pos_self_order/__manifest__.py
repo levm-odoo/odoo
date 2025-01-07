@@ -58,7 +58,7 @@
             "point_of_sale/static/src/app/components/order_display/*",
             "point_of_sale/static/src/app/components/orderline/*",
             "point_of_sale/static/src/app/components/centered_icon/*",
-            "point_of_sale/static/src/css/pos_receipts.css",
+            "point_of_sale/static/src/app/screens/receipt_screen/receipt/pos_receipts.css",
             "point_of_sale/static/src/app/screens/receipt_screen/receipt/**/*",
             "pos_self_order/static/src/overrides/components/receipt_header/*",
             "point_of_sale/static/src/app/utils/printer/base_printer.js",

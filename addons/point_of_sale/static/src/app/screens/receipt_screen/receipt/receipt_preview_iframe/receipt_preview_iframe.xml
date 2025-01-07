@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="point_of_sale.ReceiptPreview">
+        <div class="o_preview_iframe_wrapper1">
+            <iframe t-ref="iframeRef" sandbox="allow-scripts allow-popups allow-same-origin" style="width: 350px; height: 700px;"/>
+        </div>
+    </t>
+
+</templates>

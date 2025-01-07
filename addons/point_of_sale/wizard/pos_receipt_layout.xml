@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="pos_receipt_layout_preview">&lt;!DOCTYPE html&gt;
+        <html>
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="initial-scale=1"/>
+                <title><t t-out="title or 'Odoo Pos Receipt'"/></title>
+                <t t-call-assets="point_of_sale.recipt_assets" />
+            </head>
+            <body style="overflow: hidden;">
+                <div id="wrapwrap" class="d-block d-flex flex-column h-100">
+                    <owl-component name="point_of_sale.OrderReceipt" t-att-props="props"/>
+                </div>
+            </body>
+        </html>
+    </template>
+
+    <data>
+        <record id="view_pos_receipt_layout" model="ir.ui.view">
+            <field name="name">Receipt Layout</field>
+            <field name="model">pos.receipt.layout</field>
+            <field name="arch" type="xml">
+                <form class="o_document_layout">
+                    <group>
+                        <group class="o_document_layout_company">
+                            <field name="pos_config_id" invisible="1"/>
+                            <field name="receipt_layout" widget="selection_badge" required="1" options="{'horizontal': true, 'size': 'sm'}"/>
+                            <field name="receipt_logo" string="Logo" widget="image" options="{'size': [0, 50]}"/>
+                            <field name="receipt_bg" string="Background Layout" widget="selection" required="1"/>
+                            <field name="receipt_bg_image" options="{'accepted_file_extensions': 'image/*'}" string="Background Image" invisible="receipt_bg != 'Custom'" required="receipt_bg == 'Custom'">Upload your file</field>
+                            <field name="receipt_font" string="Text" widget="selection" required="1"/>
+                            <field name="receipt_header" string="Header" placeholder="e.g. Shop Name, Location" options="{'resizable': false}"/>
+                            <field name="receipt_footer" string="Footer" placeholder="Thanks, visit again ..." options="{'resizable': false}"/>
+                        </group>
+                        <div class="o_preview">
+                            <field name="receipt_preview" widget="receipt_preview_iframe" options="{'preview_mode': True }" class="w-100 h-100 d-flex justify-content-center mb-0"/>
+                        </div>
+                    </group>
+                    <footer>
+                        <button string="Continue" class="btn-primary" type="object" name="receipt_layout_save" data-hotkey="q"/>
+                        <button special="cancel" data-hotkey="x" string="Discard" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+        <record id="action_view_pos_receipt_layout" model="ir.actions.act_window">
+            <field name="name">Configure your Receipt</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="res_model">pos.receipt.layout</field>
+            <field name="view_id" ref="point_of_sale.view_pos_receipt_layout"/>
+            <field name="context">{"dialog_size": "extra-large"}</field>
+        </record>
+    </data>
+</odoo>

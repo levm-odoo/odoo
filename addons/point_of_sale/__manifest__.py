@@ -20,6 +20,7 @@
         'wizard/pos_payment.xml',
         'wizard/pos_close_session_wizard.xml',
         'wizard/pos_daily_sales_reports.xml',
+        'wizard/pos_receipt_layout.xml',
         'views/pos_assets_index.xml',
         'views/point_of_sale_report.xml',
         'views/point_of_sale_view.xml',
@@ -79,6 +80,16 @@
             'point_of_sale/static/src/app/hooks/hooks.js',
             'point_of_sale/static/src/backend/many2one_with_placeholder_field/*',
             'point_of_sale/static/src/backend/many2many_placeholder_list_view/*',
+            'point_of_sale/static/src/app/screens/receipt_screen/receipt/**/*',
+            'point_of_sale/static/src/utils.js',
+        ],
+        'web.assets_frontend': [
+            'point_of_sale/static/src/app/screens/receipt_screen/receipt/**/*',
+            'point_of_sale/static/src/utils.js',
+        ],
+        'point_of_sale.recipt_assets': [
+            ('include', 'web.assets_frontend'),
+            'web/static/fonts/fonts.scss',
         ],
         'web.assets_tests': [
             'barcodes/static/tests/legacy/helpers.js',
