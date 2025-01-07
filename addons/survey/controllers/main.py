@@ -70,8 +70,6 @@ class Survey(http.Controller):
 
         if not answer_sudo and ensure_token:
             return 'token_required'
-        if not answer_sudo and survey_sudo.access_mode == 'token':
-            return 'token_required'
 
         if survey_sudo.users_login_required and request.env.user._is_public():
             return 'survey_auth'
