@@ -40,7 +40,7 @@ class AccountCashRounding(models.Model):
     )
     rounding_method = fields.Selection(string='Rounding Method', required=True,
         selection=[('UP', 'Up'), ('DOWN', 'Down'), ('HALF-UP', 'Nearest')],
-        default='HALF-UP', help='The tie-breaking rule used for float rounding operations')
+        default='HALF-UP', help='Specifies the rule for rounding decimals: Up, Down, or to the nearest whole number (rounds up if ≥ Rounding Precision else down).')
 
     @api.constrains('rounding')
     def validate_rounding(self):
