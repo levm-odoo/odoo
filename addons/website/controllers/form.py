@@ -68,6 +68,7 @@ class WebsiteForm(http.Controller):
             return json.dumps({'error_fields': e.args[0]})
 
         try:
+            # breakpoint()
             id_record = self.insert_record(request, model_record, data['record'], data['custom'], data.get('meta'))
             if id_record:
                 self.insert_attachment(model_record, id_record, data['attachments'])
@@ -329,12 +330,29 @@ class WebsiteForm(http.Controller):
             for attachment_id_id in orphan_attachment_ids:
                 record.attachment_ids = [(4, attachment_id_id)]
 
-class CustomAuthSignupHome(AuthSignupHome):
-    
-    @http.route('/website/signup/form/<string:model_name>', type='http', auth='public', website=True, sitemap=False, captcha='signup')
-    def webite_auth_signup(self, *args, **kwargs):
-        response = super(CustomAuthSignupHome, self).web_auth_signup(*args, **kwargs)
-        if not 'error' in response.qcontext and not response.status_code in (401, 403):
+class CustomAuthSignup(AuthSignupHome):
+    @http.route('/web/signup', type='http')
+    def web_auth_signup(self, *args, **kwargs):
+        response = super().web_auth_signup(*args, **kwargs)
+        if 'error' in response.qcontext:
+            return request.make_response(
+                json.dumps({'error': response.qcontext['error']}),
+                headers=[('Content-Type', 'application/json')]
+            )
+        elif kwargs and response.status_code in range(200, 308):
             user_id = request.env['res.users'].sudo().search([('login', '=', kwargs['login'])]).id
-            return json.dumps({'id': user_id})
-        return json.dumps({'error': response.qcontext['error']})
+            return request.make_response(
+                    json.dumps({'id': user_id}),
+                    headers=[('Content-Type', 'application/json')]
+                )
+        return response
+    
+    def _prepare_signup_values(self, qcontext):
+        values = super()._prepare_signup_values(qcontext)
+        params = dict(request.params)
+
+        if qcontext.get("signup_enabled"):
+            for key, value in params.items():
+                if key not in values and key != 'confirm_password':
+                    values[key] = value
+        return values

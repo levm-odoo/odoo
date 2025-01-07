@@ -366,7 +366,11 @@ import wUtils from '@website/js/utils';
             }
 
             // Post form and handle result
-            post(this.$el.attr('action') + (this.$el.data('force_action') || this.$el.data('model_name')), formData)
+            let actionUrl = this.$el.attr('action');
+            if (!this.$el[0].classList.contains("oe_signup_form")) {
+                actionUrl = actionUrl + (this.$el.data('force_action') || this.$el.data('model_name'));
+            }
+            post(actionUrl, formData)
             .then(async function (result_data) {
                 // Restore send button behavior
                 self.$el.find('.s_website_form_send, .o_website_form_send')

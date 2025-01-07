@@ -452,11 +452,18 @@ options.registry.WebsiteFormEditor = FormEditor.extend({
             this.selectActionEl = document.createElement('we-select');
             this.selectActionEl.setAttribute('string', 'Action');
             this.selectActionEl.dataset.noPreview = 'true';
+            const isSignupForm = this.$target[0].classList.contains("oe_signup_form");
             this.models.forEach(el => {
                 const option = document.createElement('we-button');
                 option.textContent = el.website_form_label;
                 option.dataset.selectAction = el.id;
-                this.selectActionEl.append(option);
+                if (el.website_form_key !== "signup_form") {
+                    this.selectActionEl.append(option);
+                } else if (isSignupForm) {
+                    this.selectActionEl.innerHTML = '';
+                    this.selectActionEl.append(option);
+                    return this.selectActionEl;
+                }
             });
             return this.selectActionEl;
         }
@@ -546,12 +553,26 @@ options.registry.WebsiteFormEditor = FormEditor.extend({
     /**
      * @override
      */
-    notify: function (name, data) {
+    notify: async function (name, data) {
         this._super(...arguments);
         if (name === 'field_mark') {
             this._setLabelsMark();
         } else if (name === 'add_field') {
-            const field = this._getCustomField('char', 'Custom Text');
+            let field = {}
+            if (this.$target[0].classList.contains('oe_signup_form')) {
+                this.existingField = await authorizedFieldsCache.get(this.$target[0], this.orm).then((fields) => {
+                    return fields['company_name'];
+                });
+                field = {
+                    name : this.existingField.name,
+                    string : this.existingField.string,
+                    custom : true,
+                    type : this.existingField.type,
+                    records : [this.existingField],
+                };
+            } else {
+                field = this._getCustomField('char', 'Custom Text');
+            }
             field.formatInfo = data.formatInfo;
             field.formatInfo.requiredMark = this._isRequiredMark();
             field.formatInfo.optionalMark = this._isOptionalMark();
@@ -719,6 +740,16 @@ options.registry.WebsiteFormEditor = FormEditor.extend({
                 return this._getMark();
             case 'toggleRecaptchaLegal':
                 return !this.$target[0].querySelector('.s_website_form_recaptcha') || '';
+        }
+        return this._super(...arguments);
+    },
+    /**
+     * @override
+     */
+    _computeWidgetVisibility: function (widgetName, params) {
+        switch (widgetName) {
+            case 'signup_form_opt':
+                return !this.$target[0].classList.contains('oe_signup_form');
         }
         return this._super(...arguments);
     },
@@ -1360,7 +1391,14 @@ options.registry.WebsiteFieldEditor = FieldEditor.extend({
             case 'required_opt':
             case 'hidden_opt':
             case 'type_opt':
+                if (this.formEl.classList.contains('oe_signup_form')) {
+                    this.el.querySelector("[data-name='type_opt'] we-selection-items").firstChild.style.display="none";
+                } else {
+                    this.el.querySelector("[data-name='type_opt'] we-selection-items").firstChild.style.display="block";
+                }
                 return !this.$target[0].classList.contains('s_website_form_model_required');
+            case 'signup_form_custom_opt':
+                return !this.formEl.classList.contains('oe_signup_form');    
             case "max_files_number_opt": {
                 // Do not display the option if only one file is supposed to be
                 // uploaded in the field.
