@@ -8,14 +8,11 @@ import VariantMixin from "@website_sale/js/sale_variant_mixin";
 export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, {
     selector: '.oe_website_sale',
     events: Object.assign({}, {
-        'change form .js_product:first input[name="add_qty"]': '_onChangeAddQuantity',
-        'click a.js_add_cart_json': '_onChangeQuantity',
+        'click a.js_add_cart_json': '_onChangeQuantity', // product & cart page, maybe others
         'click .a-submit': '_onClickSubmit',
-        'change form.js_attributes input, form.js_attributes select': '_onChangeAttribute',
+        'change form.js_attributes input, form.js_attributes select': '_onChangeAttribute',  // filters on /shop page
         'submit .o_wsale_products_searchbar_form': '_onSubmitSaleSearch',
         'click #add_to_cart, .o_we_buy_now, #products_grid .o_wsale_product_btn .a-submit': '_onClickAdd',
-        'click input.js_product_change': 'onChangeVariant',
-        'change .js_main_product [data-attribute_exclusions]': 'onChangeVariant',
         'mousedown .o_wsale_filmstip_wrapper': '_onMouseDown',
         'mouseleave .o_wsale_filmstip_wrapper': '_onMouseLeave',
         'mouseup .o_wsale_filmstip_wrapper': '_onMouseUp',
@@ -41,17 +38,6 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, {
     start() {
         const def = this._super(...arguments);
 
-        this._applyHash();
-
-        // This has to be triggered to compute the "out of stock" feature and the hash variant changes
-        this.triggerVariantChange(this.$el);
-
-        // Triggered when selecting a variant of a product in a carousel element
-        window.addEventListener("hashchange", (ev) => {
-            this._applyHash();
-            this.triggerVariantChange(this.$el);
-        });
-
         // This allows conditional styling for the filmstrip
         const filmstripContainer = this.el.querySelector('.o_wsale_filmstip_container');
         const filmstripContainerWidth = filmstripContainer
@@ -65,10 +51,6 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, {
         }
 
         return def;
-    },
-    destroy() {
-        this._super.apply(this, arguments);
-        this._cleanupZoom();
     },
 
     //--------------------------------------------------------------------------
@@ -110,41 +92,7 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, {
             ev.preventDefault();
         }
     },
-    _applyHash: function () {
-        const params = new URLSearchParams(window.location.hash.substring(1));
-        if (params.get("attribute_values")) {
-            const attributeValueIds = params.get("attribute_values").split(',');
-            const inputs = document.querySelectorAll(
-                'input.js_variant_change, select.js_variant_change option'
-            );
-            inputs.forEach((element) => {
-                if (attributeValueIds.includes(element.dataset.attributeValueId)) {
-                    if (element.tagName === "INPUT") {
-                        element.checked = true;
-                    } else if (element.tagName === "OPTION") {
-                        element.selected = true;
-                    }
-                }
-            });
-            this._changeAttribute(['.css_attribute_color', '.o_variant_pills']);
-        }
-    },
 
-    /**
-     * Sets the url hash from the selected product options.
-     *
-     * @private
-     */
-    _setUrlHash: function ($parent) {
-        const inputs = document.querySelectorAll(
-            'input.js_variant_change:checked, select.js_variant_change option:checked'
-        );
-        let attributeIds = [];
-        inputs.forEach((element) => attributeIds.push(element.dataset.attributeValueId));
-        if (attributeIds.length > 0) {
-            window.location.hash = `attribute_values=${attributeIds.join(',')}`;
-        }
-    },
     /**
      * Set the checked values active.
      *
@@ -155,24 +103,6 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, {
         valueSelectors.forEach((selector) => {
             $(selector).removeClass("active").filter(":has(input:checked)").addClass("active");
         });
-    },
-    /**
-     * This is overridden to handle the "List View of Variants" of the web shop.
-     * That feature allows directly selecting the variant from a list instead of selecting the
-     * attribute values.
-     *
-     * Since the layout is completely different, we need to fetch the product_id directly
-     * from the selected variant.
-     *
-     * @override
-     */
-    _getProductId: function ($parent) {
-        if ($parent.find('input.js_product_change').length !== 0) {
-            return parseInt($parent.find('input.js_product_change:checked').val());
-        }
-        else {
-            return VariantMixin._getProductId.apply(this, arguments);
-        }
     },
     /**
      * @private
@@ -221,21 +151,6 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, {
             input.dispatchEvent(
                 new Event('change', {bubbles: true})
             );  // Trigger `onChangeVariant` through .js_main_product
-        }
-    },
-    /**
-     * When the quantity is changed, we need to query the new price of the product.
-     * Based on the pricelist, the price might change when quantity exceeds a certain amount.
-     *
-     * @private
-     * @param {MouseEvent} ev
-     *
-     * @returns {void}
-     */
-    _onChangeAddQuantity: function (ev) {
-        const $parent = $(ev.currentTarget).closest('form');
-        if ($parent.length > 0) {
-            this.triggerVariantChange($parent);
         }
     },
     /**
@@ -308,27 +223,6 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, {
         VariantMixin._toggleDisable.apply(this, arguments);
         $parent.find("#add_to_cart").toggleClass('disabled', !isCombinationPossible);
         $parent.find(".o_we_buy_now").toggleClass('disabled', !isCombinationPossible);
-    },
-    /**
-     * Write the properties of the form elements in the DOM to prevent the
-     * current selection from being lost when activating the web editor.
-     *
-     * @override
-     */
-    onChangeVariant: function (ev) {
-        var $component = $(ev.currentTarget).closest('.js_product');
-        $component.find('input').each(function () {
-            var $el = $(this);
-            $el.attr('checked', $el.is(':checked'));
-        });
-        $component.find('select option').each(function () {
-            var $el = $(this);
-            $el.attr('selected', $el.is(':selected'));
-        });
-
-        this._setUrlHash($component);
-
-        return VariantMixin.onChangeVariant.apply(this, arguments);
     },
     /**
      * Prevent multiclicks on confirm button when the form is submitted

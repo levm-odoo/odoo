@@ -10,7 +10,10 @@ import { ProductImageViewer } from "@website_sale/js/components/website_sale_ima
 publicWidget.registry.WebsiteSaleProduct = publicWidget.Widget.extend(VariantMixin, {
     selector: '.o_wsale_product_page', // '#shop_product', in the future?
     events: {
+        'change form .js_product:first input[name="add_qty"]': '_onChangeAddQuantity',
         'change .css_attribute_color input': '_onChangeColorAttribute',
+        'change .js_main_product [data-attribute_exclusions]': 'onChangeVariant',
+        'click input.js_product_change': 'onChangeVariant', // list view of variants
         'click .o_variant_pills': '_onChangePillsAttribute',
         'click .o_product_page_reviews_link': '_onClickReviewsLink',
     },
@@ -28,9 +31,24 @@ publicWidget.registry.WebsiteSaleProduct = publicWidget.Widget.extend(VariantMix
     start() {
         const def = this._super(...arguments);
 
+        this._applyHash();
+
+        // This has to be triggered to compute the "out of stock" feature and the hash variant changes
+        this.triggerVariantChange(this.$el);
+
+        // Triggered when selecting a variant of a product in a carousel element
+        window.addEventListener("hashchange", (ev) => {
+            this._applyHash();
+            this.triggerVariantChange(this.$el);
+        });
+
         this._startZoom();
 
         return def;
+    },
+    destroy() {
+        this._super.apply(this, arguments);
+        this._cleanupZoom();
     },
 
     /**
@@ -40,6 +58,71 @@ publicWidget.registry.WebsiteSaleProduct = publicWidget.Widget.extend(VariantMix
         $('#o_product_page_reviews_content').collapse('show');
     },
     /* VARIANT SELECTION & CONFIGURATION */
+
+    _applyHash: function () {
+        const params = new URLSearchParams(window.location.hash.substring(1));
+        if (params.get("attribute_values")) {
+            const attributeValueIds = params.get("attribute_values").split(',');
+            const inputs = document.querySelectorAll(
+                'input.js_variant_change, select.js_variant_change option'
+            );
+            inputs.forEach((element) => {
+                if (attributeValueIds.includes(element.dataset.attributeValueId)) {
+                    if (element.tagName === "INPUT") {
+                        element.checked = true;
+                    } else if (element.tagName === "OPTION") {
+                        element.selected = true;
+                    }
+                }
+            });
+            this._changeAttribute(['.css_attribute_color', '.o_variant_pills']);
+        }
+    },
+    /**
+     * Set the checked values active.
+     *
+     * @private
+     * @param {Array} valueSelectors Selectors
+     */
+    _changeAttribute: function (valueSelectors) {
+        valueSelectors.forEach((selector) => {
+            $(selector).removeClass("active").filter(":has(input:checked)").addClass("active");
+        });
+    },
+    /**
+     * This is overridden to handle the "List View of Variants" of the web shop.
+     * That feature allows directly selecting the variant from a list instead of selecting the
+     * attribute values.
+     *
+     * Since the layout is completely different, we need to fetch the product_id directly
+     * from the selected variant.
+     *
+     * @override
+     */
+    _getProductId: function ($parent) {
+        if ($parent.find('input.js_product_change').length !== 0) {
+            return parseInt($parent.find('input.js_product_change:checked').val());
+        }
+        else {
+            return VariantMixin._getProductId.apply(this, arguments);
+        }
+    },
+
+    /**
+     * When the quantity is changed, we need to query the new price of the product.
+     * Based on the pricelist, the price might change when quantity exceeds a certain amount.
+     *
+     * @private
+     * @param {MouseEvent} ev
+     *
+     * @returns {void}
+     */
+    _onChangeAddQuantity: function (ev) {
+        const $parent = $(ev.currentTarget).closest('form');
+        if ($parent.length > 0) {
+            this.triggerVariantChange($parent);
+        }
+    },
 
     /**
      * Highlight selected color
@@ -64,7 +147,43 @@ publicWidget.registry.WebsiteSaleProduct = publicWidget.Widget.extend(VariantMix
             .filter(':has(input:checked)')
             .addClass("active");
     },
+    /**
+     * Write the properties of the form elements in the DOM to prevent the
+     * current selection from being lost when activating the web editor.
+     *
+     * @override
+     */
+    onChangeVariant: function (ev) {
+        var $component = $(ev.currentTarget).closest('.js_product');
+        $component.find('input').each(function () {
+            var $el = $(this);
+            $el.attr('checked', $el.is(':checked'));
+        });
+        $component.find('select option').each(function () {
+            var $el = $(this);
+            $el.attr('selected', $el.is(':selected'));
+        });
 
+        this._setUrlHash($component);
+
+        return VariantMixin.onChangeVariant.apply(this, arguments);
+    },
+
+    /**
+     * Sets the url hash from the selected product options.
+     *
+     * @private
+     */
+    _setUrlHash: function ($parent) {
+        const inputs = document.querySelectorAll(
+            'input.js_variant_change:checked, select.js_variant_change option:checked'
+        );
+        let attributeIds = [];
+        inputs.forEach((element) => attributeIds.push(element.dataset.attributeValueId));
+        if (attributeIds.length > 0) {
+            window.location.hash = `attribute_values=${attributeIds.join(',')}`;
+        }
+    },
 
     /* IMAGES */
     /**
