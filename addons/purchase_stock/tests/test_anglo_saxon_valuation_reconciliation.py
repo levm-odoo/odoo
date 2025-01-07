@@ -27,11 +27,11 @@ class TestValuationReconciliation(ValuationReconciliationTestCommon):
         })
         return company_data
 
-    def _create_purchase(self, product, date, quantity=1.0, set_tax=False, price_unit=66.0):
+    def _create_purchase(self, product, date, currency, quantity=1.0, set_tax=False, price_unit=66.0):
         with freeze_time(date):
             rslt = self.env['purchase.order'].create({
                 'partner_id': self.partner_a.id,
-                'currency_id': self.currency_data['currency'].id,
+                'currency_id': currency.id,
                 'order_line': [
                     (0, 0, {
                         'name': product.name,
@@ -62,7 +62,7 @@ class TestValuationReconciliation(ValuationReconciliationTestCommon):
         test_product = self.test_product_delivery
         date_po_and_delivery = '2018-01-01'
 
-        purchase_order = self._create_purchase(test_product, date_po_and_delivery)
+        purchase_order = self._create_purchase(test_product, date_po_and_delivery, self.env.ref('base.USD'))
         self._process_pickings(purchase_order.picking_ids, date=date_po_and_delivery)
 
         invoice = self._create_invoice_for_po(purchase_order, '2018-02-02')
@@ -77,7 +77,7 @@ class TestValuationReconciliation(ValuationReconciliationTestCommon):
         """
         # Create a PO and an invoice for it
         test_product = self.test_product_order
-        purchase_order = self._create_purchase(test_product, '2017-12-01')
+        purchase_order = self._create_purchase(test_product, '2017-12-01', self.env.ref('base.USD'))
 
         invoice = self._create_invoice_for_po(purchase_order, '2017-12-23')
         move_form = Form(invoice)
@@ -122,7 +122,7 @@ class TestValuationReconciliation(ValuationReconciliationTestCommon):
         """
         test_product = self.test_product_delivery
         date_po_and_delivery0 = '2017-01-01'
-        purchase_order = self._create_purchase(test_product, date_po_and_delivery0, quantity=5.0)
+        purchase_order = self._create_purchase(test_product, date_po_and_delivery0, self.env.ref('base.USD'), quantity=5.0)
         self._process_pickings(purchase_order.picking_ids, quantity=2.0, date=date_po_and_delivery0)
         picking = self.env['stock.picking'].search([('purchase_id', '=', purchase_order.id)], order="id asc", limit=1)
 
@@ -162,7 +162,7 @@ class TestValuationReconciliation(ValuationReconciliationTestCommon):
         test_product.supplier_taxes_id = [(6, 0, tax_exclude_id.ids)]
         date_po_and_delivery = '2018-01-01'
 
-        purchase_order = self._create_purchase(test_product, date_po_and_delivery, quantity=10000, set_tax=True)
+        purchase_order = self._create_purchase(test_product, date_po_and_delivery, self.currency_data['currency'], quantity=10000, set_tax=True)
         self._process_pickings(purchase_order.picking_ids, date=date_po_and_delivery)
 
         invoice = self._create_invoice_for_po(purchase_order, '2018-01-01')
@@ -190,7 +190,7 @@ class TestValuationReconciliation(ValuationReconciliationTestCommon):
         test_product = self.test_product_delivery
         date_po_and_delivery = '2018-01-01'
 
-        purchase_order = self._create_purchase(test_product, date_po_and_delivery, quantity=1000000, price_unit=0.0005)
+        purchase_order = self._create_purchase(test_product, date_po_and_delivery, self.currency_data['currency'], quantity=1000000, price_unit=0.0005)
         self._process_pickings(purchase_order.picking_ids, date=date_po_and_delivery)
 
         invoice = self._create_invoice_for_po(purchase_order, '2018-01-01')
@@ -260,7 +260,7 @@ class TestValuationReconciliation(ValuationReconciliationTestCommon):
         }])
 
         #purchase order created in foreign currency
-        purchase_order = self._create_purchase(test_product, date_po_receipt, quantity=10, price_unit=3000)
+        purchase_order = self._create_purchase(test_product, date_po_receipt, foreign_currency, quantity=10, price_unit=3000)
         with freeze_time(date_po_receipt):
             self._process_pickings(purchase_order.picking_ids)
         invoice = self._create_invoice_for_po(purchase_order, date_bill)
@@ -365,7 +365,7 @@ class TestValuationReconciliation(ValuationReconciliationTestCommon):
         )
 
         date_po_and_delivery = '2018-01-01'
-        purchase_order = self._create_purchase(product_A, date_po_and_delivery, set_tax=True, price_unit=300.0)
+        purchase_order = self._create_purchase(product_A, date_po_and_delivery, self.currency_data['currency'], set_tax=True, price_unit=300.0)
         self._process_pickings(purchase_order.picking_ids, date=date_po_and_delivery)
 
         bill = self._create_invoice_for_po(purchase_order, '2018-02-02')
@@ -456,7 +456,7 @@ class TestValuationReconciliation(ValuationReconciliationTestCommon):
 
         #create purchase
         date_po_and_delivery = '2018-01-01'
-        purchase_order = self._create_purchase(self.product_a, date_po_and_delivery, 1, price_unit=27)
+        purchase_order = self._create_purchase(self.product_a, date_po_and_delivery, self.env.ref('base.USD'), 1, price_unit=27)
 
         # proccess picking
         self._process_pickings(purchase_order.picking_ids, date=date_po_and_delivery)
@@ -542,3 +542,71 @@ class TestValuationReconciliation(ValuationReconciliationTestCommon):
             '|', ('debit', '=', 5), ('credit', '=', 5),
         ])
         self.assertEqual(cost_change_journal_items.mapped('quantity'), [0, 0])
+
+    @freeze_time('2025-01-07')
+    def test_exchange_rate_backdated_bill(self):
+        """ Having a purchase order in some foreign currency:
+        Changing the invoice date on the bill for that order after having received the product
+        should not affect the journal entries created after the user clicks the `Post` button on
+        the bill- specifically:
+        (A) In the case where that date is in the future (relative to the actual User time) and
+        (B) The date has an associated currency rate which differs from the one used at reception
+        """
+        product = self.test_product_order
+        self.env['res.currency.rate'].create([{
+            'name': name,
+            'rate': rate,
+            'currency_id': self.env.ref('base.EUR').id,
+            'company_id': self.env.company.id,
+        } for (name, rate) in [('2025-01-06', 0.8), ('2025-01-07', 0.7), ('2025-01-08', 0.8)]])
+        for date in ('2025-01-07', '2025-01-06', '2025-01-08'):
+            purchase_order = self._create_purchase(product, '2025-01-07', self.env.ref('base.EUR'), quantity=1, set_tax=True, price_unit=10)
+            receipt = purchase_order.picking_ids
+            receipt.move_ids.quantity_done = 1
+            receipt.button_validate()
+            purchase_order.action_create_invoice()
+            bill = purchase_order.invoice_ids
+            with Form(bill) as bill_form:
+                bill_form.invoice_date = date
+            bill.action_post()
+
+        # Prior to the commit introducing this test, we would have entries in the following journals:
+        #   | Inventory Valuation | Vendor Bills | Exchange Difference |
+        # Post commit, we should see no entries in the Exchange Difference journal
+        stock_journal_id, bills_journal_id, exchg_journal_id = (
+            product.categ_id.property_stock_journal.id,
+            self.company_data['default_journal_purchase'].id,
+            self.env.company.currency_exchange_journal_id.id,
+        )
+        relevant_amls = self.env['account.move.line'].search([
+            ('journal_id', 'in', (stock_journal_id, bills_journal_id, exchg_journal_id)),
+        ], order='id asc')
+        self.assertEqual(len(relevant_amls), 19)
+        self.assertEqual(self.env['account.journal'].browse(exchg_journal_id).entries_count, 0)
+        self.assertRecordValues(
+            relevant_amls,
+            [
+                # Control (no reconciliation needed)
+                {'journal_id': stock_journal_id,    'balance': -14.29},
+                {'journal_id': stock_journal_id,    'balance':  14.29},
+                {'journal_id': bills_journal_id,    'balance':  14.29},
+                {'journal_id': bills_journal_id,    'balance':   2.14},
+                {'journal_id': bills_journal_id,    'balance': -16.43},
+                # back-dated bill
+                {'journal_id': stock_journal_id,    'balance': -14.29},
+                {'journal_id': stock_journal_id,    'balance':  14.29},
+                {'journal_id': bills_journal_id,    'balance':  12.50},
+                {'journal_id': bills_journal_id,    'balance':   1.88},
+                {'journal_id': bills_journal_id,    'balance': -14.38},
+                {'journal_id': stock_journal_id,    'balance':   1.79},
+                {'journal_id': stock_journal_id,    'balance':  -1.79},
+                # forward-dated bill
+                {'journal_id': stock_journal_id,    'balance': -14.29},
+                {'journal_id': stock_journal_id,    'balance':  14.29},
+                {'journal_id': bills_journal_id,    'balance':  12.50},
+                {'journal_id': bills_journal_id,    'balance':   1.88},
+                {'journal_id': bills_journal_id,    'balance': -14.38},
+                {'journal_id': stock_journal_id,    'balance':   1.79},
+                {'journal_id': stock_journal_id,    'balance':  -1.79},
+            ],
+        )
