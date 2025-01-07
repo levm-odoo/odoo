@@ -361,6 +361,7 @@ function _download(data, filename, mimetype) {
             //html5 A[download]
             anchor.href = url;
             anchor.setAttribute("download", fileName);
+            anchor.setAttribute("target", "_blank");
             anchor.className = "download-js-link";
             anchor.innerText = _lt("downloading...");
             anchor.style.display = "none";
