@@ -237,6 +237,10 @@ class MrpSubcontractingPurchaseTest(TestMrpSubcontractingCommon):
             })],
         })
 
+        # Clear the routes for subcontracting component.
+        resupply_subcontractor_route = self.env.ref('mrp_subcontracting.route_resupply_subcontractor_mto')
+        component.write({'route_ids': [(3, resupply_subcontractor_route.id)]})
+
         po = self.env['purchase.order'].create({
             'partner_id': subcontractor.id,
             'order_line': [(0, 0, {

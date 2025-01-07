@@ -111,6 +111,7 @@ class ProductTemplate(models.Model):
 
     sale_ok = fields.Boolean('Sales', default=True)
     purchase_ok = fields.Boolean('Purchase', default=True, compute='_compute_purchase_ok', store=True, readonly=False)
+    manufacturing_ok = fields.Boolean('Manufacturing')
     uom_id = fields.Many2one(
         'uom.uom', 'Unit of Measure',
         default=_get_default_uom_id, required=True,

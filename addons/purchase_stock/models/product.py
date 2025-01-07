@@ -31,6 +31,12 @@ class ProductTemplate(models.Model):
 
     route_ids = fields.Many2many(default=lambda self: self._get_buy_route())
 
+    @api.onchange('purchase_ok')
+    def onchange_purchase_ok(self):
+        buy_route = self.env.ref('purchase_stock.route_warehouse0_buy')
+        if self.purchase_ok and buy_route:
+            self.write({'route_ids': [(4, buy_route.id)]})
+
 
 class ProductProduct(models.Model):
     _inherit = 'product.product'

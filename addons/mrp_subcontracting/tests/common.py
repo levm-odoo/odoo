@@ -46,6 +46,11 @@ class TestMrpSubcontractingCommon(TransactionCase):
             bom_line.product_qty = 1
         cls.bom = bom_form.save()
 
+        # Clear the routes for subcontracting component.
+        resupply_subcontractor_route = cls.env.ref('mrp_subcontracting.route_resupply_subcontractor_mto')
+        for component in (cls.comp1, cls.comp2):
+            component.write({'route_ids': [(3, resupply_subcontractor_route.id)]})
+
         # Create a BoM for cls.comp2
         cls.comp2comp = cls.env['product.product'].create({
             'name': 'component for Component2',

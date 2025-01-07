@@ -79,6 +79,10 @@
                             <field name="purchase_ok"/>
                             <label for="purchase_ok"/>
                         </span>
+                        <span class="d-inline-flex">
+                            <field name="manufacturing_ok"/>
+                            <label for="manufacturing_ok"/>
+                        </span>
                     </div>
                     <notebook>
                         <page string="General Information" name="general_information">

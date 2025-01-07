@@ -1214,6 +1214,11 @@ class TestSubcontractingTracking(TransactionCase):
             bom_line.product_qty = 1
         cls.bom_tracked = bom_form.save()
 
+        # Clear the routes for subcontracting component.
+        resupply_subcontractor_route = cls.env.ref('mrp_subcontracting.route_resupply_subcontractor_mto')
+        for component in (cls.comp1_sn, cls.comp2):
+            component.write({'route_ids': [(3, resupply_subcontractor_route.id)]})
+
     def test_flow_tracked_1(self):
         """ This test mimics test_flow_1 but with a BoM that has tracking included in it.
         """

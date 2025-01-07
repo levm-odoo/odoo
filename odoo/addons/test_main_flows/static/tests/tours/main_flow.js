@@ -59,6 +59,11 @@ registry.category("web_tour.tours").add('main_flow_tour', {
     tooltipPosition: 'left',
     run: "edit the_flow.product",
 }, {
+    trigger: ".o_field_widget[name=manufacturing_ok] input",
+    content: _t("Set manufacturing_ok True"),
+    tooltipPosition: 'right',
+    run: "click",
+}, {
     trigger: ".o_field_widget[name=is_storable] input",
     content: _t("Let's enter the product type"),
     tooltipPosition: 'right',
@@ -67,11 +72,6 @@ registry.category("web_tour.tours").add('main_flow_tour', {
     trigger: '.o_notebook .nav-link:contains("Inventory")',
     content: _t('Go to inventory tab'),
     tooltipPosition: 'top',
-    run: "click",
-}, {
-    trigger: '.o_field_widget[name=route_ids] .form-check > label:contains("Manufacture")',
-    content: _t('Check Manufacture'),
-    tooltipPosition: 'right',
     run: "click",
 }, {
     trigger: '.o_field_widget[name=route_ids] .form-check > label:contains("Buy")',
