@@ -32,17 +32,15 @@ class AccountMoveLine(models.Model):
     deductible_key = fields.Binary(compute='_compute_deductible_key', exportable=False)
     deductible_needed = fields.Binary(compute='_compute_deductible_needed', exportable=False)
     deductible_dirty = fields.Boolean(compute='_compute_deductible_needed')
+    deductible_aml_id = fields.Many2one('account.move.line', compute='_compute_deductible_needed', exportable=False)
 
     @api.depends('tax_ids', 'account_id', 'company_id')
     def _compute_deductible_key(self):
         for line in self:
-            if line.display_type == 'deductible' and float_compare(line.deductible_amount, 100.00, precision_digits=2):
+            if line.display_type == 'deductible': # I beleive this needs to return things that aren't going to change
                 line.deductible_key = frozendict({
-                    'account_id': line.account_id.id,
-                    'analytic_distribution': line.analytic_distribution,
-                    'tax_ids': [Command.set(line.tax_ids.ids)],
-                    'tax_tag_ids': [Command.set(line.tax_tag_ids.ids)],
-                    'move_id': line.move_id.id,
+                    'balance': line.balance,
+                    'deductible_aml_id': line.deductible_aml_id,
                 })
             else:
                 line.deductible_key = False
@@ -52,6 +50,7 @@ class AccountMoveLine(models.Model):
         for line in self:
             line.deductible_dirty = True
             line.deductible_needed = False
+            line.deductible_aml_id = line.deductible_aml_id or False
 
             if (
                 line.display_type != 'product'
@@ -73,9 +72,10 @@ class AccountMoveLine(models.Model):
                     'move_id': line.move_id.id,
                     'account_id': line.account_id.id,
                     'display_type': 'deductible',
+                    'deductible_aml_id': line.id,
                 }),
                 {
-                    'name': line.name,
+                    'name': line.name + _(" Non-deductible at %s", str(int(line.deductible_amount)) + "%"),
                     'price_unit': -non_deductible_currency,
                     'amount_currency': -non_deductible_currency,
                     'tax_ids': [Command.set(taxes.ids)],
@@ -88,10 +88,11 @@ class AccountMoveLine(models.Model):
                     'move_id': line.move_id.id,
                     'account_id': line.company_id.account_journal_deductible_account_id.id,
                     'display_type': 'deductible',
+                    'deductible_aml_id': line.id,
                 }),
                 {
                     'name': line.name + _(" Non-deductible at %s", str(int(line.deductible_amount)) + "%"),
-                    'amount_currency': non_deductible_currency * (1 + taxes.amount / 100),
+                    'amount_currency': non_deductible_currency * (1 + taxes.amount / 100), # TODO change this to not kill LAS
                     'tax_ids': [],
                 },
             )
