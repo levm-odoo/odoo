@@ -93,6 +93,7 @@
             'website_sale/static/src/js/checkout.js',
             'website_sale/static/src/js/payment_button.js',
             'website_sale/static/src/js/payment_form.js',
+            'website_sale/static/src/js/product.js',
             'website_sale/static/src/js/sale_variant_mixin.js',
             'website_sale/static/src/js/terms_and_conditions_checkbox.js',
             'website_sale/static/src/js/website_sale.js',

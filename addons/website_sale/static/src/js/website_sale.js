@@ -1,17 +1,13 @@
 import { hasTouch, isBrowserFirefox } from "@web/core/browser/feature_detection";
 import { rpc } from "@web/core/network/rpc";
-import { SIZES, utils as uiUtils } from "@web/core/ui/ui_service";
-import { throttleForAnimation } from "@web/core/utils/timing";
 import publicWidget from "@web/legacy/js/public/public_widget";
-import { extraMenuUpdateCallbacks } from "@website/js/content/menu";
 import "@website/libs/zoomodoo/zoomodoo";
-import { ProductImageViewer } from "@website_sale/js/components/website_sale_image_viewer";
 import VariantMixin from "@website_sale/js/sale_variant_mixin";
 
 
 export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, {
     selector: '.oe_website_sale',
-    events: Object.assign({}, VariantMixin.events || {}, {
+    events: Object.assign({}, {
         'change form .js_product:first input[name="add_qty"]': '_onChangeAddQuantity',
         'click a.js_add_cart_json': '_onChangeQuantity',
         'click .a-submit': '_onClickSubmit',
@@ -20,7 +16,6 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, {
         'click #add_to_cart, .o_we_buy_now, #products_grid .o_wsale_product_btn .a-submit': '_onClickAdd',
         'click input.js_product_change': 'onChangeVariant',
         'change .js_main_product [data-attribute_exclusions]': 'onChangeVariant',
-        'click .o_product_page_reviews_link': '_onClickReviewsLink',
         'mousedown .o_wsale_filmstip_wrapper': '_onMouseDown',
         'mouseleave .o_wsale_filmstip_wrapper': '_onMouseLeave',
         'mouseup .o_wsale_filmstip_wrapper': '_onMouseUp',
@@ -35,7 +30,6 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, {
     init: function () {
         this._super.apply(this, arguments);
 
-        this.isWebsite = true;
         this.filmStripStartX = 0;
         this.filmStripIsDown = false;
         this.filmStripScrollLeft = 0;
@@ -51,8 +45,6 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, {
 
         // This has to be triggered to compute the "out of stock" feature and the hash variant changes
         this.triggerVariantChange(this.$el);
-
-        this._startZoom();
 
         // Triggered when selecting a variant of a product in a carousel element
         window.addEventListener("hashchange", (ev) => {
@@ -181,126 +173,6 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, {
         else {
             return VariantMixin._getProductId.apply(this, arguments);
         }
-    },
-    _getProductImageLayout: function () {
-        return document.querySelector("#product_detail_main").dataset.image_layout;
-    },
-    _getProductImageWidth: function () {
-        return document.querySelector("#product_detail_main").dataset.image_width;
-    },
-    _getProductImageContainerSelector: function () {
-        return {
-            'carousel': "#o-carousel-product",
-            'grid': "#o-grid-product",
-        }[this._getProductImageLayout()];
-    },
-    _getProductImageContainer: function () {
-        return document.querySelector(this._getProductImageContainerSelector());
-    },
-    _isEditorEnabled() {
-        return document.body.classList.contains("editor_enable");
-    },
-    /**
-     * @private
-     */
-    _startZoom: function () {
-        const salePage = document.querySelector(".o_wsale_product_page");
-        if (!salePage || this._getProductImageWidth() === "none") {
-            return;
-        }
-        this._cleanupZoom();
-        this.zoomCleanup = [];
-        // Zoom on hover (except on mobile)
-        if (salePage.dataset.ecomZoomAuto && !uiUtils.isSmall()) {
-            const images = salePage.querySelectorAll("img[data-zoom]");
-            for (const image of images) {
-                const $image = $(image);
-                const callback = () => {
-                    $image.zoomOdoo({
-                        event: "mouseenter",
-                        attach: this._getProductImageContainerSelector(),
-                        preventClicks: salePage.dataset.ecomZoomClick,
-                        attachToTarget: this._getProductImageLayout() === "grid",
-                    });
-                    image.dataset.zoom = 1;
-                };
-                image.addEventListener('load', callback);
-                this.zoomCleanup.push(() => {
-                    image.removeEventListener('load', callback);
-                    const zoomOdoo = $image.data("zoomOdoo");
-                    if (zoomOdoo) {
-                        zoomOdoo.hide();
-                        $image.unbind();
-                    }
-                });
-                if (image.complete) {
-                    callback();
-                }
-            }
-        }
-        // Zoom on click
-        if (salePage.dataset.ecomZoomClick) {
-            // In this case we want all the images not just the ones that are "zoomables"
-            const images = salePage.querySelectorAll(".product_detail_img");
-            for (const image of images ) {
-                const handler = () => {
-                    if (salePage.dataset.ecomZoomAuto) {
-                        // Remove any flyout
-                        const flyouts = document.querySelectorAll(".zoomodoo-flyout");
-                        for (const flyout of flyouts) {
-                            flyout.remove();
-                        }
-                    }
-                    this.call("dialog", "add", ProductImageViewer, {
-                        selectedImageIdx: [...images].indexOf(image),
-                        images,
-                    });
-                };
-                image.addEventListener("click", handler);
-                this.zoomCleanup.push(() => {
-                    image.removeEventListener("click", handler);
-                });
-            }
-        }
-    },
-    _cleanupZoom() {
-        if (!this.zoomCleanup || !this.zoomCleanup.length) {
-            return;
-        }
-        for (const cleanup of this.zoomCleanup) {
-            cleanup();
-        }
-        this.zoomCleanup = undefined;
-    },
-    /**
-     * On website, we display a carousel instead of only one image
-     *
-     * @override
-     * @private
-     */
-    _updateProductImage: function ($productContainer, displayImage, productId, productTemplateId, newImages, isCombinationPossible) {
-        let $images = $productContainer.find(this._getProductImageContainerSelector());
-        // When using the web editor, don't reload this or the images won't
-        // be able to be edited depending on if this is done loading before
-        // or after the editor is ready.
-        if ($images.length && !this._isEditorEnabled()) {
-            const $newImages = $(newImages);
-            $images.after($newImages);
-            $images.remove();
-            $images = $newImages;
-            // Update the sharable image (only work for Pinterest).
-            const shareImageSrc = $images[0].querySelector('img').src;
-            document.querySelector('meta[property="og:image"]')
-                .setAttribute('content', shareImageSrc);
-
-            if ($images.attr('id') === 'o-carousel-product') {
-                $images.carousel(0);
-            }
-            this._startZoom();
-            // fix issue with carousel height
-            this.trigger_up('widgets_start_request', {$target: $images});
-        }
-        $images.toggleClass('css_not_available', !isCombinationPossible);
     },
     /**
      * @private
@@ -457,12 +329,6 @@ export const WebsiteSale = publicWidget.Widget.extend(VariantMixin, {
         this._setUrlHash($component);
 
         return VariantMixin.onChangeVariant.apply(this, arguments);
-    },
-    /**
-     * @private
-     */
-    _onClickReviewsLink: function () {
-        $('#o_product_page_reviews_content').collapse('show');
     },
     /**
      * Prevent multiclicks on confirm button when the form is submitted
@@ -635,179 +501,8 @@ publicWidget.registry.WebsiteSaleLayout = publicWidget.Widget.extend({
     },
 });
 
-publicWidget.registry.WebsiteSaleAccordionProduct = publicWidget.Widget.extend({
-    selector: "#product_accordion",
-
-    /**
-     * @override
-     */
-    async start() {
-        await this._super(...arguments);
-        this._updateAccordionActiveItem();
-    },
-
-    /**
-     * Replace the .SCSS styling applied awaiting Js for the default bootstrap classes,
-     * opening the first accordion entry and restoring flush behavior.
-     *
-     * @private
-     */
-    _updateAccordionActiveItem() {
-        const firstAccordionItemEl = this.el.querySelector('.accordion-item');
-        if (!firstAccordionItemEl) return;
-
-        const firstAccordionItemButtonEl = firstAccordionItemEl.querySelector('.accordion-button');
-        firstAccordionItemButtonEl.classList.remove('collapsed');
-        firstAccordionItemButtonEl.setAttribute('aria-expanded', 'true');
-        firstAccordionItemEl.querySelector('.accordion-collapse').classList.add('show');
-        this.target.classList.remove('o_accordion_not_initialized');
-    },
-});
-
-publicWidget.registry.websiteSaleCarouselProduct = publicWidget.Widget.extend({
-    selector: '#o-carousel-product',
-    disabledInEditableMode: false,
-    events: {
-        'wheel .o_carousel_product_indicators': '_onMouseWheel',
-    },
-
-    /**
-     * @override
-     */
-    async start() {
-        await this._super(...arguments);
-        this._updateCarouselPosition();
-        this.throttleOnResize = throttleForAnimation(this._onSlideCarouselProduct.bind(this));
-        extraMenuUpdateCallbacks.push(this._updateCarouselPosition.bind(this));
-        if (this.$el.find('.carousel-indicators').length > 0) {
-            this.$el.on('slide.bs.carousel.carousel_product_slider', this._onSlideCarouselProduct.bind(this));
-            $(window).on('resize.carousel_product_slider', this.throttleOnResize);
-            this._updateJustifyContent();
-        }
-    },
-    /**
-     * @override
-     */
-    destroy() {
-        this.$el.css('top', '');
-        this.$el.off('.carousel_product_slider');
-        if (this.throttleOnResize) {
-            this.throttleOnResize.cancel();
-        }
-        this._super(...arguments);
-    },
-
-    //--------------------------------------------------------------------------
-    // Private
-    //--------------------------------------------------------------------------
-
-    /**
-     * @private
-     */
-    _updateCarouselPosition() {
-        let size = 5;
-        for (const el of document.querySelectorAll('.o_top_fixed_element')) {
-            size += $(el).outerHeight();
-        }
-        this.$el.css('top', size);
-    },
-
-    //--------------------------------------------------------------------------
-    // Handlers
-    //--------------------------------------------------------------------------
-
-    /**
-     * Center the selected indicator to scroll the indicators list when it
-     * overflows.
-     *
-     * @private
-     * @param {Event} ev
-     */
-    _onSlideCarouselProduct: function (ev) {
-        const isReversed = this.$el.css('flex-direction') === "column-reverse";
-        const isLeftIndicators = this.$el.hasClass('o_carousel_product_left_indicators');
-        const $indicatorsDiv = isLeftIndicators ? this.$el.find('.o_carousel_product_indicators') : this.$el.find('.carousel-indicators');
-        let indicatorIndex = $(ev.relatedTarget).index();
-        indicatorIndex = indicatorIndex > -1 ? indicatorIndex : this.$el.find('li.active').index();
-        const $indicator = $indicatorsDiv.find('[data-bs-slide-to=' + indicatorIndex + ']');
-        const indicatorsDivSize = isLeftIndicators && !isReversed ? $indicatorsDiv.outerHeight() : $indicatorsDiv.outerWidth();
-        const indicatorSize = isLeftIndicators && !isReversed ? $indicator.outerHeight() : $indicator.outerWidth();
-        const indicatorPosition = isLeftIndicators && !isReversed ? $indicator.position().top : $indicator.position().left;
-        const scrollSize = isLeftIndicators && !isReversed ? $indicatorsDiv[0].scrollHeight : $indicatorsDiv[0].scrollWidth;
-        let indicatorsPositionDiff = (indicatorPosition + (indicatorSize/2)) - (indicatorsDivSize/2);
-        indicatorsPositionDiff = Math.min(indicatorsPositionDiff, scrollSize - indicatorsDivSize);
-        this._updateJustifyContent();
-        const indicatorsPositionX = isLeftIndicators && !isReversed ? '0' : '-' + indicatorsPositionDiff;
-        const indicatorsPositionY = isLeftIndicators && !isReversed ? '-' + indicatorsPositionDiff : '0';
-        const translate3D = indicatorsPositionDiff > 0 ? "translate3d(" + indicatorsPositionX + "px," + indicatorsPositionY + "px,0)" : '';
-        $indicatorsDiv.css("transform", translate3D);
-    },
-    /**
-     * @private
-     */
-     _updateJustifyContent: function () {
-        const $indicatorsDiv = this.$el.find('.carousel-indicators');
-        $indicatorsDiv.css('justify-content', 'start');
-        if (uiUtils.getSize() <= SIZES.MD) {
-            if (($indicatorsDiv.children().last().position().left + this.$el.find('li').outerWidth()) < $indicatorsDiv.outerWidth()) {
-                $indicatorsDiv.css('justify-content', 'center');
-            }
-        }
-    },
-    /**
-     * @private
-     * @param {Event} ev
-     */
-    _onMouseWheel: function (ev) {
-        ev.preventDefault();
-        if (ev.originalEvent.deltaY > 0) {
-            this.$el.carousel('next');
-        } else {
-            this.$el.carousel('prev');
-        }
-    },
-});
-
-publicWidget.registry.websiteSaleProductPageReviews = publicWidget.Widget.extend({
-    selector: '#o_product_page_reviews',
-    disabledInEditableMode: false,
-
-    /**
-     * @override
-     */
-    async start() {
-        await this._super(...arguments);
-        this._updateChatterComposerPosition();
-        extraMenuUpdateCallbacks.push(this._updateChatterComposerPosition.bind(this));
-    },
-    /**
-     * @override
-     */
-    destroy() {
-        this.$el.find('.o_portal_chatter_composer').css('top', '');
-        this._super(...arguments);
-    },
-
-    //--------------------------------------------------------------------------
-    // Private
-    //--------------------------------------------------------------------------
-
-    /**
-     * @private
-     */
-    _updateChatterComposerPosition() {
-        let size = 20;
-        for (const el of document.querySelectorAll('.o_top_fixed_element')) {
-            size += $(el).outerHeight();
-        }
-        this.$el.find('.o_portal_chatter_composer').css('top', size);
-    },
-});
 
 export default {
     WebsiteSale: publicWidget.registry.WebsiteSale,
     WebsiteSaleLayout: publicWidget.registry.WebsiteSaleLayout,
-    WebsiteSaleProductPage: publicWidget.registry.WebsiteSaleAccordionProduct,
-    WebsiteSaleCarouselProduct: publicWidget.registry.websiteSaleCarouselProduct,
-    WebsiteSaleProductPageReviews: publicWidget.registry.websiteSaleProductPageReviews,
 };
