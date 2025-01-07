@@ -267,7 +267,7 @@ class ResCurrency(models.Model):
     def _get_table_builder_average(self, period_key, main_company, other_companies, date_from, date_to, main_company_unit_factor) -> SQL:
         if not date_from:
             # When there is no start date, we want to compute the average rate on the current year only
-            date_from = date_utils.start_of(fields.Date.from_string(date_to), 'year')
+            date_from = date_utils.start_of(fields.Date.from_string.to_datetime(date_to), 'year')
 
         return SQL(
             """

@@ -182,7 +182,7 @@ class test_date(CreatorCase):
         self.assertEqual(self.export(False), [['']])
 
     def test_basic(self):
-        self.assertEqual(self.export('2011-11-07'), [[fields.Date.from_string('2011-11-07')]])
+        self.assertEqual(self.export('2011-11-07'), [[fields.Date.from_string.to_datetime('2011-11-07')]])
 
 
 class test_datetime(CreatorCase):
@@ -194,14 +194,14 @@ class test_datetime(CreatorCase):
     def test_basic(self):
         """Export value with no TZ set on the user"""
         self.env.user.write({'tz': False})
-        self.assertEqual(self.export('2011-11-07 21:05:48'), [[fields.Datetime.from_string('2011-11-07 21:05:48')]])
+        self.assertEqual(self.export('2011-11-07 21:05:48'), [[fields.Datetime.from_string.to_datetime('2011-11-07 21:05:48')]])
 
     def test_tz(self):
         """Export converts the value in the user's TZ
 
         .. note:: on the other hand, export uses user lang for display_name
         """
-        self.assertEqual(self.export('2011-11-07 21:05:48', context={'tz': 'Pacific/Norfolk'}), [[fields.Datetime.from_string('2011-11-08 08:35:48')]])
+        self.assertEqual(self.export('2011-11-07 21:05:48', context={'tz': 'Pacific/Norfolk'}), [[fields.Datetime.from_string.to_datetime('2011-11-08 08:35:48')]])
 
 
 class test_selection(CreatorCase):

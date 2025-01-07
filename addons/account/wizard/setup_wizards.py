@@ -51,7 +51,7 @@ class AccountFinancialYearOp(models.TransientModel):
                 'account_opening_date': vals.get('opening_date') or wiz.company_id.account_opening_date,
             })
             wiz.company_id.account_opening_move_id.write({
-                'date': fields.Date.from_string(vals.get('opening_date') or wiz.company_id.account_opening_date) - timedelta(days=1),
+                'date': fields.Date.from_string.to_datetime(vals.get('opening_date') or wiz.company_id.account_opening_date) - timedelta(days=1),
             })
 
         vals.pop('opening_date', None)

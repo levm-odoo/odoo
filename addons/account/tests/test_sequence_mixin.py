@@ -162,7 +162,7 @@ class TestSequenceMixin(TestSequenceMixinCommon):
 
         bill_3 = bill_1.copy({'date': '2016-01-03'})
         bill_4 = bill_1.copy({'date': '2016-01-04'})
-        (bill_3 + bill_4).date = fields.Date.from_string('2016-02-01')
+        (bill_3 + bill_4).date = fields.Date.from_string.to_datetime('2016-02-01')
 
         # Same works with updating multiple moves
         with Form(bill_3) as bill_3_form:
@@ -833,7 +833,7 @@ class TestSequenceMixinConcurrency(TransactionCase):
             })
             moves = env['account.move'].create([{
                 'journal_id': journal.id,
-                'date': fields.Date.from_string('2016-01-01'),
+                'date': fields.Date.from_string.to_datetime('2016-01-01'),
                 'line_ids': [(0, 0, {'name': 'name', 'account_id': account.id})]
             }] * 3)
             moves.name = False

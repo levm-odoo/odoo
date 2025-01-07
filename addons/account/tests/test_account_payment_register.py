@@ -1537,8 +1537,8 @@ class TestAccountPaymentRegister(AccountTestInvoicingCommon):
         })
         invoice.action_post()
         self.assertRecordValues(invoice.line_ids.sorted().filtered('date_maturity'), [
-            {'date_maturity': fields.Date.from_string('2016-01-01'), 'amount_currency': 345.0},
-            {'date_maturity': fields.Date.from_string('2016-03-01'), 'amount_currency': 805.0},
+            {'date_maturity': fields.Date.from_string.to_datetime('2016-01-01'), 'amount_currency': 345.0},
+            {'date_maturity': fields.Date.from_string.to_datetime('2016-03-01'), 'amount_currency': 805.0},
         ])
 
         wizard = self.env['account.payment.register']\
@@ -1608,7 +1608,7 @@ class TestAccountPaymentRegister(AccountTestInvoicingCommon):
 
         # Change the date (rate changed from 1:3 to 1:2).
         with Form(wizard) as wizard_form:
-            wizard_form.payment_date = fields.Date.from_string('2017-01-01')
+            wizard_form.payment_date = fields.Date.from_string.to_datetime('2017-01-01')
         self.assertRecordValues(wizard, [{
             'amount': 3000.0,
             'currency_id': foreign_curr.id,
@@ -1629,9 +1629,9 @@ class TestAccountPaymentRegister(AccountTestInvoicingCommon):
         })
         invoice.action_post()
         self.assertRecordValues(invoice.line_ids.sorted().filtered('date_maturity'), [
-            {'date_maturity': fields.Date.from_string('2016-01-01'), 'amount_currency': 115.0},
-            {'date_maturity': fields.Date.from_string('2016-01-06'), 'amount_currency': 345.0},
-            {'date_maturity': fields.Date.from_string('2016-01-11'), 'amount_currency': 690.0},
+            {'date_maturity': fields.Date.from_string.to_datetime('2016-01-01'), 'amount_currency': 115.0},
+            {'date_maturity': fields.Date.from_string.to_datetime('2016-01-06'), 'amount_currency': 345.0},
+            {'date_maturity': fields.Date.from_string.to_datetime('2016-01-11'), 'amount_currency': 690.0},
         ])
 
         term_lines = invoice.line_ids.filtered('date_maturity').sorted('date_maturity')

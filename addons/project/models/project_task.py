@@ -570,10 +570,10 @@ class ProjectTask(models.Model):
             lambda task: task.project_id.resource_calendar_id and task.create_date
         )
         for task in task_linked_to_calendar:
-            dt_create_date = fields.Datetime.from_string(task.create_date)
+            dt_create_date = fields.Datetime.from_string.to_datetime(task.create_date)
 
             if task.date_assign:
-                dt_date_assign = fields.Datetime.from_string(task.date_assign)
+                dt_date_assign = fields.Datetime.from_string.to_datetime(task.date_assign)
                 duration_data = task.project_id.resource_calendar_id.get_work_duration_data(dt_create_date, dt_date_assign, compute_leaves=True)
                 task.working_hours_open = duration_data['hours']
                 task.working_days_open = duration_data['days']
@@ -582,7 +582,7 @@ class ProjectTask(models.Model):
                 task.working_days_open = 0.0
 
             if task.date_end:
-                dt_date_end = fields.Datetime.from_string(task.date_end)
+                dt_date_end = fields.Datetime.from_string.to_datetime(task.date_end)
                 duration_data = task.project_id.resource_calendar_id.get_work_duration_data(dt_create_date, dt_date_end, compute_leaves=True)
                 task.working_hours_close = duration_data['hours']
                 task.working_days_close = duration_data['days']
@@ -1983,8 +1983,8 @@ class ProjectTask(models.Model):
     def get_unusual_days(self, date_from, date_to=None):
         calendar = self.env.company.resource_calendar_id
         return calendar._get_unusual_days(
-            datetime.combine(fields.Date.from_string(date_from), time.min).replace(tzinfo=UTC),
-            datetime.combine(fields.Date.from_string(date_to), time.max).replace(tzinfo=UTC)
+            datetime.combine(fields.Date.from_string.to_datetime(date_from), time.min).replace(tzinfo=UTC),
+            datetime.combine(fields.Date.from_string.to_datetime(date_to), time.max).replace(tzinfo=UTC)
         )
 
     def action_redirect_to_project_task_form(self):

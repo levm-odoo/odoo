@@ -1154,8 +1154,8 @@ class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
 
     def test_21_date_datetime_helpers(self):
         """ test date/datetime fields helpers """
-        _date = fields.Date.from_string("2077-10-23")
-        _datetime = fields.Datetime.from_string("2077-10-23 09:42:00")
+        _date = fields.Date.from_string.to_datetime("2077-10-23")
+        _datetime = fields.Datetime.from_string.to_datetime("2077-10-23 09:42:00")
 
         # addition
         self.assertEqual(add(_date, days=5), date(2077, 10, 28))

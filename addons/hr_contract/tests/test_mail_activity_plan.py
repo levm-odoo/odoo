@@ -23,8 +23,8 @@ class TestActivitySchedule(ActivityScheduleHRCase):
                                      (cls.employee_4, '2024-01-01')):
             employee.contract_ids = cls.env['hr.contract'].create({
                 'employee_id': employee.id,
-                'date_end': fields.Date.from_string('2025-12-31'),
-                'date_start': fields.Date.from_string(date_start),
+                'date_end': fields.Date.from_string.to_datetime('2025-12-31'),
+                'date_start': fields.Date.from_string.to_datetime(date_start),
                 'name': 'Contract',
                 'state': 'draft',
                 'wage': 1,
@@ -46,7 +46,7 @@ class TestActivitySchedule(ActivityScheduleHRCase):
         ):
             with self._instantiate_activity_schedule_wizard(employees) as form:
                 form.plan_id = self.plan_onboarding
-                self.assertEqual(form.plan_date, fields.Date.from_string(plan_date))
+                self.assertEqual(form.plan_date, fields.Date.from_string.to_datetime(plan_date))
 
         # not applicable on other models
         customers = self.env['res.partner'].create([

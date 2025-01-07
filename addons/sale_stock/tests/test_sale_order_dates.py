@@ -108,7 +108,7 @@ class TestSaleExpectedDate(ValuationReconciliationTestCommon):
         new_order.action_confirm()
         # I verify that the Procurements and Stock Moves have been generated with the correct date
         security_delay = timedelta(days=new_order.company_id.security_lead)
-        commitment_date = fields.Datetime.from_string(new_order.commitment_date)
+        commitment_date = fields.Datetime.from_string.to_datetime(new_order.commitment_date)
         right_date = commitment_date - security_delay
         for line in new_order.order_line:
             self.assertEqual(line.move_ids[0].date, right_date, "The expected date for the Stock Move is wrong")

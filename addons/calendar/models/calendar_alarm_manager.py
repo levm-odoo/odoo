@@ -127,7 +127,7 @@ class CalendarAlarm_Manager(models.AbstractModel):
             past = one_date - timedelta(minutes=(missing * alarm.duration_minutes))
             if future <= past:
                 continue
-            if after and past <= fields.Datetime.from_string(after):
+            if after and past <= fields.Datetime.from_string.to_datetime(after):
                 continue
             result.append({
                 'alarm_id': alarm.id,
@@ -213,7 +213,7 @@ class CalendarAlarm_Manager(models.AbstractModel):
         for event_id in all_meetings:
             max_delta = all_meetings[event_id]['max_duration']
             meeting = self.env['calendar.event'].browse(event_id)
-            in_date_format = fields.Datetime.from_string(meeting.start)
+            in_date_format = fields.Datetime.from_string.to_datetime(meeting.start)
             last_found = self.do_check_alarm_for_one_date(in_date_format, meeting, max_delta, time_limit, 'notification', after=partner.calendar_last_notif_ack)
             if last_found:
                 for alert in last_found:

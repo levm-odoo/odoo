@@ -191,8 +191,8 @@ class TestLeaveRequests(TestHrHolidaysCommon):
             'name': 'Sick Time Off',
             'holiday_status_id': self.holidays_type_2.id,
             'employee_id': self.employee_emp.id,
-            'date_from': fields.Datetime.from_string('2017-01-01 00:00:00'),
-            'date_to': fields.Datetime.from_string('2017-06-01 00:00:00'),
+            'date_from': fields.Datetime.from_string.to_datetime('2017-01-01 00:00:00'),
+            'date_to': fields.Datetime.from_string.to_datetime('2017-06-01 00:00:00'),
             'number_of_days': 10,
         })
         allocation.action_approve()
@@ -201,8 +201,8 @@ class TestLeaveRequests(TestHrHolidaysCommon):
             'name': 'Valid time period',
             'employee_id': self.employee_emp_id,
             'holiday_status_id': self.holidays_type_2.id,
-            'request_date_from': fields.Date.from_string('2017-03-03'),
-            'request_date_to': fields.Date.from_string('2017-03-11'),
+            'request_date_from': fields.Date.from_string.to_datetime('2017-03-03'),
+            'request_date_to': fields.Date.from_string.to_datetime('2017-03-11'),
         })
 
     @mute_logger('odoo.models.unlink', 'odoo.addons.mail.models.mail_mail')
@@ -364,8 +364,8 @@ class TestLeaveRequests(TestHrHolidaysCommon):
             'name': 'Holiday 1 week',
             'employee_id': employee.id,
             'holiday_status_id': leave_type.id,
-            'request_date_from': fields.Date.from_string('2019-12-23'),
-            'request_date_to': fields.Date.from_string('2019-12-27'),
+            'request_date_from': fields.Date.from_string.to_datetime('2019-12-23'),
+            'request_date_to': fields.Date.from_string.to_datetime('2019-12-27'),
         })
 
         self.assertEqual(leave1.number_of_hours, 38)
@@ -378,8 +378,8 @@ class TestLeaveRequests(TestHrHolidaysCommon):
             'name': 'Holiday 1 Day',
             'employee_id': employee.id,
             'holiday_status_id': leave_type.id,
-            'request_date_from': fields.Datetime.from_string('2019-12-30'),
-            'request_date_to': fields.Datetime.from_string('2019-12-30'),
+            'request_date_from': fields.Datetime.from_string.to_datetime('2019-12-30'),
+            'request_date_to': fields.Datetime.from_string.to_datetime('2019-12-30'),
         })
 
         self.assertEqual(leave2.number_of_hours, 4)
@@ -414,8 +414,8 @@ class TestLeaveRequests(TestHrHolidaysCommon):
             ],
             'global_leave_ids': [(0, 0, {
                 'name': 'Christmas Time Off',
-                'date_from': fields.Datetime.from_string('2019-12-25 00:00:00'),
-                'date_to': fields.Datetime.from_string('2019-12-26 23:59:59'),
+                'date_from': fields.Datetime.from_string.to_datetime('2019-12-25 00:00:00'),
+                'date_to': fields.Datetime.from_string.to_datetime('2019-12-26 23:59:59'),
                 'resource_id': False,
                 'time_type': 'leave',
             })]
@@ -433,8 +433,8 @@ class TestLeaveRequests(TestHrHolidaysCommon):
             'name': 'Sick 1 week during christmas snif',
             'employee_id': employee.id,
             'holiday_status_id': leave_type.id,
-            'request_date_from': fields.Date.from_string('2019-12-23'),
-            'request_date_to': fields.Date.from_string('2019-12-27'),
+            'request_date_from': fields.Date.from_string.to_datetime('2019-12-23'),
+            'request_date_to': fields.Date.from_string.to_datetime('2019-12-27'),
         })
         self.assertEqual(leave1.number_of_hours, 24)
         leave1.action_approve()

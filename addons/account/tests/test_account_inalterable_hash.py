@@ -75,13 +75,13 @@ class TestAccountMoveInalterableHash(AccountTestInvoicingCommon):
         with self.assertRaisesRegex(UserError, f"{common}.*Number."):
             move.name = "fake name"
         with self.assertRaisesRegex(UserError, f"{common}.*Date."):
-            move.date = fields.Date.from_string('2023-01-02')
+            move.date = fields.Date.from_string.to_datetime('2023-01-02')
         with self.assertRaisesRegex(UserError, f"{common}.*Company."):
             move.company_id = 666
         with self.assertRaisesRegex(UserError, f"{common}(.*Company.*Date.)|(.*Date.*Company.)"):
             move.write({
                 'company_id': 666,
-                'date': fields.Date.from_string('2023-01-03')
+                'date': fields.Date.from_string.to_datetime('2023-01-03')
             })
 
         with self.assertRaisesRegex(UserError, "You cannot edit the following fields.*Account.*"):
@@ -91,7 +91,7 @@ class TestAccountMoveInalterableHash(AccountTestInvoicingCommon):
 
         # The following fields are not part of the hash so they can be modified
         move.ref = "bla"
-        move.line_ids[0].date_maturity = fields.Date.from_string('2023-01-02')
+        move.line_ids[0].date_maturity = fields.Date.from_string.to_datetime('2023-01-02')
 
     def test_account_move_hash_integrity_report(self):
         """Test the hash integrity report"""
@@ -146,7 +146,7 @@ class TestAccountMoveInalterableHash(AccountTestInvoicingCommon):
         # Let's change one of the fields used by the hash. It should be detected by the integrity report.
         # We need to bypass the write method of account.move to do so.
         date_hashed = first_chain_moves[3].date
-        Model.write(first_chain_moves[3], {'date': fields.Date.from_string('2023-02-07')})
+        Model.write(first_chain_moves[3], {'date': fields.Date.from_string.to_datetime('2023-02-07')})
         self._verify_integrity(moves, f'Corrupted data on journal entry with id {first_chain_moves[3].id}.*')
 
         # Revert the previous change
@@ -178,7 +178,7 @@ class TestAccountMoveInalterableHash(AccountTestInvoicingCommon):
         # Let's change one of the fields used by the hash. It should be detected by the integrity report
         # independently of the hash version used. I.e. we first try the v1 hash, then the v2 hash and neither should work.
         # We need to bypass the write method of account.move to do so.
-        Model.write(moves[1], {'date': fields.Date.from_string('2023-01-07')})
+        Model.write(moves[1], {'date': fields.Date.from_string.to_datetime('2023-01-07')})
         self._verify_integrity(moves, f'Corrupted data on journal entry with id {moves[1].id}.*', prefix=moves[0].sequence_prefix)
 
     def test_account_move_hash_versioning_2(self):
@@ -197,7 +197,7 @@ class TestAccountMoveInalterableHash(AccountTestInvoicingCommon):
         # Let's change one of the fields used by the hash. It should be detected by the integrity report
         # independently of the hash version used. I.e. we first try the v1 hash, then the v2 hash and neither should work.
         # We need to bypass the write method of account.move to do so.
-        Model.write(moves[1], {'date': fields.Date.from_string('2023-01-07')})
+        Model.write(moves[1], {'date': fields.Date.from_string.to_datetime('2023-01-07')})
         self._verify_integrity(moves, f'Corrupted data on journal entry with id {moves[1].id}.*', prefix=moves[0].sequence_prefix)
 
     def test_account_move_hash_versioning_v1_to_v2(self):
@@ -228,7 +228,7 @@ class TestAccountMoveInalterableHash(AccountTestInvoicingCommon):
         # independently of the hash version used. I.e. we first try the v1 hash, then the v2 hash and neither should work.
         # We need to bypass the write method of account.move to do so.
         date_hashed = moves[4].date
-        Model.write(moves[4], {'date': fields.Date.from_string('2023-01-07')})
+        Model.write(moves[4], {'date': fields.Date.from_string.to_datetime('2023-01-07')})
         self._verify_integrity(moves, f'Corrupted data on journal entry with id {moves[4].id}.*', prefix=moves[0].sequence_prefix)
 
         # Let's revert the change and make sure that we cannot use the v1 after the v2.
@@ -282,7 +282,7 @@ class TestAccountMoveInalterableHash(AccountTestInvoicingCommon):
         moves = moves_v2 | moves_v3
         self._verify_integrity(moves, "Entries are correctly hashed", moves[0], moves[-1], prefix=moves[0].sequence_prefix)
 
-        Model.write(moves[1], {'date': fields.Date.from_string('2023-01-07')})
+        Model.write(moves[1], {'date': fields.Date.from_string.to_datetime('2023-01-07')})
         self._verify_integrity(moves, f'Corrupted data on journal entry with id {moves[1].id}.*', prefix=moves[0].sequence_prefix)
 
     def test_account_move_hash_with_cash_rounding(self):
@@ -636,7 +636,7 @@ class TestAccountMoveInalterableHash(AccountTestInvoicingCommon):
 
         self._verify_integrity(moves, "Entries are correctly hashed", moves_v3_post_restrict_mode[0], moves[-1], prefix=moves[0].sequence_prefix)
 
-        Model.write(moves_v3_post_restrict_mode[1], {'date': fields.Date.from_string('2024-11-07')})
+        Model.write(moves_v3_post_restrict_mode[1], {'date': fields.Date.from_string.to_datetime('2024-11-07')})
         self._verify_integrity(moves, f'Corrupted data on journal entry with id {moves_v3_post_restrict_mode[1].id}.*', prefix=moves[0].sequence_prefix)
 
     def test_inalterable_hash_verification_by_batches(self):
@@ -794,10 +794,10 @@ class TestAccountMoveInalterableHash(AccountTestInvoicingCommon):
             sp.close()  # Rollback
 
         # We can ignore the moves by setting the hard lock date:
-        self.assertEqual(wizard.max_hash_date, fields.Date.from_string("2023-12-31"))
+        self.assertEqual(wizard.max_hash_date, fields.Date.from_string.to_datetime("2023-12-31"))
         self.company_data['company'].hard_lock_date = "2024-01-01"
         # There is nothing to hash
         wizard = self.env['account.secure.entries.wizard'].create({'hash_date': '2024-01-03'})
-        self.assertEqual(wizard.max_hash_date, fields.Date.from_string("2024-01-02"))
+        self.assertEqual(wizard.max_hash_date, fields.Date.from_string.to_datetime("2024-01-02"))
         self.assertFalse(wizard.not_hashable_unlocked_move_ids)
         self.assertEqual(wizard.move_to_hash_ids, moves_v4)

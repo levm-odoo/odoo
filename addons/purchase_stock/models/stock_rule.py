@@ -51,7 +51,7 @@ class StockRule(models.Model):
         for procurement, rule in procurements:
 
             # Get the schedule date in order to find a valid seller
-            procurement_date_planned = fields.Datetime.from_string(procurement.values['date_planned'])
+            procurement_date_planned = fields.Datetime.from_string.to_datetime(procurement.values['date_planned'])
 
             supplier = False
             if procurement.values.get('supplierinfo_id'):
@@ -270,7 +270,7 @@ class StockRule(models.Model):
         params values: values of procurements
         params origins: procuremets origins to write on the PO
         """
-        purchase_date = min([value.get('date_order') or fields.Datetime.from_string(value['date_planned']) - relativedelta(days=int(value['supplier'].delay)) for value in values])
+        purchase_date = min([value.get('date_order') or fields.Datetime.from_string.to_datetime(value['date_planned']) - relativedelta(days=int(value['supplier'].delay)) for value in values])
 
         # Since the procurements are grouped if they share the same domain for
         # PO but the PO does not exist. In this case it will create the PO from

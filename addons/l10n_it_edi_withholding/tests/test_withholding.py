@@ -196,7 +196,7 @@ class TestWithholdingAndPensionFundTaxes(TestItEdi):
 
     def test_withholding_taxes_import(self):
         invoice = self._assert_import_invoice('IT00470550013_withh.xml', [{
-            'invoice_date': fields.Date.from_string('2022-03-24'),
+            'invoice_date': fields.Date.from_string.to_datetime('2022-03-24'),
             'amount_untaxed': 750.0,
             'amount_total': 765.00,
             'amount_tax': 15.0,
@@ -237,7 +237,7 @@ class TestWithholdingAndPensionFundTaxes(TestItEdi):
 
     def test_pension_fund_taxes_import(self):
         invoice = self._assert_import_invoice('IT00470550013_pfund.xml', [{
-            'invoice_date': fields.Date.from_string('2022-03-24'),
+            'invoice_date': fields.Date.from_string.to_datetime('2022-03-24'),
             'amount_untaxed': 750.0,
             'amount_total': 795.6,
             'amount_tax': 45.6,
@@ -278,7 +278,7 @@ class TestWithholdingAndPensionFundTaxes(TestItEdi):
 
     def test_enasarco_tax_import(self):
         invoice = self._assert_import_invoice('IT00470550013_enasa.xml', [{
-            'invoice_date': fields.Date.from_string('2022-03-24'),
+            'invoice_date': fields.Date.from_string.to_datetime('2022-03-24'),
             'amount_untaxed': 750.0,
             'amount_total': 765.0,
             'amount_tax': 15.0,

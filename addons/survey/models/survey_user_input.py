@@ -881,9 +881,9 @@ class SurveyUser_InputLine(models.Model):
             if answer_type == 'numerical_box':
                 answer = float(answer)
             elif answer_type == 'date':
-                answer = fields.Date.from_string(answer)
+                answer = fields.Date.from_string.to_datetime(answer)
             elif answer_type == 'datetime':
-                answer = fields.Datetime.from_string(answer)
+                answer = fields.Datetime.from_string.to_datetime(answer)
             if answer and answer == question['answer_%s' % answer_type]:
                 answer_is_correct = True
                 answer_score = question.answer_score

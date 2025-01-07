@@ -234,7 +234,7 @@ class EventTrackController(http.Controller):
         time_slots_by_day = dict((day, dict(start=set(), end=set())) for day in days)
         tracks_by_rounded_times = dict((time_slot, dict((location, {}) for location in locations)) for time_slot in track_time_slots)
         for track, time_slots in time_slots_by_tracks.items():
-            start_date = fields.Datetime.from_string(track.date).replace(tzinfo=pytz.utc).astimezone(local_tz)
+            start_date = fields.Datetime.from_string.to_datetime(track.date).replace(tzinfo=pytz.utc).astimezone(local_tz)
             end_date = start_date + timedelta(hours=(track.duration or 0.25))
 
             for time_slot, duration in time_slots.items():
@@ -268,7 +268,7 @@ class EventTrackController(http.Controller):
         tracks_by_days = dict.fromkeys(days, 0)
         locations_by_days = defaultdict(list)
         for track in tracks_sudo:
-            track_day = fields.Datetime.from_string(track.date).replace(tzinfo=pytz.utc).astimezone(local_tz).date()
+            track_day = fields.Datetime.from_string.to_datetime(track.date).replace(tzinfo=pytz.utc).astimezone(local_tz).date()
             tracks_by_days[track_day] += 1
             if track.location_id not in locations_by_days[track_day]:
                 locations_by_days[track_day].append(track.location_id)
@@ -313,7 +313,7 @@ class EventTrackController(http.Controller):
                 }
         Also return a set of all the time slots
         """
-        start_date = fields.Datetime.from_string(track.date).replace(tzinfo=pytz.utc).astimezone(local_tz)
+        start_date = fields.Datetime.from_string.to_datetime(track.date).replace(tzinfo=pytz.utc).astimezone(local_tz)
         start_datetime = self.time_slot_rounder(start_date, 15)
         end_datetime = self.time_slot_rounder(start_datetime + timedelta(hours=(track.duration or 0.25)), 15)
         time_slots_count = int(((end_datetime - start_datetime).total_seconds() / 3600) * 4)
@@ -338,7 +338,7 @@ class EventTrackController(http.Controller):
         """
         occupied_cells = []
 
-        start_date = fields.Datetime.from_string(track.date).replace(tzinfo=pytz.utc).astimezone(local_tz)
+        start_date = fields.Datetime.from_string.to_datetime(track.date).replace(tzinfo=pytz.utc).astimezone(local_tz)
         start_date = self.time_slot_rounder(start_date, 15)
         for i in range(0, rowspan):
             time_slot = start_date + timedelta(minutes=15*i)

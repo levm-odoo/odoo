@@ -11,7 +11,7 @@ class TestLivechatCommon(TransactionCaseWithUserDemo):
     def setUp(self):
         super().setUp()
         self.env.company.email = "test@test.example.com"
-        self.base_datetime = fields.Datetime.from_string("2019-11-11 21:30:00")
+        self.base_datetime = fields.Datetime.from_string.to_datetime("2019-11-11 21:30:00")
 
         self.group_user = self.env.ref('base.group_user')
         self.group_livechat_user = self.env.ref('im_livechat.im_livechat_group_user')

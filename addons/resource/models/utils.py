@@ -29,7 +29,7 @@ def make_aware(dt):
 
 def string_to_datetime(value):
     """ Convert the given string value to a datetime in UTC. """
-    return utc.localize(fields.Datetime.from_string(value))
+    return utc.localize(fields.Datetime.from_string.to_datetime(value))
 
 
 def datetime_to_string(dt):

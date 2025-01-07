@@ -78,7 +78,7 @@ class PosConfig(models.Model):
                     'error_message': _('This coupon is invalid (%s).', code),
                 },
             }
-        check_date = fields.Date.from_string(creation_date[:11])
+        check_date = fields.Date.from_string.to_datetime(creation_date[:11])
         today_date = fields.Date.context_today(self)
         error_message = False
         if (

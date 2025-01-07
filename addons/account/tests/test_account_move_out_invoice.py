@@ -117,13 +117,13 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
             'amount_currency': 1410.0,
             'debit': 1410.0,
             'credit': 0.0,
-            'date_maturity': fields.Date.from_string('2019-01-01'),
+            'date_maturity': fields.Date.from_string.to_datetime('2019-01-01'),
         }
         cls.move_vals = {
             'partner_id': cls.partner_a.id,
             'currency_id': cls.company_data['currency'].id,
             'journal_id': cls.company_data['default_journal_sale'].id,
-            'date': fields.Date.from_string('2019-01-01'),
+            'date': fields.Date.from_string.to_datetime('2019-01-01'),
             'fiscal_position_id': False,
             'payment_reference': False,
             'invoice_payment_term_id': cls.pay_terms_a.id,
@@ -238,7 +238,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
 
         move_form = Form(self.env['account.move'].with_context(default_move_type='out_invoice'))
         move_form.partner_id = self.partner_a
-        move_form.invoice_date = fields.Date.from_string('2019-01-01')
+        move_form.invoice_date = fields.Date.from_string.to_datetime('2019-01-01')
         move_form.currency_id = self.other_currency
         move_form.fiscal_position_id = fiscal_position
         with move_form.invoice_line_ids.new() as line_form:
@@ -410,7 +410,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
 
         move_form = Form(self.env['account.move'].with_context(default_move_type='out_invoice'))
         move_form.partner_id = self.partner_a
-        move_form.invoice_date = fields.Date.from_string('2019-01-01')
+        move_form.invoice_date = fields.Date.from_string.to_datetime('2019-01-01')
         move_form.currency_id = self.other_currency
         move_form.fiscal_position_id = fiscal_position
         with move_form.invoice_line_ids.new() as line_form:
@@ -611,7 +611,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 'partner_id': self.partner_b.id,
                 'amount_currency': 987.0,
                 'debit': 987.0,
-                'date_maturity': fields.Date.from_string('2019-02-28'),
+                'date_maturity': fields.Date.from_string.to_datetime('2019-02-28'),
             },
         ], {
             **self.move_vals,
@@ -667,7 +667,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 'partner_id': self.partner_b.id,
                 'amount_currency': 966.0,
                 'debit': 966.0,
-                'date_maturity': fields.Date.from_string('2019-02-28'),
+                'date_maturity': fields.Date.from_string.to_datetime('2019-02-28'),
             },
         ], {
             **self.move_vals,
@@ -901,7 +901,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         check_invoice_values(invoice_create)
 
         move_form = Form(self.env['account.move'].with_context(default_move_type='out_invoice'))
-        move_form.invoice_date = fields.Date.from_string('2017-01-01')
+        move_form.invoice_date = fields.Date.from_string.to_datetime('2017-01-01')
         move_form.partner_id = self.partner_a
         with move_form.invoice_line_ids.new() as line_form:
             line_form.name = 'test line'
@@ -923,7 +923,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         })
 
         move_form = Form(self.env['account.move'].with_context(default_move_type='out_invoice'))
-        move_form.invoice_date = fields.Date.from_string('2017-01-01')
+        move_form.invoice_date = fields.Date.from_string.to_datetime('2017-01-01')
         move_form.partner_id = self.partner_a
         with move_form.invoice_line_ids.new() as line_form:
             line_form.product_id = product
@@ -936,7 +936,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         fiscal_position = self.env['account.fiscal.position'].create({'name': 'fiscal_position'})
 
         move_form = Form(self.env['account.move'].with_context(default_move_type='out_invoice'))
-        move_form.invoice_date = fields.Date.from_string('2017-01-01')
+        move_form.invoice_date = fields.Date.from_string.to_datetime('2017-01-01')
         move_form.partner_id = self.partner_a
         move_form.fiscal_position_id = fiscal_position
         with move_form.invoice_line_ids.new() as line_form:
@@ -1572,7 +1572,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
 
         # Change the date to get another rate: 1/3 instead of 1/2.
         with Form(self.invoice) as move_form:
-            move_form.invoice_date = fields.Date.from_string('2016-01-01')
+            move_form.invoice_date = fields.Date.from_string.to_datetime('2016-01-01')
 
         self.assertInvoiceValues(self.invoice, [
             {
@@ -1604,12 +1604,12 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 'currency_id': self.other_currency.id,
                 'amount_currency': 1410.0,
                 'debit': 470.0,
-                'date_maturity': fields.Date.from_string('2016-01-01'),
+                'date_maturity': fields.Date.from_string.to_datetime('2016-01-01'),
             },
         ], {
             **self.move_vals,
             'currency_id': self.other_currency.id,
-            'date': fields.Date.from_string('2016-01-01'),
+            'date': fields.Date.from_string.to_datetime('2016-01-01'),
         })
 
         move_form = Form(self.invoice)
@@ -1654,12 +1654,12 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 'currency_id': self.other_currency.id,
                 'amount_currency': 260.006,
                 'debit': 86.67,
-                'date_maturity': fields.Date.from_string('2016-01-01'),
+                'date_maturity': fields.Date.from_string.to_datetime('2016-01-01'),
             },
         ], {
             **self.move_vals,
             'currency_id': self.other_currency.id,
-            'date': fields.Date.from_string('2016-01-01'),
+            'date': fields.Date.from_string.to_datetime('2016-01-01'),
             'amount_untaxed': 200.005,
             'amount_tax': 60.001,
             'amount_total': 260.006,
@@ -1691,12 +1691,12 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 **self.term_line_vals_1,
                 'amount_currency': 260.01,
                 'debit': 260.01,
-                'date_maturity': fields.Date.from_string('2016-01-01'),
+                'date_maturity': fields.Date.from_string.to_datetime('2016-01-01'),
             },
         ], {
             **self.move_vals,
             'currency_id': self.company_data['currency'].id,
-            'date': fields.Date.from_string('2016-01-01'),
+            'date': fields.Date.from_string.to_datetime('2016-01-01'),
             'amount_untaxed': 200.01,
             'amount_tax': 60.0,
             'amount_total': 260.01,
@@ -1796,7 +1796,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         })
 
         move_reversal = self.env['account.move.reversal'].with_context(active_model="account.move", active_ids=self.invoice.ids).create({
-            'date': fields.Date.from_string('2019-02-01'),
+            'date': fields.Date.from_string.to_datetime('2019-02-01'),
             'reason': 'no reason',
             'journal_id': self.invoice.journal_id.id,
         })
@@ -1859,7 +1859,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         })
 
         move_reversal = self.env['account.move.reversal'].with_context(active_model="account.move", active_ids=self.invoice.ids).create({
-            'date': fields.Date.from_string('2019-02-01'),
+            'date': fields.Date.from_string.to_datetime('2019-02-01'),
             'reason': 'no reason',
             'journal_id': self.invoice.journal_id.id,
         })
@@ -1931,7 +1931,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
 
         # The currency rate changed from 1/3 to 1/2.
         move_reversal = self.env['account.move.reversal'].with_context(active_model="account.move", active_ids=self.invoice.ids).create({
-            'date': fields.Date.from_string('2017-01-01'),
+            'date': fields.Date.from_string.to_datetime('2017-01-01'),
             'reason': 'no reason',
             'journal_id': self.invoice.journal_id.id,
         })
@@ -1988,7 +1988,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         })
 
         move_reversal = self.env['account.move.reversal'].with_context(active_model="account.move", active_ids=self.invoice.ids).create({
-            'date': fields.Date.from_string('2017-01-01'),
+            'date': fields.Date.from_string.to_datetime('2017-01-01'),
             'reason': 'no reason',
             'journal_id': self.invoice.journal_id.id,
         })
@@ -2065,7 +2065,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         move = self.env['account.move'].create({
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
-            'invoice_date': fields.Date.from_string('2019-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2019-01-01'),
             'currency_id': self.other_currency.id,
             'invoice_payment_term_id': self.pay_terms_a.id,
             'invoice_line_ids': [
@@ -2132,7 +2132,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         move = self.env['account.move'].create({
             'move_type': 'out_invoice',
             'partner_id': partner_a_child.id,
-            'invoice_date': fields.Date.from_string('2019-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2019-01-01'),
             'currency_id': self.other_currency.id,
             'invoice_payment_term_id': self.pay_terms_a.id,
             'invoice_line_ids': [
@@ -2159,7 +2159,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         move = self.env['account.move'].create({
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
-            'invoice_date': fields.Date.from_string('2019-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2019-01-01'),
             'currency_id': self.other_currency.id,
             'invoice_payment_term_id': self.pay_terms_a.id,
             'invoice_line_ids': [
@@ -2254,7 +2254,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
             move = self.env['account.move'].create({
                 'move_type': 'out_invoice',
                 'partner_id': self.partner_a.id,
-                'invoice_date': fields.Date.from_string('2016-01-01'),
+                'invoice_date': fields.Date.from_string.to_datetime('2016-01-01'),
                 'currency_id': self.other_currency.id,
                 'invoice_payment_term_id': self.pay_terms_a.id,
                 'invoice_line_ids': [
@@ -2346,8 +2346,8 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         move = self.env['account.move'].create({
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
-            'invoice_date': fields.Date.from_string('2017-01-15'),
-            'date': fields.Date.from_string('2015-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2017-01-15'),
+            'date': fields.Date.from_string.to_datetime('2015-01-01'),
             'currency_id': self.other_currency.id,
             'invoice_payment_term_id': self.pay_terms_a.id,
             'invoice_line_ids': [
@@ -2387,7 +2387,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         # Set the tax lock date:
         # - The date must be set automatically at the date of today (2017-01-15).
         # - As the date changed, the currency rate has changed (1/3 => 1/2).
-        move.company_id.tax_lock_date = fields.Date.from_string('2016-12-31')
+        move.company_id.tax_lock_date = fields.Date.from_string.to_datetime('2016-12-31')
 
         move.action_post()
 
@@ -2427,13 +2427,13 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 'amount_currency': 1430.0,
                 'debit': 715.0,
                 'credit': 0.0,
-                'date_maturity': fields.Date.from_string('2017-01-15'),
+                'date_maturity': fields.Date.from_string.to_datetime('2017-01-15'),
             },
         ], {
             **self.move_vals,
             'payment_reference': move.name,
             'currency_id': self.other_currency.id,
-            'date': fields.Date.from_string('2017-01-15'),
+            'date': fields.Date.from_string.to_datetime('2017-01-15'),
             'amount_untaxed': 1200.0,
             'amount_tax': 230.0,
             'amount_total': 1430.0,
@@ -2444,7 +2444,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         move = self.env['account.move'].create({
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
-            'invoice_date': fields.Date.from_string('2019-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2019-01-01'),
             'currency_id': self.other_currency.id,
             'invoice_payment_term_id': self.pay_terms_a.id,
             'invoice_line_ids': [
@@ -2511,7 +2511,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         move = self.env['account.move'].create({
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
-            'invoice_date': fields.Date.from_string('2019-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2019-01-01'),
             'currency_id': self.other_currency.id,
             'invoice_payment_term_id': self.pay_terms_a.id,
             'invoice_line_ids': [
@@ -2666,7 +2666,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         invoice = self.env['account.move'].create({
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
-            'invoice_date': fields.Date.from_string('2019-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2019-01-01'),
             'invoice_payment_term_id': self.pay_terms_a.id,
             'invoice_line_ids': [
                 (0, 0, {
@@ -2705,7 +2705,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'date': '2017-01-01',
             'partner_id': self.partner_a.id,
-            'invoice_date': fields.Date.from_string('2017-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2017-01-01'),
             'currency_id': self.other_currency.id,
             'invoice_payment_term_id': self.pay_terms_a.id,
             'invoice_line_ids': [
@@ -2786,12 +2786,12 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 'amount_currency': 1410.0,
                 'debit': 705.0,
                 'credit': 0.0,
-                'date_maturity': fields.Date.from_string('2017-01-01'),
+                'date_maturity': fields.Date.from_string.to_datetime('2017-01-01'),
             },
         ], {
             **self.move_vals,
             'currency_id': self.other_currency.id,
-            'date': fields.Date.from_string('2017-01-01'),
+            'date': fields.Date.from_string.to_datetime('2017-01-01'),
             'payment_reference': 'INV/2017/00001',
         })
 
@@ -2812,7 +2812,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         move = self.init_invoice(
             move_type='out_invoice',
             partner=self.partner_a,
-            invoice_date=fields.Date.from_string('2019-01-01'),
+            invoice_date=fields.Date.from_string.to_datetime('2019-01-01'),
             amounts=[1000.0],
             post=True,
         )
@@ -2833,8 +2833,8 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
 
         accrual_moves = self.env['account.move'].browse(wizard_res['domain'][0][2])
         self.assertRecordValues(accrual_moves, [
-            {'state': 'posted', 'date': fields.Date.from_string('2019-01-16')},
-            {'state': 'posted', 'date': fields.Date.from_string('2019-01-16')},
+            {'state': 'posted', 'date': fields.Date.from_string.to_datetime('2019-01-16')},
+            {'state': 'posted', 'date': fields.Date.from_string.to_datetime('2019-01-16')},
         ])
 
     @freeze_time("2017-01-01")
@@ -2843,7 +2843,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
             'move_type': 'out_invoice',
             'date': '2017-01-01',
             'partner_id': self.partner_a.id,
-            'invoice_date': fields.Date.from_string('2017-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2017-01-01'),
             'currency_id': self.other_currency.id,
             'invoice_payment_term_id': self.pay_terms_a.id,
             'invoice_line_ids': [
@@ -2924,12 +2924,12 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 'amount_currency': 1410.0,
                 'debit': 705.0,
                 'credit': 0.0,
-                'date_maturity': fields.Date.from_string('2017-01-01'),
+                'date_maturity': fields.Date.from_string.to_datetime('2017-01-01'),
             },
         ], {
             **self.move_vals,
             'currency_id': self.other_currency.id,
-            'date': fields.Date.from_string('2017-01-01'),
+            'date': fields.Date.from_string.to_datetime('2017-01-01'),
             'payment_reference': 'INV/2017/00001',
         })
 
@@ -3001,7 +3001,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                 'move_type': 'out_invoice',
                 'date': date,
                 'partner_id': self.partner_a.id,
-                'invoice_date': fields.Date.from_string(date),
+                'invoice_date': fields.Date.from_string.to_datetime(date),
                 'currency_id': self.other_currency.id,
                 'invoice_payment_term_id': self.pay_terms_a.id,
                 'invoice_line_ids': [
@@ -3087,12 +3087,12 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
                     'amount_currency': 1410.0,
                     'debit': 705.0,
                     'credit': 0.0,
-                    'date_maturity': fields.Date.from_string(date),
+                    'date_maturity': fields.Date.from_string.to_datetime(date),
                 },
             ], {
                 **self.move_vals,
                 'currency_id': self.other_currency.id,
-                'date': fields.Date.from_string(date),
+                'date': fields.Date.from_string.to_datetime(date),
                 'payment_reference': ref,
             })
 
@@ -3148,7 +3148,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         invoice = self.env['account.move'].create({
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
-            'invoice_date': fields.Date.from_string('2019-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2019-01-01'),
             'invoice_payment_term_id': zero_balance_payment_term.id,
             'invoice_line_ids': [(0, None, {
                 'name': 'whatever',
@@ -3314,7 +3314,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         move_form = Form(self.env['account.move'].with_context(default_move_type='out_invoice'))
         move_form.journal_id = journal
         move_form.partner_id = partner
-        move_form.invoice_date = fields.Date.from_string('2017-01-01')
+        move_form.invoice_date = fields.Date.from_string.to_datetime('2017-01-01')
         with move_form.invoice_line_ids.new() as line_form:
             line_form.product_id = product
             line_form.tax_ids.clear()
@@ -3359,10 +3359,10 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
             'invoice_payment_term_id': False,
         })
         self.assertRecordValues(copy_invoice, [
-            {'invoice_date_due': fields.Date.from_string('2018-01-01')},
+            {'invoice_date_due': fields.Date.from_string.to_datetime('2018-01-01')},
         ])
         self.assertRecordValues(copy_invoice.line_ids.filtered('date_maturity'), [
-            {'date_maturity': fields.Date.from_string('2018-01-01')},
+            {'date_maturity': fields.Date.from_string.to_datetime('2018-01-01')},
         ])
 
     def test_out_invoice_note_and_tax_partner_is_set(self):
@@ -3449,7 +3449,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         # create invoice
         move_form = Form(self.env['account.move'].with_context(default_move_type='out_invoice'))
         move_form.partner_id = self.partner_a
-        move_form.invoice_date = fields.Date.from_string('2017-01-01')
+        move_form.invoice_date = fields.Date.from_string.to_datetime('2017-01-01')
         with move_form.invoice_line_ids.new() as line_form:
             line_form.product_id = self.product_a
             line_form.tax_ids.clear()
@@ -3574,7 +3574,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         invoice = self.env['account.move'].create({
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
-            'invoice_date': fields.Date.from_string('2017-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2017-01-01'),
             'invoice_line_ids': [
                 Command.create({
                     'account_id': not_default_income_account.id,
@@ -3677,7 +3677,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         # Create the invoice
         invoice = self.env['account.move'].create({
             'move_type': 'out_invoice',
-            'invoice_date': fields.Date.from_string('2022-02-20'),
+            'invoice_date': fields.Date.from_string.to_datetime('2022-02-20'),
             'partner_id': self.partner_a.id,
             'invoice_line_ids': [
                 Command.create({
@@ -3697,7 +3697,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
 
     def test_quick_edit_total_amount(self):
         move_form = Form(self.env['account.move'].with_context(default_move_type='out_invoice'))
-        move_form.invoice_date = fields.Date.from_string('2022-01-01')
+        move_form.invoice_date = fields.Date.from_string.to_datetime('2022-01-01')
         move_form.partner_id = self.partner_a
 
         # Quick edit total amount not activated yet
@@ -3744,7 +3744,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
 
     def test_quick_edit_total_amount_with_mixed_epd(self):
         move_form = Form(self.env['account.move'].with_context(default_move_type='out_invoice'))
-        move_form.invoice_date = fields.Date.from_string('2022-01-01')
+        move_form.invoice_date = fields.Date.from_string.to_datetime('2022-01-01')
 
         # Quick edit total amount activated
         self.env.company.quick_edit_mode = "out_and_in_invoices"
@@ -4149,7 +4149,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         invoice = self.env['account.move'].create({
             'move_type': 'out_invoice',
             'partner_id': self.partner_a.id,
-            'invoice_date': fields.Date.from_string('2019-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2019-01-01'),
             'invoice_line_ids': [
                 Command.create({
                     'product_id': self.product_a.id,
@@ -4242,7 +4242,7 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
             amounts=[1000.0],
         )
 
-        move.invoice_date = fields.Date.from_string('2024-01-01')
+        move.invoice_date = fields.Date.from_string.to_datetime('2024-01-01')
         self.env.flush_all()
 
         for line in move.line_ids:

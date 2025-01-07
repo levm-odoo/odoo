@@ -22,7 +22,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
             .filtered(lambda line: line.repartition_type == 'tax')
         cls.test_move = cls.env['account.move'].create({
             'move_type': 'entry',
-            'date': fields.Date.from_string('2016-01-01'),
+            'date': fields.Date.from_string.to_datetime('2016-01-01'),
             'line_ids': [
                 (0, None, {
                     'name': 'revenue line 1',
@@ -96,15 +96,15 @@ class TestAccountMove(AccountTestInvoicingCommon):
         # Create auto-posted entry, recurring monthly until two months later
         prev_invoices = self.env['account.move'].search(domain=[])
         self.test_move.auto_post = 'monthly'
-        self.test_move.auto_post_until = fields.Date.from_string('2022-02-28')
-        date = fields.Date.from_string('2021-12-30')
+        self.test_move.auto_post_until = fields.Date.from_string.to_datetime('2022-02-28')
+        date = fields.Date.from_string.to_datetime('2021-12-30')
         self.test_move.invoice_date = date
         self.test_move.date = date  # invoice_date's onchange does not trigger from code
         self.test_move.invoice_date_due = date + relativedelta(days=1)
 
         self.env.ref('account.ir_cron_auto_post_draft_entry').method_direct_trigger()  # first recurrence
         new_invoices_1 = self.env['account.move'].search(domain=[]) - prev_invoices
-        new_date_1 = fields.Date.from_string('2022-01-30')
+        new_date_1 = fields.Date.from_string.to_datetime('2022-01-30')
         self.assertEqual(self.test_move.state, 'posted')
         self.assertEqual(1, len(new_invoices_1))  # following entry is created
         self.assertEqual('monthly', new_invoices_1.auto_post)
@@ -113,7 +113,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
 
         self.env.ref('account.ir_cron_auto_post_draft_entry').method_direct_trigger()  # second recurrence
         new_invoices_2 = self.env['account.move'].search(domain=[]) - prev_invoices - new_invoices_1
-        new_date_2 = fields.Date.from_string('2022-02-28')
+        new_date_2 = fields.Date.from_string.to_datetime('2022-02-28')
         self.assertEqual(new_invoices_1.state, 'posted')
         self.assertEqual(1, len(new_invoices_2))
         self.assertEqual('monthly', new_invoices_2.auto_post)
@@ -167,7 +167,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
         self.test_move.action_post()
 
         # Set the lock date after the journal entry date.
-        self.test_move.company_id.fiscalyear_lock_date = fields.Date.from_string('2017-01-01')
+        self.test_move.company_id.fiscalyear_lock_date = fields.Date.from_string.to_datetime('2017-01-01')
 
         # lines[0] = 'counterpart line'
         # lines[1] = 'tax line'
@@ -184,7 +184,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
 
         # You can't remove the journal entry from a locked period.
         with self.assertRaises(UserError), self.cr.savepoint():
-            self.test_move.date = fields.Date.from_string('2018-01-01')
+            self.test_move.date = fields.Date.from_string.to_datetime('2018-01-01')
 
         with self.assertRaises(UserError), self.cr.savepoint():
             self.test_move.name = "Othername"
@@ -213,13 +213,13 @@ class TestAccountMove(AccountTestInvoicingCommon):
 
         # You can't lock the fiscal year if there is some unreconciled statement.
         with self.assertRaises(RedirectWarning), self.cr.savepoint():
-            self.test_move.company_id.fiscalyear_lock_date = fields.Date.from_string('2017-01-01')
+            self.test_move.company_id.fiscalyear_lock_date = fields.Date.from_string.to_datetime('2017-01-01')
 
     def test_misc_tax_lock_date_1(self):
         self.test_move.action_post()
 
         # Set the tax lock date after the journal entry date.
-        self.test_move.company_id.tax_lock_date = fields.Date.from_string('2017-01-01')
+        self.test_move.company_id.tax_lock_date = fields.Date.from_string.to_datetime('2017-01-01')
 
         # lines[0] = 'counterpart line'
         # lines[1] = 'tax line'
@@ -232,7 +232,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
 
         # You can't remove the journal entry from a locked period.
         with self.assertRaises(UserError), self.cr.savepoint():
-            self.test_move.date = fields.Date.from_string('2018-01-01')
+            self.test_move.date = fields.Date.from_string.to_datetime('2018-01-01')
 
         with self.assertRaises(UserError), self.cr.savepoint():
             self.test_move.name = "Othername"
@@ -250,7 +250,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
 
         # You can't change the date to one being in a locked period.
         with self.assertRaises(UserError), self.cr.savepoint():
-            copy_move.date = fields.Date.from_string('2017-01-01')
+            copy_move.date = fields.Date.from_string.to_datetime('2017-01-01')
 
     def test_misc_draft_reconciled_entries_1(self):
         draft_moves = self.env['account.move'].create([
@@ -339,7 +339,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
 
         move_form = Form(self.env['account.move'])
         # Rate 1:3
-        move_form.date = fields.Date.from_string('2016-01-01')
+        move_form.date = fields.Date.from_string.to_datetime('2016-01-01')
 
         # New line that should get 400.0 as debit.
         with move_form.line_ids.new() as line_form:
@@ -376,7 +376,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
 
         # Change the date to change the currency conversion's rate
         with Form(move) as move_form:
-            move_form.date = fields.Date.from_string('2017-01-01')
+            move_form.date = fields.Date.from_string.to_datetime('2017-01-01')
 
         self.assertRecordValues(
             move.line_ids.sorted('debit'),
@@ -490,7 +490,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
         move = self.env['account.move'].create({
             'move_type': 'entry',
             'partner_id': self.partner_a.id,
-            'date': fields.Date.from_string('2019-01-01'),
+            'date': fields.Date.from_string.to_datetime('2019-01-01'),
             'currency_id': self.other_currency.id,
             'line_ids': [
                 (0, None, self.entry_line_vals_1),
@@ -516,7 +516,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
 
         move = self.env['account.move'].create({
             'move_type': 'entry',
-            'date': fields.Date.from_string('2021-01-01'),
+            'date': fields.Date.from_string.to_datetime('2021-01-01'),
             'line_ids': [
                 (0, None, self.entry_line_vals_1),
                 (0, None, self.entry_line_vals_2),
@@ -525,7 +525,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
         move.action_post()
 
         move_reversal = self.env['account.move.reversal'].with_context(active_model="account.move", active_ids=move.ids).create({
-            'date': fields.Date.from_string('2021-02-01'),
+            'date': fields.Date.from_string.to_datetime('2021-02-01'),
             'journal_id': move.journal_id.id,
         })
         reversal = move_reversal.refund_moves()
@@ -613,7 +613,7 @@ class TestAccountMove(AccountTestInvoicingCommon):
         })
         move = self.env['account.move'].create({
             'move_type': 'entry',
-            'date': fields.Date.from_string('2016-01-01'),
+            'date': fields.Date.from_string.to_datetime('2016-01-01'),
             'line_ids': [
                 (0, None, {
                     'name': 'revenue line',

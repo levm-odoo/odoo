@@ -65,8 +65,8 @@ class TestExpression(TransactionCase):
         Test date_to is computed when date_from is changed,
         except when it already has a valid value.
         """
-        date_from = Datetime.from_string('2024-05-01 00:00:00')
-        date_to = Datetime.from_string('2024-05-03 23:59:59')
+        date_from = Datetime.from_string.to_datetime('2024-05-01 00:00:00')
+        date_to = Datetime.from_string.to_datetime('2024-05-03 23:59:59')
         leave = self.env['resource.calendar.leaves'].create({
             'date_from': date_from,
             'date_to': date_to,

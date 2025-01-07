@@ -31,7 +31,7 @@ class ReportHr_HolidaysReport_Holidayssummary(models.AbstractModel):
     _description = 'Holidays Summary Report'
 
     def _get_header_info(self, start_date, holiday_type):
-        st_date = fields.Date.from_string(start_date)
+        st_date = fields.Date.from_string.to_datetime(start_date)
         if holiday_type == 'Confirmed':
             holiday_type = _('Confirmed')
         elif holiday_type == 'Approved':
@@ -49,7 +49,7 @@ class ReportHr_HolidaysReport_Holidayssummary(models.AbstractModel):
 
     def _get_day(self, start_date):
         res = []
-        start_date = fields.Date.from_string(start_date)
+        start_date = fields.Date.from_string.to_datetime(start_date)
         for _x in range(0, 60):
             color = '#ababab' if self._date_is_day_off(start_date) else ''
             res.append({'day_str': babel.dates.get_day_names('abbreviated', locale=get_lang(self.env).code)[start_date.weekday()], 'day': start_date.day, 'color': color})
@@ -59,7 +59,7 @@ class ReportHr_HolidaysReport_Holidayssummary(models.AbstractModel):
     def _get_months(self, start_date):
         # it works for geting month name between two dates.
         res = []
-        start_date = fields.Date.from_string(start_date)
+        start_date = fields.Date.from_string.to_datetime(start_date)
         end_date = start_date + relativedelta(days=59)
         while start_date <= end_date:
             last_date = start_date + relativedelta(day=1, months=+1, days=-1)
@@ -73,7 +73,7 @@ class ReportHr_HolidaysReport_Holidayssummary(models.AbstractModel):
     def _get_leaves_summary(self, start_date, empid, holiday_type):
         res = []
         count = 0
-        start_date = fields.Date.from_string(start_date)
+        start_date = fields.Date.from_string.to_datetime(start_date)
         end_date = start_date + relativedelta(days=59)
         for index in range(0, 60):
             current = start_date + timedelta(index)
@@ -86,9 +86,9 @@ class ReportHr_HolidaysReport_Holidayssummary(models.AbstractModel):
         for holiday in holidays:
             # Convert date to user timezone, otherwise the report will not be consistent with the
             # value displayed in the interface.
-            date_from = fields.Datetime.from_string(holiday.date_from)
+            date_from = fields.Datetime.from_string.to_datetime(holiday.date_from)
             date_from = fields.Datetime.context_timestamp(holiday, date_from).date()
-            date_to = fields.Datetime.from_string(holiday.date_to)
+            date_to = fields.Datetime.from_string.to_datetime(holiday.date_to)
             date_to = fields.Datetime.context_timestamp(holiday, date_to).date()
             for _index in range((date_to - date_from).days + 1):
                 if start_date <= date_from <= end_date:
@@ -145,7 +145,7 @@ class ReportHr_HolidaysReport_Holidayssummary(models.AbstractModel):
         if {'depts', 'emp'} & data.keys():
             employees = self._get_employees(data)
 
-        holidays = self._get_leaves(fields.Date.from_string(data['date_from']), employees, data['holiday_type'])
+        holidays = self._get_leaves(fields.Date.from_string.to_datetime(data['date_from']), employees, data['holiday_type'])
 
         for leave_type in holidays.holiday_status_id:
             res.append({'color': COLORS_MAP[leave_type.color], 'name': leave_type.name})

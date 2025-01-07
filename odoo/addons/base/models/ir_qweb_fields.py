@@ -256,7 +256,7 @@ class IrQwebFieldDatetime(models.AbstractModel):
         lang = self.user_lang()
         locale = babel_locale_parse(lang.code)
         if isinstance(value, str):
-            value = fields.Datetime.from_string(value)
+            value = fields.Datetime.from_string.to_datetime(value)
 
         if options.get('tz_name'):
             self = self.with_context(tz=options['tz_name'])
@@ -699,10 +699,10 @@ class IrQwebFieldRelative(models.AbstractModel):
         locale = babel_locale_parse(self.user_lang().code)
 
         if isinstance(value, str):
-            value = fields.Datetime.from_string(value)
+            value = fields.Datetime.from_string.to_datetime(value)
 
         # value should be a naive datetime in UTC. So is fields.Datetime.now()
-        reference = fields.Datetime.from_string(options['now'])
+        reference = fields.Datetime.from_string.to_datetime(options['now'])
 
         return babel.dates.format_timedelta(value - reference, add_direction=True, locale=locale)
 

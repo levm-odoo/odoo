@@ -50,7 +50,7 @@ class TestAccountMoveDateAlgorithm(AccountTestInvoicingCommon):
         return payment
 
     def _set_lock_date(self, lock_date):
-        self.env.company.fiscalyear_lock_date = fields.Date.from_string(lock_date)
+        self.env.company.fiscalyear_lock_date = fields.Date.from_string.to_datetime(lock_date)
 
     def _reverse_invoice(self, invoice):
         move_reversal = self.env['account.move.reversal']\
@@ -73,8 +73,8 @@ class TestAccountMoveDateAlgorithm(AccountTestInvoicingCommon):
         move.action_post()
 
         self.assertRecordValues(move, [{
-            'invoice_date': fields.Date.from_string('2016-01-01'),
-            'date': fields.Date.from_string('2017-01-12'),
+            'invoice_date': fields.Date.from_string.to_datetime('2016-01-01'),
+            'date': fields.Date.from_string.to_datetime('2017-01-12'),
         }])
 
     @freezegun.freeze_time('2017-01-12')
@@ -85,8 +85,8 @@ class TestAccountMoveDateAlgorithm(AccountTestInvoicingCommon):
         reverse_move = self._reverse_invoice(move)
 
         self.assertRecordValues(reverse_move, [{
-            'invoice_date': fields.Date.from_string('2017-01-12'),
-            'date': fields.Date.from_string('2017-01-12'),
+            'invoice_date': fields.Date.from_string.to_datetime('2017-01-12'),
+            'date': fields.Date.from_string.to_datetime('2017-01-12'),
         }])
 
     @freezegun.freeze_time('2017-01-12')
@@ -96,8 +96,8 @@ class TestAccountMoveDateAlgorithm(AccountTestInvoicingCommon):
         move.action_post()
 
         self.assertRecordValues(move, [{
-            'invoice_date': fields.Date.from_string('2016-01-01'),
-            'date': fields.Date.from_string('2017-01-12'),
+            'invoice_date': fields.Date.from_string.to_datetime('2016-01-01'),
+            'date': fields.Date.from_string.to_datetime('2017-01-12'),
         }])
 
     @freezegun.freeze_time('2017-01-12')
@@ -107,7 +107,7 @@ class TestAccountMoveDateAlgorithm(AccountTestInvoicingCommon):
         self._set_lock_date('2016-12-31')
         reverse_move = self._reverse_invoice(move)
 
-        self.assertRecordValues(reverse_move, [{'date': fields.Date.from_string('2017-01-12')}])
+        self.assertRecordValues(reverse_move, [{'date': fields.Date.from_string.to_datetime('2017-01-12')}])
 
     @freezegun.freeze_time('2017-01-12')
     def test_in_invoice_date_with_lock_date(self):
@@ -116,8 +116,8 @@ class TestAccountMoveDateAlgorithm(AccountTestInvoicingCommon):
         move.action_post()
 
         self.assertRecordValues(move, [{
-            'invoice_date': fields.Date.from_string('2016-01-01'),
-            'date': fields.Date.from_string('2017-01-12'),
+            'invoice_date': fields.Date.from_string.to_datetime('2016-01-01'),
+            'date': fields.Date.from_string.to_datetime('2017-01-12'),
         }])
 
     @freezegun.freeze_time('2017-01-12')
@@ -128,8 +128,8 @@ class TestAccountMoveDateAlgorithm(AccountTestInvoicingCommon):
         reverse_move = self._reverse_invoice(move)
 
         self.assertRecordValues(reverse_move, [{
-            'invoice_date': fields.Date.from_string('2017-01-12'),
-            'date': fields.Date.from_string('2017-01-12'),
+            'invoice_date': fields.Date.from_string.to_datetime('2017-01-12'),
+            'date': fields.Date.from_string.to_datetime('2017-01-12'),
         }])
 
     @freezegun.freeze_time('2017-01-12')
@@ -139,8 +139,8 @@ class TestAccountMoveDateAlgorithm(AccountTestInvoicingCommon):
         move.action_post()
 
         self.assertRecordValues(move, [{
-            'invoice_date': fields.Date.from_string('2016-01-01'),
-            'date': fields.Date.from_string('2017-01-12'),
+            'invoice_date': fields.Date.from_string.to_datetime('2016-01-01'),
+            'date': fields.Date.from_string.to_datetime('2017-01-12'),
         }])
 
     @freezegun.freeze_time('2017-01-12')
@@ -150,7 +150,7 @@ class TestAccountMoveDateAlgorithm(AccountTestInvoicingCommon):
         self._set_lock_date('2016-12-31')
         reverse_move = self._reverse_invoice(move)
 
-        self.assertRecordValues(reverse_move, [{'date': fields.Date.from_string('2017-01-12')}])
+        self.assertRecordValues(reverse_move, [{'date': fields.Date.from_string.to_datetime('2017-01-12')}])
 
     @freezegun.freeze_time('2017-02-12')
     def test_reconcile_with_lock_date(self):
@@ -164,7 +164,7 @@ class TestAccountMoveDateAlgorithm(AccountTestInvoicingCommon):
         exchange_move = amls.matched_debit_ids.exchange_move_id
 
         self.assertRecordValues(exchange_move, [{
-            'date': fields.Date.from_string('2017-02-12'),
+            'date': fields.Date.from_string.to_datetime('2017-02-12'),
             'amount_total_signed': 200.0,
         }])
 
@@ -183,7 +183,7 @@ class TestAccountMoveDateAlgorithm(AccountTestInvoicingCommon):
 
         reverse_exchange_move = exchange_move.line_ids.matched_credit_ids.credit_move_id.move_id
         self.assertRecordValues(reverse_exchange_move, [{
-            'date': fields.Date.from_string('2017-02-12'),
+            'date': fields.Date.from_string.to_datetime('2017-02-12'),
             'amount_total_signed': 200.0,
         }])
 
@@ -222,7 +222,7 @@ class TestAccountMoveDateAlgorithm(AccountTestInvoicingCommon):
         caba_move = self.env['account.move'].search([('tax_cash_basis_origin_move_id', '=', invoice.id)])
 
         self.assertRecordValues(caba_move, [{
-            'date': fields.Date.from_string('2017-01-12'),
+            'date': fields.Date.from_string.to_datetime('2017-01-12'),
             'amount_total_signed': 440.0,
         }])
 
@@ -234,7 +234,7 @@ class TestAccountMoveDateAlgorithm(AccountTestInvoicingCommon):
         reverse_exchange_move = self.env['account.move'].search([('tax_cash_basis_origin_move_id', '=', invoice.id)]) - caba_move
 
         self.assertRecordValues(reverse_exchange_move, [{
-            'date': fields.Date.from_string('2017-02-28'),
+            'date': fields.Date.from_string.to_datetime('2017-02-28'),
             'amount_total_signed': 440.0,
         }])
 

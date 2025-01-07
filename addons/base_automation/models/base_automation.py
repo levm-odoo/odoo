@@ -968,7 +968,7 @@ class BaseAutomation(models.Model):
         # retrieve all the automation rules to run based on a timed condition
         for automation in self.with_context(active_test=True).search([('trigger', 'in', TIME_TRIGGERS)]):
             _logger.info("Starting time-based automation rule `%s`.", automation.name)
-            last_run = fields.Datetime.from_string(automation.last_run) or datetime.datetime.fromtimestamp(0, tz=None)
+            last_run = fields.Datetime.from_string.to_datetime(automation.last_run) or datetime.datetime.fromtimestamp(0, tz=None)
             eval_context = automation._get_eval_context()
 
             # retrieve all the records that satisfy the automation's condition
@@ -1010,7 +1010,7 @@ class BaseAutomation(models.Model):
                 else:
                     is_process_to_run = (
                         last_run <=
-                        fields.Datetime.from_string(record_dt) + DATE_RANGE_FUNCTION[automation.trg_date_range_type](automation.trg_date_range)
+                        fields.Datetime.from_string.to_datetime(record_dt) + DATE_RANGE_FUNCTION[automation.trg_date_range_type](automation.trg_date_range)
                         < now
                     )
                 if is_process_to_run:

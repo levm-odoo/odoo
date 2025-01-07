@@ -35,7 +35,7 @@ class TestPaymentTransaction(PaymentCommon):
         invoice = self.env['account.move'].create({
             'move_type': 'in_invoice',
             'partner_id': self.partner.id,
-            'invoice_date': fields.Date.from_string('2019-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2019-01-01'),
             'currency_id': self.currency.id,
             'invoice_line_ids': [Command.create({'product_id': self.product.id, 'quantity': 1})],
         })

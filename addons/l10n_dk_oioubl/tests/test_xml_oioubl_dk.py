@@ -220,7 +220,7 @@ class TestUBLDK(TestUBLCommon, TestAccountMoveSendCommon):
         bill = self.import_bill_xml_file_in_purchase_journal(file_name)
         self.assertRecordValues(bill, ({
             'ref': 'A00095678',
-            'invoice_date': fields.Date.from_string('2006-04-10'),
+            'invoice_date': fields.Date.from_string.to_datetime('2006-04-10'),
             'amount_total': 6_250.00,
         },))
         self.assertRecordValues(bill.invoice_line_ids, ({
@@ -238,7 +238,7 @@ class TestUBLDK(TestUBLCommon, TestAccountMoveSendCommon):
         bill = self.import_bill_xml_file_in_purchase_journal(file_name)
         self.assertRecordValues(bill, ({
             'ref': 'A00095680',
-            'invoice_date': fields.Date.from_string('2006-04-10'),
+            'invoice_date': fields.Date.from_string.to_datetime('2006-04-10'),
             'amount_total': 5_000.00,
         },))
         self.assertRecordValues(bill.invoice_line_ids, ({
@@ -256,7 +256,7 @@ class TestUBLDK(TestUBLCommon, TestAccountMoveSendCommon):
         bill = self.import_bill_xml_file_in_purchase_journal(file_name)
         self.assertRecordValues(bill, ({
             'ref': 'A00095678',
-            'invoice_date': fields.Date.from_string('2006-04-10'),
+            'invoice_date': fields.Date.from_string.to_datetime('2006-04-10'),
             'amount_total': 6_250.00,
         },))
         self.assertRecordValues(bill.invoice_line_ids, ({
@@ -274,7 +274,7 @@ class TestUBLDK(TestUBLCommon, TestAccountMoveSendCommon):
         bill = self.import_bill_xml_file_in_purchase_journal(file_name)
         self.assertRecordValues(bill, ({
             'ref': 'A00095678',
-            'invoice_date': fields.Date.from_string('2005-11-20'),
+            'invoice_date': fields.Date.from_string.to_datetime('2005-11-20'),
             'amount_total': 6_312.50,
         },))
         self.assertRecordValues(bill.invoice_line_ids, ({

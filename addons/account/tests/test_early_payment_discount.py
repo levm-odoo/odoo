@@ -69,7 +69,7 @@ class TestAccountEarlyPaymentDiscount(AccountTestInvoicingCommon):
             if line.display_type == 'payment_term':
                 self.assertEqual(
                     line.discount_date,
-                    fields.Date.from_string('2019-01-11') or False
+                    fields.Date.from_string.to_datetime('2019-01-11') or False
                 )
 
     def test_invoice_report_without_invoice_date(self):
@@ -445,7 +445,7 @@ class TestAccountEarlyPaymentDiscount(AccountTestInvoicingCommon):
         })
         with Form(self.env['account.move'].with_context(default_move_type='out_invoice')) as invoice:
             invoice.partner_id = self.partner_a
-            invoice.invoice_date = fields.Date.from_string('2022-02-21')
+            invoice.invoice_date = fields.Date.from_string.to_datetime('2022-02-21')
             invoice.invoice_payment_term_id = self.early_pay_10_percents_10_days
             with invoice.invoice_line_ids.new() as line_form:
                 line_form.product_id = self.product_a
@@ -634,7 +634,7 @@ class TestAccountEarlyPaymentDiscount(AccountTestInvoicingCommon):
 
         with Form(self.env['account.move'].with_context(default_move_type='out_invoice')) as invoice:
             invoice.partner_id = self.partner_a
-            invoice.invoice_date = fields.Date.from_string('2022-02-21')
+            invoice.invoice_date = fields.Date.from_string.to_datetime('2022-02-21')
             invoice.invoice_payment_term_id = early_pay_2_percents_10_days
             with invoice.invoice_line_ids.new() as line_form:
                 line_form.product_id = self.product_a
@@ -873,7 +873,7 @@ class TestAccountEarlyPaymentDiscount(AccountTestInvoicingCommon):
         invoice.action_post()
 
         move_reversal = self.env['account.move.reversal'].with_context(active_model="account.move", active_ids=invoice.ids).create({
-            'date': fields.Date.from_string('2017-01-01'),
+            'date': fields.Date.from_string.to_datetime('2017-01-01'),
             'reason': 'no reason again',
             'journal_id': invoice.journal_id.id,
         })

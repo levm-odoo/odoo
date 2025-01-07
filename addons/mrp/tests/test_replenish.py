@@ -32,13 +32,13 @@ class TestMrpReplenish(TestMrpCommon):
 
         with freeze_time("2023-01-01"):
             wizard = self._create_wizard(product, wh)
-            self.assertEqual(fields.Datetime.from_string('2023-01-01 00:00:00'), wizard.date_planned)
+            self.assertEqual(fields.Datetime.from_string.to_datetime('2023-01-01 00:00:00'), wizard.date_planned)
             self.env.company.manufacturing_lead = 3
             wizard2 = self._create_wizard(product, wh)
-            self.assertEqual(fields.Datetime.from_string('2023-01-04 00:00:00'), wizard2.date_planned)
+            self.assertEqual(fields.Datetime.from_string.to_datetime('2023-01-04 00:00:00'), wizard2.date_planned)
             route.rule_ids[0].delay = 2
             wizard3 = self._create_wizard(product, wh)
-            self.assertEqual(fields.Datetime.from_string('2023-01-06 00:00:00'), wizard3.date_planned)
+            self.assertEqual(fields.Datetime.from_string.to_datetime('2023-01-06 00:00:00'), wizard3.date_planned)
 
     def test_mrp_orderpoint_leadtime(self):
         self.warehouse = self.env.ref('stock.warehouse0')
@@ -103,13 +103,13 @@ class TestMrpReplenish(TestMrpCommon):
         self.env.company.manufacturing_lead = 0
         with freeze_time("2023-01-01"):
             wizard = self._create_wizard(product, wh)
-            self.assertEqual(fields.Datetime.from_string('2023-01-01 00:00:00'), wizard.date_planned)
+            self.assertEqual(fields.Datetime.from_string.to_datetime('2023-01-01 00:00:00'), wizard.date_planned)
             bom.produce_delay = 2
             wizard2 = self._create_wizard(product, wh)
-            self.assertEqual(fields.Datetime.from_string('2023-01-03 00:00:00'), wizard2.date_planned)
+            self.assertEqual(fields.Datetime.from_string.to_datetime('2023-01-03 00:00:00'), wizard2.date_planned)
             bom.days_to_prepare_mo = 4
             wizard3 = self._create_wizard(product, wh)
-            self.assertEqual(fields.Datetime.from_string('2023-01-07 00:00:00'), wizard3.date_planned)
+            self.assertEqual(fields.Datetime.from_string.to_datetime('2023-01-07 00:00:00'), wizard3.date_planned)
 
     def test_replenish_from_scrap(self):
         """ Test that when ticking replenish on the scrap wizard of a MO, the new move

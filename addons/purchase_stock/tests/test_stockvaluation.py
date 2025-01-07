@@ -3143,11 +3143,11 @@ class TestStockValuationWithCOA(AccountTestInvoicingCommon):
             'rate_ids': [
                 Command.clear(),
                 Command.create({
-                    'name': fields.Date.from_string('2023-01-01'),
+                    'name': fields.Date.from_string.to_datetime('2023-01-01'),
                     'company_rate': 2.0,
                 }),
                 Command.create({
-                    'name': fields.Date.from_string('2023-12-01'),
+                    'name': fields.Date.from_string.to_datetime('2023-12-01'),
                     'company_rate': 3.0,
                 }),
             ],
@@ -3180,7 +3180,7 @@ class TestStockValuationWithCOA(AccountTestInvoicingCommon):
 
         # Create and confirm a Purchase Order using aforementioned product and currency.
         purchase_order = self.env['purchase.order'].create({
-            'date_order': fields.Date.from_string('2023-12-04'),
+            'date_order': fields.Date.from_string.to_datetime('2023-12-04'),
             'currency_id': eur.id,
             'partner_id': self.partner_a.id,
             'order_line': [
@@ -3211,7 +3211,7 @@ class TestStockValuationWithCOA(AccountTestInvoicingCommon):
         self.assertEqual(len(purchase_order.invoice_ids), 1)
 
         vendor_bill = purchase_order.invoice_ids
-        vendor_bill.invoice_date = fields.Date.from_string('2023-11-01')
+        vendor_bill.invoice_date = fields.Date.from_string.to_datetime('2023-11-01')
         vendor_bill.action_post()
 
         # Make sure a second Journal Entry has been created (to account for the exchange difference).

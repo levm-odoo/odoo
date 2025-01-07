@@ -579,7 +579,7 @@ class TestLeadConvertCommon(TestCrmCommon):
             'team_id': cls.sales_team_convert.id,
         })
 
-        cls.lead_1.write({'date_open': Datetime.from_string('2020-01-15 11:30:00')})
+        cls.lead_1.write({'date_open': Datetime.from_string.to_datetime('2020-01-15 11:30:00')})
 
         cls.crm_lead_dt_patcher = patch('odoo.addons.crm.models.crm_lead.fields.Datetime', wraps=Datetime)
         cls.crm_lead_dt_mock = cls.startClassPatcher(cls.crm_lead_dt_patcher)

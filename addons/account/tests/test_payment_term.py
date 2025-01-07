@@ -163,7 +163,7 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
             self.invoice.line_ids.filtered(
                 lambda l: l.account_id == self.company_data['default_account_receivable']
             ).sorted(key=lambda r: r.date_maturity).mapped('date_maturity'),
-            [fields.Date.from_string(date) for date in dates],
+            [fields.Date.from_string.to_datetime(date) for date in dates],
         )
 
     def test_payment_term(self):
@@ -194,7 +194,7 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
     def test_payment_term_compute_method_with_cash_discount(self):
         self.pay_term_a.early_pay_discount_computation = 'included'
         computed_term_a = self.pay_term_a._compute_terms(
-                fields.Date.from_string('2016-01-01'), self.env.company.currency_id, self.env.company,
+                fields.Date.from_string.to_datetime('2016-01-01'), self.env.company.currency_id, self.env.company,
                 150.0, 150.0, 1.0, 1000.0, 1000.0,
             )
         self.assertDictEqual(
@@ -221,7 +221,7 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
         self.assertEqual(rate, 0.5)
         self.pay_term_a.early_pay_discount_computation = 'included'
         computed_term_a = self.pay_term_a._compute_terms(
-            fields.Date.from_string('2016-01-01'), foreign_currency, self.env.company,
+            fields.Date.from_string.to_datetime('2016-01-01'), foreign_currency, self.env.company,
             75, 150, 1, 359.18, 718.35, cash_rounding=self.cash_rounding_a,
         )
         self.assertDictEqual(
@@ -246,7 +246,7 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
 
     def test_payment_term_compute_method_without_cash_discount(self):
         computed_term_b = self.pay_term_b._compute_terms(
-            fields.Date.from_string('2016-01-01'), self.env.company.currency_id, self.env.company,
+            fields.Date.from_string.to_datetime('2016-01-01'), self.env.company.currency_id, self.env.company,
             150.0, 150.0, 1.0, 1000.0, 1000.0,
         )
         self.assertDictEqual(
@@ -277,7 +277,7 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
         self.assertEqual(rate, 0.5)
         self.pay_term_a.early_pay_discount_computation = 'included'
         computed_term_b = self.pay_term_b._compute_terms(
-            fields.Date.from_string('2016-01-01'), foreign_currency, self.env.company,
+            fields.Date.from_string.to_datetime('2016-01-01'), foreign_currency, self.env.company,
             75, 150, 1, 359.18, 718.35, cash_rounding=self.cash_rounding_a,
         )
         self.assertDictEqual(
@@ -310,7 +310,7 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
     def test_payment_term_compute_method_early_excluded(self):
         self.pay_term_a.early_pay_discount_computation = 'excluded'
         computed_term_a = self.pay_term_a._compute_terms(
-            fields.Date.from_string('2016-01-01'), self.env.company.currency_id, self.env.company,
+            fields.Date.from_string.to_datetime('2016-01-01'), self.env.company.currency_id, self.env.company,
             150.0, 150.0, 1.0, 1000.0, 1000.0,
         )
 
@@ -355,7 +355,7 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
         })
 
         computed_term = pay_term._compute_terms(
-            fields.Date.from_string('2016-01-01'), self.other_currency, self.env.company,
+            fields.Date.from_string.to_datetime('2016-01-01'), self.other_currency, self.env.company,
             0.0, 0.0, 1.0, 0.04, 0.09,
         )
         self.assertEqual(
@@ -387,7 +387,7 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
         })
 
         computed_term = pay_term._compute_terms(
-            fields.Date.from_string('2016-01-01'), self.env.company.currency_id, self.env.company,
+            fields.Date.from_string.to_datetime('2016-01-01'), self.env.company.currency_id, self.env.company,
             0.0, 0.0, 1.0, 0.03, 0.03,
         )
         self.assertEqual(
@@ -418,7 +418,7 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
         })
 
         computed_term = pay_term._compute_terms(
-            fields.Date.from_string('2016-01-01'), self.env.company.currency_id, self.env.company,
+            fields.Date.from_string.to_datetime('2016-01-01'), self.env.company.currency_id, self.env.company,
             0.0, 0.0, 1.0, 1000.0, 1000.0,
         )
 
@@ -450,7 +450,7 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
         })
 
         computed_term = pay_term._compute_terms(
-            fields.Date.from_string('2016-01-01'), self.env.company.currency_id, self.env.company,
+            fields.Date.from_string.to_datetime('2016-01-01'), self.env.company.currency_id, self.env.company,
             0.0, 0.0, 1.0, 1000.0, 1000.0,
         )
 
@@ -487,7 +487,7 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
         })
 
         computed_term = pay_term._compute_terms(
-            fields.Date.from_string('2016-01-01'), self.env.company.currency_id, self.env.company,
+            fields.Date.from_string.to_datetime('2016-01-01'), self.env.company.currency_id, self.env.company,
             0.0, 0.0, 1.0, 1000.0, 1000.0,
         )
 
@@ -541,14 +541,14 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
             basic_case.invoice_date = '2023-12-12'
 
         expected_date_basic_case = self.invoice.line_ids.filtered(lambda l: l.account_id == self.company_data['default_account_receivable']).mapped('date_maturity'),
-        self.assertEqual(expected_date_basic_case[0], [fields.Date.from_string('2024-02-10')])
+        self.assertEqual(expected_date_basic_case[0], [fields.Date.from_string.to_datetime('2024-02-10')])
 
         with Form(self.invoice) as special_case:
             special_case.invoice_payment_term_id = self.pay_term_days_end_of_month_31
             special_case.invoice_date = '2023-12-12'
 
         expected_date_special_case = self.invoice.line_ids.filtered(lambda l: l.account_id == self.company_data['default_account_receivable']).mapped('date_maturity'),
-        self.assertEqual(expected_date_special_case[0], [fields.Date.from_string('2024-02-29')])
+        self.assertEqual(expected_date_special_case[0], [fields.Date.from_string.to_datetime('2024-02-29')])
 
     def test_payment_term_labels(self):
         # create a payment term with 40% now, 30% in 30 days and 30% in 60 days
@@ -607,7 +607,7 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
 
         expected_date_case_1 = self.invoice.line_ids.filtered(
             lambda l: l.account_id == self.company_data['default_account_receivable']).mapped('date_maturity')
-        self.assertEqual(expected_date_case_1, [fields.Date.from_string('2024-06-29')])
+        self.assertEqual(expected_date_case_1, [fields.Date.from_string.to_datetime('2024-06-29')])
 
         with Form(self.invoice) as case_2:
             case_2.invoice_payment_term_id = self.pay_term_days_end_of_month_31
@@ -615,7 +615,7 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
 
         expected_date_case_2 = self.invoice.line_ids.filtered(
             lambda l: l.account_id == self.company_data['default_account_receivable']).mapped('date_maturity')
-        self.assertEqual(expected_date_case_2, [fields.Date.from_string('2024-06-30')])
+        self.assertEqual(expected_date_case_2, [fields.Date.from_string.to_datetime('2024-06-30')])
 
     def test_payment_term_days_end_of_month_nb_days_15(self):
         """
@@ -642,7 +642,7 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
 
         expected_date_case_1 = self.invoice.line_ids.filtered(
             lambda l: l.account_id == self.company_data['default_account_receivable']).mapped('date_maturity')
-        self.assertEqual(expected_date_case_1, [fields.Date.from_string('2024-07-30')])
+        self.assertEqual(expected_date_case_1, [fields.Date.from_string.to_datetime('2024-07-30')])
 
         with Form(self.invoice) as case_2:
             case_2.invoice_payment_term_id = self.pay_term_days_end_of_month_31
@@ -650,7 +650,7 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
 
         expected_date_case_2 = self.invoice.line_ids.filtered(
             lambda l: l.account_id == self.company_data['default_account_receivable']).mapped('date_maturity')
-        self.assertEqual(expected_date_case_2, [fields.Date.from_string('2024-07-31')])
+        self.assertEqual(expected_date_case_2, [fields.Date.from_string.to_datetime('2024-07-31')])
 
     def test_payment_term_days_end_of_month_days_next_month_0(self):
         with Form(self.invoice) as case_1:
@@ -659,4 +659,4 @@ class TestAccountPaymentTerms(AccountTestInvoicingCommon):
 
         expected_date_case_1 = self.invoice.line_ids.filtered(
             lambda l: l.account_id == self.company_data['default_account_receivable']).mapped('date_maturity')
-        self.assertEqual(expected_date_case_1, [fields.Date.from_string('2024-05-31')])
+        self.assertEqual(expected_date_case_1, [fields.Date.from_string.to_datetime('2024-05-31')])

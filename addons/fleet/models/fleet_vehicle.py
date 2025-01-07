@@ -246,7 +246,7 @@ class FleetVehicle(models.Model):
         else:
             search_operator = 'not in'
         today = fields.Date.context_today(self)
-        datetime_today = fields.Datetime.from_string(today)
+        datetime_today = fields.Datetime.from_string.to_datetime(today)
         limit_date = fields.Datetime.to_string(datetime_today + relativedelta(days=+delay_alert_contract))
         res_ids = self.env['fleet.vehicle.log.contract'].search([
             ('expiration_date', '>', today),

@@ -599,7 +599,7 @@ class TestExpenses(TestExpenseCommon):
             expense_sheet.action_approve_expense_sheets()
             expense_sheet.action_sheet_move_post()
 
-        self.assertEqual(expense_sheet.accounting_date, fields.Date.from_string('2022-01-25'))
+        self.assertEqual(expense_sheet.accounting_date, fields.Date.from_string.to_datetime('2022-01-25'))
 
     def test_computation_expense_report_date_based_user_input(self):
         """
@@ -621,7 +621,7 @@ class TestExpenses(TestExpenseCommon):
             expense_sheet.action_approve_expense_sheets()
             expense_sheet.action_sheet_move_post()
 
-        self.assertEqual(expense_sheet.accounting_date, fields.Date.from_string('2024-03-10'))
+        self.assertEqual(expense_sheet.accounting_date, fields.Date.from_string.to_datetime('2024-03-10'))
 
     def test_computation_expense_report_date_with_most_recent_expense_within_month_early(self):
         """
@@ -644,7 +644,7 @@ class TestExpenses(TestExpenseCommon):
             expense_sheet.action_approve_expense_sheets()
             expense_sheet.action_sheet_move_post()
 
-        self.assertEqual(expense_sheet.accounting_date, fields.Date.from_string('2022-01-25'))
+        self.assertEqual(expense_sheet.accounting_date, fields.Date.from_string.to_datetime('2022-01-25'))
 
     def test_computation_expense_report_date_with_most_recent_expense_within_month_later(self):
         """
@@ -666,7 +666,7 @@ class TestExpenses(TestExpenseCommon):
             expense_sheet_2.action_approve_expense_sheets()
             expense_sheet_2.action_sheet_move_post()
 
-        self.assertEqual(expense_sheet_2.accounting_date, fields.Date.from_string('2022-01-25'))
+        self.assertEqual(expense_sheet_2.accounting_date, fields.Date.from_string.to_datetime('2022-01-25'))
 
     def test_computation_expense_report_date_with_most_recent_expense_last_month(self):
         """
@@ -689,7 +689,7 @@ class TestExpenses(TestExpenseCommon):
             expense_sheet.action_sheet_move_post()
 
         # no lock date so defaults to last day of month of the most recent expense
-        self.assertEqual(expense_sheet.accounting_date, fields.Date.from_string('2021-12-31'))
+        self.assertEqual(expense_sheet.accounting_date, fields.Date.from_string.to_datetime('2021-12-31'))
 
         expense_sheet_2 = self.create_expense_report({
             'name': 'Expense for John Smith 2',
@@ -706,7 +706,7 @@ class TestExpenses(TestExpenseCommon):
             expense_sheet_2.action_approve_expense_sheets()
             expense_sheet_2.action_sheet_move_post()
 
-        self.assertEqual(expense_sheet_2.accounting_date, fields.Date.from_string('2022-01-31'))
+        self.assertEqual(expense_sheet_2.accounting_date, fields.Date.from_string.to_datetime('2022-01-31'))
 
     def test_computation_expense_report_date_with_most_recent_expense_last_month_with_lock_date(self):
         """
@@ -731,7 +731,7 @@ class TestExpenses(TestExpenseCommon):
             expense_sheet.action_sheet_move_post()
 
         # today
-        self.assertEqual(expense_sheet.accounting_date, fields.Date.from_string('2022-01-25'))
+        self.assertEqual(expense_sheet.accounting_date, fields.Date.from_string.to_datetime('2022-01-25'))
 
         expense_sheet_2 = self.create_expense_report({
             'name': 'Expense for John Smith 2',
@@ -748,7 +748,7 @@ class TestExpenses(TestExpenseCommon):
             expense_sheet_2.action_approve_expense_sheets()
             expense_sheet_2.action_sheet_move_post()
 
-        self.assertEqual(expense_sheet_2.accounting_date, fields.Date.from_string('2022-01-31'))
+        self.assertEqual(expense_sheet_2.accounting_date, fields.Date.from_string.to_datetime('2022-01-31'))
 
         # another lock date
         self.env.company.fiscalyear_lock_date = '2022-01-1'
@@ -769,7 +769,7 @@ class TestExpenses(TestExpenseCommon):
             expense_sheet_3.action_sheet_move_post()
 
         # today
-        self.assertEqual(expense_sheet_3.accounting_date, fields.Date.from_string('2022-01-25'))
+        self.assertEqual(expense_sheet_3.accounting_date, fields.Date.from_string.to_datetime('2022-01-25'))
 
         expense_sheet_4 = self.create_expense_report({
             'name': 'Expense for John Smith 4',
@@ -786,7 +786,7 @@ class TestExpenses(TestExpenseCommon):
             expense_sheet_4.action_approve_expense_sheets()
             expense_sheet_4.action_sheet_move_post()
 
-        self.assertEqual(expense_sheet_4.accounting_date, fields.Date.from_string('2022-02-25'))
+        self.assertEqual(expense_sheet_4.accounting_date, fields.Date.from_string.to_datetime('2022-02-25'))
 
     def test_accounting_date_reset_after_draft_reset(self):
         """

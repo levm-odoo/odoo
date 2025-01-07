@@ -107,7 +107,7 @@ class TestTrackSuggestions(TestEventOnlineCommon):
             {'name': 'Tag 1'}, {'name': 'Tag 2'}, {'name': 'Tag 3'}, {'name': 'Tag 4'}
         ])
 
-        date = fields.Datetime.from_string(datetime.now().strftime('%Y-%m-%d %H:00:00'))
+        date = fields.Datetime.from_string.to_datetime(datetime.now().strftime('%Y-%m-%d %H:00:00'))
         [track_1, track_2, track_3, track_4, track_5, track_6] = self.env['event.track'].create([{
             'name': 'Track 1',
             'location_id': location_1.id,

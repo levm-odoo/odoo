@@ -98,7 +98,7 @@ class GamificationGoal(models.Model):
             return {}
 
         delta_max = timedelta(days=self.remind_update_delay)
-        last_update = fields.Date.from_string(self.last_update)
+        last_update = fields.Date.from_string.to_datetime(self.last_update)
         if date.today() - last_update < delta_max:
             return {}
 

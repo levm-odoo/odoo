@@ -42,7 +42,7 @@ class TestAccountBankStatementLine(AccountTestInvoicingCommon):
         cls.statement_line = cls.statement.line_ids
 
         cls.expected_st_line = {
-            'date': fields.Date.from_string('2019-01-01'),
+            'date': fields.Date.from_string.to_datetime('2019-01-01'),
             'journal_id': cls.statement.journal_id.id,
             'payment_ref': 'line_1',
             'partner_id': cls.partner_a.id,
@@ -619,18 +619,18 @@ class TestAccountBankStatementLine(AccountTestInvoicingCommon):
         self.assertRecordValues(statement1 + statement2, [{
             'is_complete': True,
             'is_valid': True,
-            'date': fields.Date.from_string('2020-01-13'),
+            'date': fields.Date.from_string.to_datetime('2020-01-13'),
         }, {
             'is_complete': False,
             'is_valid': True,
-            'date': fields.Date.from_string('2020-01-10'),
+            'date': fields.Date.from_string.to_datetime('2020-01-10'),
         }])
         # check point
         self.assertRecordValues(line1 + line2 + line3 + line4, [
-            {'date': fields.Date.from_string('2020-01-10'), 'statement_id': statement2.id},
-            {'date': fields.Date.from_string('2020-01-11'), 'statement_id': statement1.id},
-            {'date': fields.Date.from_string('2020-01-12'), 'statement_id': statement1.id},
-            {'date': fields.Date.from_string('2020-01-13'), 'statement_id': statement1.id},
+            {'date': fields.Date.from_string.to_datetime('2020-01-10'), 'statement_id': statement2.id},
+            {'date': fields.Date.from_string.to_datetime('2020-01-11'), 'statement_id': statement1.id},
+            {'date': fields.Date.from_string.to_datetime('2020-01-12'), 'statement_id': statement1.id},
+            {'date': fields.Date.from_string.to_datetime('2020-01-13'), 'statement_id': statement1.id},
         ])
 
         # changing statement 2 balance makes statement 1 invalid,
@@ -679,17 +679,17 @@ class TestAccountBankStatementLine(AccountTestInvoicingCommon):
         }])
         # check point
         self.assertRecordValues(line1 + line2 + line3 + line4, [
-            {'date': fields.Date.from_string('2020-01-10'), 'statement_id': False},
-            {'date': fields.Date.from_string('2020-01-11'), 'statement_id': statement1.id},
-            {'date': fields.Date.from_string('2020-01-12'), 'statement_id': False},
-            {'date': fields.Date.from_string('2020-01-13'), 'statement_id': statement3.id},
+            {'date': fields.Date.from_string.to_datetime('2020-01-10'), 'statement_id': False},
+            {'date': fields.Date.from_string.to_datetime('2020-01-11'), 'statement_id': statement1.id},
+            {'date': fields.Date.from_string.to_datetime('2020-01-12'), 'statement_id': False},
+            {'date': fields.Date.from_string.to_datetime('2020-01-13'), 'statement_id': statement3.id},
         ])
         self.assertRecordValues(statement1 + statement2 + statement3, [
             {'is_valid': True, 'balance_start': 10, 'balance_end_real': -5,
-             'date': fields.Date.from_string('2020-01-11')},
+             'date': fields.Date.from_string.to_datetime('2020-01-11')},
             {'is_valid': True, 'balance_start': False, 'balance_end_real': 100, 'date': False},
             {'is_valid': True, 'balance_start': -5, 'balance_end_real': -15,
-             'date': fields.Date.from_string('2020-01-13')},
+             'date': fields.Date.from_string.to_datetime('2020-01-13')},
         ])
 
         # adding a statement to the first line should make statement1 invalid
@@ -1197,7 +1197,7 @@ class TestAccountBankStatementLine(AccountTestInvoicingCommon):
         self.assertRecordValues(statement1, [{
             'is_complete': True,
             'is_valid': True,
-            'date': fields.Date.from_string(line2.date),
+            'date': fields.Date.from_string.to_datetime(line2.date),
             'balance_start': 0,
             'balance_end_real': 3,
         }])
@@ -1206,14 +1206,14 @@ class TestAccountBankStatementLine(AccountTestInvoicingCommon):
         self.assertRecordValues(statement1, [{
             'is_complete': False,
             'balance_end': 1,
-            'date': fields.Date.from_string(line1.date),
+            'date': fields.Date.from_string.to_datetime(line1.date),
         }])
         # add a line with same amount as the canceled line makes statement1 complete again
         line3 = self.create_bank_transaction(2, '2020-01-12', journal=self.bank_journal_2, statement=statement1)
         self.assertRecordValues(statement1, [{
             'is_complete': True,
             'balance_end': 3,
-            'date': fields.Date.from_string(line3.date),
+            'date': fields.Date.from_string.to_datetime(line3.date),
         }])
         # test adding a draft line to a statement, nothing should be changed in statement
         line4 = self.create_bank_transaction(4, '2020-01-13', journal=self.bank_journal_2)
@@ -1223,7 +1223,7 @@ class TestAccountBankStatementLine(AccountTestInvoicingCommon):
         self.assertRecordValues(statement1, [{
             'is_complete': True,
             'balance_end': 3,
-            'date': fields.Date.from_string(line3.date),
+            'date': fields.Date.from_string.to_datetime(line3.date),
         }])
         # test split with canceled/draft lines
         statement2 = self.env['account.bank.statement'].with_context({'split_line_id': line2.id}).create({})
@@ -1429,7 +1429,7 @@ class TestAccountBankStatementLine(AccountTestInvoicingCommon):
         move = statement_line.move_id
 
         move_reversal = self.env['account.move.reversal'].with_context(active_model="account.move", active_ids=move.ids).create({
-            'date': fields.Date.from_string('2021-02-01'),
+            'date': fields.Date.from_string.to_datetime('2021-02-01'),
             'journal_id': self.bank_journal_1.id,
         })
         reversal = move_reversal.reverse_moves()

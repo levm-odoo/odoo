@@ -188,7 +188,7 @@ class StockRule(models.Model):
         return mo_values
 
     def _get_date_planned(self, bom_id, values):
-        format_date_planned = fields.Datetime.from_string(values['date_planned'])
+        format_date_planned = fields.Datetime.from_string.to_datetime(values['date_planned'])
         date_planned = format_date_planned - relativedelta(days=bom_id.produce_delay)
         if date_planned == format_date_planned:
             date_planned = date_planned - relativedelta(hours=1)

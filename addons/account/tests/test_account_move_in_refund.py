@@ -112,13 +112,13 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
             'amount_currency': 1128.0,
             'debit': 1128.0,
             'credit': 0.0,
-            'date_maturity': fields.Date.from_string('2019-01-01'),
+            'date_maturity': fields.Date.from_string.to_datetime('2019-01-01'),
         }
         cls.move_vals = {
             'partner_id': cls.partner_a.id,
             'currency_id': cls.company_data['currency'].id,
             'journal_id': cls.company_data['default_journal_purchase'].id,
-            'invoice_date': fields.Date.from_string('2019-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2019-01-01'),
             'fiscal_position_id': False,
             'payment_reference': False,
             'invoice_payment_term_id': cls.pay_terms_a.id,
@@ -282,7 +282,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
                 'account_id': self.partner_b.property_account_payable_id.id,
                 'amount_currency': 789.6,
                 'debit': 789.6,
-                'date_maturity': fields.Date.from_string('2019-02-28'),
+                'date_maturity': fields.Date.from_string.to_datetime('2019-02-28'),
             },
         ], {
             **self.move_vals,
@@ -339,7 +339,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
                 'partner_id': self.partner_b.id,
                 'amount_currency': 772.8,
                 'debit': 772.8,
-                'date_maturity': fields.Date.from_string('2019-02-28'),
+                'date_maturity': fields.Date.from_string.to_datetime('2019-02-28'),
             },
         ], {
             **self.move_vals,
@@ -647,8 +647,8 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
 
         # Change the date to get another rate: 1/3 instead of 1/2.
         with Form(self.invoice) as move_form:
-            move_form.invoice_date = fields.Date.from_string('2016-01-01')
-            move_form.date = fields.Date.from_string('2016-01-01')
+            move_form.invoice_date = fields.Date.from_string.to_datetime('2016-01-01')
+            move_form.date = fields.Date.from_string.to_datetime('2016-01-01')
 
         self.assertInvoiceValues(self.invoice, [
             {
@@ -680,13 +680,13 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
                 'currency_id': self.other_currency.id,
                 'amount_currency': 1128.0,
                 'debit': 376.0,
-                'date_maturity': fields.Date.from_string('2016-01-01'),
+                'date_maturity': fields.Date.from_string.to_datetime('2016-01-01'),
             },
         ], {
             **self.move_vals,
             'currency_id': self.other_currency.id,
-            'date': fields.Date.from_string('2016-01-01'),
-            'invoice_date': fields.Date.from_string('2016-01-01'),
+            'date': fields.Date.from_string.to_datetime('2016-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2016-01-01'),
         })
 
         move_form = Form(self.invoice)
@@ -731,13 +731,13 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
                 'currency_id': self.other_currency.id,
                 'amount_currency': 208.006,
                 'debit': 69.33,
-                'date_maturity': fields.Date.from_string('2016-01-01'),
+                'date_maturity': fields.Date.from_string.to_datetime('2016-01-01'),
             },
         ], {
             **self.move_vals,
             'currency_id': self.other_currency.id,
-            'date': fields.Date.from_string('2016-01-01'),
-            'invoice_date': fields.Date.from_string('2016-01-01'),
+            'date': fields.Date.from_string.to_datetime('2016-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2016-01-01'),
             'amount_untaxed': 160.005,
             'amount_tax': 48.001,
             'amount_total': 208.006,
@@ -769,13 +769,13 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
                 **self.term_line_vals_1,
                 'amount_currency': 208.01,
                 'debit': 208.01,
-                'date_maturity': fields.Date.from_string('2016-01-01'),
+                'date_maturity': fields.Date.from_string.to_datetime('2016-01-01'),
             },
         ], {
             **self.move_vals,
             'currency_id': self.company_data['currency'].id,
-            'date': fields.Date.from_string('2016-01-01'),
-            'invoice_date': fields.Date.from_string('2016-01-01'),
+            'date': fields.Date.from_string.to_datetime('2016-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2016-01-01'),
             'amount_untaxed': 160.01,
             'amount_tax': 48.0,
             'amount_total': 208.01,
@@ -817,7 +817,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
         move = self.env['account.move'].create({
             'move_type': 'in_refund',
             'partner_id': self.partner_a.id,
-            'invoice_date': fields.Date.from_string('2019-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2019-01-01'),
             'currency_id': self.other_currency.id,
             'invoice_payment_term_id': self.pay_terms_a.id,
             'invoice_line_ids': [
@@ -877,7 +877,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
         move = self.env['account.move'].create({
             'move_type': 'in_refund',
             'partner_id': self.partner_a.id,
-            'invoice_date': fields.Date.from_string('2019-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2019-01-01'),
             'currency_id': self.other_currency.id,
             'invoice_payment_term_id': self.pay_terms_a.id,
             'invoice_line_ids': [
@@ -944,7 +944,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
         move = self.env['account.move'].create({
             'move_type': 'in_refund',
             'partner_id': self.partner_a.id,
-            'invoice_date': fields.Date.from_string('2019-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2019-01-01'),
             'currency_id': self.other_currency.id,
             'invoice_payment_term_id': self.pay_terms_a.id,
             'invoice_line_ids': [
@@ -1067,7 +1067,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
         # create invoice
         move_form = Form(self.env['account.move'].with_context(default_move_type='in_refund'))
         move_form.partner_id = self.partner_a
-        move_form.invoice_date = fields.Date.from_string('2017-01-01')
+        move_form.invoice_date = fields.Date.from_string.to_datetime('2017-01-01')
         with move_form.invoice_line_ids.new() as line_form:
             line_form.product_id = self.product_a
             line_form.tax_ids.clear()
@@ -1192,7 +1192,7 @@ class TestAccountMoveInRefundOnchanges(AccountTestInvoicingCommon):
         invoice = self.env['account.move'].create({
             'move_type': 'in_refund',
             'partner_id': self.partner_a.id,
-            'invoice_date': fields.Date.from_string('2017-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2017-01-01'),
             'invoice_line_ids': [
                 Command.create({
                     'account_id': not_default_expense_account.id,

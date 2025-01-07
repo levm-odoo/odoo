@@ -158,7 +158,7 @@ class TestCrmMailActivity(TestCrmCommon):
         # Check the next activity is correct
         self.assertEqual(self.lead_1.activity_summary, activity.summary)
         self.assertEqual(self.lead_1.activity_type_id, activity.activity_type_id)
-        # self.assertEqual(fields.Datetime.from_string(self.lead.activity_date_deadline), datetime.now() + timedelta(days=activity.activity_type_id.days))
+        # self.assertEqual(fields.Datetime.from_string.to_datetime(self.lead.activity_date_deadline), datetime.now() + timedelta(days=activity.activity_type_id.days))
 
         activity.write({
             'activity_type_id': self.activity_type_2.id,
@@ -169,7 +169,7 @@ class TestCrmMailActivity(TestCrmCommon):
 
         self.assertEqual(self.lead_1.activity_summary, activity.activity_type_id.summary)
         self.assertEqual(self.lead_1.activity_type_id, activity.activity_type_id)
-        # self.assertEqual(fields.Datetime.from_string(self.lead.activity_date_deadline), datetime.now() + timedelta(days=activity.activity_type_id.days))
+        # self.assertEqual(fields.Datetime.from_string.to_datetime(self.lead.activity_date_deadline), datetime.now() + timedelta(days=activity.activity_type_id.days))
 
         activity.action_done()
 

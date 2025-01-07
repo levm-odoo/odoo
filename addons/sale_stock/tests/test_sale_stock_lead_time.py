@@ -79,19 +79,19 @@ class TestSaleStockLeadTime(TestSaleStockCommon, ValuationReconciliationTestComm
 
         # Check schedule date of ship type picking
         out = order.picking_ids.filtered(lambda r: r.picking_type_id == warehouse.out_type_id)
-        out_min_date = fields.Datetime.from_string(out.scheduled_date)
-        out_date = fields.Datetime.from_string(order.date_order) + timedelta(days=self.test_product_order.sale_delay) - timedelta(days=out.move_ids[0].rule_id.delay)
+        out_min_date = fields.Datetime.from_string.to_datetime(out.scheduled_date)
+        out_date = fields.Datetime.from_string.to_datetime(order.date_order) + timedelta(days=self.test_product_order.sale_delay) - timedelta(days=out.move_ids[0].rule_id.delay)
         self.assertTrue(abs(out_min_date - out_date) <= timedelta(seconds=1), 'Schedule date of ship type picking should be equal to: order date + Customer Lead Time - pull rule delay.')
 
         # Check schedule date of pack type picking
         pack = order.picking_ids.filtered(lambda r: r.picking_type_id == warehouse.pack_type_id)
-        pack_min_date = fields.Datetime.from_string(pack.scheduled_date)
+        pack_min_date = fields.Datetime.from_string.to_datetime(pack.scheduled_date)
         pack_date = out_date - timedelta(days=pack.move_ids[0].rule_id.delay)
         self.assertTrue(abs(pack_min_date - pack_date) <= timedelta(seconds=1), 'Schedule date of pack type picking should be equal to: Schedule date of ship type picking - pull rule delay.')
 
         # Check schedule date of pick type picking
         pick = order.picking_ids.filtered(lambda r: r.picking_type_id == warehouse.pick_type_id)
-        pick_min_date = fields.Datetime.from_string(pick.scheduled_date)
+        pick_min_date = fields.Datetime.from_string.to_datetime(pick.scheduled_date)
         pick_date = pack_date - timedelta(days=pick.move_ids[0].rule_id.delay)
         self.assertTrue(abs(pick_min_date - pick_date) <= timedelta(seconds=1), 'Schedule date of pick type picking should be equal to: Schedule date of pack type picking - pull rule delay.')
 

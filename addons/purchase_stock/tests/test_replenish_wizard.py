@@ -337,9 +337,9 @@ class TestReplenishWizard(TestStockCommon):
                 'route_id': self.env.ref('purchase_stock.route_warehouse0_buy').id
             })
             wizard.supplier_id = supplier_no_delay
-            self.assertEqual(fields.Datetime.from_string('2023-01-01 00:00:00'), wizard.date_planned)
+            self.assertEqual(fields.Datetime.from_string.to_datetime('2023-01-01 00:00:00'), wizard.date_planned)
             wizard.supplier_id = supplier_delay
-            self.assertEqual(fields.Datetime.from_string('2023-01-04 00:00:00'), wizard.date_planned)
+            self.assertEqual(fields.Datetime.from_string.to_datetime('2023-01-04 00:00:00'), wizard.date_planned)
 
     def test_purchase_delay(self):
         product_to_buy = self.env['product.product'].create({
@@ -375,11 +375,11 @@ class TestReplenishWizard(TestStockCommon):
                 'route_id': self.env.ref('purchase_stock.route_warehouse0_buy').id
             })
             wizard.supplier_id = supplier1
-            self.assertEqual(fields.Datetime.from_string('2023-01-01 00:00:00'), wizard.date_planned)
+            self.assertEqual(fields.Datetime.from_string.to_datetime('2023-01-01 00:00:00'), wizard.date_planned)
             self.env.company.days_to_purchase = 5
             # change the supplier to trigger the date computation
             wizard.supplier_id = supplier2
-            self.assertEqual(fields.Datetime.from_string('2023-01-06 00:00:00'), wizard.date_planned)
+            self.assertEqual(fields.Datetime.from_string.to_datetime('2023-01-06 00:00:00'), wizard.date_planned)
 
     def test_purchase_supplier_route_delay(self):
         product_to_buy = self.env['product.product'].create({
@@ -408,7 +408,7 @@ class TestReplenishWizard(TestStockCommon):
                 'route_id': self.env.ref('purchase_stock.route_warehouse0_buy').id
             })
             wizard.supplier_id = supplier
-            self.assertEqual(fields.Datetime.from_string('2023-01-08 00:00:00'), wizard.date_planned)
+            self.assertEqual(fields.Datetime.from_string.to_datetime('2023-01-08 00:00:00'), wizard.date_planned)
 
     def test_unit_price_expired_price_list(self):
         vendor = self.env['res.partner'].create({

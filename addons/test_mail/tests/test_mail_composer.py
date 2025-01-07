@@ -30,7 +30,7 @@ class TestMailComposer(MailCommon, TestRecipients):
         super(TestMailComposer, cls).setUpClass()
 
         # force 'now' to ease test about schedulers
-        cls.reference_now = FieldDatetime.from_string('2022-12-24 12:00:00')
+        cls.reference_now = FieldDatetime.from_string.to_datetime('2022-12-24 12:00:00')
 
         cls.user_employee_2 = mail_new_test_user(
             cls.env, login='employee2', groups='base.group_user',
@@ -869,7 +869,7 @@ class TestComposerInternals(TestMailComposer):
                     self.assertEqual(composer.body, f'<p>TemplateBody {self.test_record.name}</p>')
                     self.assertEqual(composer.mail_server_id, self.template.mail_server_id)
                     self.assertEqual(composer.record_name, self.test_record.name)
-                    self.assertEqual(FieldDatetime.from_string(composer.scheduled_date),
+                    self.assertEqual(FieldDatetime.from_string.to_datetime(composer.scheduled_date),
                                      self.reference_now + timedelta(days=2))
                     self.assertEqual(composer.subject, f'TemplateSubject {self.test_record.name}')
                 else:
@@ -942,7 +942,7 @@ class TestComposerInternals(TestMailComposer):
                     self.assertEqual(composer.body, f'<p>TemplateBody {self.test_record.name}</p>')
                     self.assertEqual(composer.mail_server_id, self.template.mail_server_id)
                     self.assertEqual(composer.record_name, self.test_record.name)
-                    self.assertEqual(FieldDatetime.from_string(composer.scheduled_date), self.reference_now + timedelta(days=2))
+                    self.assertEqual(FieldDatetime.from_string.to_datetime(composer.scheduled_date), self.reference_now + timedelta(days=2))
                     self.assertEqual(composer.subject, f'TemplateSubject {self.test_record.name}')
                 else:
                     self.assertEqual(composer.body, self.template.body_html)
@@ -962,7 +962,7 @@ class TestComposerInternals(TestMailComposer):
                     self.assertEqual(composer.body, f'<p>TemplateBody {self.test_record.name}</p>')
                     self.assertEqual(composer.mail_server_id, self.template.mail_server_id)
                     self.assertEqual(composer.record_name, self.test_record.name)
-                    self.assertEqual(FieldDatetime.from_string(composer.scheduled_date), self.reference_now + timedelta(days=2))
+                    self.assertEqual(FieldDatetime.from_string.to_datetime(composer.scheduled_date), self.reference_now + timedelta(days=2))
                     self.assertEqual(composer.subject, f'TemplateSubject {self.test_record.name}')
                 else:
                     self.assertEqual(composer.body, self.template.body_html)

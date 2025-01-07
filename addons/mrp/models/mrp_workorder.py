@@ -361,7 +361,7 @@ class MrpWorkorder(models.Model):
                     )
                 else:
                     # split between productive and performance (i.e. reduced speed) times
-                    maxdate = fields.Datetime.from_string(enddate) - relativedelta(minutes=new_order_duration - order.duration_expected)
+                    maxdate = fields.Datetime.from_string.to_datetime(enddate) - relativedelta(minutes=new_order_duration - order.duration_expected)
                     self.env['mrp.workcenter.productivity'].create([
                         order._prepare_timeline_vals(order.duration_expected, date_start, maxdate),
                         order._prepare_timeline_vals(new_order_duration, maxdate, enddate)

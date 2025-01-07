@@ -71,7 +71,7 @@ class TestWorkeEntryHolidaysWorkEntry(TestWorkEntryHolidaysBase):
         self.env['hr.contract'].create({
             'name': 'Employee Contract',
             'employee_id': employee.id,
-            'date_start': Date.from_string('2015-01-01'),
+            'date_start': Date.from_string.to_datetime('2015-01-01'),
             'state': 'open',
             'company_id': self.env.ref('base.main_company').id,
             'wage': 4000,

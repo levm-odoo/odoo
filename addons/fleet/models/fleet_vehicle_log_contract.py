@@ -14,7 +14,7 @@ class FleetVehicleLogContract(models.Model):
 
     def compute_next_year_date(self, strdate):
         oneyear = relativedelta(years=1)
-        start_date = fields.Date.from_string(strdate)
+        start_date = fields.Date.from_string.to_datetime(strdate)
         return fields.Date.to_string(start_date + oneyear)
 
     vehicle_id = fields.Many2one('fleet.vehicle', 'Vehicle', required=True, check_company=True, tracking=True)
@@ -90,10 +90,10 @@ class FleetVehicleLogContract(models.Model):
         if contract is in a closed state, return -1
         otherwise return the number of days before the contract expires
         """
-        today = fields.Date.from_string(fields.Date.today())
+        today = fields.Date.from_string.to_datetime(fields.Date.today())
         for record in self:
             if record.expiration_date and record.state in ['open', 'expired']:
-                renew_date = fields.Date.from_string(record.expiration_date)
+                renew_date = fields.Date.from_string.to_datetime(record.expiration_date)
                 diff_time = (renew_date - today).days
                 record.days_left = diff_time if diff_time > 0 else 0
                 record.expires_today = diff_time == 0
@@ -138,7 +138,7 @@ class FleetVehicleLogContract(models.Model):
         # It manages the state of a contract, possibly by posting a message on the vehicle concerned and updating its status
         params = self.env['ir.config_parameter'].sudo()
         delay_alert_contract = int(params.get_param('hr_fleet.delay_alert_contract', default=30))
-        date_today = fields.Date.from_string(fields.Date.today())
+        date_today = fields.Date.from_string.to_datetime(fields.Date.today())
         outdated_days = fields.Date.to_string(date_today + relativedelta(days=+delay_alert_contract))
         reminder_activity_type = self.env.ref('fleet.mail_act_fleet_contract_to_renew', raise_if_not_found=False) or self.env['mail.activity.type']
         nearly_expired_contracts = self.search([

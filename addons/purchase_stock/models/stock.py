@@ -30,12 +30,12 @@ class StockPicking(models.Model):
 
     @api.model
     def _search_days_to_arrive(self, operator, value):
-        date_value = fields.Datetime.from_string(value)
+        date_value = fields.Datetime.from_string.to_datetime(value)
         return [('date_done', operator, date_value)]
 
     @api.model
     def _search_delay_pass(self, operator, value):
-        date_value = fields.Datetime.from_string(value)
+        date_value = fields.Datetime.from_string.to_datetime(value)
         return [('purchase_id.date_order', operator, date_value)]
 
 

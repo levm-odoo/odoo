@@ -17,7 +17,7 @@ class TestAccountInvoiceReport(AccountTestInvoicingCommon):
             {
                 'move_type': 'out_invoice',
                 'partner_id': cls.partner_a.id,
-                'invoice_date': fields.Date.from_string('2016-01-01'),
+                'invoice_date': fields.Date.from_string.to_datetime('2016-01-01'),
                 'currency_id': cls.other_currency.id,
                 'invoice_line_ids': [
                     (0, None, {
@@ -34,7 +34,7 @@ class TestAccountInvoiceReport(AccountTestInvoicingCommon):
             },
             {
                 'move_type': 'out_receipt',
-                'invoice_date': fields.Date.from_string('2016-01-01'),
+                'invoice_date': fields.Date.from_string.to_datetime('2016-01-01'),
                 'currency_id': cls.other_currency.id,
                 'invoice_line_ids': [
                     (0, None, {
@@ -47,7 +47,7 @@ class TestAccountInvoiceReport(AccountTestInvoicingCommon):
             {
                 'move_type': 'out_refund',
                 'partner_id': cls.partner_a.id,
-                'invoice_date': fields.Date.from_string('2017-01-01'),
+                'invoice_date': fields.Date.from_string.to_datetime('2017-01-01'),
                 'currency_id': cls.other_currency.id,
                 'invoice_line_ids': [
                     (0, None, {
@@ -60,7 +60,7 @@ class TestAccountInvoiceReport(AccountTestInvoicingCommon):
             {
                 'move_type': 'in_invoice',
                 'partner_id': cls.partner_a.id,
-                'invoice_date': fields.Date.from_string('2016-01-01'),
+                'invoice_date': fields.Date.from_string.to_datetime('2016-01-01'),
                 'currency_id': cls.other_currency.id,
                 'invoice_line_ids': [
                     (0, None, {
@@ -73,7 +73,7 @@ class TestAccountInvoiceReport(AccountTestInvoicingCommon):
             {
                 'move_type': 'in_receipt',
                 'partner_id': cls.partner_a.id,
-                'invoice_date': fields.Date.from_string('2016-01-01'),
+                'invoice_date': fields.Date.from_string.to_datetime('2016-01-01'),
                 'currency_id': cls.other_currency.id,
                 'invoice_line_ids': [
                     (0, None, {
@@ -86,7 +86,7 @@ class TestAccountInvoiceReport(AccountTestInvoicingCommon):
             {
                 'move_type': 'in_refund',
                 'partner_id': cls.partner_a.id,
-                'invoice_date': fields.Date.from_string('2017-01-01'),
+                'invoice_date': fields.Date.from_string.to_datetime('2017-01-01'),
                 'currency_id': cls.other_currency.id,
                 'invoice_line_ids': [
                     (0, None, {
@@ -99,7 +99,7 @@ class TestAccountInvoiceReport(AccountTestInvoicingCommon):
             {
                 'move_type': 'out_refund',
                 'partner_id': cls.partner_a.id,
-                'invoice_date': fields.Date.from_string('2017-01-01'),
+                'invoice_date': fields.Date.from_string.to_datetime('2017-01-01'),
                 'currency_id': cls.other_currency.id,
                 'invoice_line_ids': [
                     (0, None, {

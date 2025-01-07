@@ -193,7 +193,7 @@ class IrCron(models.Model):
         if not jobs:
             raise BadModuleState()
 
-        oldest = min(fields.Datetime.from_string(job['nextcall']) for job in jobs)
+        oldest = min(fields.Datetime.from_string.to_datetime(job['nextcall']) for job in jobs)
         if datetime.now() - oldest < MAX_FAIL_TIME:
             raise BadModuleState()
 

@@ -16,15 +16,15 @@ class ReportPoint_Of_SaleReport_Saledetails(models.AbstractModel):
 
     def _get_date_start_and_date_stop(self, date_start, date_stop):
         if date_start:
-            date_start = fields.Datetime.from_string(date_start)
+            date_start = fields.Datetime.from_string.to_datetime(date_start)
         else:
             # start by default today 00:00:00
             user_tz = pytz.timezone(self.env.context.get('tz') or self.env.user.tz or 'UTC')
-            today = user_tz.localize(fields.Datetime.from_string(fields.Date.context_today(self)))
+            today = user_tz.localize(fields.Datetime.from_string.to_datetime(fields.Date.context_today(self)))
             date_start = today.astimezone(pytz.timezone('UTC')).replace(tzinfo=None)
 
         if date_stop:
-            date_stop = fields.Datetime.from_string(date_stop)
+            date_stop = fields.Datetime.from_string.to_datetime(date_stop)
             # avoid a date_stop smaller than date_start
             if (date_stop < date_start):
                 date_stop = date_start + timedelta(days=1, seconds=-1)

@@ -271,8 +271,8 @@ class TestValuationReconciliation(ValuationReconciliationTestCommon):
             self._process_pickings(purchase_order.picking_ids)
         invoice = self._create_invoice_for_po(purchase_order, date_bill)
         with Form(invoice) as move_form:
-            move_form.invoice_date = fields.Date.from_string(date_bill)
-            move_form.date = fields.Date.from_string(date_accounting)
+            move_form.invoice_date = fields.Date.from_string.to_datetime(date_bill)
+            move_form.date = fields.Date.from_string.to_datetime(date_accounting)
         invoice.action_post()
 
         price_diff_line = invoice.line_ids.filtered(lambda l: l.account_id == self.stock_account_product_categ.property_account_creditor_price_difference_categ)

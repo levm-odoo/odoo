@@ -442,7 +442,7 @@ class AccountTestInvoicingCommon(ProductCommon):
         move_form = Form(cls.env['account.move'] \
                     .with_company(company or cls.env.company) \
                     .with_context(default_move_type=move_type))
-        move_form.invoice_date = invoice_date or fields.Date.from_string('2019-01-01')
+        move_form.invoice_date = invoice_date or fields.Date.from_string.to_datetime('2019-01-01')
         # According to the state or type of the invoice, the date field is sometimes visible or not
         # Besides, the date field can be put multiple times in the view
         # "invisible": "['|', ('state', '!=', 'draft'), ('auto_post', '!=', 'at_date')]"
@@ -485,7 +485,7 @@ class AccountTestInvoicingCommon(ProductCommon):
     def init_payment(cls, amount, post=False, date=None, partner=None, currency=None):
         payment = cls.env['account.payment'].create({
             'amount': abs(amount),
-            'date': date or fields.Date.from_string('2019-01-01'),
+            'date': date or fields.Date.from_string.to_datetime('2019-01-01'),
             'payment_type': 'inbound' if amount >= 0 else 'outbound',
             'partner_type': 'customer' if amount >= 0 else 'supplier',
             'partner_id': (partner or cls.partner_a).id,

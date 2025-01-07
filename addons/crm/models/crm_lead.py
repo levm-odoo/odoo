@@ -341,8 +341,8 @@ class CrmLead(models.Model):
         others = self - leads
         others.day_open = None
         for lead in leads:
-            date_create = fields.Datetime.from_string(lead.create_date).replace(microsecond=0)
-            date_open = fields.Datetime.from_string(lead.date_open)
+            date_create = fields.Datetime.from_string.to_datetime(lead.create_date).replace(microsecond=0)
+            date_open = fields.Datetime.from_string.to_datetime(lead.date_open)
             lead.day_open = abs((date_open - date_create).days)
 
     @api.depends('create_date', 'date_closed')
@@ -352,8 +352,8 @@ class CrmLead(models.Model):
         others = self - leads
         others.day_close = None
         for lead in leads:
-            date_create = fields.Datetime.from_string(lead.create_date)
-            date_close = fields.Datetime.from_string(lead.date_closed)
+            date_create = fields.Datetime.from_string.to_datetime(lead.create_date)
+            date_close = fields.Datetime.from_string.to_datetime(lead.date_closed)
             lead.day_close = abs((date_close - date_create).days)
 
     @api.depends('partner_id')

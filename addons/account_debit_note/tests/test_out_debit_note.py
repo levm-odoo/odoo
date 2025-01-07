@@ -13,7 +13,7 @@ class TestAccountDebitNote(AccountTestInvoicingCommon):
         invoice.action_post()
         move_debit_note_wiz = self.env['account.debit.note'].with_context(active_model="account.move",
                                                                        active_ids=invoice.ids).create({
-            'date': fields.Date.from_string('2019-02-01'),
+            'date': fields.Date.from_string.to_datetime('2019-02-01'),
             'reason': 'no reason',
             'copy_lines': True,
         })
@@ -32,7 +32,7 @@ class TestAccountDebitNote(AccountTestInvoicingCommon):
         invoice.action_post()
         move_debit_note_wiz = self.env['account.debit.note'].with_context(active_model="account.move",
                                                                           active_ids=invoice.ids).create({
-            'date': fields.Date.from_string('2019-02-01'),
+            'date': fields.Date.from_string.to_datetime('2019-02-01'),
             'reason': 'in order to cancel refund',
         })
         move_debit_note_wiz.create_debit()

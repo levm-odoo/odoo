@@ -415,8 +415,8 @@ class WebsiteEventController(http.Controller):
     # ------------------------------------------------------------
 
     def get_formated_date(self, event):
-        start_date = fields.Datetime.from_string(event.date_begin).date()
-        end_date = fields.Datetime.from_string(event.date_end).date()
+        start_date = fields.Datetime.from_string.to_datetime(event.date_begin).date()
+        end_date = fields.Datetime.from_string.to_datetime(event.date_end).date()
         month = babel.dates.get_month_names('abbreviated', locale=get_lang(event.env).code)[start_date.month]
         return ('%s %s%s') % (month, start_date.strftime("%e"), (end_date != start_date and ("-" + end_date.strftime("%e")) or ""))
 

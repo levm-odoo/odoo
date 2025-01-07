@@ -1143,7 +1143,7 @@ class PurchaseOrder(models.Model):
         if not date_planned:
             return False
         if isinstance(date_planned, str):
-            date_planned = fields.Datetime.from_string(date_planned)
+            date_planned = fields.Datetime.from_string.to_datetime(date_planned)
         tz = self.get_order_timezone()
         return date_planned.astimezone(tz)
 

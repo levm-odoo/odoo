@@ -77,7 +77,7 @@ class TestActivitySchedule(ActivityScheduleCase):
         })
 
         # test records
-        cls.reference_now = fields.Datetime.from_string('2023-09-30 14:00:00')
+        cls.reference_now = fields.Datetime.from_string.to_datetime('2023-09-30 14:00:00')
         cls.test_records = cls.env['mail.test.activity'].create([
             {
                 'date': cls.reference_now + timedelta(days=(idx - 10)),

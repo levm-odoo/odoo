@@ -29,7 +29,7 @@ class TestPurchaseLeadTime(PurchaseTestCommon):
         purchase.button_confirm()
 
         # Check order date of purchase order
-        order_date = fields.Datetime.from_string(date_planned) - timedelta(days=self.product_1.seller_ids.delay)
+        order_date = fields.Datetime.from_string.to_datetime(date_planned) - timedelta(days=self.product_1.seller_ids.delay)
         self.assertEqual(purchase.date_order, order_date, 'Order date should be equal to: Date of the procurement order - Purchase Lead Time - Delivery Lead Time.')
 
         # Check scheduled date of purchase order

@@ -207,9 +207,9 @@ class IrSequence(models.Model):
         def _interpolation_dict():
             now = range_date = effective_date = datetime.now(pytz.timezone(self._context.get('tz') or 'UTC'))
             if date or self._context.get('ir_sequence_date'):
-                effective_date = fields.Datetime.from_string(date or self._context.get('ir_sequence_date'))
+                effective_date = fields.Datetime.from_string.to_datetime(date or self._context.get('ir_sequence_date'))
             if date_range or self._context.get('ir_sequence_date_range'):
-                range_date = fields.Datetime.from_string(date_range or self._context.get('ir_sequence_date_range'))
+                range_date = fields.Datetime.from_string.to_datetime(date_range or self._context.get('ir_sequence_date_range'))
 
             sequences = {
                 'year': '%Y', 'month': '%m', 'day': '%d', 'y': '%y', 'doy': '%j', 'woy': '%W',
@@ -237,7 +237,7 @@ class IrSequence(models.Model):
         return interpolated_prefix + '%%0%sd' % self.padding % number_next + interpolated_suffix
 
     def _create_date_range_seq(self, date):
-        year = fields.Date.from_string(date).strftime('%Y')
+        year = fields.Date.from_string.to_datetime(date).strftime('%Y')
         date_from = '{}-01-01'.format(year)
         date_to = '{}-12-31'.format(year)
         date_range = self.env['ir.sequence.date_range'].search([('sequence_id', '=', self.id), ('date_from', '>=', date), ('date_from', '<=', date_to)], order='date_from desc', limit=1)

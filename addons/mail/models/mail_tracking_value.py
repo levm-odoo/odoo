@@ -99,8 +99,8 @@ class MailTrackingValue(models.Model):
             })
         elif col_info['type'] == 'date':
             values.update({
-                'old_value_datetime': initial_value and fields.Datetime.to_string(datetime.combine(fields.Date.from_string(initial_value), datetime.min.time())) or False,
-                'new_value_datetime': new_value and fields.Datetime.to_string(datetime.combine(fields.Date.from_string(new_value), datetime.min.time())) or False,
+                'old_value_datetime': initial_value and fields.Datetime.to_string(datetime.combine(fields.Date.from_string.to_datetime(initial_value), datetime.min.time())) or False,
+                'new_value_datetime': new_value and fields.Datetime.to_string(datetime.combine(fields.Date.from_string.to_datetime(new_value), datetime.min.time())) or False,
             })
         elif col_info['type'] == 'boolean':
             values.update({

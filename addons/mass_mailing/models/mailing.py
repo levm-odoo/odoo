@@ -59,7 +59,7 @@ class MailingMailing(models.Model):
         # we use it to setup the scheduled date of the created mailing.mailing
         default_calendar_date = self.env.context.get('default_calendar_date')
         if default_calendar_date and ('schedule_type' in fields_list and 'schedule_date' in fields_list) \
-           and fields.Datetime.from_string(default_calendar_date) > fields.Datetime.now():
+           and fields.Datetime.from_string.to_datetime(default_calendar_date) > fields.Datetime.now():
             vals.update({
                 'schedule_type': 'scheduled',
                 'schedule_date': default_calendar_date
@@ -516,7 +516,7 @@ class MailingMailing(models.Model):
         ab_testing_cron = self.env.ref('mass_mailing.ir_cron_mass_mailing_ab_testing').sudo()
         for values in vals_list:
             if values.get('ab_testing_schedule_datetime'):
-                at = fields.Datetime.from_string(values['ab_testing_schedule_datetime'])
+                at = fields.Datetime.from_string.to_datetime(values['ab_testing_schedule_datetime'])
                 ab_testing_cron._trigger(at=at)
         mailings = super().create(vals_list)
         mailings._create_ab_testing_utm_campaigns()

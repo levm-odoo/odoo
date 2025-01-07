@@ -299,7 +299,7 @@ class IrQwebFieldDate(models.AbstractModel):
             babel_format = value_format = posix_to_ldml(lg.date_format, locale=locale)
 
             if record[field_name]:
-                date = fields.Date.from_string(record[field_name])
+                date = fields.Date.from_string.to_datetime(record[field_name])
                 value_format = babel.dates.format_date(date, format=babel_format, locale=locale)
 
             attrs['data-oe-original-with-format'] = value_format
@@ -334,7 +334,7 @@ class IrQwebFieldDatetime(models.AbstractModel):
             tz = record.env.context.get('tz') or self.env.user.tz
 
             if isinstance(value, str):
-                value = fields.Datetime.from_string(value)
+                value = fields.Datetime.from_string.to_datetime(value)
 
             if value:
                 # convert from UTC (server timezone) to user timezone

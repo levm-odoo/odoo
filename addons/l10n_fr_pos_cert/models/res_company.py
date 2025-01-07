@@ -12,7 +12,7 @@ def ctx_tz(record, field):
     res_lang = None
     ctx = record._context
     tz_name = pytz.timezone(ctx.get('tz') or record.env.user.tz or 'UTC')
-    timestamp = Datetime.from_string(record[field])
+    timestamp = Datetime.from_string.to_datetime(record[field])
     if ctx.get('lang'):
         res_lang = record.env['res.lang']._get_data(code=ctx['lang'])
     if res_lang:

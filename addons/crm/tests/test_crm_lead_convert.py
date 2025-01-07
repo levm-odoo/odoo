@@ -65,7 +65,7 @@ class TestLeadConvert(crm_common.TestLeadConvertCommon):
     @classmethod
     def setUpClass(cls):
         super(TestLeadConvert, cls).setUpClass()
-        date = Datetime.from_string('2020-01-20 16:00:00')
+        date = Datetime.from_string.to_datetime('2020-01-20 16:00:00')
         cls.crm_lead_dt_mock.now.return_value = date
 
     @users('user_sales_manager')
@@ -121,7 +121,7 @@ class TestLeadConvert(crm_common.TestLeadConvertCommon):
     def test_initial_data(self):
         """ Ensure initial data to avoid spaghetti test update afterwards """
         self.assertFalse(self.lead_1.date_conversion)
-        self.assertEqual(self.lead_1.date_open, Datetime.from_string('2020-01-15 11:30:00'))
+        self.assertEqual(self.lead_1.date_open, Datetime.from_string.to_datetime('2020-01-15 11:30:00'))
         self.assertEqual(self.lead_1.lang_id, self.lang_fr)
         self.assertFalse(self.lead_1.mobile)
         self.assertEqual(self.lead_1.phone, '+1 202 555 9999')
@@ -418,7 +418,7 @@ class TestLeadConvert(crm_common.TestLeadConvertCommon):
     @users('user_sales_manager')
     def test_lead_merge(self):
         """ Test convert wizard working in merge mode """
-        date = Datetime.from_string('2020-01-20 16:00:00')
+        date = Datetime.from_string.to_datetime('2020-01-20 16:00:00')
         self.crm_lead_dt_mock.now.return_value = date
 
         leads = self.env['crm.lead']
@@ -455,7 +455,7 @@ class TestLeadConvert(crm_common.TestLeadConvertCommon):
     @users('user_sales_salesman')
     def test_lead_merge_user(self):
         """ Test convert wizard working in merge mode with sales user """
-        date = Datetime.from_string('2020-01-20 16:00:00')
+        date = Datetime.from_string.to_datetime('2020-01-20 16:00:00')
         self.crm_lead_dt_mock.now.return_value = date
 
         leads = self.env['crm.lead']
@@ -550,7 +550,7 @@ class TestLeadConvertBatch(crm_common.TestLeadConvertMassCommon):
     def test_initial_data(self):
         """ Ensure initial data to avoid spaghetti test update afterwards """
         self.assertFalse(self.lead_1.date_conversion)
-        self.assertEqual(self.lead_1.date_open, Datetime.from_string('2020-01-15 11:30:00'))
+        self.assertEqual(self.lead_1.date_open, Datetime.from_string.to_datetime('2020-01-15 11:30:00'))
         self.assertEqual(self.lead_1.user_id, self.user_sales_leads)
         self.assertEqual(self.lead_1.team_id, self.sales_team_1)
         self.assertEqual(self.lead_1.stage_id, self.stage_team1_1)

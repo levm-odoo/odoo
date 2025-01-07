@@ -108,7 +108,7 @@ class EventCase(common.TransactionCase):
             'phone': '0456987654',
             'mobile': '0456654321',
         })
-        cls.reference_now = fields.Datetime.from_string('2022-09-05 15:11:34')
+        cls.reference_now = fields.Datetime.from_string.to_datetime('2022-09-05 15:11:34')
         cls.event_type_questions = cls.env['event.type'].create({
             'name': 'Update Type',
             'has_seats_limitation': True,

@@ -150,7 +150,7 @@ class MailActivity(models.Model):
 
     @api.model
     def _compute_state_from_date(self, date_deadline, tz=False):
-        date_deadline = fields.Date.from_string(date_deadline)
+        date_deadline = fields.Date.from_string.to_datetime(date_deadline)
         today_default = date.today()
         today = today_default
         if tz:

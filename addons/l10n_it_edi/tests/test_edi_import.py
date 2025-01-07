@@ -60,7 +60,7 @@ class TestItEdiImport(TestItEdi):
         """
         self._assert_import_invoice('IT01234567890_FPR01.xml', [{
             'move_type': 'in_invoice',
-            'invoice_date': fields.Date.from_string('2014-12-18'),
+            'invoice_date': fields.Date.from_string.to_datetime('2014-12-18'),
             'amount_untaxed': 5.0,
             'amount_tax': 1.1,
             'invoice_line_ids': [{
@@ -74,7 +74,7 @@ class TestItEdiImport(TestItEdi):
         """ Same vendor bill as test_receive_vendor_bill but negative unit price """
         self._assert_import_invoice('IT01234567890_FPR02.xml', [{
             'move_type': 'in_invoice',
-            'invoice_date': fields.Date.from_string('2014-12-18'),
+            'invoice_date': fields.Date.from_string.to_datetime('2014-12-18'),
             'amount_untaxed': -5.0,
             'amount_tax': -1.1,
             'invoice_line_ids': [{
@@ -90,7 +90,7 @@ class TestItEdiImport(TestItEdi):
         """
         self._assert_import_invoice('IT01234567890_FPR01.xml.p7m', [{
             'ref': '01234567890',
-            'invoice_date': fields.Date.from_string('2014-12-18'),
+            'invoice_date': fields.Date.from_string.to_datetime('2014-12-18'),
             'amount_untaxed': 5.0,
             'amount_tax': 1.1,
             'invoice_line_ids': [{
@@ -120,7 +120,7 @@ class TestItEdiImport(TestItEdi):
         with freeze_time('2019-01-01'):
             self._assert_import_invoice('IT09633951000_NpFwF.xml.p7m', [{
                 'ref': '333333333333333',
-                'invoice_date': fields.Date.from_string('2023-09-08'),
+                'invoice_date': fields.Date.from_string.to_datetime('2023-09-08'),
                 'amount_untaxed': 57.54,
                 'amount_tax': 3.95,
             }])
@@ -286,7 +286,7 @@ class TestItEdiImport(TestItEdi):
         """
 
         self._assert_import_invoice('IT01234567890_FPR01.xml', [{
-            'invoice_date': fields.Date.from_string('2014-12-18'),
+            'invoice_date': fields.Date.from_string.to_datetime('2014-12-18'),
             'amount_untaxed': 3.0,
             'amount_tax': 1.1,
             'invoice_line_ids': [
@@ -326,7 +326,7 @@ class TestItEdiImport(TestItEdi):
         """
 
         self._assert_import_invoice('IT01234567890_FPR01.xml', [{
-            'invoice_date': fields.Date.from_string('2014-12-18'),
+            'invoice_date': fields.Date.from_string.to_datetime('2014-12-18'),
             'amount_untaxed': 1.5,
             'amount_tax': 0.33,
             'invoice_line_ids': [

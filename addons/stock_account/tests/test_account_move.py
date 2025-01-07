@@ -134,7 +134,7 @@ class TestAccountMove(TestAccountMoveStockCommon):
 
         move = self.env['account.move'].create({
             'move_type': 'out_refund',
-            'invoice_date': fields.Date.from_string('2019-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2019-01-01'),
             'partner_id': self.partner_a.id,
             'currency_id': self.other_currency.id,
             'invoice_line_ids': [
@@ -322,7 +322,7 @@ class TestAccountMove(TestAccountMoveStockCommon):
 
         move = self.env['account.move'].create({
             'move_type': 'out_refund',
-            'invoice_date': fields.Date.from_string('2019-01-01'),
+            'invoice_date': fields.Date.from_string.to_datetime('2019-01-01'),
             'partner_id': self.partner_a.id,
             'invoice_line_ids': [
                 Command.create({

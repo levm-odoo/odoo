@@ -69,7 +69,7 @@ class TestSEPAQRCode(AccountTestInvoicingCommon):
         self.sepa_qr_invoice._generate_qr_code()
         self.sepa_qr_invoice.action_post()
         move_reversal = self.env['account.move.reversal'].with_context(active_model="account.move", active_ids=self.sepa_qr_invoice.ids).create({
-            'date': fields.Date.from_string('2019-02-01'),
+            'date': fields.Date.from_string.to_datetime('2019-02-01'),
             'reason': 'no reason',
             'journal_id': self.sepa_qr_invoice.journal_id.id,
         })

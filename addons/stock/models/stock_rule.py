@@ -312,7 +312,7 @@ class StockRule(models.Model):
             group_id = self.group_id.id
 
         date_scheduled = fields.Datetime.to_string(
-            fields.Datetime.from_string(values['date_planned']) - relativedelta(days=self.delay or 0)
+            fields.Datetime.from_string.to_datetime(values['date_planned']) - relativedelta(days=self.delay or 0)
         )
         date_deadline = values.get('date_deadline') and (fields.Datetime.to_datetime(values['date_deadline']) - relativedelta(days=self.delay or 0)) or False
         partner = self.partner_address_id or (values.get('group_id', False) and values['group_id'].partner_id)

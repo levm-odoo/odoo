@@ -254,7 +254,7 @@ class Website(Home):
         sitemap = Attachment.search(dom, limit=1)
         if sitemap:
             # Check if stored version is still valid
-            create_date = fields.Datetime.from_string(sitemap.create_date)
+            create_date = fields.Datetime.from_string.to_datetime(sitemap.create_date)
             delta = datetime.datetime.now() - create_date
             if delta < SITEMAP_CACHE_TIME:
                 content = base64.b64decode(sitemap.datas)

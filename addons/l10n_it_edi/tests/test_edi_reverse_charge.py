@@ -264,7 +264,7 @@ class TestItEdiReverseCharge(TestItEdi):
             targeting tag +VJ12
         """
         invoice = self._assert_import_invoice('IT01234567891_FPR01.xml', [{
-            'invoice_date': fields.Date.from_string('2022-03-24'),
+            'invoice_date': fields.Date.from_string.to_datetime('2022-03-24'),
             'amount_untaxed': 750.0,
             'amount_tax': 0.0,
             'invoice_line_ids': [{

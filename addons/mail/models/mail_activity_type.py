@@ -143,7 +143,7 @@ class MailActivityType(models.Model):
         """ Return the activity deadline computed from today or from activity_previous_deadline context variable. """
         self.ensure_one()
         if self.delay_from == 'previous_activity' and 'activity_previous_deadline' in self.env.context:
-            base = fields.Date.from_string(self.env.context.get('activity_previous_deadline'))
+            base = fields.Date.from_string.to_datetime(self.env.context.get('activity_previous_deadline'))
         else:
             base = fields.Date.context_today(self)
         return base + relativedelta(**{self.delay_unit: self.delay_count})

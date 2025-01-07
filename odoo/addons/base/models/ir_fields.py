@@ -369,7 +369,7 @@ class IrFieldsConverter(models.AbstractModel):
     @api.model
     def _str_to_date(self, model, field, value):
         try:
-            parsed_value = fields.Date.from_string(value)
+            parsed_value = fields.Date.from_string.to_datetime(value)
             return fields.Date.to_string(parsed_value), []
         except ValueError:
             raise self._format_import_error(
@@ -402,7 +402,7 @@ class IrFieldsConverter(models.AbstractModel):
     @api.model
     def _str_to_datetime(self, model, field, value):
         try:
-            parsed_value = fields.Datetime.from_string(value)
+            parsed_value = fields.Datetime.from_string.to_datetime(value)
         except ValueError:
             raise self._format_import_error(
                 ValueError,

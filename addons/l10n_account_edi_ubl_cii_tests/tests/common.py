@@ -59,7 +59,7 @@ class TestUBLCommon(AccountTestInvoicingCommon):
         self.assertEqual(len(invoice1.invoice_line_ids), len(invoice2.invoice_line_ids))
         self.assertRecordValues(invoice2, [{
             'partner_id': invoice1.partner_id.id,
-            'invoice_date': fields.Date.from_string(invoice1.date),
+            'invoice_date': fields.Date.from_string.to_datetime(invoice1.date),
             'currency_id': invoice1.currency_id.id,
             'amount_untaxed': invoice1.amount_untaxed,
             'amount_tax': invoice1.amount_tax,

@@ -381,8 +381,8 @@ class CalendarEvent(models.Model):
         for event in self:
             if event.stop_date and event.start_date:
                 event.with_context(is_calendar_event_new=True).write({
-                    'start': fields.Datetime.from_string(event.start_date).replace(hour=8),
-                    'stop': fields.Datetime.from_string(event.stop_date).replace(hour=18),
+                    'start': fields.Datetime.from_string.to_datetime(event.start_date).replace(hour=8),
+                    'stop': fields.Datetime.from_string.to_datetime(event.stop_date).replace(hour=18),
                 })
 
     def _inverse_dates(self):
@@ -400,10 +400,10 @@ class CalendarEvent(models.Model):
                 # because fullcalendar just drops times for full day events.
                 # i.e. Christmas is on 25/12 for everyone
                 # even if people don't celebrate it simultaneously
-                enddate = fields.Datetime.from_string(meeting.stop_date)
+                enddate = fields.Datetime.from_string.to_datetime(meeting.stop_date)
                 enddate = enddate.replace(hour=18)
 
-                startdate = fields.Datetime.from_string(meeting.start_date)
+                startdate = fields.Datetime.from_string.to_datetime(meeting.start_date)
                 startdate = startdate.replace(hour=8)  # Set 8 AM
 
                 meeting.write({
@@ -1500,8 +1500,8 @@ class CalendarEvent(models.Model):
 
         # convert date and time into user timezone
         self_tz = self.with_context(tz=timezone)
-        date = fields.Datetime.context_timestamp(self_tz, fields.Datetime.from_string(start))
-        date_deadline = fields.Datetime.context_timestamp(self_tz, fields.Datetime.from_string(stop))
+        date = fields.Datetime.context_timestamp(self_tz, fields.Datetime.from_string.to_datetime(start))
+        date_deadline = fields.Datetime.context_timestamp(self_tz, fields.Datetime.from_string.to_datetime(stop))
 
         # convert into string the date and time, using user formats
         date_str = date.strftime(format_date)
