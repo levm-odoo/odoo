@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import math
+from collections import defaultdict
 from datetime import time
 from itertools import chain
 from pytz import utc
@@ -290,6 +290,31 @@ def sum_intervals(intervals):
         (stop - start).total_seconds() / 3600
         for start, stop, meta in intervals
     )
+
+def get_attendance_intervals_days_data(attendance_intervals):
+    """
+    helper function to compute duration of `intervals` that have
+    'resource.calendar.attendance' records as payload (3rd element in tuple).
+    expressed in days and hours.
+
+    resource.calendar.attendance records have durations associated
+    with them so this method merely calculates the proportion that is
+    covered by the intervals.
+    """
+    day_hours = defaultdict(float)
+    day_days = defaultdict(float)
+    for start, stop, meta in attendance_intervals:
+        # If the interval covers only a part of the original attendance, we
+        # take durations in days proportionally to what is left of the interval.
+        interval_hours = (stop - start).total_seconds() / 3600
+        day_hours[start.date()] += interval_hours
+        day_days[start.date()] += sum(meta.mapped('duration_days')) * interval_hours / sum(meta.mapped('duration_hours'))
+
+    return {
+        # Round the number of days to the closest 16th of a day.
+        'days': float_round(sum(day_days[day] for day in day_days), precision_rounding=0.001),
+        'hours': sum(day_hours.values()),
+    }
 
 def timezone_datetime(time):
     if not time.tzinfo:

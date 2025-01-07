@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from collections import defaultdict
@@ -6,9 +5,10 @@ from dateutil.relativedelta import relativedelta
 from pytz import timezone
 
 from odoo import api, fields, models
-from odoo.addons.base.models.res_partner import _tz_get
+from odoo.osv import expression
 
-from .utils import timezone_datetime, make_aware, Intervals
+from odoo.addons.base.models.res_partner import _tz_get
+from .utils import Intervals, make_aware, timezone_datetime, WorkIntervals
 
 
 class ResourceResource(models.Model):
@@ -218,3 +218,83 @@ class ResourceResource(models.Model):
         """
         self.ensure_one()
         return self._is_fully_flexible() or (self.calendar_id and self.calendar_id.flexible_hours)
+
+    # --------------------------------------------------
+    # Computation API
+    # --------------------------------------------------
+
+    def _get_calendar_periods(self, start, stop):
+        """
+        :param datetime start: the start of the period
+        :param datetime stop: the stop of the period
+        This method can be overridden in other modules where it's possible to have different resource calendars for an
+        employee depending on the date.
+        """
+        calendar_periods_by_resource = {}
+        for resource in self:
+            calendar = resource.resource_calendar_id or resource.company_id.resource_calendar_id
+            calendar_periods_by_resource[resource] = [(start, stop, calendar)]
+        return calendar_periods_by_resource
+
+    def _get_attendance_intervals(self, start_dt, end_dt, domain=None, tz=None, lunch=False, inverse_result=False):
+        assert start_dt.tzinfo and end_dt.tzinfo
+
+        attendance_intervals_per_calendar = self.calendar_id._get_attendance_intervals(
+            start_dt, end_dt, domain, tz, lunch, inverse_result)
+
+        return {
+            resource: attendance_intervals_per_calendar[resource.calendar_id] for resource in self
+        }
+
+    def _get_leave_intervals(self, start_dt, end_dt, domain=None, tz=None):
+        assert start_dt.tzinfo and end_dt.tzinfo
+
+        if domain is None:
+            domain = [('time_type', '=', 'leave')]
+        # for the computation, express all datetimes in UTC
+        domain = expression.AND([
+            domain,
+            [
+                ('resource_id', 'in', [False] + self.resource_id.ids),  # public leaves don't have a resource_id
+                ('date_from', '<=', end_dt),
+                ('date_to', '>=', start_dt),
+            ]
+        ])
+
+        # retrieve leave intervals in (start_dt, end_dt)
+        result = defaultdict(lambda: [])
+        tz_dates = {}
+        all_leaves = self.env['resource.calendar.leaves'].search(domain)
+        for leave in all_leaves:
+            leave_resource = leave.resource_id
+            leave_calendar = leave.calendar_id
+            leave_company = leave.company_id
+            leave_date_from = leave.date_from
+            leave_date_to = leave.date_to
+            for resource in self:
+                if leave_resource and leave_resource != resource.resource_id or\
+                        not leave_resource and leave_company and resource.company_id != leave_company:
+                    continue
+                tz = tz if tz else timezone(resource.tz)
+                if (tz, start_dt) in tz_dates:
+                    start = tz_dates[(tz, start_dt)]
+                else:
+                    start = start_dt.astimezone(tz)
+                    tz_dates[(tz, start_dt)] = start
+                if (tz, end_dt) in tz_dates:
+                    end = tz_dates[(tz, end_dt)]
+                else:
+                    end = end_dt.astimezone(tz)
+                    tz_dates[(tz, end_dt)] = end
+                dt0 = leave_date_from.astimezone(tz)
+                dt1 = leave_date_to.astimezone(tz)
+                result[resource].append((max(start, dt0), min(end, dt1), leave_calendar))
+        return {resource: WorkIntervals(result[resource]) for resource in self}
+
+    def _get_work_intervals(self, start_dt, end_dt, domain=None, tz=None):
+        attendance_intervals = self._get_attendance_intervals(start_dt, end_dt, tz=tz or self.env.context.get("employee_timezone"))
+        leave_intervals = self._get_leave_intervals(start_dt, end_dt, domain, tz=tz)
+        return {
+            resource: (attendance_intervals[resource] - leave_intervals[resource])
+            for resource in self
+        }

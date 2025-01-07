@@ -24,19 +24,11 @@ def datetime_str(year, month, day, hour=0, minute=0, second=0, microsecond=0, tz
         dt = timezone(tzinfo).localize(dt).astimezone(utc)
     return fields.Datetime.to_string(dt)
 
-def list_leaves(employee, from_datetime, to_datetime, calendar=None, domain=None):
+def list_leaves(employee, from_datetime, to_datetime):
     """
-        By default the resource calendar is used, but it can be
-        changed using the `calendar` argument.
-
-        `domain` is used in order to recognise the leaves to take,
-        None means default value ('time_type', '=', 'leave')
-
         Returns a list of tuples (day, hours, resource.calendar.leaves)
         for each leave in the calendar.
     """
-    resource = employee.resource_id
-    calendar = calendar or employee.resource_calendar_id
 
     # naive datetimes are made explicit in UTC
     if not from_datetime.tzinfo:
@@ -44,8 +36,8 @@ def list_leaves(employee, from_datetime, to_datetime, calendar=None, domain=None
     if not to_datetime.tzinfo:
         to_datetime = to_datetime.replace(tzinfo=utc)
 
-    attendances = calendar._attendance_intervals_batch(from_datetime, to_datetime, resource)[resource.id]
-    leaves = calendar._leave_intervals_batch(from_datetime, to_datetime, resource, domain)[resource.id]
+    attendances = employee._get_attendance_intervals(from_datetime, to_datetime)[employee]
+    leaves = employee._get_leave_intervals(from_datetime, to_datetime)[employee]
     result = []
     for start, stop, leave in (leaves & attendances):
         hours = (stop - start).total_seconds() / 3600

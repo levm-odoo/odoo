@@ -16,7 +16,7 @@ from odoo.osv import expression
 from odoo.tools.float_utils import float_round
 
 from odoo.tools import date_utils, ormcache
-from .utils import Intervals, float_to_time, make_aware, datetime_to_string, string_to_datetime, WorkIntervals
+from .utils import Intervals, float_to_time, make_aware, datetime_to_string, string_to_datetime, WorkIntervals, get_attendance_intervals_days_data
 
 
 class ResourceCalendar(models.Model):
@@ -616,31 +616,6 @@ class ResourceCalendar(models.Model):
     # Private Methods / Helpers
     # --------------------------------------------------
 
-    def _get_attendance_intervals_days_data(self, attendance_intervals):
-        """
-        helper function to compute duration of `intervals` that have
-        'resource.calendar.attendance' records as payload (3rd element in tuple).
-        expressed in days and hours.
-
-        resource.calendar.attendance records have durations associated
-        with them so this method merely calculates the proportion that is
-        covered by the intervals.
-        """
-        day_hours = defaultdict(float)
-        day_days = defaultdict(float)
-        for start, stop, meta in attendance_intervals:
-            # If the interval covers only a part of the original attendance, we
-            # take durations in days proportionally to what is left of the interval.
-            interval_hours = (stop - start).total_seconds() / 3600
-            day_hours[start.date()] += interval_hours
-            day_days[start.date()] += sum(meta.mapped('duration_days')) * interval_hours / sum(meta.mapped('duration_hours'))
-
-        return {
-            # Round the number of days to the closest 16th of a day.
-            'days': float_round(sum(day_days[day] for day in day_days), precision_rounding=0.001),
-            'hours': sum(day_hours.values()),
-        }
-
     def _get_closest_work_time(self, dt, match_end=False, resource=None, search_range=None, compute_leaves=True):
         """Return the closest work interval boundary within the search range.
         Consider only starts of intervals unless `match_end` is True. It will then only consider
@@ -744,7 +719,7 @@ class ResourceCalendar(models.Model):
         else:
             intervals = self._attendance_intervals_batch(from_datetime, to_datetime, domain=domain)[False]
 
-        return self._get_attendance_intervals_days_data(intervals)
+        return get_attendance_intervals_days_data(intervals)
 
     def plan_hours(self, hours, day_dt, compute_leaves=False, domain=None, resource=None):
         """

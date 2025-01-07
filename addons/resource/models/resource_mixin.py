@@ -5,7 +5,7 @@ from pytz import timezone, utc
 
 from odoo import api, fields, models
 from odoo.osv import expression
-from .utils import timezone_datetime, WorkIntervals
+from .utils import get_attendance_intervals_days_data, timezone_datetime, WorkIntervals
 
 
 class ResourceMixin(models.AbstractModel):
@@ -92,39 +92,23 @@ class ResourceMixin(models.AbstractModel):
             Returns a dict {'days': n, 'hours': h} containing the
             quantity of working time expressed as days and as hours.
         """
-        resources = self.mapped('resource_id')
-        mapped_employees = {e.resource_id.id: e.id for e in self}
-        result = {}
+        result = defaultdict(lambda: {'days': 0, 'hours': 0})
 
         # naive datetimes are made explicit in UTC
         from_datetime = timezone_datetime(from_datetime)
         to_datetime = timezone_datetime(to_datetime)
 
-        if calendar:
-            mapped_resources = {calendar: self.resource_id}
+        if compute_leaves:
+            intervals = self._get_work_intervals(from_datetime, to_datetime, domain)
         else:
-            calendar_by_resource = self._get_calendars(from_datetime)
-            mapped_resources = defaultdict(lambda: self.env['resource.resource'])
-            for resource in self:
-                mapped_resources[calendar_by_resource[resource.id]] |= resource.resource_id
+            intervals = self._get_attendance_intervals(from_datetime, to_datetime)
 
-        for calendar, calendar_resources in mapped_resources.items():
-            if not calendar:
-                for calendar_resource in calendar_resources:
-                    result[calendar_resource.id] = {'days': 0, 'hours': 0}
-                continue
-
-            # actual hours per day
-            if compute_leaves:
-                intervals = calendar._work_intervals_batch(from_datetime, to_datetime, calendar_resources, domain)
-            else:
-                intervals = calendar._attendance_intervals_batch(from_datetime, to_datetime, calendar_resources)
-
-            for calendar_resource in calendar_resources:
-                result[calendar_resource.id] = calendar._get_attendance_intervals_days_data(intervals[calendar_resource.id])
-
-        # convert "resource: result" into "employee: result"
-        return {mapped_employees[r.id]: result[r.id] for r in resources}
+        return {
+            resource: get_attendance_intervals_days_data(intervals[resource])
+            for resource in self
+        }
+        for resource in self:
+            result[resource] = get_attendance_intervals_days_data(intervals[resource])
 
     def _get_leave_days_data_batch(self, from_datetime, to_datetime, domain=None):
         """
@@ -146,8 +130,8 @@ class ResourceMixin(models.AbstractModel):
         leaves = self._get_leave_intervals(from_datetime, to_datetime, domain)
 
         return {
-            self.env['resource.calendar']._get_attendance_intervals_days_data(attendances[employee] & leaves[employee])
-            for employee in self
+            resource: get_attendance_intervals_days_data(attendances[resource] & leaves[resource])
+            for resource in self
         }
 
     def _adjust_to_calendar(self, start, end):

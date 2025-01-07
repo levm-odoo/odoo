@@ -91,22 +91,6 @@ class HrContract(models.Model):
     def _get_attendance_intervals(self, start_dt, end_dt):
         return self.employee_id._get_attendance_intervals(start_dt, end_dt)
 
-    def _get_lunch_intervals(self, start_dt, end_dt):
-        # {resource: intervals}
-        employees_by_calendar = defaultdict(lambda: self.env['hr.employee'])
-        for contract in self:
-            employees_by_calendar[contract.resource_calendar_id] |= contract.employee_id
-        result = {}
-        for calendar, employees in employees_by_calendar.items():
-            result.update(calendar._attendance_intervals_batch(
-                start_dt,
-                end_dt,
-                resources=employees.resource_id,
-                tz=pytz.timezone(calendar.tz),
-                lunch=True,
-            ))
-        return result
-
     def _get_interval_work_entry_type(self, interval):
         self.ensure_one()
         if 'work_entry_type_id' in interval[2] and interval[2].work_entry_type_id[:1]:
@@ -177,8 +161,7 @@ class HrContract(models.Model):
                 real_leaves = attendances - real_attendances
             else:
                 # In the case of attendance based contracts use regular attendances to generate leave intervals
-                static_attendances = calendar._attendance_intervals_batch(
-                    start_dt, end_dt, resources=resource, tz=tz)[resource.id]
+                static_attendances = employee._get_attendance_intervals(start_dt, end_dt, tz=tz)[employee]
                 real_leaves = static_attendances & leaves
 
             if not contract.has_static_work_entries():
