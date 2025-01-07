@@ -43,7 +43,12 @@ class AccountAccount(models.Model):
             raise ValidationError(_('You cannot have more than one account with "Current Year Earnings" as type. (accounts: %s)', [a.code for a in account_unaffected_earnings]))
 
     name = fields.Char(string="Account Name", required=True, index='trigram', tracking=True, translate=True)
-    currency_id = fields.Many2one('res.currency', string='Account Currency', tracking=True,
+    category_id = fields.Many2one(
+        comodel_name='account.category',
+        help="Used to assist in the selection of accounts by grouping them into categories."
+    )
+    description = fields.Text()
+    currency_id = fields.Many2one('res.currency', string='Currency', tracking=True,
         help="Forces all journal items in this account to have a specific currency (i.e. bank journals). If no currency is set, entries can use any currency.")
     company_currency_id = fields.Many2one('res.currency', compute='_compute_company_currency_id')
     company_fiscal_country_code = fields.Char(compute='_compute_company_fiscal_country_code')

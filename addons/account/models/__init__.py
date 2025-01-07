@@ -3,6 +3,7 @@ from . import partner
 from . import res_partner_bank
 from . import account_account_tag
 from . import account_account
+from . import account_category
 from . import account_code_mapping
 from . import account_root
 from . import account_journal

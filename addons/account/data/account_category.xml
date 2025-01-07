@@ -1,0 +1,115 @@
+<odoo>
+    <record id="acc_cat_all" model="account.category">
+        <field name="name">All categories</field>
+        <field name="scope">other</field>
+    </record>
+
+    <record id="acc_cat_food_drinks" model="account.category">
+        <field name="name">Food &amp; drinks</field>
+        <field name="scope">purchase</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_admin_fees" model="account.category">
+        <field name="name">Administration Fees</field>
+        <field name="scope">purchase</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_legal_other" model="account.category">
+        <field name="name">Legal &amp; other fees</field>
+        <field name="scope">purchase</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_bank_charges" model="account.category">
+        <field name="name">Interest &amp; bank charges</field>
+        <field name="scope">purchase</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_import_fees" model="account.category">
+        <field name="name">Import fees</field>
+        <field name="scope">purchase</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_vehicle" model="account.category">
+        <field name="name">Vehicle</field>
+        <field name="scope">purchase</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_travel" model="account.category">
+        <field name="name">Travel</field>
+        <field name="scope">purchase</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_tech_comm" model="account.category">
+        <field name="name">Technology &amp; communication</field>
+        <field name="scope">purchase</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_tax_insurance" model="account.category">
+        <field name="name">Taxes &amp; Insurance</field>
+        <field name="scope">purchase</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_subcontract" model="account.category">
+        <field name="name">Subcontracting</field>
+        <field name="scope">purchase</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_resale_goods" model="account.category">
+        <field name="name">Goods for resale and materials</field>
+        <field name="scope">purchase</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_workplace" model="account.category">
+        <field name="name">Workplace</field>
+        <field name="scope">purchase</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_training" model="account.category">
+        <field name="name">Training &amp; documentation</field>
+        <field name="scope">purchase</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_marketing" model="account.category">
+        <field name="name">Marketing</field>
+        <field name="scope">purchase</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_compensation" model="account.category">
+        <field name="name">Compensation</field>
+        <field name="scope">purchase</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_land" model="account.category">
+        <field name="name">Land &amp; construction</field>
+        <field name="scope">purchase</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_sales" model="account.category">
+        <field name="name">Sales</field>
+        <field name="scope">sale</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+    <record id="acc_cat_income" model="account.category">
+        <field name="name">Other Income</field>
+        <field name="scope">sale</field>
+        <field name="parent_id" ref="acc_cat_all"/>
+    </record>
+
+</odoo>

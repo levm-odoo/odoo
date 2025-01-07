@@ -62,12 +62,13 @@
                                     <group>
                                         <field name="account_type" widget="account_type_selection"/>
                                         <field name="tax_ids" widget="many2many_tax_tags" invisible="account_type == 'off_balance'" options="{'no_quick_create': True}"/>
+                                        <field name="category_id"/>
                                         <field name="tag_ids" widget="many2many_tags" domain="[('applicability', '=', 'accounts')]" context="{'default_applicability': 'accounts'}" options="{'no_create_edit': True}"/>
                                     </group>
                                     <group>
                                         <field name="internal_group" invisible="1" readonly="1"/>
-                                        <field name="currency_id" options="{'no_create': True}" groups="base.group_multi_currency"/>
-                                        <field name="group_id"/>
+                                        <field name="currency_id" options="{'no_create': True}" groups="base.group_multi_currency" placeholder="Any currency"/>
+                                        <field name="group_id" groups="base.group_no_one"/>
                                         <field name="company_ids" widget="many2many_tags" options="{'no_create': True}" groups="base.group_multi_company"/>
                                     </group>
                                 </group>
@@ -79,6 +80,9 @@
                                         <field name="code"/>
                                     </list>
                                 </field>
+                            </page>
+                            <page name="description" string="Description">
+                                <field name="description"/>
                             </page>
                         </notebook>
                     </sheet>
