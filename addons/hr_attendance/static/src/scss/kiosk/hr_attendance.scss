@@ -50,6 +50,10 @@
         width:4rem;
     }
 
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
     @include media-breakpoint-down(md) {
         height: calc(100dvh - var(--kiosk-searchBar-height--mobile));
     }
