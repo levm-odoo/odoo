@@ -20,7 +20,7 @@ from odoo.tools.misc import OrderedSet
 _logger = logging.getLogger(__name__)
 
 # longpolling timeout connection
-TIMEOUT = 50
+TIMEOUT = 5000
 
 # custom function to call instead of default PostgreSQL's `pg_notify`
 ODOO_NOTIFY_FUNCTION = os.getenv('ODOO_NOTIFY_FUNCTION', 'pg_notify')

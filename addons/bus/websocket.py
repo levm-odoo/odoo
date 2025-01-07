@@ -223,7 +223,7 @@ class Websocket:
     # Proxies usually close a connection after 1 minute of inactivity.
     # Therefore, a PING frame have to be sent if no frame is either sent
     # or received within CONNECTION_TIMEOUT - 15 seconds.
-    CONNECTION_TIMEOUT = 60
+    CONNECTION_TIMEOUT = 6000
     INACTIVITY_TIMEOUT = CONNECTION_TIMEOUT - 15
     # How much time (in second) the history of last dispatched notifications is
     # kept in memory for each websocket.

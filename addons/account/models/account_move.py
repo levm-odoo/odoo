@@ -1280,6 +1280,7 @@ class AccountMove(models.Model):
                             invoice.needed_terms[key]['balance'] += values['balance']
                             invoice.needed_terms[key]['amount_currency'] += values['amount_currency']
                 else:
+                    deductible_amls = self.line_ids.filtered(lambda line: line.display_type == 'deductible')
                     invoice.needed_terms[frozendict({
                         'move_id': invoice.id,
                         'date_maturity': fields.Date.to_date(invoice.invoice_date_due),
@@ -1287,8 +1288,8 @@ class AccountMove(models.Model):
                         'discount_balance': 0.0,
                         'discount_amount_currency': 0.0
                     })] = {
-                        'balance': invoice.amount_total_signed,
-                        'amount_currency': invoice.amount_total_in_currency_signed,
+                        'balance': invoice.amount_total_signed + sign * sum(deductible_amls.mapped('amount_currency')),
+                        'amount_currency': invoice.amount_total_in_currency_signed + sign * sum(deductible_amls.mapped('amount_currency')),
                     }
 
     def _compute_payments_widget_to_reconcile_info(self):
@@ -1539,6 +1540,11 @@ class AccountMove(models.Model):
         base_lines = [self._prepare_product_base_line_for_taxes_computation(line) for line in base_amls]
 
         tax_lines = []
+
+        # Add the deductible line to the base lines
+        deductible_amls = self.line_ids.filtered(lambda line: line.display_type == 'deductible' and line.credit > 0)
+        base_lines += [self._prepare_epd_base_line_for_taxes_computation(line) for line in deductible_amls]
+
         if self.id:
             # The move is stored so we can add the early payment discount lines directly to reduce the
             # tax amount without touching the untaxed amount.
@@ -2088,8 +2094,8 @@ class AccountMove(models.Model):
                             sign = -1 if move.is_inbound() else 1
                             delta_amount = tax_group_old_amount * sign - tax_group['tax_amount_currency']
 
-                            if not move.currency_id.is_zero(delta_amount):
-                                first_tax_line.amount_currency -= delta_amount * sign
+                            # if not move.currency_id.is_zero(delta_amount):
+                            #     first_tax_line.amount_currency -= delta_amount * sign
             self._compute_amount()
 
     def _inverse_amount_total(self):
@@ -2762,7 +2768,7 @@ class AccountMove(models.Model):
         fake_base_line = AccountTax._prepare_base_line_for_taxes_computation(None)
 
         def get_base_lines(move):
-            return move.line_ids.filtered(lambda line: line.display_type in ('product', 'epd', 'rounding', 'cogs'))
+            return move.line_ids.filtered(lambda line: line.display_type in ('product', 'epd', 'rounding', 'cogs', 'deductible'))
 
         def get_tax_lines(move):
             return move.line_ids.filtered('tax_repartition_line_id')
@@ -2981,18 +2987,19 @@ class AccountMove(models.Model):
                 for fname in values
             )
         }
+        pass
 
         while to_delete and to_create:
             key, values = to_create.popitem()
             line_id = to_delete.pop()
             self.env['account.move.line'].browse(line_id).write(
-                {**key, **values, 'display_type': line_type}
+                {'display_type': line_type, **key, **values}
             )
         if to_delete:
             self.env['account.move.line'].browse(to_delete).with_context(dynamic_unlink=True).unlink()
         if to_create:
             self.env['account.move.line'].create([
-                {**key, **values, 'display_type': line_type}
+                {'display_type': line_type, **key, **values}
                 for key, values in to_create.items()
             ])
         if to_write:
