@@ -8,7 +8,7 @@ from operator import itemgetter
 from odoo import api, fields, models, tools, _
 from odoo.exceptions import ValidationError
 from odoo.osv import expression
-from odoo.tools import float_compare, groupby
+from odoo.tools import float_compare, groupby, SQL
 from odoo.tools.misc import unique
 
 
@@ -544,16 +544,21 @@ class ProductProduct(models.Model):
                 if not product_ids:
                     product_ids = list(self._search([('barcode', '=', name)] + domain, limit=limit, order=order))
             if not product_ids and operator not in expression.NEGATIVE_TERM_OPERATORS:
-                # Do not merge the 2 next lines into one single search, SQL search performance would be abysmal
-                # on a database with thousands of matching products, due to the huge merge+unique needed for the
-                # OR operator (and given the fact that the 'name' lookup results come from the ir.translation table
-                # Performing a quick memory merge of ids in Python will give much better performance
-                product_ids = list(self._search(domain + [('default_code', operator, name)], limit=limit, order=order))
-                if not limit or len(product_ids) < limit:
-                    # we may underrun the limit because of dupes in the results, that's fine
-                    limit2 = (limit - len(product_ids)) if limit else False
-                    product2_ids = self._search(domain + [('name', operator, name), ('id', 'not in', product_ids)], limit=limit2, order=order)
-                    product_ids.extend(product2_ids)
+                prio_colname = 'priority'
+                from_code = self._search(domain + [('default_code', operator, name)], order=order)
+                from_name = self._search(domain + [('name', operator, name)], order=order)
+                from_name.add_where(SQL("NOT EXISTS %s", from_code.subselect('1')))
+                self.env.cr.execute(SQL("""
+                    SELECT id
+                    FROM ((%s) UNION ALL (%s) %s) AS p
+                    ORDER BY %s
+                """,
+                   from_code.select(SQL(', ').join([SQL.identifier(from_code.table, 'id'), SQL(f'1 AS {prio_colname}')])),
+                   from_name.select(SQL(', ').join([SQL.identifier(from_name.table, 'id'), SQL(f'2 AS {prio_colname}')])),
+                   SQL('LIMIT %s', limit) if limit else SQL(),
+                   SQL.identifier(prio_colname),
+                ))
+                product_ids = [row[0] for row in self.env.cr.fetchall()]
             elif not product_ids and operator in expression.NEGATIVE_TERM_OPERATORS:
                 domain2 = expression.OR([
                     ['&', ('default_code', operator, name), ('name', operator, name)],
