@@ -2,6 +2,7 @@
 
 import "@website/snippets/s_website_form/000";  // force deps
 import publicWidget from '@web/legacy/js/public/public_widget';
+import { renderToElement } from "@web/core/utils/render";
 import { session } from "@web/session";
 
 publicWidget.registry.s_website_form.include({
@@ -13,14 +14,15 @@ publicWidget.registry.s_website_form.include({
             this.cleanTurnstile();
             if (!this.isEditable && !this.$('.s_turnstile').length && session.turnstile_site_key) {
                 const mode = new URLSearchParams(window.location.search).get('cf') == 'show' ? 'always' : 'interaction-only';
-                $(`<div class="s_turnstile cf-turnstile float-end"
-                         data-action="website_form"
-                         data-appearance="${mode}"
-                         data-response-field-name="turnstile_captcha"
-                         data-sitekey="${session.turnstile_site_key}"
-                         data-error-callback="throwTurnstileError"
-                    ></div>
-                    <script class="s_turnstile">
+                const turnstileContainer = renderToElement("website_cf_turnstile.turnstile_container", {
+                    action: "website_form",
+                    appearance: mode,
+                    additionalClasses: "float-end",
+                    errorGlobalCallback: "throwTurnstileErrorCode",
+                    sitekey: session.turnstile_site_key,
+                });
+                const turnstileScript = renderToElement("website_cf_turnstile.turnstile_remote_script");
+                const turnstileErrorGlobalScript = $(`<script class="s_turnstile">
                         // Rethrow the error, or we only will catch a "Script error" without any info 
                         // because of the script api.js originating from a different domain.
                         function throwTurnstileError(code) {
@@ -29,8 +31,9 @@ publicWidget.registry.s_website_form.include({
                             throw error;
                         }
                     </script>
-                    <script class="s_turnstile" src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
-                `).insertAfter('.s_website_form_send, .o_website_form_send');
+                `);
+                $(turnstileContainer).add(turnstileErrorGlobalScript).add($(turnstileScript))
+                .insertAfter('.s_website_form_send, .o_website_form_send');
             }
             return res;
         },
