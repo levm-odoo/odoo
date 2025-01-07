@@ -18,7 +18,7 @@ import { evaluateExpr } from "@web/core/py_js/py";
 import { getGroupBy } from "@web/search/utils/group_by";
 
 const DRAGGABLE_GROUP_TYPES = ["many2one"];
-const MOVABLE_RECORD_TYPES = ["char", "boolean", "integer", "selection", "many2one", "date"];
+const MOVABLE_RECORD_TYPES = ["char", "boolean", "integer", "selection", "many2one", "date","datetime"];
 
 function validateColumnQuickCreateExamples(data) {
     const { allowedGroupBys = [], examples = [], foldField = "" } = data;
@@ -234,7 +234,7 @@ export class KanbanRenderer extends Component {
             typeof gb === "string" ? getGroupBy(gb, this.props.list.fields) : gb
         );
         //only day interval is supported for date groupbys in drag and drop
-        if (groupByField.type === "date" && groupByInfo[0].interval !== "day") {
+        if (groupByField.type === "date" || groupByField.type === "datetime" && groupByInfo[0].interval !== "day") {
             return false;
         }
         let isReadonly = this.props.list.fields[groupByField.name].readonly;

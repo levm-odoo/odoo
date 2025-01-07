@@ -1,6 +1,7 @@
 import { CrmKanbanRenderer } from "@crm/views/crm_kanban/crm_kanban_renderer";
 import { useService } from "@web/core/utils/hooks";
 import { ForecastKanbanColumnQuickCreate } from "@crm/views/forecast_kanban/forecast_kanban_column_quick_create";
+import { getGroupBy } from "@web/search/utils/group_by";
 
 export class ForecastKanbanRenderer extends CrmKanbanRenderer {
     static template = "crm.ForecastKanbanRenderer";
@@ -33,6 +34,15 @@ export class ForecastKanbanRenderer extends CrmKanbanRenderer {
         return super.isMovableField(...arguments) || field.name === "date_deadline";
     }
 
+    get canMoveRecords() {
+        const groupByInfo = this.props.list.groupBy.map((gb) =>
+            typeof gb === "string" ? getGroupBy(gb, this.props.list.fields) : gb);
+
+        if (this.props.list.groupByField?.type === "date" || this.props.list.groupByField?.type === "datetime" && groupByInfo[0].interval == "month") {
+            return true;}
+
+        return super.canMoveRecords; 
+    }
     async addForecastColumn() {
         const { name, type, granularity } = this.props.list.groupByField;
         this.fillTemporalService
