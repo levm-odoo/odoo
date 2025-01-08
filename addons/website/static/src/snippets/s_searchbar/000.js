@@ -36,7 +36,7 @@ publicWidget.registry.searchBar = publicWidget.Widget.extend({
      */
     start: function () {
         this.$input = this.$('.search-query');
-
+        this.template = this.$input.data('searchTemplate') || 'default';
         this.searchType = this.$input.data('searchType');
         this.order = this.$('.o_search_order_by').val();
         this.limit = parseInt(this.$input.data('limit'));
@@ -148,7 +148,7 @@ publicWidget.registry.searchBar = publicWidget.Widget.extend({
         const $prevMenu = this.$menu;
         if (res && this.limit) {
             const results = res['results'];
-            let template = 'website.s_searchbar.autocomplete';
+            let template = this._getTemplate(this.template);
             const candidate = template + '.' + this.searchType;
             if (renderToString.app.getRawTemplate(candidate)) {
                 template = candidate;
@@ -230,6 +230,13 @@ publicWidget.registry.searchBar = publicWidget.Widget.extend({
             'name',
             'extra_info',
         ];
+    },
+    _getTemplate(value){
+        const templates = {
+            'default': 'website.s_searchbar.autocomplete',
+            'second': 'website.s_searchbar.autocomplete_second',
+        }
+        return templates[value] || templates['default'];
     },
 
     //--------------------------------------------------------------------------
