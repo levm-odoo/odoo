@@ -39,6 +39,13 @@ export function effect(cb, deps) {
     cb(...reactiveDeps);
 }
 
+export function effect2(cb, deps) {
+    const reactiveDeps = reactive(deps, (payload) => {
+        cb(payload, ...reactiveDeps);
+    });
+    cb(undefined, ...reactiveDeps);
+}
+
 /**
  * Adds computed properties to a reactive object derived from multiples sources.
  *

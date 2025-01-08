@@ -182,11 +182,13 @@ export class PosOrderline extends Base {
 
         const disc = Math.min(Math.max(parsed_discount || 0, 0), 100);
         this.discount = disc;
-        this.order_id.recomputeOrderData();
         this.setDirty();
     }
 
     setLinePrice() {
+        if (!this.order_id) {
+            return;
+        }
         const prices = this.getAllPrices();
         if (this.price_subtotal !== prices.priceWithoutTax) {
             this.price_subtotal = prices.priceWithoutTax;

@@ -3,6 +3,7 @@ import { uuidv4 } from "@point_of_sale/utils";
 import { TrapDisabler } from "@point_of_sale/proxy_trap";
 import { WithLazyGetterTrap } from "@point_of_sale/lazy_getter";
 import { deserializeDateTime, serializeDateTime } from "@web/core/l10n/dates";
+import { onChange } from "@mail/utils/common/misc";
 
 const ID_CONTAINER = {};
 const { DateTime } = luxon;
@@ -359,7 +360,7 @@ export function createRelatedModels(modelDefs, modelClasses = {}, opts = {}) {
     }
 
     function removeItem(record, fieldName, item) {
-        const cacheMap = record.getCacheMap(fieldName);
+        const cacheMap = toRaw(record.getCacheMap(fieldName));
         const key = database[item.model.name]?.key || "id";
         const keyVal = item[key];
 
@@ -371,7 +372,7 @@ export function createRelatedModels(modelDefs, modelClasses = {}, opts = {}) {
     }
 
     function addItem(record, fieldName, item) {
-        const cacheMap = record.getCacheMap(fieldName);
+        const cacheMap = toRaw(record.getCacheMap(fieldName));
         const key = database[item.model.name]?.key || "id";
         const keyVal = item[key];
 
@@ -483,7 +484,7 @@ export function createRelatedModels(modelDefs, modelClasses = {}, opts = {}) {
                             value = [["clear"], ["link", ...value]];
                         }
                     }
-                    receiver.update({ [prop]: value });
+                    target.update({ [prop]: value });
                     target.model.triggerEvents("update", { field: prop, value, id: target.id });
                     return true;
                 });
@@ -821,6 +822,14 @@ export function createRelatedModels(modelDefs, modelClasses = {}, opts = {}) {
             // Some records must be linked to other records before it can configure itself.
             if (!delayedSetup) {
                 record.setup(vals);
+            }
+            for (const fieldName in fields) {
+                if (fieldName.startsWith("<-")) {
+                    continue;
+                }
+                onChange(record, fieldName, (target, payload) => {
+                    console.log(`${this.name}(${target.id}).${fieldName} ->`, payload);
+                });
             }
 
             return this.records[this.name].get(id);

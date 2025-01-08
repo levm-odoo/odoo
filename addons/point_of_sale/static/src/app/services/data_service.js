@@ -1,4 +1,4 @@
-import { Reactive } from "@web/core/utils/reactive";
+import { effect2, Reactive } from "@web/core/utils/reactive";
 import { createRelatedModels } from "@point_of_sale/app/models/related_models";
 import { registry } from "@web/core/registry";
 import { Mutex } from "@web/core/utils/concurrency";
@@ -300,6 +300,20 @@ export class PosData extends Reactive {
 
         await this.initData();
         await this.getLocalDataFromIndexedDB();
+
+        for (const [model, modelRecords] of Object.entries(this.models.records)) {
+            effect2(
+                (payload, obj) => {
+                    for (const key of obj.keys()) {
+                        void obj.get(key);
+                    }
+                    if (payload) {
+                        console.log(model, "->", payload);
+                    }
+                },
+                [modelRecords]
+            );
+        }
         this.initListeners();
         this.network.loading = false;
     }

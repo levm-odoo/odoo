@@ -1962,7 +1962,7 @@
      * @param key the key that changed (or Symbol `KEYCHANGES` if a key was created
      *   or deleted)
      */
-    function notifyReactives(target, key) {
+    function notifyReactives(target, key, payload) {
         const keyToCallbacks = targetToKeysToCallbacks.get(target);
         if (!keyToCallbacks) {
             return;
@@ -1974,7 +1974,7 @@
         // Loop on copy because clearReactivesForCallback will modify the set in place
         for (const callback of [...callbacks]) {
             clearReactivesForCallback(callback);
-            callback();
+            callback(payload);
         }
     }
     const callbacksToTargets = new WeakMap();
@@ -2095,21 +2095,22 @@
                 const originalValue = Reflect.get(target, key, receiver);
                 const ret = Reflect.set(target, key, toRaw(value), receiver);
                 if (!hadKey && objectHasOwnProperty.call(target, key)) {
-                    notifyReactives(target, KEYCHANGES);
+                    notifyReactives(target, KEYCHANGES, [target, 'added', key, value]);
                 }
                 // While Array length may trigger the set trap, it's not actually set by this
                 // method but is updated behind the scenes, and the trap is not called with the
                 // new value. We disable the "same-value-optimization" for it because of that.
                 if (originalValue !== Reflect.get(target, key, receiver) ||
                     (key === "length" && Array.isArray(target))) {
-                    notifyReactives(target, key);
+                    notifyReactives(target, key, [target, 'updated', key, originalValue, value]);
                 }
                 return ret;
             },
-            deleteProperty(target, key) {
-                const ret = Reflect.deleteProperty(target, key);
+            deleteProperty(target, key, receiver) {
+                const originalValue = Reflect.get(target, key, receiver);
+                const ret = Reflect.deleteProperty(target, key, receiver);
                 // TODO: only notify when something was actually deleted
-                notifyReactives(target, KEYCHANGES);
+                notifyReactives(target, KEYCHANGES, [target, 'deleted', key, originalValue]);
                 notifyReactives(target, key);
                 return ret;
             },
@@ -2187,15 +2188,20 @@
      *  value before calling the delegate method for comparison purposes
      * @param target @see reactive
      */
-    function delegateAndNotify(setterName, getterName, target) {
+    function delegateAndNotify(setterName, getterName, target, originalValueGetterName = false) {
         return (key, value) => {
             key = toRaw(key);
             const hadKey = target.has(key);
             const originalValue = target[getterName](key);
+            const og = originalValueGetterName ? target[originalValueGetterName](key) : originalValue;
             const ret = target[setterName](key, value);
             const hasKey = target.has(key);
             if (hadKey !== hasKey) {
-                notifyReactives(target, KEYCHANGES);
+                if (hadKey) {
+                    notifyReactives(target, KEYCHANGES, [target, 'deleted', key, og]);
+                } else {
+                    notifyReactives(target, KEYCHANGES, [target, 'added', key, value]);
+                }
             }
             if (originalValue !== target[getterName](key)) {
                 notifyReactives(target, key);
@@ -2213,7 +2219,7 @@
         return () => {
             const allKeys = [...target.keys()];
             target.clear();
-            notifyReactives(target, KEYCHANGES);
+            notifyReactives(target, KEYCHANGES, [target, 'cleared']);
             for (const key of allKeys) {
                 notifyReactives(target, key);
             }
@@ -2246,7 +2252,7 @@
             has: makeKeyObserver("has", target, callback),
             get: makeKeyObserver("get", target, callback),
             set: delegateAndNotify("set", "get", target),
-            delete: delegateAndNotify("delete", "has", target),
+            delete: delegateAndNotify("delete", "has", target, "get"),
             keys: makeIteratorObserver("keys", target, callback),
             values: makeIteratorObserver("values", target, callback),
             entries: makeIteratorObserver("entries", target, callback),
@@ -2262,7 +2268,7 @@
             has: makeKeyObserver("has", target, callback),
             get: makeKeyObserver("get", target, callback),
             set: delegateAndNotify("set", "get", target),
-            delete: delegateAndNotify("delete", "has", target),
+            delete: delegateAndNotify("delete", "has", target, "get"),
         }),
     };
     /**

@@ -132,6 +132,7 @@
             'bus/static/src/bus_parameters_service.js',
             'bus/static/src/multi_tab_service.js',
             'bus/static/src/workers/*',
+            'mail/static/src/utils/common/misc.js'
         ],
 
         # Main PoS assets, they are loaded in the PoS UI

@@ -6,6 +6,8 @@ import { floatIsZero, roundPrecision } from "@web/core/utils/numbers";
 import { computeComboItems } from "./utils/compute_combo_items";
 import { accountTaxHelpers } from "@account/helpers/account_tax";
 import { getTaxesAfterFiscalPosition } from "./utils/tax_utils";
+import { effect } from "@web/core/utils/reactive";
+import { batched } from "@web/core/utils/timing";
 
 const formatCurrency = registry.subRegistries.formatters.content.monetary[1];
 const { DateTime } = luxon;
@@ -60,6 +62,13 @@ export class PosOrder extends Base {
         if (!this.session_id) {
             this.session_id = this.session;
         }
+
+        effect(
+            batched((order) => {
+                order.recomputeOrderData();
+            }),
+            [this]
+        );
     }
 
     get user() {

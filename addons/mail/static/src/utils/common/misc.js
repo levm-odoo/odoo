@@ -94,9 +94,9 @@ export function onChange(target, key, callback) {
         }
         return;
     }
-    proxy = reactive(target, () => {
+    proxy = reactive(target, (payload) => {
         _observe();
-        callback();
+        callback(target, payload);
     });
     _observe();
     return proxy;
