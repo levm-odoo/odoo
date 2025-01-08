@@ -4,6 +4,24 @@ import { TrapDisabler } from "@point_of_sale/proxy_trap";
 import { WithLazyGetterTrap } from "@point_of_sale/lazy_getter";
 import { deserializeDateTime, serializeDateTime } from "@web/core/l10n/dates";
 import { onChange } from "@mail/utils/common/misc";
+import { createOnChangeHandler } from "../utils/change_tracker";
+import { batched } from "@web/core/utils/timing";
+
+const allModelOptions = {
+    "pos.order": {
+        key: "uuid",
+        condition: (record) => record.finalized && typeof record.id === "number",
+    },
+    "pos.order.line": {
+        key: "uuid",
+        condition: (record) => record.order_id?.finalized && typeof record.order_id.id === "number",
+    },
+    "pos.payment": {
+        key: "uuid",
+        condition: (record) =>
+            record.pos_order_id?.finalized && typeof record.pos_order_id.id === "number",
+    },
+};
 
 const ID_CONTAINER = {};
 const { DateTime } = luxon;
@@ -322,7 +340,12 @@ export class Base extends WithLazyGetterTrap {
     }
 }
 
-export function createRelatedModels(modelDefs, modelClasses = {}, opts = {}) {
+export function createRelatedModels(
+    modelDefs,
+    modelClasses = {},
+    opts = {},
+    handleRecordChange = () => {}
+) {
     const indexes = opts.databaseIndex || {};
     const database = opts.databaseTable || {};
     const [inverseMap, processedModelDefs] = processModelDefs(modelDefs);
@@ -620,7 +643,7 @@ export function createRelatedModels(modelDefs, modelClasses = {}, opts = {}) {
                 if (field.type === "many2one") {
                     result[name] = record[name]?.id || record.raw[name] || false;
                 } else if (X2MANY_TYPES.has(field.type)) {
-                    const ids = [...record[name]].map((record) => record.id);
+                    const ids = (record[name] || []).map((record) => record.id);
                     result[name] = ids.length ? ids : (!orm && record.raw[name]) || [];
                 } else if (DATE_TIME_TYPE.has(field.type) && typeof record[name] === "object") {
                     result[name] = serializeDateTime(record[name]);
@@ -727,7 +750,6 @@ export function createRelatedModels(modelDefs, modelClasses = {}, opts = {}) {
             }
 
             record._raw = baseData[this.name][id];
-            this.records[this.name].set(id, record);
 
             const fields = getFields(this.name);
             for (const name in fields) {
@@ -823,13 +845,65 @@ export function createRelatedModels(modelDefs, modelClasses = {}, opts = {}) {
             if (!delayedSetup) {
                 record.setup(vals);
             }
+
+            this.records[this.name].set(id, record);
+
+            async function handleAccumulatedChanges(record, { get, clear }) {
+                const changes = get();
+                clear();
+
+                const model = record.model;
+                if (!model.exists(record.id)) {
+                    // If it doesn't exist, these changes are not relevant.
+                    return;
+                }
+                return handleRecordChange(record, changes);
+            }
+
+            const flusher = batched(
+                handleAccumulatedChanges,
+                () => new Promise((resolve) => setTimeout(resolve, 0))
+            );
+
+            const handler = (record, field, changes, payload) => {
+                if (!payload) {
+                    return;
+                }
+                const fieldName = field.name;
+                // populate changes based on the payload
+                const [obj, command, , value] = payload;
+                if (obj instanceof Array) {
+                    // handle updated, deleted and added differently
+                    // for now, just assign the array to the changes
+                    changes.set(fieldName, obj);
+                } else {
+                    if (command === "updated") {
+                        changes.set(fieldName, value);
+                    }
+                }
+                flusher(record, changes);
+            };
+
+            const modelOptions = allModelOptions[this.name];
+
             for (const fieldName in fields) {
                 if (fieldName.startsWith("<-")) {
                     continue;
                 }
-                onChange(record, fieldName, (target, payload) => {
-                    console.log(`${this.name}(${target.id}).${fieldName} ->`, payload);
-                });
+                const field = fields[fieldName];
+                onChange(
+                    record,
+                    fieldName,
+                    createOnChangeHandler(
+                        this,
+                        field,
+                        (record) => {
+                            const key = modelOptions?.key || "id";
+                            return record[key];
+                        },
+                        handler
+                    )
+                );
             }
 
             return this.records[this.name].get(id);

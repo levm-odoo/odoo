@@ -981,8 +981,6 @@ export class PosStore extends WithLazyGetterTrap {
             } else {
                 throw error;
             }
-        } finally {
-            this.data.synchronizeLocalDataInIndexedDB();
         }
     }
     /**

@@ -3,7 +3,6 @@ import { createRelatedModels } from "@point_of_sale/app/models/related_models";
 import { registry } from "@web/core/registry";
 import { Mutex } from "@web/core/utils/concurrency";
 import { markRaw } from "@odoo/owl";
-import { batched } from "@web/core/utils/timing";
 import IndexedDB from "../models/utils/indexed_db";
 import { DataServiceOptions } from "../models/data_service_options";
 import { uuidv4 } from "@point_of_sale/utils";
@@ -81,39 +80,14 @@ export class PosData extends Reactive {
         });
     }
 
-    async synchronizeLocalDataInIndexedDB() {
-        // This methods will synchronize local data and state in indexedDB. This methods is mostly
-        // used with models like pos.order, pos.order.line, pos.payment etc. These models are created
-        // in the frontend and are not loaded from the backend.
-        const modelsParams = Object.entries(this.opts.databaseTable);
-        for (const [model, params] of modelsParams) {
-            const put = [];
-            const remove = [];
-            const data = this.models[model].getAll();
-
-            for (const record of data) {
-                const isToRemove = params.condition(record);
-
-                if (isToRemove === undefined || isToRemove === true) {
-                    if (record[params.key]) {
-                        remove.push(record[params.key]);
-                    }
-                } else {
-                    const serializedData = record.serialize();
-                    const uiState =
-                        typeof record.uiState === "object" ? record.serializeState() : "{}";
-                    const serializedRecord = {
-                        ...serializedData,
-                        JSONuiState: JSON.stringify(uiState),
-                        id: record.id,
-                    };
-                    put.push(serializedRecord);
-                }
-            }
-
-            await this.indexedDB.delete(model, remove);
-            await this.indexedDB.create(model, put);
-        }
+    getSerialized(record) {
+        const serializedData = record.serialize();
+        const uiState = typeof record.uiState === "object" ? record.serializeState() : "{}";
+        return {
+            ...serializedData,
+            JSONuiState: JSON.stringify(uiState),
+            id: record.id,
+        };
     }
 
     async synchronizeServerDataInIndexedDB(serverData) {
@@ -291,7 +265,26 @@ export class PosData extends Reactive {
             };
         }
 
-        const { models, baseData } = createRelatedModels(relations, modelClasses, this.opts);
+        const handleRecordChange = async (record, changes) => {
+            // TODO: How can we use the changes for indexedDB records?
+            void changes;
+
+            // When a record changed, we update it's value in the localDB.
+            const modelName = record.model.name;
+            if (!(modelName in this.opts.databaseTable)) {
+                return;
+            }
+
+            const serializedRecord = this.getSerialized(record);
+            await this.indexedDB.create(modelName, [serializedRecord]);
+        };
+
+        const { models, baseData } = createRelatedModels(
+            relations,
+            modelClasses,
+            this.opts,
+            handleRecordChange
+        );
 
         this.baseData = baseData;
         this.fields = fields;
@@ -308,12 +301,13 @@ export class PosData extends Reactive {
                         void obj.get(key);
                     }
                     if (payload) {
-                        console.log(modelName, "->", payload);
                         const modelOpts = this.opts.databaseTable[modelName];
                         const indexKey = modelOpts.key;
                         const [, command, , value] = payload;
                         if (command === "deleted") {
                             this.indexedDB.delete(modelName, [value[indexKey]]);
+                        } else if (command === "added") {
+                            this.indexedDB.create(modelName, [this.getSerialized(value)]);
                         }
                     }
                 },
@@ -325,21 +319,11 @@ export class PosData extends Reactive {
     }
 
     initListeners() {
-        this.models["pos.order"].addEventListener(
-            "update",
-            batched(this.synchronizeLocalDataInIndexedDB.bind(this))
-        );
-
         const ignore = Object.keys(this.opts.databaseTable);
         for (const model of Object.keys(this.relations)) {
             if (ignore.includes(model)) {
                 continue;
             }
-
-            this.models[model].addEventListener("delete", (params) => {
-                this.indexedDB.delete(model, [params.key]);
-            });
-
             this.models[model].addEventListener("update", (params) => {
                 const record = this.models[model].get(params.id).raw;
                 this.synchronizeServerDataInIndexedDB({ [model]: [record] });

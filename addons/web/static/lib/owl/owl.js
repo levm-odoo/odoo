@@ -2102,7 +2102,7 @@
                 // new value. We disable the "same-value-optimization" for it because of that.
                 if (originalValue !== Reflect.get(target, key, receiver) ||
                     (key === "length" && Array.isArray(target))) {
-                    notifyReactives(target, key, [target, 'updated', key, originalValue, value]);
+                    notifyReactives(target, key, [target, 'updated', key, value, originalValue]);
                 }
                 return ret;
             },
