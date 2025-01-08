@@ -36,9 +36,11 @@ class TestNotifySecurityUpdateTotp(TestNotifySecurityUpdate):
                 datetime.now() + timedelta(seconds=TRUSTED_DEVICE_AGE)
             )
 
-        self.assertMailMailWEmails(recipients, 'outgoing', fields_values={
-            'subject': 'Security Update: Device Added',
-        })
+        self.assertSentEmail(
+            '"YourTestCompany" <your.company@example.com>',
+            recipients,
+            subject='Security Update: Device Added',
+        )
 
         # generating a key outside of the 'auth_totp.device' model should however not notify
         with self.mock_mail_gateway():

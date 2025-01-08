@@ -1,6 +1,8 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import _, models
+from odoo.http import request
+
 from collections import defaultdict
 
 
@@ -28,13 +30,25 @@ class Auth_TotpDevice(models.Model):
 
         res = super()._generate(scope, name, expiration_date)
 
-        self.env.user._notify_security_setting_update(
-            _("Security Update: Device Added"),
-            _(
-                "A trusted device has just been added to your account: %(device_name)s",
-                device_name=name
-            ),
+        message =  _(
+            "A trusted device has just been added to your account: %(device_name)s",
+            device_name=name,
         )
+        mail_values = None
+        if request:
+            # if the "New Connection" email has not been sent already,
+            # merge both to avoid spamming the user
+            new_connection_mail_mail_id = request.session['new_connection_mail_mail_id']
+            new_connection_mail = self.env['mail.mail'].browse(new_connection_mail_mail_id).sudo().exists()
+            if new_connection_mail and new_connection_mail.state == 'outgoing':
+                new_connection_mail.unlink()
+                del request.session['new_connection_mail_mail_id']
+                message =  _(
+                    "A new device was used to sign in to your account and was marked as trusted: %(device_name)s",
+                    device_name=name,
+                )
+
+        self.env.user._notify_security_setting_update(_("Security Update: Device Added"), message, mail_values, force_send=True)
 
         return res
 

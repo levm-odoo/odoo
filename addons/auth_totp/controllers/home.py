@@ -74,6 +74,9 @@ class Home(web_home.Home):
                         httponly=True,
                         samesite='Lax'
                     )
+
+                self._on_totp_login_succeed()
+
                 # Crapy workaround for unupdatable Odoo Mobile App iOS (Thanks Apple :@)
                 request.session.touch()
                 return response
@@ -85,3 +88,7 @@ class Home(web_home.Home):
             'error': error,
             'redirect': redirect,
         })
+
+    def _on_totp_login_succeed(self):
+        """Called when the TOTP login flow succeed."""
+        pass

@@ -5,6 +5,8 @@ from odoo import http
 from odoo.exceptions import AccessDenied, UserError
 from odoo.http import request
 
+from odoo.addons.base.models.ir_mail_server import MailDeliveryException
+
 _logger = logging.getLogger(__name__)
 
 
@@ -28,3 +30,14 @@ class Home(odoo.addons.auth_totp.controllers.home.Home):
             _logger.exception('Unable to send TOTP email')
             response.qcontext['error'] = str(e)
         return response
+
+    def _on_totp_login_succeed(self):
+        # Force the sending of the "New Connection" email when log in
+        if new_connection_mail_mail_id := request.session.get('new_connection_mail_mail_id'):
+            new_connection_mail = self.env['mail.mail'].browse(new_connection_mail_mail_id).sudo().exists()
+            if new_connection_mail and new_connection_mail.state == 'outgoing':
+                try:
+                    new_connection_mail.send()
+                except MailDeliveryException:
+                    pass
+        return super()._on_totp_login_succeed()
