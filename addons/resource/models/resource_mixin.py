@@ -153,11 +153,6 @@ class ResourceMixin(models.AbstractModel):
             Returns a list of tuples (day, hours) for each day
             containing at least an attendance.
         """
-        result = {}
-        records_by_calendar = defaultdict(lambda: self.env[self._name])
-        for record in self:
-            records_by_calendar[calendar or record.resource_calendar_id or record.company_id.resource_calendar_id] += record
-
         # naive datetimes are made explicit in UTC
         if not from_datetime.tzinfo:
             from_datetime = from_datetime.replace(tzinfo=utc)
@@ -165,15 +160,18 @@ class ResourceMixin(models.AbstractModel):
             to_datetime = to_datetime.replace(tzinfo=utc)
         compute_leaves = self.env.context.get('compute_leaves', True)
 
-        for calendar, records in records_by_calendar.items():
-            resources = self.resource_id
-            all_intervals = calendar._work_intervals_batch(from_datetime, to_datetime, resources, domain, compute_leaves=compute_leaves)
-            for record in records:
-                intervals = all_intervals[record.resource_id.id]
-                record_result = defaultdict(float)
-                for start, stop, _meta in intervals:
-                    record_result[start.date()] += (stop - start).total_seconds() / 3600
-                result[record.id] = sorted(record_result.items())
+        if compute_leaves:
+            all_intervals = self._get_work_intervals(from_datetime, to_datetime, domain)
+        else:
+            all_intervals = self._get_attendance_intervals(from_datetime, to_datetime, domain)
+
+        result = {}
+        for resource in self:
+            record_result = defaultdict(float)
+            for start, stop, meta in all_intervals[resource]:
+                record_result[start.date()] += (stop - start).total_seconds() / 3600
+            result[resource.id] = sorted(record_result.items())
+
         return result
 
     def _get_calendar_periods(self, start, stop):
@@ -212,62 +210,22 @@ class ResourceMixin(models.AbstractModel):
         return result_per_resource
 
     def _get_leave_intervals(self, start_dt, end_dt, domain=None, tz=None):
-        assert start_dt.tzinfo and end_dt.tzinfo
-
-        if domain is None:
-            domain = [('time_type', '=', 'leave')]
-        # for the computation, express all datetimes in UTC
-        domain = expression.AND([
-            domain,
-            [
-                ('resource_id', 'in', [False] + self.resource_id.ids),  # public leaves don't have a resource_id
-                ('date_from', '<=', end_dt),
-                ('date_to', '>=', start_dt),
-            ]
-        ])
-
-        # retrieve leave intervals in (start_dt, end_dt)
-        result = defaultdict(lambda: [])
-        tz_dates = {}
-        all_leaves = self.env['resource.calendar.leaves'].search(domain)
-        for leave in all_leaves:
-            leave_resource = leave.resource_id
-            leave_calendar = leave.calendar_id
-            leave_company = leave.company_id
-            leave_date_from = leave.date_from
-            leave_date_to = leave.date_to
-            for resource in self:
-                if leave_resource and leave_resource != resource.resource_id or\
-                        not leave_resource and leave_company and resource.company_id != leave_company:
-                    continue
-                tz = tz if tz else timezone(resource.tz)
-                if (tz, start_dt) in tz_dates:
-                    start = tz_dates[(tz, start_dt)]
-                else:
-                    start = start_dt.astimezone(tz)
-                    tz_dates[(tz, start_dt)] = start
-                if (tz, end_dt) in tz_dates:
-                    end = tz_dates[(tz, end_dt)]
-                else:
-                    end = end_dt.astimezone(tz)
-                    tz_dates[(tz, end_dt)] = end
-                dt0 = leave_date_from.astimezone(tz)
-                dt1 = leave_date_to.astimezone(tz)
-                result[resource].append((max(start, dt0), min(end, dt1), leave_calendar))
-        return {resource: WorkIntervals(result[resource]) for resource in self}
+        intervals_per_resource = self.resource_id._get_leave_intervals(start_dt, end_dt, domain, tz)
+        return {
+            emp: intervals_per_resource[emp.resource_id]
+            for emp in self
+        }
 
     def _get_work_intervals(self, start_dt, end_dt, domain=None, tz=None):
-        attendance_intervals = self._get_attendance_intervals(start_dt, end_dt, tz=tz or self.env.context.get("employee_timezone"))
-        leave_intervals = self._get_leave_intervals(start_dt, end_dt, domain, tz=tz)
+        intervals_per_resource = self.resource_id._get_work_intervals(start_dt, end_dt, domain, tz)
         return {
-            resource: (attendance_intervals[resource] - leave_intervals[resource])
-            for resource in self
+            emp: intervals_per_resource[emp.resource_id]
+            for emp in self
         }
 
     def _get_absence_intervals(self, start_dt, end_dt, domain=None, tz=None):
-        leave_intervals = self._get_leave_intervals(start_dt, end_dt, domain, tz)
-        absence_intervals = self._get_attendance_intervals(start_dt, end_dt, domain, tz, inverse_result=True)
+        intervals_per_resource = self.resource_id._get_absence_intervals(start_dt, end_dt, domain, tz)
         return {
-            resource: leave_intervals[resource] | absence_intervals[resource]
-            for resource in self
+            emp: intervals_per_resource[emp.resource_id]
+            for emp in self
         }

@@ -213,13 +213,13 @@ class HrAttendance(models.Model):
         for attendance in self:
             if attendance.check_out and attendance.check_in and attendance.employee_id:
                 calendar = attendance._get_employee_calendar()
-                resource = attendance.employee_id.resource_id
-                tz = timezone(resource.tz) if not calendar else timezone(calendar.tz)
+                employee = attendance.employee_id
+                tz = timezone(employee.tz) if not calendar else timezone(calendar.tz)
                 check_in_tz = attendance.check_in.astimezone(tz)
                 check_out_tz = attendance.check_out.astimezone(tz)
                 lunch_intervals = []
-                if not attendance.employee_id.is_flexible:
-                    lunch_intervals = attendance.employee_id._get_attendance_intervals(check_in_tz, check_out_tz, lunch=True)
+                if not employee.is_flexible:
+                    lunch_intervals = employee._get_attendance_intervals(check_in_tz, check_out_tz, lunch=True)[employee]
                 attendance_intervals = Intervals([(check_in_tz, check_out_tz, attendance)]) - lunch_intervals
                 delta = sum((i[1] - i[0]).total_seconds() for i in attendance_intervals)
                 attendance.worked_hours = delta / 3600.0

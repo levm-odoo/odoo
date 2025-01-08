@@ -576,17 +576,18 @@ class TestCalendar(TestResourceCommon):
         # be truncated if the timezone is correctly set
         self.env.user.tz = "America/Los_Angeles"
         self.calendar_jean.tz = "America/Los_Angeles"
-        attendances = self.calendar_jean._attendance_intervals_batch(
+        calendar = self.calendar_jean
+        attendances = calendar._get_attendance_intervals(
             datetime.combine(date(2023, 1, 1), datetime.min.time(), tzinfo=timezone("UTC")),
             datetime.combine(date(2023, 1, 31), datetime.max.time(), tzinfo=timezone("UTC")))
-        last_attendance = list(attendances[False])[-1]
+        last_attendance = list(attendances[calendar])[-1]
         self.assertEqual(last_attendance[0].replace(tzinfo=None), datetime(2023, 1, 31, 8))
         self.assertEqual(last_attendance[1].replace(tzinfo=None), datetime(2023, 1, 31, 15, 59, 59, 999999))
 
-        attendances = self.calendar_jean._attendance_intervals_batch(
+        attendances = calendar._get_attendance_intervals(
             datetime.combine(date(2023, 1, 1), datetime.min.time(), tzinfo=timezone("America/Los_Angeles")),
             datetime.combine(date(2023, 1, 31), datetime.max.time(), tzinfo=timezone("America/Los_Angeles")))
-        last_attendance = list(attendances[False])[-1]
+        last_attendance = list(attendances[calendar])[-1]
         self.assertEqual(last_attendance[0].replace(tzinfo=None), datetime(2023, 1, 31, 8))
         self.assertEqual(last_attendance[1].replace(tzinfo=None), datetime(2023, 1, 31, 16))
 
