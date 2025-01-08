@@ -176,7 +176,9 @@ def load_module_graph(
 
     models_updated = set()
 
-    for index, package in enumerate(graph.packages(), 1):
+    from odoo.tools.profiler import Profiler, PeriodicCollector
+    with Profiler(db=env.cr.dbname, description='install', collectors=[PeriodicCollector(0.1)]):
+      for index, package in enumerate(graph.packages(), 1):
         module_name = package.name
         module_id = package.id
 
