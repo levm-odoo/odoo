@@ -714,7 +714,9 @@ class Lead(models.Model):
             if vals.get('website'):
                 vals['website'] = self.env['res.partner']._clean_website(vals['website'])
         leads = super(Lead, self).create(vals_list)
-
+        odoobot = self.env.ref('base.user_root')
+        assigned_team_leads = leads.filtered(lambda lead: lead.team_id and lead.user_id != odoobot)
+        assigned_team_leads._compute_team_id()  # Ensure the sales team matches the salesperson assigned to the lead
         for lead, values in zip(leads, vals_list):
             if any(field in ['active', 'stage_id'] for field in values):
                 lead._handle_won_lost(values)
