@@ -8,6 +8,7 @@ import { ForecastedButtons } from "./forecasted_buttons";
 import { ForecastedDetails } from "./forecasted_details";
 import { ForecastedHeader } from "./forecasted_header";
 import { ForecastedWarehouseFilter } from "./forecasted_warehouse_filter";
+import { ForecastedProductVariantFilter } from "./forecasted_product_variant_filter";
 import { Component, onWillStart, useState } from "@odoo/owl";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
@@ -17,6 +18,7 @@ export class StockForecasted extends Component {
         ControlPanel,
         ForecastedButtons,
         ForecastedWarehouseFilter,
+        ForecastedProductVariantFilter,
         ForecastedHeader,
         View,
         ForecastedDetails,
@@ -123,7 +125,7 @@ export class StockForecasted extends Component {
     }
 
     get graphInfo() {
-        return { noContentHelp: _t("Try to add some incoming or outgoing transfers.") };
+        return { noContentHelp: _t("No History Yet") };
     }
 
     async openView(resModel, view, resId) {

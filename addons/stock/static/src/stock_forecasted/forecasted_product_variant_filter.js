@@ -4,8 +4,8 @@ import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { useService } from "@web/core/utils/hooks";
 import { Component, onWillStart } from "@odoo/owl";
 
-export class ForecastedWarehouseFilter extends Component {
-    static template = "stock.ForecastedWarehouseFilter";
+export class ForecastedProductVariantFilter extends Component {
+    static template = "stock.ForecastedProductVariantFilter";
     static components = { Dropdown, DropdownItem };
     static props = { action: Object, setWarehouseInContext: Function, warehouses: Array };
 
@@ -36,7 +36,7 @@ export class ForecastedWarehouseFilter extends Component {
 
     get warehousesItems() {
         this.warehouses = [
-            { id: 0, name: _t("All Warehouses")},
+            { id: 0, name: _t("All Variants")},
             ...this.warehouses,
         ]
         debugger;
