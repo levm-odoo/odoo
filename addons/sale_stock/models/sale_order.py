@@ -57,14 +57,30 @@ class SaleOrder(models.Model):
         if column_name != "warehouse_id":
             return super(SaleOrder, self)._init_column(column_name)
         field = self._fields[column_name]
-        default = self.env['stock.warehouse'].search([('company_id', '=', self.env.company.id)], limit=1)
-        value = field.convert_to_write(default, self)
-        value = field.convert_to_column(value, self)
-        if value is not None:
-            _logger.debug("Table '%s': setting default value of new column %s to %r",
-                self._table, column_name, value)
-            query = f'UPDATE "{self._table}" SET "{column_name}" = %s WHERE "{column_name}" IS NULL'
-            self._cr.execute(query, (value,))
+        companies = self.env["res.company"].search([])
+        cases = []
+
+        for company in companies:
+            default_warehouse = self.env["stock.warehouse"].search([("company_id", "=", company.id)], limit=1)
+            warehouse_value = field.convert_to_write(default_warehouse, self)
+            warehouse_value = field.convert_to_column(warehouse_value, self)
+
+            if warehouse_value is not None:
+                    cases.append(f"WHEN company_id = {company.id} THEN {warehouse_value}")
+
+        case_clause = "\n".join(cases)
+        query = f"""
+            UPDATE "{self._table}"
+            SET "{column_name}" = CASE
+                {case_clause}
+                ELSE {warehouse_value}
+            END
+            WHERE "{column_name}" IS NULL
+        """
+
+        if cases:
+            _logger.debug("Initializing column '%s' in table '%s'", column_name, self._table)
+            self._cr.execute(query)
 
     @api.depends('picking_ids.date_done')
     def _compute_effective_date(self):
