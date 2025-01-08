@@ -48,7 +48,7 @@ class HrLeaveAccrualPlan(models.Model):
         default="year_start", required=True, string="Carry-Over Time")
     carryover_day = fields.Integer(default=1)
     carryover_day_display = fields.Selection(
-        _get_selection_days, compute='_compute_carryover_day_display', inverse='_inverse_carryover_day_display')
+        _get_selection_days, default="1", compute='_compute_carryover_day_display', inverse='_inverse_carryover_day_display')
     carryover_month = fields.Selection([
         ("jan", "January"),
         ("feb", "February"),
@@ -166,6 +166,21 @@ class HrLeaveAccrualPlan(models.Model):
             'view_mode': 'kanban,list,form',
             'res_model': 'hr.employee',
             'domain': [('id', 'in', self.allocation_ids.employee_id.ids)],
+        }
+
+    def action_open_accrual_plan_level(self):
+        self.ensure_one()
+
+        return {
+            'name': _('Accrual Plan Milestone'),
+            'type': 'ir.actions.act_window',
+            'target': 'new',
+            'res_model': 'hr.leave.accrual.level',
+            'view_mode': 'form',
+            'views': [[False, 'form']],
+            'context': {
+                'accrual_plan_id': self.id,
+            }
         }
 
     def copy_data(self, default=None):

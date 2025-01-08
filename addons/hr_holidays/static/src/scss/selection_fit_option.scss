@@ -1,14 +1,59 @@
 .accrual {
-  .o_input {
-    text-align: center;
-    font-weight: bold;
-    border-bottom: solid #017e84 1px; //TODO find the color var
+
+  .o_field_boolean_labeled, .o_field_radio, .o_field_radio_followed_by_element{
+    width: auto !important;
+    display: inline-flex;
   }
 
+  /*
+
+  .o-checkbox {
+    padding-left: 0;
+    font-weight: bold;
+    border-bottom: solid #017e84 1px;
+
+    &:hover {
+      color: #017e84;
+    }
+
+    input[type="checkbox"] {
+      //opacity: 0;
+
+      &:focus + label {
+        color: #017e84;
+      }
+    }
+
+
+  }
+
+  .o_input {
+
+    font-weight: bold;
+    border-bottom: solid #017e84 1px;
+    display: inline-flex;
+
+    &:hover, &:focus {
+      color: #017e84;
+    }
+
+
+  }
+
+  option {
+    color: var(--body-color);
+  }
+
+  .o_readonly_modifier > * {
+    border-bottom: none;
+    pointer-events: none;
+  }
+*/
+
+
   select {
+    text-align: left;
     padding-right: 0 !important;
-    display: inline-table;
     min-width: 0;
-    background: none;
   }
 }

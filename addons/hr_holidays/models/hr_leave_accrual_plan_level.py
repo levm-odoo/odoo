@@ -1,4 +1,5 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+from email.policy import default
 
 from dateutil.relativedelta import relativedelta
 
@@ -15,6 +16,10 @@ DAY_SELECT_SELECTION_NO_LAST = tuple(zip(DAY_SELECT_VALUES, (str(i) for i in ran
 def _get_selection_days(self):
     return DAY_SELECT_SELECTION_NO_LAST + (("last", _("last day")),)
 
+    """
+    Bug avec le wizard level, il faut required pour pas avoir une option blank vide et default pour avoir quelque chose de select de base mais 1 (False avant) n'est pas dans la liste DAY_SELECT_VALUES dans l'inverse.
+    Tester de save un milestone pour voir.
+    """
 
 class HrLeaveAccrualLevel(models.Model):
     _name = 'hr.leave.accrual.level'
@@ -24,15 +29,20 @@ class HrLeaveAccrualLevel(models.Model):
     sequence = fields.Integer(
         string='sequence', compute='_compute_sequence', store=True,
         help='Sequence is generated automatically by start time delta.')
-    accrual_plan_id = fields.Many2one('hr.leave.accrual.plan', "Accrual Plan", required=True, ondelete="cascade")
+    accrual_plan_id = fields.Many2one('hr.leave.accrual.plan', "Accrual Plan", required=True, ondelete="cascade", default=lambda self: self.env.context.get("active_id", None))
     accrued_gain_time = fields.Selection(related='accrual_plan_id.accrued_gain_time')
+    milestone_date = fields.Selection(
+        [('creation', 'at allocation creation'),
+         ('after', 'after')],
+        default='creation', required=True
+    )
     start_count = fields.Integer(
         "Start after",
         help="The accrual starts after a defined period from the allocation start date. This field defines the number of days, months or years after which accrual is used.", default="1")
     start_type = fields.Selection(
-        [('day', 'Days'),
-         ('month', 'Months'),
-         ('year', 'Years')],
+        [('day', 'days'),
+         ('month', 'months'),
+         ('year', 'years')],
         default='day', string=" ", required=True,
         help="This field defines the unit of time after which the accrual starts.")
 
@@ -67,13 +77,13 @@ class HrLeaveAccrualLevel(models.Model):
     ], default='mon', required=True, string="Allocation on")
     first_day = fields.Integer(default=1)
     first_day_display = fields.Selection(
-        _get_selection_days, compute='_compute_days_display', inverse='_inverse_first_day_display')
+        _get_selection_days, compute='_compute_days_display', default=1, required=1, inverse='_inverse_first_day_display')
     second_day = fields.Integer(default=15)
     second_day_display = fields.Selection(
-        _get_selection_days, compute='_compute_days_display', inverse='_inverse_second_day_display')
+        _get_selection_days, compute='_compute_days_display', default=15, required=1, inverse='_inverse_second_day_display')
     first_month_day = fields.Integer(default=1)
     first_month_day_display = fields.Selection(
-        _get_selection_days, compute='_compute_days_display', inverse='_inverse_first_month_day_display')
+        _get_selection_days, compute='_compute_days_display', default=1, required=1, inverse='_inverse_first_month_day_display')
     first_month = fields.Selection([
         ('jan', 'January'),
         ('feb', 'February'),
@@ -84,7 +94,7 @@ class HrLeaveAccrualLevel(models.Model):
     ], default="jan")
     second_month_day = fields.Integer(default=1)
     second_month_day_display = fields.Selection(
-        _get_selection_days, compute='_compute_days_display', inverse='_inverse_second_month_day_display')
+        _get_selection_days, compute='_compute_days_display', default=1, required=1, inverse='_inverse_second_month_day_display')
     second_month = fields.Selection([
         ('jul', 'July'),
         ('aug', 'August'),
@@ -109,7 +119,7 @@ class HrLeaveAccrualLevel(models.Model):
     ], default="jan")
     yearly_day = fields.Integer(default=1)
     yearly_day_display = fields.Selection(
-        _get_selection_days, compute='_compute_days_display', inverse='_inverse_yearly_day_display')
+        _get_selection_days, compute='_compute_days_display', default=1, required=1, inverse='_inverse_yearly_day_display')
     cap_accrued_time = fields.Boolean("Cap accrued time", default=True,
         help="When the field is checked the balance of an allocation using this accrual plan will never exceed the specified amount.")
     maximum_leave = fields.Float(
@@ -119,9 +129,9 @@ class HrLeaveAccrualLevel(models.Model):
         help="When the field is checked the total amount accrued each year will be capped at the specified amount")
     maximum_leave_yearly = fields.Float(string="Yearly limit to", digits=(16, 2))
     action_with_unused_accruals = fields.Selection(
-        [('lost', 'None. Accrued time reset to 0'),
-         ('all', 'All accrued time carried over'),
-         ('maximum', 'Carry over with a maximum')],
+        [('lost', 'lost.'),
+         ('all', 'carried over completely.'),
+         ('maximum', 'carried over with a maximum quantity')],
         string="Carry over",
         default='all', required=True,
         help="When the Carry-Over Time is reached, according to Plan's setting, select what you want "
@@ -135,8 +145,8 @@ class HrLeaveAccrualLevel(models.Model):
         "Accrual Validity Count",
         help="You can define a period of time where the days carried over will be available", default="1")
     accrual_validity_type = fields.Selection(
-        [('day', 'Days'),
-         ('month', 'Months')],
+        [('day', 'days'),
+         ('month', 'months')],
         default='day', string="Accrual Validity Type", required=True,
         help="This field defines the unit of time after which the accrual ends.")
 

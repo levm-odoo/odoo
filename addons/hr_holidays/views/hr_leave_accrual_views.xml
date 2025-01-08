@@ -20,86 +20,74 @@
                         </span>
                         <span name="monthly" invisible="frequency != 'monthly'">
                             on the
-                            <field  name="first_day_display" required="1" widget="selection_fit_option"/>
+                            <field  name="first_day_display" widget="selection_fit_option"/>
                             of the month
                         </span>
                         <span name="bimonthly" invisible="frequency != 'bimonthly'" style="width: 100%">
                             on the
-                            <field  name="first_day_display" required="1" widget="selection_fit_option"/>
+                            <field  name="first_day_display" widget="selection_fit_option"/>
                             and on the
                             <field  name="second_day_display" widget="selection_fit_option"/>
                             of the month
                         </span>
                         <span name="biyearly" invisible="frequency != 'biyearly'">
                             on the
-                            <field  name="first_month_day_display" required="1" widget="selection_fit_option"/>of <field  name="first_month" required="1" widget="selection_fit_option"/>
+                            <field  name="first_month_day_display" widget="selection_fit_option"/> of <field  name="first_month" widget="selection_fit_option"/>
                             and
-                            <field  name="second_month_day_display" required="1" widget="selection_fit_option"/>of <field  name="second_month" required="1" widget="selection_fit_option"/>
+                            <field  name="second_month_day_display" widget="selection_fit_option"/> of <field  name="second_month" widget="selection_fit_option"/>
                         </span>
                         <span name="yearly" invisible="frequency != 'yearly'">
                             on the
-                            <field name="yearly_day_display" required="1" widget="selection_fit_option"/> of <field  name="yearly_month" required="1" widget="selection_fit_option"/>
+                            <field name="yearly_day_display" widget="selection_fit_option"/> of <field  name="yearly_month" widget="selection_fit_option"/>
                         </span>
                         based on
-                        <field name="based_on" required="1" widget="selection_fit_option"/>
-                    </div>
-                    <group name="maximum_leave">
-                        <label for="cap_accrued_time"/>
-                        <span>
-                            <field name="cap_accrued_time" nolabel="1"/>
-                            <span class="position-absolute" invisible="not cap_accrued_time">
-                                <field name="maximum_leave" style="width: 5rem" widget="float_without_trailing_zeros"
-                                    nolabel="1"/>
-                                <field name="added_value_type" readonly="1" style="white-space: nowrap;width: 5rem"/>
-                            </span>
+                        <field name="based_on" widget="selection_fit_option"/>
+                        <br/>
+                        This milestone will be reached
+                        <field class="me-1" name="milestone_date" widget="selection_fit_option"/>
+                        <span invisible="milestone_date != 'after'">
+                            <field class="me-1" style="width: 1ch" name="start_count" widget="integer_auto_width"/>
+                            <field name="start_type" widget="selection_fit_option"/>
+                            from the start of allocation
                         </span>
-                    </group>
-                    <group name="milestone">
-                        <div class="o_td_label">
-                            <label for="start_count" string="Start Accruing"/>
-                        </div>
-                        <div>
-                            <field name="start_count" style="width: 2rem"/>
-                            <field name="start_type" style="width: 4.75rem"/> after allocation start date
-                        </div>
-                        <div class="o_td_label">
-                            <label for="action_with_unused_accruals" string="Carry over"/>
-                        </div>
-                        <div>
-                            <field name="action_with_unused_accruals" class="o_light_label" style="font-weight: 0" widget="radio"/><br/>
-                            <div invisible="action_with_unused_accruals != 'maximum'">
-                                <label for="postpone_max_days" string="Up to"/>
-                                <field name="postpone_max_days" style="width: 3rem"/>
-                                <field name="added_value_type" nolabel="1" readonly="1" force_save="1" style="width: 5rem"/>
-                            </div>
-                        </div>
-                        <div invisible="action_with_unused_accruals == 'lost'">
-                            <label for="cap_accrued_time_yearly"/>
-                        </div>
-                        <div invisible="action_with_unused_accruals == 'lost'">
-                            <span>
-                                <field name="cap_accrued_time_yearly" nolabel="1"/>
-                                <span class="position-absolute" invisible="not cap_accrued_time_yearly">
-                                    <field name="maximum_leave_yearly" style="width: 5rem" widget="float_without_trailing_zeros"
-                                        nolabel="1"/>
-                                    <field name="added_value_type" readonly="1" style="white-space: nowrap;width: 5rem"/>
-                                </span>
+                        <br/>
+                        After a year, unused time off will be
+                        <field class="me-1" name="action_with_unused_accruals" widget="selection_fit_option"/>
+                        <span invisible="action_with_unused_accruals != 'lost'">Allocation amount will be reset to 0</span>
+                        <span invisible="action_with_unused_accruals != 'maximum'">
+                            of
+                            <field class="me-1" style="width: 1ch" name="postpone_max_days" widget="integer_auto_width"/>
+                            <field name="added_value_type" nolabel="1" readonly="1" force_save="1"/>
+                        </span>
+                        <br/>
+                        Define a carry over validity?
+                        <field name="accrual_validity" widget="boolean_labeled" options="{'false_label': 'No.', 'true_label': 'Yes,'}" />
+                            <span invisible="not accrual_validity">
+                                the days carried over will be effective for
+                                <field class="me-1" style="width: 1ch" name="accrual_validity_count" widget="integer_auto_width"/>
+                                <field class="me-1" name="accrual_validity_type" widget="selection_fit_option"/>
                             </span>
-                        </div>
-                        <field name="postpone_max_days" class="w-25" invisible="action_with_unused_accruals != 'postponed'"/>
-                        <div class="o_td_label" invisible="action_with_unused_accruals == 'lost'">
-                            <label for="accrual_validity_count" string="Carry Over Validity"/>
-                        </div>
-                        <div class="col-lg-2 d-flex" invisible="action_with_unused_accruals == 'lost'">
-                            <div>
-                                <field name="accrual_validity" style="width: 9.35rem"/>
-                                <div class="d-flex" invisible="not accrual_validity">
-                                    <field name="accrual_validity_count" />
-                                    <field name="accrual_validity_type" />
-                                </div>
-                            </div>
-                        </div>
-                    </group>
+                        <br/>
+                        <span invisible="action_with_unused_accruals == 'lost'">
+                            Define a yearly cap?
+                            <field name="cap_accrued_time_yearly" widget="boolean_labeled" options="{'false_label': 'No.', 'true_label': 'Yes,'}"/>
+                                <span invisible="not cap_accrued_time_yearly">
+                                    plan will be on hold if allocation's amount reach
+                                    <field class="me-1" style="width: 1ch" name="maximum_leave_yearly" widget="float_without_trailing_zeros"/>
+                                    <field name="added_value_type" readonly="1"/>
+                                    of available time.
+                                </span>
+                            <br/>
+                            Define a milestone cap?
+                            <field name="cap_accrued_time" widget="boolean_labeled" options="{'false_label': 'No.', 'true_label': 'Yes,'}"/>
+                                <span invisible="not cap_accrued_time">
+                                    plan will be on hold if the sum of allocated time reach
+                                    <field class="me-1" style="width: 1ch" name="maximum_leave" widget="float_without_trailing_zeros"/>
+                                    <field name="added_value_type" readonly="1"/>
+                                    of available time.
+                                </span>
+                        </span>
+                    </div>
                 </sheet>
             </form>
         </field>
@@ -137,24 +125,24 @@
                         <group string="Configuration" class="mt-0 accrual">
                             <div colspan="2">
                                 When the time is accrued?
-                                <field nolabel="1" class="oe_inline" name="accrued_gain_time" widget="selection_fit_option"/>
+                                <field nolabel="1" name="accrued_gain_time" widget="radio"/>
                                 <br/>It is based on the worked time?
-                                <field nolabel="1" class="oe_inline" name="is_based_on_worked_time" widget="boolean_labeled" options="{'false_label': 'No, always consider accrual period as a whole', 'true_label': 'Yes, prorate based on the taken time offs on that period'}" readonly="accrued_gain_time == 'start'"/>
+                                <field nolabel="1" name="is_based_on_worked_time" widget="boolean_labeled" options="{'false_label': 'No, always consider accrual period as a whole', 'true_label': 'Yes, prorate based on the taken time offs on that period'}" readonly="accrued_gain_time == 'start'"/>
                                 <br/>Do you need a carry-over of the accrued days from one year to another?
-                                <field nolabel="1" class="oe_inline" name="is_carryover" widget="boolean_labeled" options="{'false_label': 'No', 'true_label': 'Yes'}"/>
-                                <span invisible="not is_carryover">
+                                <field nolabel="1" name="is_carryover" widget="boolean_labeled" options="{'false_label': 'No', 'true_label': 'Yes'}"/>
+                                <span name="carryover" invisible="not is_carryover">
                                     <br/>When do you want the accrued time left to be carried-over?
-                                    <field nolabel="1" name="carryover_date" widget="selection_fit_option"/>
-                                    <span invisible="carryover_date != 'other'">
+                                    <field nolabel="1" name="carryover_date" widget="radio_followed_by_element" options="{'links': {'other': 'carryover_custom_date' }}"/>
+                                    <span id="carryover_custom_date" invisible="carryover_date != 'other'">
                                         the
-                                        <field name="carryover_day_display" required="1" widget="selection_fit_option"/>
+                                        <field name="carryover_day_display" widget="selection_fit_option"/>
                                         of
-                                        <field name="carryover_month" required="1" widget="selection_fit_option"/>
+                                        <field name="carryover_month" widget="selection_fit_option"/>
                                     </span>
                                 </span>
                                 <span invisible="not show_transition_mode">
                                     <br/>Switch employees to the new accrual level :
-                                    <field nolabel="1" name="transition_mode" widget="selection_fit_option"/>
+                                    <field nolabel="1" name="transition_mode" widget="radio"/>
                                 </span>
                             </div>
                         </group>
@@ -169,116 +157,16 @@
                     <span class="oe_grey" invisible="1">
                     </span>
                     <div class="o_hr_holidays_hierarchy">
-                        <div class="o_hr_holidays_title">Milestones</div>
+                        <h3>Milestones</h3>
                         <div class="o_view_nocontent" style="position: relative;" invisible="level_ids">
                             <div class="o_nocontent_help">
                                 <p class="o_view_nocontent_smiling_face">
                                     No milestones on the plan yet. Let's create a new one
                                 </p>
-                                <p>
-                                    <button role="button" class="btn btn-primary">
-                                        Create a milestone
-                                    </button>
-                                </p>
+                                <button name="action_open_accrual_plan_level" type="object" class="btn btn-primary" string="Create a milestone"/>
                             </div>
                         </div>
-                        <field name="level_ids" mode="kanban" nolabel="1"
-                            class="o_hr_holidays_plan_level_container"
-                            widget="accrual_levels_one2many"
-                            add-label="New Milestone"
-                            >
-                            <kanban default_order="sequence">
-                                <field name="sequence"/>
-                                <field name="action_with_unused_accruals"/>
-                                <field name="accrual_validity_count"/>
-                                <field name="accrual_validity_type"/>
-                                <field name="cap_accrued_time"/>
-                                <field name="accrual_validity"/>
-                                <templates>
-                                    <div t-name="card" class="bg-transparent border-0">
-                                        <div class="o_hr_holidays_body">
-                                            <div class="o_hr_holidays_timeline text-center">
-                                                <t t-if="record.start_count.raw_value > 0">
-                                                    after <field name="start_count"/> <field name="start_type"/>
-                                                </t>
-                                                <t t-else="">
-                                                    initially
-                                                </t>
-                                            </div>
-                                            <t t-if="!read_only_mode">
-                                                <a type="edit" t-attf-class="oe_kanban_action text-black">
-                                                    <t t-call="level_content"/>
-                                                </a>
-                                            </t>
-                                            <t t-else="">
-                                                <t t-call="level_content"/>
-                                            </t>
-                                        </div>
-                                    </div>
-                                    <t t-name="level_content">
-                                        <div class="o_hr_holidays_card">
-                                            <div class="content container" style="width: 560px;">
-                                                <div class="row w-100">
-                                                    <div class="pe-0 me-0" style="width: 6rem;">
-                                                        <field name="added_value" invisible="1"/>
-                                                        <span t-out="record.added_value.raw_value"/> <field name="added_value_type"/>,
-                                                    </div>
-                                                    <div class="col-auto m-0 p-0">
-                                                        <field name="frequency" class="ms-1"/>
-                                                        <t t-if="record.frequency.raw_value === 'weekly'">
-                                                            on <field name="week_day"/>
-                                                        </t>
-                                                        <t t-elif="record.frequency.raw_value === 'monthly'">
-                                                            on the <field name="first_day"/> day of the month
-                                                        </t>
-                                                        <t t-elif="record.frequency.raw_value === 'bimonthly'">
-                                                            on the <field name="first_day"/> and on the <field name="second_day"/> days of the months
-                                                        </t>
-                                                        <t t-elif="record.frequency.raw_value === 'biyearly'">
-                                                            on the <field name="first_month_day"/> <field name="first_month"/> and on the <field name="second_month_day"/> <field name="second_month"/>
-                                                        </t>
-                                                        <t t-elif="record.frequency.raw_value === 'yearly'">
-                                                            on <field name="yearly_day"/> <field name="yearly_month"/>
-                                                        </t>
-                                                    </div>
-                                                </div>
-                                                <div class="row text-muted">
-                                                    <div class="pe-0 me-0" style="width: 6rem;">
-                                                        Cap:
-                                                    </div>
-                                                    <div class="col-3 m-0 ps-1 d-flex">
-                                                        <t t-if="record.cap_accrued_time.raw_value and record.maximum_leave.raw_value > 0">
-                                                            <field name="maximum_leave" widget="float_without_trailing_zeros"/> <field class="ms-1" name="added_value_type"/>
-                                                        </t>
-                                                        <t t-else="">
-                                                            Unlimited
-                                                        </t>
-                                                    </div>
-                                                </div>
-                                                <div class="row text-muted">
-                                                    <div class="pe-0 me-0" style="width: 6rem;">
-                                                        Carry over:
-                                                    </div>
-                                                    <div class="col-6 m-0 ps-1">
-                                                        <t t-if="record.action_with_unused_accruals.raw_value === 'all'">all
-                                                            <span invisible="not accrual_validity">
-                                                                - Valid for <field name="accrual_validity_count"/> <field name="accrual_validity_type"/>
-                                                            </span>
-                                                        </t>
-                                                        <t t-elif="record.action_with_unused_accruals.raw_value === 'maximum'">up to <field name="postpone_max_days" /> <t t-esc="record.added_value_type.raw_value" />
-                                                            <span invisible="not accrual_validity">
-                                                                - Valid for <field name="accrual_validity_count"/> <field name="accrual_validity_type"/>
-                                                            </span>
-                                                        </t>
-                                                        <t t-else="">no</t>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </t>
-                                </templates>
-                            </kanban>
-                        </field>
+                        <button name="action_open_accrual_plan_level" type="object" class="btn btn-secondary" string="Add a milestone"/>
                     </div>
                 </sheet>
             </form>

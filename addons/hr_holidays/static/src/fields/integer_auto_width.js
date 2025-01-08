@@ -1,19 +1,15 @@
 import { registry } from "@web/core/registry";
-import { floatField, FloatField } from "@web/views/fields/float/float_field";
+import { integerField, IntegerField } from "@web/views/fields/integer/integer_field";
 import {onMounted} from "@odoo/owl";
 
 const fieldRegistry = registry.category("fields");
 
-class FloatWithoutTrailingZeros extends FloatField {
-    static template = "hr_holidays.FloatWithoutTrailingZeros"
+class IntegerAutoWidth extends IntegerField {
+    static template = "hr_holidays.IntegerAutoWidth"
 
     setup() {
         super.setup()
         onMounted(async() => this.autoWidth())
-    }
-
-    get formattedValue() {
-        return super.formattedValue.replace(/\.*0+$/, '');
     }
 
     autoWidth(){
@@ -28,6 +24,6 @@ class FloatWithoutTrailingZeros extends FloatField {
     }
 }
 
-const floatWithoutTrailingZeros = { ...floatField, component: FloatWithoutTrailingZeros };
+const integerAutoWidth = { ...integerField, component: IntegerAutoWidth };
 
-fieldRegistry.add("float_without_trailing_zeros", floatWithoutTrailingZeros);
+fieldRegistry.add("integer_auto_width", integerAutoWidth);

@@ -23,10 +23,9 @@ class SelectionFitOption extends SelectionField {
         fakeOption.appendChild(fakeText)
         fakeSelect.appendChild(fakeOption)
         select.parentElement.appendChild(fakeSelect)
-        select.parentElement.style.width = fakeSelect.offsetWidth + "px"
+        select.parentElement.style.width = fakeSelect.offsetWidth + 10 + "px"
         select.parentElement.removeChild(fakeSelect)
     }
-    // TODO : Same with check box and continue all the text.
 }
 
 const selectionFitOption = {...selectionField, component: SelectionFitOption};
