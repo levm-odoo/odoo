@@ -195,47 +195,7 @@ class TestEventNotifications(TransactionCase, MailCase, CronMixinCase):
                 ])
                 new_messages = messages - old_messages
                 user_message = new_messages.filtered(lambda x: self.event.user_id.partner_id in x.partner_ids)
-                self.assertTrue(user_message.notification_ids, "Organizer must receive a reminder")
-                
-    def test_email_alarm_for_synced_event(self):
-        """Test that email reminders are not sent for synced events."""
-        now = fields.Datetime.now()
-        google_id = 'oj44nep1ldf8a3ll02uip0c9aa'
-
-        with self.capture_triggers('calendar.ir_cron_scheduler_alarm') as capt:
-            alarm = self.env['calendar.alarm'].create({
-                'name': 'Alarm',
-                'alarm_type': 'email',
-                'interval': 'minutes',
-                'duration': 20,
-            })
-            self.event.write({
-                'name': 'Google Synced Event',
-                'start': now + relativedelta(minutes=15),
-                'stop': now + relativedelta(minutes=18),
-                'partner_ids': [fields.Command.link(self.partner.id)],
-                'alarm_ids': [fields.Command.link(alarm.id)],
-                'google_id': google_id,
-            })
-            self.env.flush_all()
-            
-        capt.records.ensure_one()
-        self.assertLessEqual(capt.records.call_at, now)
-
-        # Mock the current time and trigger the reminder logic
-        with patch.object(fields.Datetime, 'now', lambda: now):
-            old_messages = self.event.message_ids
-            self.env['calendar.alarm_manager'].with_context(lastcall=now - relativedelta(minutes=15))._send_reminder()
-            
-            messages = self.env["mail.message"].search([
-                ("model", "=", self.event._name),
-                ("res_id", "=", self.event.id),
-                ("message_type", "=", "user_notification")
-            ])
-            new_messages = messages - old_messages
-            user_message = new_messages.filtered(lambda x: self.event.user_id.partner_id in x.partner_ids)
-            self.assertFalse(user_message, "No reminder emails from Odoo should be sent for Google/Outlook-synced events")
-            
+                self.assertTrue(user_message.notification_ids, "Organizer must receive a reminder")            
             
     def test_notification_event_timezone(self):
         """

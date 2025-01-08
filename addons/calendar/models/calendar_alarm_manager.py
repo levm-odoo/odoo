@@ -140,6 +140,12 @@ class AlarmManager(models.AbstractModel):
                 'notify_at': one_date - timedelta(minutes=alarm.duration_minutes),
             })
         return result
+    
+    @api.model
+    def _get_notify_alert_extra_conditions(self):
+        """To be overriden"""
+        return ""
+
 
     def _get_events_by_alarm_to_notify(self, alarm_type):
         """
@@ -165,28 +171,17 @@ class AlarmManager(models.AbstractModel):
                AND "event"."start" - CAST("alarm"."duration" || ' ' || "alarm"."interval" AS Interval) >= %s
                AND "event"."start" - CAST("alarm"."duration" || ' ' || "alarm"."interval" AS Interval) < now() at time zone 'utc'
                AND "event"."stop" > now() at time zone 'utc'
-             )''', [alarm_type, lastcall])
+             )''' + self._get_notify_alert_extra_conditions(), [alarm_type, lastcall])
 
         events_by_alarm = {}
         for alarm_id, event_id in self.env.cr.fetchall():
             events_by_alarm.setdefault(alarm_id, list()).append(event_id)
+            
         return events_by_alarm
-
-
-    def _check_calendar_sync(self):
-        """
-        Check if the calendar event is synced with Google or Microsoft Calendar.
-        If synced, attendees should not receive emails from Odoo.
-        """
-        fields = self.env['calendar.event'].fields_get(['google_id', 'microsoft_id'])
-        return 'google_id' in fields or 'microsoft_id' in fields
 
     @api.model
     def _send_reminder(self):
         # Executed via cron
-        
-        if self._check_calendar_sync():
-            return
 
         events_by_alarm = self._get_events_by_alarm_to_notify('email')
         if not events_by_alarm:
