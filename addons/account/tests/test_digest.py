@@ -2,10 +2,13 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from lxml import html
+from freezegun import freeze_time
+from datetime import datetime, timedelta
 
 from odoo.addons.digest.tests.common import TestDigestCommon
 from odoo.tools import mute_logger
 from odoo.tests import tagged
+from odoo import Command
 
 
 @tagged('post_install', '-at_install')
@@ -67,43 +70,130 @@ class TestAccountDigest(TestDigestCommon):
             msg='When no company is set, the KPI must be computed based on the current company',
         )
 
+    @freeze_time("2025-01-30")
     def test_kpi_currency_follows_recipients_company_currency(self):
-        # Have a recipient thats company has a different currency than the digest's company's currency
-        self.user_employee_c2.name = "Employee in Company using AED currency"
-        company_aed = self.env['res.company'].create({'name': 'Digest Company AED', 'currency_id': self.env.ref('base.AED').id})
-        self.user_employee_c2.write({'company_ids': [(4, company_aed.id)]})
+        """ Ensure that in the following setup EU Recipient receives a digest in his currency.
 
-        self.user_employee_c2.company_id = company_aed
-        self.digest_1.user_ids = self.user_employee_c2
-        self.user_employee_c2.groups_id |= self.env.ref('account.group_account_invoice')
+           ODOO two company setup
+         ┌────────────┌────────────────┐
+         │ US Branch  │   EU Branch    │
+         │   $$$      │     €€€        │
+         │            │                │
+         │   Sales    │                │
+         │            │                │
+         │ US Digest ─├─►EU Recipient │
+         │            │                │
+         └────────────└────────────────┘
+        """
+        def _record_revenue(for_amount=100, when='in '):
+            if when == 'in past 24h':
+                move_date = datetime.now().strftime('%Y-%m-%d')
+            elif when == 'in past week':
+                move_date = (datetime.now() - timedelta(days=3)).strftime('%Y-%m-%d')
+            elif when == 'in past month':
+                move_date = (datetime.now() - timedelta(days=15)).strftime('%Y-%m-%d')
+            else:
+                move_date = when  # Assume it's a valid date string in 'YYYY-MM-DD' format
 
-        # for the sake of simplicity: reduce digest kpis to revenue only
-        self.digest_1.kpi_account_total_revenue = True
-        self.digest_1.kpi_mail_message_total = False
-        self.digest_1.kpi_res_users_connected = False
+            move = self.env['account.move'].with_company(us_branch).create({
+                'date': move_date,
+                'line_ids': [
+                    Command.create({
+                        'account_id': income_account.id,
+                        'credit': for_amount,
+                    }),
+                    Command.create({
+                        'account_id': receivable_account.id,
+                        'debit': for_amount,
+                    }),
+                ],
+            })
+            move.action_post()
+            return move
 
-        self.env['res.currency.rate'].create({
-            'name': '2025-01-03',
-            'currency_id': self.digest_1.currency_id.id,
-            'rate': 0.1,
-            'company_id': company_aed.id,
+        eu_currency = self.env['res.currency'].create({
+            'name': 'eu_currency',
+            'symbol': '€€€',
+            'rounding': 0.01,
+            'decimal_places': 2,
         })
 
-        # digest creates its mails in auto_delete mode so we need to capture
-        # the formatted body during the sending process
-        self.digest_1.flush_recordset()
+        eu_branch = self.env['res.company'].create({'name': 'eu_branch', 'currency_id': eu_currency.id})
+
+        eu_recipient = self.env['res.users'].create({
+            'name': 'eu_recipient',
+            'login': 'eu_recipient@example.com',
+            'email': 'eu_recipient@example.com',
+            'company_id': eu_branch.id,
+            'company_ids': [(4, eu_branch.id)],
+            'groups_id': [
+                Command.set([self.env.ref('base.group_user').id]),
+                Command.set([self.env.ref('account.group_account_invoice').id]),
+            ]
+        })
+
+        us_currency = self.env['res.currency'].create({
+            'name': 'us_currency',
+            'symbol': '$$$',
+            'rounding': 0.01,
+            'decimal_places': 2,
+        })
+
+        self.env['res.currency.rate'].create({
+            'name': '2025-01-01',
+            'currency_id': us_currency.id,
+            'rate': 0.5,
+            'company_id': eu_branch.id,
+        })
+
+        us_branch = self.env['res.company'].create({'name': 'us_branch', 'currency_id': us_currency.id})
+
+        us_digest = self.env['digest.digest'].with_company(us_branch).create({
+            'name': 'Test Digest',
+            'user_ids': [(4, eu_recipient.id)],
+            'kpi_account_total_revenue': True,  # Enable the revenue KPI
+        })
+
+        income_account = self.env['account.account'].create({
+            'name': 'Income Account',
+            'code': '400000',
+            'account_type': 'income',
+            'company_id': us_branch.id,
+        })
+        receivable_account = self.env['account.account'].create({
+            'name': 'Receivable Account',
+            'account_type': 'asset_receivable',
+            'code': '1210',
+            'company_id': us_branch.id,
+        })
+        self.env['account.journal'].create({
+            'name': 'Test Journal',
+            'type': 'general',
+            'code': 'TJ',
+            'company_id': us_branch.id,
+        })
+        self.env.cr.commit()
+
+        _record_revenue(for_amount=1, when='in past 24h')  # =2€€€ cumulatively
+        _record_revenue(for_amount=9, when='in past week')  # =20€€€ cumulatively
+        _record_revenue(for_amount=90, when='in past month')  # =200€€€ cumulatively
+
+        self.env.cr.commit()
+        self.env['account.move.line'].flush_model()
+
+        us_digest.flush_recordset()
         with self.mock_mail_gateway():
-            self.digest_1.action_send()
+            us_digest.action_send()
 
         self.assertEqual(len(self._new_mails), 1, "A new mail.mail should have been created")
         mail = self._new_mails[0]
-        # check mail.mail content
-        self.assertEqual(mail.email_to, self.user_employee_c2.email_formatted)
+        self.assertEqual(mail.email_to, eu_recipient.email_formatted)
 
-        kpi_message_values = html.fromstring(mail.body_html).xpath('//span[contains(@class, "kpi_value") and contains(@class, "kpi_border_col")]/text()')
+        kpi_xpath = '//span[contains(@class, "kpi_value") and contains(@class, "kpi_border_col")]/text()'
+        kpi_message_values = html.fromstring(mail.body_html).xpath(kpi_xpath)
 
         self.assertEqual(
             [t.strip() for t in kpi_message_values],
-            ['0د.إ', '-130د.إ', '-130د.إ'],
+            ['2€€€', '20€€€', '200€€€'],
             "The digest should display the KPI values in the recipient's company currency"
         )
