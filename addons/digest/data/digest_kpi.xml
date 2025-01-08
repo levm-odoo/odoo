@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <record id="kpi_res_users_connected" model="digest.kpi" forcecreate="True">
+        <field name="name">Connected Users</field>
+        <field name="res_model_id" ref="model_res_users"/>
+        <field name="compute_type">count</field>
+        <field name="value_type">integer</field>
+        <field name="date_field">login_date</field>
+    </record>
+
+    <record id="kpi_mail_message_total" model="digest.kpi" forcecreate="True">
+        <field name="name">Messages Sent</field>
+        <field name="res_model_id" ref="mail.model_mail_message"/>
+        <field name="compute_type">count</field>
+        <field name="value_type">integer</field>
+        <field name="date_field">create_date</field>
+        <field name="domain">[('message_type', 'in', ['comment', 'email', 'email_outgoing'])]</field>
+        <field name="company_field"/>
+    </record>
+</odoo>

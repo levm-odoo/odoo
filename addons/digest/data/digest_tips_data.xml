@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
-    <data noupdate="1">
+    <data><!-- noupdate="1"-->
         <record id="digest_digest_default" model="digest.digest">
             <field name="name">Your Odoo Periodic Digest</field>
             <field name="periodicity">daily</field>
@@ -8,6 +8,18 @@
             <field name="next_run_date" eval="DateTime.now().strftime('%Y-%m-%d')"/>
             <field name="kpi_res_users_connected">True</field>
             <field name="kpi_mail_message_total">True</field>
+        </record>
+
+        <record id="digest_digest_default_kpi_res_users_connected" model="digest.digest.kpi">
+            <field name="digest" ref="digest.digest_digest_default"/>
+            <field name="kpi" ref="digest.kpi_res_users_connected"/>
+            <field name="enabled">True</field>
+        </record>
+
+        <record id="digest_digest_default_kpi_mail_message_total" model="digest.digest.kpi">
+            <field name="digest" ref="digest.digest_digest_default"/>
+            <field name="kpi" ref="digest.kpi_mail_message_total"/>
+            <field name="enabled">True</field>
         </record>
     </data>
     <data noupdate="0">

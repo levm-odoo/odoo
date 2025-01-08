@@ -17,6 +17,25 @@ from odoo.tools.float_utils import float_round
 
 _logger = logging.getLogger(__name__)
 
+class DigestDigestKpi(models.Model):
+    _name = 'digest.digest.kpi'
+    _description = 'Digest KPI'
+
+    sequence = fields.Integer('Sequence', related="kpi.sequence", store=True)
+    enabled = fields.Boolean('Enabled')
+    digest = fields.Many2one('digest.digest', 'Digest', required=True, ondelete='cascade')
+    kpi = fields.Many2one('digest.kpi', 'KPI', required=True, ondelete='cascade')
+
+    name = fields.Char(related='kpi.name')
+    value_type = fields.Selection(related='kpi.value_type')
+    value_last_24_hours = fields.Char(related="kpi.value_last_24_hours")
+    value_last_7_days = fields.Char(related="kpi.value_last_7_days")
+    value_last_30_days = fields.Char(related="kpi.value_last_30_days")
+
+    value_last_24_hours_margin = fields.Float(related="kpi.value_last_24_hours_margin")
+    value_last_7_days_margin = fields.Float(related="kpi.value_last_7_days_margin")
+    value_last_30_days_margin = fields.Float(related="kpi.value_last_30_days_margin")
+
 
 class DigestDigest(models.Model):
     _name = 'digest.digest'
@@ -36,6 +55,7 @@ class DigestDigest(models.Model):
     available_fields = fields.Char(compute='_compute_available_fields')
     is_subscribed = fields.Boolean('Is user subscribed', compute='_compute_is_subscribed')
     state = fields.Selection([('activated', 'Activated'), ('deactivated', 'Deactivated')], string='Status', readonly=True, default='activated')
+    kpis = fields.One2many('digest.digest.kpi', 'digest')
     # First base-related KPIs
     kpi_res_users_connected = fields.Boolean('Connected Users')
     kpi_res_users_connected_value = fields.Integer(compute='_compute_kpi_res_users_connected_value')

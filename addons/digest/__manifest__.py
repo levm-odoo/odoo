@@ -15,6 +15,7 @@ Send KPI Digests periodically
     ],
     'data': [
         'security/ir.model.access.csv',
+        'data/digest_kpi.xml',
         'data/digest_data.xml',
         'data/digest_tips_data.xml',
         'data/ir_cron_data.xml',
@@ -23,6 +24,11 @@ Send KPI Digests periodically
         'views/digest_templates.xml',
         'views/res_config_settings_views.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'digest/static/src/scss/digest.scss',
+        ]
+    },
     'installable': True,
     'license': 'LGPL-3',
 }
