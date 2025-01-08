@@ -1,5 +1,7 @@
 import { patch } from "@web/core/utils/patch";
 import { WysiwygAdapterComponent } from '@website/components/wysiwyg_adapter/wysiwyg_adapter';
+import { Tooltip } from "@web/core/tooltip/tooltip";
+import { _t } from "@web/core/l10n/translation";
 
 patch(WysiwygAdapterComponent.prototype, {
     /**
@@ -222,5 +224,37 @@ patch(WysiwygAdapterComponent.prototype, {
         return [...readOnlyEls].concat(
             $(this.websiteService.pageDocument).find("#wrapwrap").find('.oe_website_sale .products_header, .oe_website_sale .products_header a').toArray()
         );
+    },
+    /**
+     * @override
+     */
+    _updateEditorUI(e) {
+        super._updateEditorUI(...arguments);
+        if (!e) {
+            return;
+        }
+        const IsSharedAreaBetweenProductsEl = e.target?.closest(
+            "#oe_structure_website_sale_product_2"
+        );
+        const IsProductShareTermEl = e.target?.closest("div#o_product_terms_and_share");
+
+        if (IsSharedAreaBetweenProductsEl || IsProductShareTermEl) {
+            this.showTooltip = true;
+            this.tooltipTimeouts.push(
+                setTimeout(() => {
+                    // Do not show tooltip on double-click and if there is already one
+                    if (!this.showTooltip) {
+                        return;
+                    }
+                    // Tooltips need to be cleared before leaving the editor.
+                    this.saving_mutex.exec(() => {
+                        const removeTooltip = this.popover.add(e.target, Tooltip, {
+                            tooltip: _t("Shared between all products"),
+                        });
+                        this.tooltipTimeouts.push(setTimeout(() => removeTooltip(), 800));
+                    });
+                }, 400)
+            );
+        }
     },
 });

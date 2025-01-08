@@ -2250,7 +2250,6 @@ export class Wysiwyg extends Component {
         const isInMedia = $target.is(mediaSelector) && !$target.parent().hasClass('o_stars') && e.target &&
             (e.target.isContentEditable || (e.target.parentElement && e.target.parentElement.isContentEditable));
         this.toolbarEl.classList.toggle('oe-media', isInMedia);
-
         for (const el of this.toolbarEl.querySelectorAll([
             '#image-preview',
             '#image-shape',
