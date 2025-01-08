@@ -1175,3 +1175,41 @@ class TestReorderingRule(TransactionCase):
         replenishment_info = self.env['stock.replenishment.info'].create({'orderpoint_id': orderpoint.id})
         supplier_info = replenishment_info.supplierinfo_ids
         self.assertEqual(supplier_info.last_purchase_date, dt.today().date(), "The last_purhchase_date should be set to the most recent date_order from the purchase orders")
+
+    def test_reordering_rule_multicurrency(self):
+        """
+            trigger a reordering rule in foreign currency
+        """
+        eur = self.env.ref('base.EUR')
+        product = self.env['product.product'].create({
+            'name': 'Super Product',
+            'type': 'product',
+        })
+        self.env['product.supplierinfo'].create({
+            'partner_id': self.env['res.partner'].create({'name': 'AAA', 'email': 'from.test@example.com'}).id,
+            'price': 50,
+            'currency_id': eur.id,
+            "product_tmpl_id": product.product_tmpl_id.id,
+        })
+        warehouse = self.env['stock.warehouse'].search([('company_id', '=', self.env.user.id)], limit=1)
+
+        po_line = self.env["purchase.order.line"].search(
+            [("product_id", "=", product.id)])
+        self.assertFalse(po_line)
+        self.env["procurement.group"].run(
+            [self.env["procurement.group"].Procurement(
+                product, 100, product.uom_id,
+                warehouse.lot_stock_id, "Test default vendor", "/",
+                self.env.company,
+                {
+                    "warehouse_id": warehouse,
+                    "date_planned": dt.today() + td(days=1),
+                    "rule_id": warehouse.buy_pull_id,
+                    "group_id": False,
+                    "route_ids": [],
+                }
+            )])
+        po_line = self.env["purchase.order.line"].search(
+            [("product_id", "=", product.id)])
+        self.assertTrue(po_line)
+        self.assertEqual(po_line.order_id.currency_id, eur)

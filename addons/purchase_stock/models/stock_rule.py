@@ -274,6 +274,7 @@ class StockRule(models.Model):
         # arbitrary procurement. In this case the first.
         values = values[0]
         partner = values['supplier'].partner_id
+        currency = values['supplier'].currency_id
 
         fpos = self.env['account.fiscal.position'].with_company(company_id)._get_fiscal_position(partner)
 
@@ -286,7 +287,7 @@ class StockRule(models.Model):
             'user_id': False,
             'picking_type_id': self.picking_type_id.id,
             'company_id': company_id.id,
-            'currency_id': partner.with_company(company_id).property_purchase_currency_id.id or company_id.currency_id.id,
+            'currency_id': currency.id or partner.with_company(company_id).property_purchase_currency_id.id or company_id.currency_id.id,
             'dest_address_id': values.get('partner_id', False),
             'origin': ', '.join(origins),
             'payment_term_id': partner.with_company(company_id).property_supplier_payment_term_id.id,
@@ -299,6 +300,7 @@ class StockRule(models.Model):
         gpo = self.group_propagation_option
         group = (gpo == 'fixed' and self.group_id) or \
                 (gpo == 'propagate' and 'group_id' in values and values['group_id']) or False
+        currency = values['supplier'].currency_id or partner.with_company(company_id).property_purchase_currency_id or company_id.currency_id
 
         domain = (
             ('partner_id', '=', partner.id),
@@ -306,6 +308,7 @@ class StockRule(models.Model):
             ('picking_type_id', '=', self.picking_type_id.id),
             ('company_id', '=', company_id.id),
             ('user_id', '=', False),
+            ('currency_id', '=', currency.id),
         )
         delta_days = self.env['ir.config_parameter'].sudo().get_param('purchase_stock.delta_days_merge')
         if values.get('orderpoint_id') and delta_days is not False:
