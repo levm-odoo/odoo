@@ -260,6 +260,10 @@ export class ClipboardPlugin extends Plugin {
      */
     handlePasteOdooEditorHtml(clipboardData) {
         const odooEditorHtml = clipboardData.getData("application/vnd.odoo.odoo-editor");
+        const textContent = clipboardData.getData("text/plain");
+        if (/^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/i.test(textContent)) {
+            return false;
+        }
         if (odooEditorHtml) {
             const fragment = parseHTML(this.document, odooEditorHtml);
             this.dependencies.sanitize.sanitize(fragment);
@@ -276,6 +280,10 @@ export class ClipboardPlugin extends Plugin {
     handlePasteHtml(selection, clipboardData) {
         const files = getImageFiles(clipboardData);
         const clipboardHtml = clipboardData.getData("text/html");
+        const textContent = clipboardData.getData("text/plain");
+        if (/^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/i.test(textContent)) {
+            return false;
+        }
         if (files.length || clipboardHtml) {
             const clipboardElem = this.prepareClipboardData(clipboardHtml);
             // @phoenix @todo: should it be handled in table plugin?
