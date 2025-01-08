@@ -172,9 +172,22 @@ class AlarmManager(models.AbstractModel):
             events_by_alarm.setdefault(alarm_id, list()).append(event_id)
         return events_by_alarm
 
+
+    def _check_calendar_sync(self):
+        """
+        Check if the calendar event is synced with Google or Microsoft Calendar.
+        If synced, attendees should not receive emails from Odoo.
+        """
+        fields = self.env['calendar.event'].fields_get(['google_id', 'microsoft_id'])
+        return 'google_id' in fields or 'microsoft_id' in fields
+
     @api.model
     def _send_reminder(self):
         # Executed via cron
+        
+        if self._check_calendar_sync():
+            return
+
         events_by_alarm = self._get_events_by_alarm_to_notify('email')
         if not events_by_alarm:
             return
