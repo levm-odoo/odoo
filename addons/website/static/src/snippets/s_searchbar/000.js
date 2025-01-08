@@ -44,6 +44,7 @@ publicWidget.registry.searchBar = publicWidget.Widget.extend({
         this.displayExtraLink = this.$input.data('displayExtraLink');
         this.displayDetail = this.$input.data('displayDetail');
         this.displayImage = this.$input.data('displayImage');
+        this.displayExtraInfo = this.$input.data('displayExtraInfo');
         this.wasEmpty = !this.$input.val();
         // Make it easy for customization to disable fuzzy matching on specific searchboxes
         this.allowFuzzy = !this.$input.data('noFuzzy');
@@ -56,6 +57,7 @@ publicWidget.registry.searchBar = publicWidget.Widget.extend({
             'displayDescription': this.displayDescription,
             'displayExtraLink': this.displayExtraLink,
             'displayDetail': this.displayDetail,
+            'displayExtraInfo': this.displayExtraInfo,
             'allowFuzzy': this.allowFuzzy,
         };
         const form = this.$('.o_search_order_by').parents('form');
@@ -226,6 +228,7 @@ publicWidget.registry.searchBar = publicWidget.Widget.extend({
             'detail_strike',
             'extra_link',
             'name',
+            'extra_info',
         ];
     },
 
