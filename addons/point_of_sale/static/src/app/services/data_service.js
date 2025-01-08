@@ -301,14 +301,20 @@ export class PosData extends Reactive {
         await this.initData();
         await this.getLocalDataFromIndexedDB();
 
-        for (const [model, modelRecords] of Object.entries(this.models.records)) {
+        for (const [modelName, modelRecords] of Object.entries(this.models.records)) {
             effect2(
                 (payload, obj) => {
                     for (const key of obj.keys()) {
                         void obj.get(key);
                     }
                     if (payload) {
-                        console.log(model, "->", payload);
+                        console.log(modelName, "->", payload);
+                        const modelOpts = this.opts.databaseTable[modelName];
+                        const indexKey = modelOpts.key;
+                        const [, command, , value] = payload;
+                        if (command === "deleted") {
+                            this.indexedDB.delete(modelName, [value[indexKey]]);
+                        }
                     }
                 },
                 [modelRecords]
