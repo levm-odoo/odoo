@@ -321,10 +321,11 @@
             <t t-set="navClass" t-valuef="light"/>
 
             <!-- Check for active options: the stored value may be used in sub-templates too  -->
-            <t t-set="opt_wsale_categories" t-value="is_view_active('website_sale.products_categories')"/>
-            <t t-set="opt_wsale_attributes" t-value="is_view_active('website_sale.products_attributes')"/>
-            <t t-set="opt_wsale_filter_price" t-value="is_view_active('website_sale.filter_products_price')"/>
-            <t t-set="opt_wsale_filter_tags" t-value="is_view_active('website_sale.filter_products_tags')"/>
+            <t t-set="opt_wsale_sidebar" t-value="is_view_active('website_sale.sidebar_active')"/>
+            <t t-set="opt_wsale_categories" t-value="opt_wsale_sidebar and is_view_active('website_sale.products_categories')"/>
+            <t t-set="opt_wsale_attributes" t-value="opt_wsale_sidebar and is_view_active('website_sale.products_attributes')"/>
+            <t t-set="opt_wsale_filter_price" t-value="opt_wsale_sidebar and is_view_active('website_sale.filter_products_price')"/>
+            <t t-set="opt_wsale_filter_tags" t-value="opt_wsale_sidebar and is_view_active('website_sale.filter_products_tags')"/>
 
             <t t-set="opt_wsale_categories_top" t-value="is_view_active('website_sale.products_categories_top')"/>
             <t t-set="opt_wsale_attributes_top" t-value="is_view_active('website_sale.products_attributes_top')"/>
@@ -332,7 +333,7 @@
             <t t-set="website_sale_pricelists" t-value="website.get_pricelist_available(show_visible=True)" />
             <t t-set="website_sale_sortable" t-value="website._get_product_sort_mapping()"/>
 
-            <t t-set="hasLeftColumn" t-value="opt_wsale_categories or opt_wsale_attributes"/>
+            <t t-set="hasLeftColumn" t-value="opt_wsale_sidebar"/>
 
             <t t-set="isFilteringByPrice" t-if="opt_wsale_filter_price" t-value="float_round(available_min_price, 2) != float_round(min_price, 2) or float_round(available_max_price, 2) != float_round(max_price, 2)"/>
             <t t-set="hasPricelistDropdown" t-value="website_sale_pricelists and len(website_sale_pricelists)&gt;1"/>
@@ -370,7 +371,7 @@
                             </div>
                         </aside>
                         <div id="products_grid"
-                             t-attf-class="#{'o_wsale_layout_list' if layout_mode == 'list' else ''} {{'col-lg-9' if hasLeftColumn else 'col-12'}}">
+                             t-attf-class="#{'o_wsale_layout_list' if layout_mode == 'list' else 'o_wsale_layout_catalog'} {{'col-lg-9' if hasLeftColumn else 'col-12'}}">
                             <t t-call="website_sale.products_breadcrumb">
                                 <t t-set="_classes" t-valuef="d-none d-lg-flex w-100 p-0 small"/>
                             </t>
@@ -416,10 +417,6 @@
                                     </a>
                                     <h4 t-out="category.name" class="mb-0 me-auto"/>
                                 </div>
-
-                                <t t-if="is_view_active('website_sale.add_grid_or_list_option')" t-call="website_sale.add_grid_or_list_option">
-                                    <t t-set="_classes" t-valuef="d-flex"/>
-                                </t>
 
                                 <button t-if="is_view_active('website_sale.sort') or opt_wsale_categories or opt_wsale_attributes or opt_wsale_attributes_top"
                                         t-attf-class="btn btn-{{navClass}} position-relative {{not opt_wsale_attributes_top and 'd-lg-none'}}"
@@ -579,20 +576,7 @@
         </div>
     </template>
 
-    <template id="website_sale.add_grid_or_list_option" active="True" name="Grid or List button">
-        <t t-set="_activeClasses" t-translation="off">active</t>
-        <div t-attf-class="o_wsale_apply_layout btn-group {{_classes}}" t-att-data-active-classes="_activeClasses">
-            <input type="radio" class="btn-check" name="wsale_products_layout" id="o_wsale_apply_grid"  t-att-checked="'checked' if layout_mode != 'list' else None" value="grid"/>
-            <label t-attf-class="btn btn-{{navClass}} #{_activeClasses if layout_mode != 'list' else None} o_wsale_apply_grid" title="Grid" for="o_wsale_apply_grid">
-                <i class="fa fa-th-large"/>
-            </label>
-            <input type="radio" class="btn-check" name="wsale_products_layout" id="o_wsale_apply_list" t-att-checked="'checked' if layout_mode == 'list' else None" value="list"/>
-            <label t-attf-class="btn btn-{{navClass}} #{_activeClasses if layout_mode == 'list' else None} o_wsale_apply_list" title="List" for="o_wsale_apply_list">
-                <i class="oi oi-view-list"/>
-            </label>
-        </div>
-    </template>
-
+    <template id="website_sale.sidebar_active" active="True" name="Sidebar is active"/>
     <template id="website_sale.products_categories" active="False" name="Categories in Left Side "/>
     <template id="website_sale.products_categories_top" active="True" name="Categories in top-nav"/>
     <template id="website_sale.products_attributes_top" active="False" name="Attributes in top-nav"/>
