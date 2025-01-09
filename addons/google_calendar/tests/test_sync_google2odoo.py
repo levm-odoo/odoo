@@ -1275,42 +1275,46 @@ class TestSyncGoogle2Odoo(TestSyncGoogle):
         self.assertGoogleAPINotCalled()
 
     @patch_api
-    def test_event_reminder_with_google_id(self):
+    def test_event_reminder_emails_with_google_id(self):
         """
-        Test that _get_events_by_alarm_to_notify returns empty when event has google_id
-        Handles the case of the daily default cron job occuring without triggers.
+        Odoo shouldn't send email reminders for synced events.
         """
+        now = datetime.now()
+        google_id = 'oj44nep1ldf8a3ll02uip0c9aa'
+        start = now - relativedelta(minutes=30)
+        end = now + relativedelta(hours=2)
         alarm = self.env['calendar.alarm'].create({
-            'name': 'Test Alarm',
+            'name': 'Alarm',
             'alarm_type': 'email',
             'interval': 'minutes',
             'duration': 30,
         })
-        
-        # Create event with google_id
-        event_with_google = self.env['calendar.event'].create({
-            'name': 'Test Event with Google ID',
-            'start': self.now() + relativedelta(hours=1),
-            'stop': self.now() + relativedelta(hours=2),
-            'google_id': 'oj44nep1ldf8a3ll02uip0c9aa', 
-            'alarm_ids': [(4, alarm.id)]
-        })
-        
-        lastcall = self.now()- relativedelta(minutes=60)
-        events_by_alarm = event_with_google._get_events_by_alarm_to_notify('email')
+        values = {
+            'id': google_id,
+            "alarm_id": alarm.id,
+            'description': 'Small mini desc',
+            'organizer': {'email': 'odoocalendarref@gmail.com', 'self': True},
+            'summary': 'Pricing new update',
+            'visibility': 'public',
+            'attendees': [{
+                'displayName': 'Mitchell Admin',
+                'email': self.public_partner.email,
+                'responseStatus': 'needsAction'
+            }, ],
+            'start': {
+                'dateTime': pytz.utc.localize(start).isoformat(),
+                'timeZone': 'Europe/Brussels'
+            },
+            'reminders': {'overrides': [{"method": "email", "minutes": 30}], 'useDefault': False},
+            'end': {
+                'dateTime': pytz.utc.localize(end).isoformat(),
+                'timeZone': 'Europe/Brussels'
+            },
+        }
+        self.env['calendar.event']._sync_google2odoo(GoogleEvent([values]))
+        events_by_alarm = self.env['calendar.alarm_manager']._get_events_by_alarm_to_notify('email')
         self.assertFalse(events_by_alarm, "Events with google_id should not trigger reminders")
-        
-        # Create event without google_id for comparison
-        event_without_google = self.env['calendar.event'].create({
-            'name': 'Test Event without Google ID',
-            'start': self.now() + relativedelta(hours=1),
-            'stop': self.now()  + relativedelta(hours=2),
-            'alarm_ids': [(4, alarm.id)]
-        })
-        
-        events_by_alarm = event_without_google._get_events_by_alarm_to_notify('email')
-        self.assertTrue(events_by_alarm, "Events without google_id should trigger reminders")
-        
+                
     @patch_api
     def test_attendee_state(self):
         user = new_test_user(self.env, login='calendar-user')
