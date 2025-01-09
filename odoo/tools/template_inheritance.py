@@ -45,8 +45,10 @@ def add_stripped_items_before(node, spec, extract):
         if child.get('position') == 'move':
             tail = child.tail
             child = extract(child)
-            child.tail = tail
-        node.addprevious(child)
+            if child is not None:   # extract can return None
+                child.tail = tail
+        if child is not None:   # extract can return None
+            node.addprevious(child)
 
 
 def add_text_before(node, text):
@@ -104,7 +106,7 @@ def locate_node(arch, spec):
     return None
 
 
-def apply_inheritance_specs(source, specs_tree, inherit_branding=False, pre_locate=lambda s: True):
+def apply_inheritance_specs(source, specs_tree, inherit_branding=False, pre_locate=lambda s: True, invalid_xpath_list=None):
     """ Apply an inheriting view (a descendant of the base view)
 
     Apply to a source architecture all the spec nodes (i.e. nodes
@@ -117,6 +119,11 @@ def apply_inheritance_specs(source, specs_tree, inherit_branding=False, pre_loca
     :param pre_locate: function that is executed before locating a node.
                         This function receives an arch as argument.
                         This is required by studio to properly handle group_ids.
+    :param List invalid_xpath_list: An optional list for collecting invalid XPath expressions
+                                     from the `source`. If provided, invalid nodes are added
+                                     to this list instead of raising an error immediately.
+                                     If not provided, the function raises a `ValueError`
+                                     when encountering an invalid XPath.
     :return: a modified source where the specs are applied
     :rtype: Element
     """
@@ -139,9 +146,13 @@ def apply_inheritance_specs(source, specs_tree, inherit_branding=False, pre_loca
             remove_element(to_extract)
             return to_extract
         else:
-            raise ValueError(
-                _lt("Element “%s” cannot be located in parent view", etree.tostring(spec, encoding='unicode'))
-            )
+            if invalid_xpath_list is None:
+                raise ValueError(
+                    _lt("Element “%s” cannot be located in parent view", etree.tostring(spec, encoding='unicode'))
+                )
+            else:
+                invalid_xpath_list.append(spec.attrib.get("expr"))
+                return None
 
     while len(specs):
         spec = specs.pop(0)
@@ -314,14 +325,18 @@ def apply_inheritance_specs(source, specs_tree, inherit_branding=False, pre_loca
                 raise ValueError(_lt("Invalid position attribute: '%s'", pos))
 
         else:
-            attrs = ''.join([
-                ' %s="%s"' % (attr, html_escape(spec.get(attr)))
-                for attr in spec.attrib
-                if attr != 'position'
-            ])
-            tag = "<%s%s>" % (spec.tag, attrs)
-            raise ValueError(
-                _lt("Element '%s' cannot be located in parent view", tag)
-            )
+            if invalid_xpath_list is None:
+                attrs = ''.join([
+                    ' %s="%s"' % (attr, html_escape(spec.get(attr)))
+                    for attr in spec.attrib
+                    if attr != 'position'
+                ])
+                tag = "<%s%s>" % (spec.tag, attrs)
+                raise ValueError(
+                    _lt("Element '%s' cannot be located in parent view", tag)
+                )
+            else:
+                if spec.tag == "xpath":
+                    invalid_xpath_list.append(spec.attrib.get("expr"))
 
     return source

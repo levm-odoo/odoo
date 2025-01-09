@@ -1,6 +1,8 @@
 import { Component, onWillDestroy, onWillStart, useEffect, useRef, useState } from "@odoo/owl";
 import { loadBundle } from "@web/core/assets";
 import { useDebounced } from "@web/core/utils/timing";
+import { useService } from "@web/core/utils/hooks";
+import { escapeRegExp } from "@web/core/utils/strings";
 
 function onResized(ref, callback) {
     const _ref = typeof ref === "string" ? useRef(ref) : ref;
@@ -42,6 +44,7 @@ export class CodeEditor extends Component {
         },
         maxLines: { type: Number, optional: true },
         sessionId: { type: [Number, String], optional: true },
+        record: { type: Object, optional: true },
     };
     static defaultProps = {
         readonly: false,
@@ -60,6 +63,8 @@ export class CodeEditor extends Component {
         this.state = useState({
             activeMode: undefined,
         });
+        this.orm = useService("orm");
+        this.markers = [];
 
         onWillStart(async () => await loadBundle("web.ace_lib"));
 
@@ -169,6 +174,14 @@ export class CodeEditor extends Component {
             () => [this.props.sessionId, this.props.mode, this.props.value]
         );
 
+        useEffect(
+            (arch) => {
+                this.highlightInvalidElements(arch);
+                return () => this.clearMarkers();
+            },
+            () => [this.props.record?.data.arch_base]
+        );
+
         const debouncedResize = useDebounced(() => {
             if (this.aceEditor) {
                 this.aceEditor.resize();
@@ -176,5 +189,26 @@ export class CodeEditor extends Component {
         }, 250);
 
         onResized(this.editorRef, debouncedResize);
+    }
+    async highlightInvalidElements(arch) {
+        const resModel = this.env.model?.config.resModel;
+        const resId = this.env.model?.config.resId;
+        if (resModel == "ir.ui.view" && resId){
+            const invalidXpathElems = await this.orm.call("ir.ui.view", "get_invalid_xpath_elements", [resId, arch]);
+            const xpathPatterns = invalidXpathElems.map((elem) => escapeRegExp(elem)).join("|");
+
+            const xpathRegex = new RegExp(`<xpath\\s+([^>]*?)expr\\s*=\\s*"(${xpathPatterns})"[^>]*>`, "g");
+            const { doc } = this.aceEditor.session;
+            for (const { 0: matchStr, index } of arch.matchAll(xpathRegex)) {
+                const [start, end] = [index, index + matchStr.length].map(pos => doc.indexToPosition(pos));
+                const range = new window.ace.Range(start.row, start.column, end.row, end.column);
+                this.markers.push(this.aceEditor.session.addMarker(range, "invalid_xpath", "text"));
+            }
+        }
+    }
+
+    clearMarkers() {
+        this.markers.forEach(marker => this.aceEditor.session.removeMarker(marker));
+        this.markers = [];
     }
 }

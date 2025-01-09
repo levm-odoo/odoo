@@ -928,6 +928,23 @@ actual arch.
         arch = root.with_prefetch(tree_views._prefetch_ids)._combine(hierarchy)
         return arch
 
+    def _get_combined_arch_excluding_self(self):
+        was_active = self.active
+        self.active = False
+        arch = self._get_combined_arch()
+        self.active = was_active
+        return arch
+
+    def get_invalid_xpath_elements(self, view_arch):
+        """Identifies invalid XPath elements within the given architecture.
+        """
+        if self.inherit_id:
+            parent_combined_arch = self._get_combined_arch_excluding_self()
+            invalid_xpath_list = []
+            apply_inheritance_specs(parent_combined_arch, etree.fromstring(view_arch), invalid_xpath_list=invalid_xpath_list)
+            return invalid_xpath_list
+        return []
+
     def _get_view_refs(self, node):
         """ Extract the `[view_type]_view_ref` keys and values from the node context attribute,
         giving the views to use for a field node.
