@@ -340,7 +340,6 @@ class TestSyncMicrosoft2Odoo(TransactionCase):
         event = self.env['calendar.event'].search([("microsoft_id", "=", ms_event[0]["id"])])
         self.assertEqual(event.videocall_location, ms_event[0]["onlineMeeting"]["joinUrl"])
 
-
     def test_event_reminder_emaisl_with_microsoft_id(self):
         """
         Odoo shouldn't send email reminders for synced events.
@@ -371,6 +370,3 @@ class TestSyncMicrosoft2Odoo(TransactionCase):
         self.env['calendar.event']._sync_microsoft2odoo(MicrosoftEvent(ms_event))
         events_by_alarm = self.env['calendar.alarm_manager']._get_events_by_alarm_to_notify('email')
         self.assertFalse(events_by_alarm, "Events with microsoft_id should not trigger reminders")
-
-
-

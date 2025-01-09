@@ -176,13 +176,11 @@ class AlarmManager(models.AbstractModel):
         events_by_alarm = {}
         for alarm_id, event_id in self.env.cr.fetchall():
             events_by_alarm.setdefault(alarm_id, list()).append(event_id)
-            
         return events_by_alarm
 
     @api.model
     def _send_reminder(self):
         # Executed via cron
-
         events_by_alarm = self._get_events_by_alarm_to_notify('email')
         if not events_by_alarm:
             return

@@ -1314,7 +1314,7 @@ class TestSyncGoogle2Odoo(TestSyncGoogle):
         self.env['calendar.event']._sync_google2odoo(GoogleEvent([values]))
         events_by_alarm = self.env['calendar.alarm_manager']._get_events_by_alarm_to_notify('email')
         self.assertFalse(events_by_alarm, "Events with google_id should not trigger reminders")
-                
+
     @patch_api
     def test_attendee_state(self):
         user = new_test_user(self.env, login='calendar-user')

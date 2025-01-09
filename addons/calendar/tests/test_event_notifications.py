@@ -23,7 +23,6 @@ class TestEventNotifications(TransactionCase, MailCase, CronMixinCase):
         }).with_context(mail_notrack=True)
         cls.user = new_test_user(cls.env, 'xav', email='em@il.com', notification_type='inbox')
         cls.partner = cls.user.partner_id
-        cls.cron_id = cls.env.ref('calendar.ir_cron_scheduler_alarm').id
 
     def test_message_invite(self):
         with self.assertSinglePostNotifications([{'partner': self.partner, 'type': 'inbox'}], {
@@ -195,8 +194,8 @@ class TestEventNotifications(TransactionCase, MailCase, CronMixinCase):
                 ])
                 new_messages = messages - old_messages
                 user_message = new_messages.filtered(lambda x: self.event.user_id.partner_id in x.partner_ids)
-                self.assertTrue(user_message.notification_ids, "Organizer must receive a reminder")            
-            
+                self.assertTrue(user_message.notification_ids, "Organizer must receive a reminder")
+
     def test_notification_event_timezone(self):
         """
             Check the domain that decides when calendar events should be notified to the user.

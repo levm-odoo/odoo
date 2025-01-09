@@ -406,39 +406,3 @@ class TestMicrosoftEvent(TestCommon):
         recurrences = MicrosoftEvent(recurring_event_data)
         mapped = recurrences._load_odoo_ids_from_db(self.env)
         self.assertFalse(mapped, "No odoo record should correspond to the microsoft values")
-
-    @patch_api
-    def test_event_reminder_with_microsoft_id(self):
-        """
-        Test that _get_events_by_alarm_to_notify returns empty when event has google_id
-        Handles the case of the daily default cron job occuring without triggers.
-        """
-        alarm = self.env['calendar.alarm'].create({
-            'name': 'Test Alarm',
-            'alarm_type': 'email',
-            'interval': 'minutes',
-            'duration': 30,
-        })
-        
-        # Create event with microsoft
-        event_with_microsoft = self.env['calendar.event'].create({
-            'name': 'Test Event with Google ID',
-            'start': datetime.now().astimezone(UTC)+ relativedelta(hours=1),
-            'stop': datetime.now().astimezone(UTC) + relativedelta(hours=2),
-            'microsoft_id': 'oj44nep1ldf8a3ll02uip0c9aa', 
-            'alarm_ids': [(4, alarm.id)]
-        })
-        
-        events_by_alarm = event_with_microsoft._get_events_by_alarm_to_notify('email')
-        self.assertFalse(events_by_alarm, "Events with microsoft_id should not trigger reminders")
-        
-        # Create event without microsoft_id for comparison
-        event_without_google = self.env['calendar.event'].create({
-            'name': 'Test Event without Google ID',
-            'start': datetime.now().astimezone(UTC)+ relativedelta(hours=1),
-            'stop': datetime.now().astimezone(UTC) + relativedelta(hours=2),
-            'alarm_ids': [(4, alarm.id)]
-        })
-        
-        events_by_alarm = event_without_google._get_events_by_alarm_to_notify('email')
-        self.assertTrue(events_by_alarm, "Events without microsoft_id should trigger reminders")
