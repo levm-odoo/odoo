@@ -22,3 +22,12 @@
         }
     }
 }
+
+.o_event_slots_list {
+    th.o_list_button {
+        width: 2.4em !important;
+    }
+    button.fa-long-arrow-right {
+        pointer-events: none;
+    }
+}

@@ -218,6 +218,12 @@ class EventEvent(models.Model):
     is_ongoing = fields.Boolean('Is Ongoing', compute='_compute_is_ongoing', search='_search_is_ongoing')
     is_one_day = fields.Boolean(compute='_compute_field_is_one_day')
     is_finished = fields.Boolean(compute='_compute_is_finished', search='_search_is_finished')
+    # Slots
+    is_multi_slots = fields.Boolean("Is Multi Slots", default=False, help="Allow multiple time slots.")
+    slot_ids = fields.One2many("event.slot", "event_id", "Slots", copy=True,
+                               help="All the time slots, the punctuals and recurring with their generated slots.")
+    non_generated_slot_ids = fields.One2many("event.slot", "event_id", domain=[('recurrent_slot_id', '=', False)], copy=True,
+                                             help="The punctuals and recurring time slots without the generated ones.")
     # Location and communication
     address_id = fields.Many2one(
         'res.partner', string='Venue', default=lambda self: self.env.company.partner_id.id,
@@ -434,6 +440,9 @@ class EventEvent(models.Model):
             # Need to localize because it could begin late and finish early in
             # another timezone
             event = event._set_tz_context()
+            if not event.date_begin or not event.date_end:
+                event.is_one_day = False
+                continue
             begin_tz = fields.Datetime.context_timestamp(event, event.date_begin)
             end_tz = fields.Datetime.context_timestamp(event, event.date_end)
             event.is_one_day = (begin_tz.date() == end_tz.date())
@@ -627,6 +636,29 @@ class EventEvent(models.Model):
             raise ValidationError(_('There are not enough seats available for:')
                                   + '\n%s\n' % '\n'.join(sold_out_events))
 
+    @api.constrains("date_tz", "date_begin", "date_end")
+    def _check_slots_dates(self):
+        for event in self:
+            slots_outside_event_bounds = self.slot_ids.filtered(lambda slot:
+                not slot.is_recurrent and
+                not slot.recurrent_slot_id and
+                (
+                    not (event.date_begin <= slot.start_datetime <= event.date_end) or
+                    not (event.date_begin <= slot.end_datetime <= event.date_end)
+                )
+            )
+            if slots_outside_event_bounds:
+                raise ValidationError(_(
+                    "The event slots cannot be scheduled outside of the event time range:\n%(slots)s",
+                    slots="\n".join(f"- {slot.name}" for slot in slots_outside_event_bounds)
+                ))
+
+    @api.constrains("is_multi_slots", "slot_ids")
+    def _check_slots_number(self):
+        for event in self:
+            if event.is_multi_slots and len(event.slot_ids) == 0:
+                raise ValidationError(_("A multi-slots event should have at least one slot (Dates & Slots tab)."))
+
     @api.constrains('date_begin', 'date_end')
     def _check_closing_date(self):
         for event in self:
@@ -649,7 +681,12 @@ class EventEvent(models.Model):
         res = super(EventEvent, self).write(vals)
         if vals.get('organizer_id'):
             self.message_subscribe([vals['organizer_id']])
+        if vals.get('date_begin') or vals.get('date_end'):
+            recurrent_slots = self.slot_ids.filtered(lambda slot: slot.is_recurrent)
+            for slot in recurrent_slots:
+                slot._update_generated_slots()
         return res
+
 
     @api.depends('event_registrations_sold_out', 'seats_limited', 'seats_max', 'seats_available')
     @api.depends_context('name_with_seats_availability')
