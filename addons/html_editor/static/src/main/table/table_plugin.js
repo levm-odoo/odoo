@@ -48,6 +48,8 @@ function isUnremovableTableComponent(node, root) {
  * @property { TablePlugin['moveRow'] } moveRow
  * @property { TablePlugin['removeColumn'] } removeColumn
  * @property { TablePlugin['removeRow'] } removeRow
+ * @property { TablePlugin['resetRowSize'] } resetRowSize
+ * @property { TablePlugin['resetColumnSize'] } resetColumnSize
  * @property { TablePlugin['resetTableSize'] } resetTableSize
  * @property { TablePlugin['clearColumnContent'] } clearColumnContent
  * @property { TablePlugin['clearRowContent'] } clearRowContent
@@ -68,6 +70,8 @@ export class TablePlugin extends Plugin {
         "removeRow",
         "moveColumn",
         "moveRow",
+        "resetRowSize",
+        "resetColumnSize",
         "resetTableSize",
         "clearColumnContent",
         "clearRowContent",
@@ -352,6 +356,61 @@ export class TablePlugin extends Plugin {
         }
         this.dependencies.selection.setSelection(selectionToRestore);
     }
+
+    /**
+     * @param {HTMLTableRowElement} row
+     */
+    resetRowSize(row) {
+        row.style.height = "";
+    }
+
+    /**
+     * @param {HTMLTableCellElement} cell
+     */
+    resetColumnSize(cell) {
+        const table = closestElement(cell, "table");
+        const tableWidth = parseFloat(table.style.width);
+        const rowCellCount = table.querySelectorAll("tr:first-child td").length;
+        const expectedCellWidth = tableWidth / rowCellCount;
+        const currentCellWidth = parseFloat(cell.style.width) || cell.clientWidth;
+        const widthDifference = currentCellWidth - expectedCellWidth;
+        const currentRow = cell.parentElement;
+        const currentRowCells = Array.from(currentRow.querySelectorAll("td"));
+        const currentColumnIndex = getColumnIndex(cell);
+        const currentColumnCells = Array.from(
+            table.querySelectorAll(`tr td:nth-child(${currentColumnIndex + 1})`)
+        );
+        const contributingCells = currentRowCells.filter((rowCell) => {
+            if (rowCell === cell) {
+                return false;
+            }
+            const cellWidth = parseFloat(rowCell.style.width) || rowCell.clientWidth;
+            return (
+                (widthDifference > 0 && cellWidth < expectedCellWidth) ||
+                (widthDifference < 0 && cellWidth > expectedCellWidth)
+            );
+        });
+        const widthToContribute = contributingCells.reduce((width, contributingCell) => {
+            const cellWidth =
+                parseFloat(contributingCell.style.width) || contributingCell.clientWidth;
+            return width + Math.abs(expectedCellWidth - cellWidth);
+        }, 0);
+        cell.style.width = `${expectedCellWidth}px`;
+        contributingCells.forEach((contributingCell) => {
+            const contributingCellWidth =
+                parseFloat(contributingCell.style.width) || contributingCell.clientWidth;
+            const adjustmentWidth =
+                (Math.abs(expectedCellWidth - contributingCellWidth) / widthToContribute) *
+                Math.abs(widthDifference);
+            contributingCell.style.width = `${
+                contributingCellWidth + (widthDifference > 0 ? adjustmentWidth : -adjustmentWidth)
+            }px`;
+        });
+        currentColumnCells.forEach((columnCell) => {
+            columnCell.style.width = "";
+        });
+    }
+
     /**
      * @param {HTMLTableElement} table
      */
