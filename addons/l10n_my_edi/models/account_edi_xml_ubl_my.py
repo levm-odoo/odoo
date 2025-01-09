@@ -121,10 +121,12 @@ class AccountEdiXmlUBLMyInvoisMY(models.AbstractModel):
         vals['vals'].pop('payment_means_vals_list', None)
 
         # We add the company industrial classification to the supplier vals.
-        vals['vals']['accounting_supplier_party_vals']['party_vals'].update({
-            'industry_classification_code_attrs': {'name': invoice.company_id.l10n_my_edi_industrial_classification.name},
-            'industry_classification_code': invoice.company_id.l10n_my_edi_industrial_classification.code,
-        })
+        if vals['vals']['document_type_code'] in ('01', '02', '03'):
+            vals['vals']['accounting_supplier_party_vals']['party_vals'].update({
+                'industry_classification_code_attrs': {'name': invoice.company_id.l10n_my_edi_industrial_classification.name},
+                'industry_classification_code': invoice.company_id.l10n_my_edi_industrial_classification.code,
+            })
+
         # We ensure that the customer does not have their ttx set (it could be on the record if they're also supplier)
         customer_identification_vals = [
             vals for vals in vals['vals']['accounting_customer_party_vals']['party_vals']['party_identification_vals'] if vals['id_attrs'] != {'schemeID': 'TTX'}
@@ -140,12 +142,25 @@ class AccountEdiXmlUBLMyInvoisMY(models.AbstractModel):
                 },
             })
 
+        # For self billed documents (when sending in_xxx entries to the platform) the supplier and customer are unversed.
+        if vals['vals']['document_type_code'] in ('11', '12', '13'):
+            customer = invoice.company_id.partner_id.commercial_partner_id
+            supplier = invoice.partner_id
+            vals['vals']['accounting_supplier_party_vals']['party_vals'] = self._get_partner_party_vals(supplier, role='supplier')
+            vals['vals']['accounting_customer_party_vals']['party_vals'] = self._get_partner_party_vals(customer, role='customer')
+            # Todo self-billed also need this information, but we cannot provide it as it is stored on res.company.
+            vals['vals']['accounting_supplier_party_vals']['party_vals'].update({
+                'industry_classification_code_attrs': {'name': 'NOT APPLICABLE'},
+                'industry_classification_code': '00000',
+            })
+
         return vals
 
     def _get_delivery_vals_list(self, invoice):
         # OVERRIDE 'account_edi_ubl_cii'
+        customer = invoice.company_id.partner_id.commercial_partner_id if invoice.is_purchase_document() else invoice.partner_id
         return [{
-            'accounting_delivery_party_vals': self._l10n_my_edi_get_delivery_party_vals(invoice.partner_id),
+            'accounting_delivery_party_vals': self._l10n_my_edi_get_delivery_party_vals(customer),
         }]
 
     def _get_partner_contact_vals(self, partner):
@@ -304,7 +319,7 @@ class AccountEdiXmlUBLMyInvoisMY(models.AbstractModel):
                 self._l10n_my_edi_make_validation_error(constraints, 'tax_ids_required', line.id, line.name)
 
         document_type_code, original_document = self._l10n_my_edi_get_document_type_code(invoice)
-        if document_type_code != '01' and not original_document:
+        if document_type_code not in ('01', '11') and not original_document:
             self._l10n_my_edi_make_validation_error(constraints, 'adjustment_origin', invoice.id, invoice.display_name)
 
         return constraints
@@ -410,11 +425,14 @@ class AccountEdiXmlUBLMyInvoisMY(models.AbstractModel):
     def _l10n_my_edi_get_document_type_code(self, invoice):
         """ Returns the code matching the invoice type, as well as the original document if any. """
         if 'debit_origin_id' in self.env['account.move']._fields and invoice.debit_origin_id:
-            return '03', invoice.debit_origin_id
-        elif invoice.move_type == 'out_refund':
-            return '02', invoice.reversed_entry_id
+            code = '03' if invoice.move_type == 'out_invoice' else '13'
+            return code, invoice.debit_origin_id
+        elif invoice.move_type in ('out_refund', 'in_refund'):
+            code = '02' if invoice.move_type == 'out_refund' else '12'
+            return code, invoice.reversed_entry_id
         else:
-            return '01', None
+            code = '01' if invoice.move_type == 'out_invoice' else '11'
+            return code, None
 
     @api.model
     def _l10n_my_edi_get_tax_exchange_rate(self, invoice):

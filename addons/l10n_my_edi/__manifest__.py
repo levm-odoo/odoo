@@ -20,6 +20,7 @@
         'views/account_tax_view.xml',
         'views/l10n_my_edi_industrial_classification_views.xml',
         'views/product_template_view.xml',
+        'views/report_invoice.xml',
         'views/res_company_view.xml',
         'views/res_config_settings_view.xml',
         'views/res_partner_view.xml',

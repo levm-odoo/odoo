@@ -5,6 +5,7 @@ import time
 from collections import defaultdict
 
 from odoo import SUPERUSER_ID, _, api, fields, models
+from odoo.tools import str2bool
 
 
 class AccountMoveSend(models.TransientModel):
@@ -34,7 +35,9 @@ class AccountMoveSend(models.TransientModel):
         """
         # If there is no proxy user set and active, the feature shouldn't be available on invoices.
         for wizard in self:
-            wizard.l10n_my_edi_enable = any(self._l10n_my_edi_need_edi(move) for move in wizard.move_ids)
+            # todo remove in master: temporary measure to block send & print of invoices that should go through the new flow to get the QR
+            disabled = str2bool(self.env['ir.config_parameter'].get_param('l10n_my_edi.disable.send_and_print.first', 'False'))
+            wizard.l10n_my_edi_enable = not disabled and any(self._l10n_my_edi_need_edi(move) for move in wizard.move_ids)
 
     @api.depends('l10n_my_edi_enable')
     def _compute_l10n_my_edi_send_checkbox(self):
