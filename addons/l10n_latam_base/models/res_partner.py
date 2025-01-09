@@ -23,6 +23,6 @@ class ResPartner(models.Model):
             super()._onchange_vat()
 
     def _inverse_vat(self):
-        vat_partners = self.filtered(lambda p: p.is_vat)
+        vat_partners = self.filtered(lambda p: p.l10n_latam_identification_type.is_vat)
         super(ResPartner, vat_partners)._inverse_vat()
 
