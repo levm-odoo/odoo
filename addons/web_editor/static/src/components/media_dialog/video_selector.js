@@ -112,6 +112,47 @@ export class VideoSelector extends Component {
                         const { urlParameter } = this.OPTIONS[option.id];
                         return { ...option, value: src.indexOf(urlParameter) >= 0 };
                     });
+
+                    if (this.state.platform === this.PLATFORMS.youtube) {
+                        if (URL.canParse(this.state.urlInput)) {
+                            const url = new URL(this.state.urlInput);
+                            const params = new URLSearchParams(url.search);
+                            if (params.has("t")) {
+                                this.state.timestamp.isActive = true;
+                                this.state.timestamp.startAt = params.get("t");
+                            }
+                            else if (params.has("start")) { // Legacy support
+                                this.state.timestamp.isActive = true;
+                                this.state.timestamp.startAt = params.get("start");
+                            } else {
+                                this.state.timestamp.isActive = false;
+                                this.state.timestamp.startAt = "0";
+                            }
+                        }
+                    }
+                    else if (this.state.platform === this.PLATFORMS.vimeo) {
+                        const isParam_t = this.state.urlInput.indexOf("#t=")
+                        if (isParam_t >= 0) {
+                            this.state.timestamp.isActive = true;
+                            this.state.timestamp.startAt = this.state.urlInput.split("#t=")[1];
+                        } else {
+                            this.state.timestamp.isActive = false;
+                            this.state.timestamp.startAt = "0";
+                        }
+                    }
+                    else if (this.state.platform === this.PLATFORMS.dailymotion) {
+                        if (URL.canParse(this.state.urlInput)) {
+                            const url = new URL(this.state.urlInput);
+                            const params = new URLSearchParams(url.search);
+                            if (params.has("startTime")) {
+                                this.state.timestamp.isActive = true;
+                                this.state.timestamp.startAt = params.get("startTime");
+                            } else {
+                                this.state.timestamp.isActive = false;
+                                this.state.timestamp.startAt = "0";
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -120,7 +161,53 @@ export class VideoSelector extends Component {
 
         useAutofocus();
 
-        this.onChangeUrl = debounce((ev) => this.updateVideo(ev.target.value), 500);
+        this.onChangeUrl = debounce((ev) => {
+            this.state.options = this.state.options.map((option) => {
+                const { urlParameter } = this.OPTIONS[option.id];
+                return { ...option, value: this.state.urlInput.indexOf(urlParameter) >= 0};
+            });
+
+            if (this.state.platform === this.PLATFORMS.youtube) {
+                if (URL.canParse(this.state.urlInput)) {
+                    const url = new URL(this.state.urlInput);
+                    const params = new URLSearchParams(url.search);
+                    if (params.has("t")) {
+                        this.state.timestamp.isActive = true;
+                        this.state.timestamp.startAt = params.get("t");
+                    } else if (params.has("start")) { // Legacy support
+                        this.state.timestamp.isActive = true;
+                        this.state.timestamp.startAt = params.get("start");
+                    } else {
+                        this.state.timestamp.isActive = false;
+                        this.state.timestamp.startAt = "0";
+                    }
+                }
+            }
+            else if (this.state.platform === this.PLATFORMS.vimeo) {
+                const isParam_t = this.state.urlInput.indexOf("#t=");
+                if (isParam_t >= 0) {
+                    this.state.timestamp.isActive = true;
+                    this.state.timestamp.startAt = this.state.urlInput.split("#t=")[1];
+                } else {
+                    this.state.timestamp.isActive = false;
+                    this.state.timestamp.startAt = "0";
+                }
+            }
+            else if (this.state.platform === this.PLATFORMS.dailymotion) {
+                if (URL.canParse(this.state.urlInput)) {
+                    const url = new URL(this.state.urlInput);
+                    const params = new URLSearchParams(url.search);
+                    if (params.has("startTime")) {
+                        this.state.timestamp.isActive = true;
+                        this.state.timestamp.startAt = params.get("startTime");
+                    } else {
+                        this.state.timestamp.isActive = false;
+                        this.state.timestamp.startAt = "0";
+                    }
+                }
+            }
+            this.updateVideo(ev.target.value);
+        }, 500);
 
         this.onChangeStartAt = debounce(async (ev) => {
             // Regular expression for HH:MM:SS format
@@ -136,6 +223,7 @@ export class VideoSelector extends Component {
                 this.state.timestamp.startAt = "0";
             }
             await this.updateVideo(ev.target.value);
+            this.state.urlInput = "https:" + this.state.src
         }, 1000);
 
         this.onChangeIsActive = debounce(async (ev) => {
@@ -143,6 +231,7 @@ export class VideoSelector extends Component {
                 this.state.timestamp.startAt = "0";
             }
             await this.updateVideo(ev.target.value);
+            this.state.urlInput = "https:" + this.state.src;
         }, 500);
     }
 
@@ -161,6 +250,7 @@ export class VideoSelector extends Component {
             return option;
         });
         await this.updateVideo();
+        this.state.urlInput = "https:" + this.state.src;
     }
 
     async onClickSuggestion(src) {
