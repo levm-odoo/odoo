@@ -11,7 +11,7 @@
         <field name="image" type="base64" file="payment/static/img/7eleven.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -33,7 +33,7 @@
         <field name="image" type="base64" file="payment/static/img/ach_direct_debit.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -56,7 +56,7 @@
         <field name="image" type="base64" file="payment/static/img/affirm.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">full_only</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -80,7 +80,7 @@
         <field name="image" type="base64" file="payment/static/img/afterpay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -108,7 +108,7 @@
         <field name="image" type="base64" file="payment/static/img/afterpay_riverty.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -134,7 +134,7 @@
         <field name="image" type="base64" file="payment/static/img/akulaku.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -156,7 +156,7 @@
         <field name="image" type="base64" file="payment/static/img/alipay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
     </record>
 
@@ -168,7 +168,7 @@
         <field name="image" type="base64" file="payment/static/img/alipay_hk.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -190,7 +190,7 @@
         <field name="image" type="base64" file="payment/static/img/alipay_plus.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -260,7 +260,7 @@
         <field name="image" type="base64" file="payment/static/img/alma.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -282,7 +282,7 @@
         <field name="image" type="base64" file="payment/static/img/amazon_pay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -324,7 +324,7 @@
         <field name="image" type="base64" file="payment/static/img/atome.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -348,7 +348,7 @@
         <field name="image" type="base64" file="payment/static/img/axis.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -370,7 +370,7 @@
         <field name="image" type="base64" file="payment/static/img/bacs_direct_debit.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -392,7 +392,7 @@
         <field name="image" type="base64" file="payment/static/img/bancnet.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -414,7 +414,7 @@
         <field name="image" type="base64" file="payment/static/img/bancomat_pay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -436,7 +436,7 @@
         <field name="image" type="base64" file="payment/static/img/bancontact.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -458,7 +458,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -480,7 +480,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
     </record>
 
@@ -492,7 +492,7 @@
         <field name="image" type="base64" file="payment/static/img/bank_bca.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -514,7 +514,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -536,7 +536,7 @@
         <field name="image" type="base64" file="payment/static/img/bank_permata.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -558,7 +558,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
     </record>
 
@@ -570,7 +570,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_currency_ids"
                eval="[Command.set([
@@ -588,7 +588,7 @@
         <field name="image" type="base64" file="payment/static/img/becs_direct_debit.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -610,7 +610,7 @@
         <field name="image" type="base64" file="payment/static/img/belfius.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -632,7 +632,7 @@
         <field name="image" type="base64" file="payment/static/img/benefit.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -654,7 +654,7 @@
         <field name="image" type="base64" file="payment/static/img/bharatqr.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -676,7 +676,7 @@
         <field name="image" type="base64" file="payment/static/img/billease.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
               eval="[Command.set([
@@ -698,7 +698,7 @@
         <field name="image" type="base64" file="payment/static/img/billink.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -721,7 +721,7 @@
         <field name="image" type="base64" file="payment/static/img/bizum.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -743,7 +743,7 @@
         <field name="image" type="base64" file="payment/static/img/blik.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -765,7 +765,7 @@
         <field name="image" type="base64" file="payment/static/img/bni.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -787,7 +787,7 @@
         <field name="image" type="base64" file="payment/static/img/boleto.png"/>
         <field name="support_tokenization">True</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -809,7 +809,7 @@
         <field name="image" type="base64" file="payment/static/img/boost.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -831,7 +831,7 @@
        <field name="image" type="base64" file="payment/static/img/bank.png"/>
        <field name="support_tokenization">False</field>
        <field name="support_express_checkout">False</field>
-       <field name="support_manual_capture">False</field>
+       <field name="support_manual_capture">none</field>
        <field name="support_refund">none</field>
        <field name="supported_country_ids"
               eval="[Command.set([
@@ -853,7 +853,7 @@
         <field name="image" type="base64" file="payment/static/img/brankas.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -875,7 +875,7 @@
         <field name="image" type="base64" file="payment/static/img/bri.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -897,7 +897,7 @@
         <field name="image" type="base64" file="payment/static/img/bsi.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -919,7 +919,7 @@
         <field name="image" type="base64" file="payment/static/img/card.png"/>
         <field name="support_tokenization">True</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
     </record>
 
@@ -931,7 +931,7 @@
         <field name="image" type="base64" file="payment/static/img/cash_app_pay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -953,7 +953,7 @@
         <field name="image" type="base64" file="payment/static/img/cashalo.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -975,7 +975,7 @@
         <field name="image" type="base64" file="payment/static/img/cebuana.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -997,7 +997,7 @@
         <field name="image" type="base64" file="payment/static/img/cimb_niaga.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1019,7 +1019,7 @@
         <field name="image" type="base64" file="payment/static/img/clearpay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1041,7 +1041,7 @@
         <field name="image" type="base64" file="payment/static/img/clearpay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1064,7 +1064,7 @@
         <field name="image" type="base64" file="payment/static/img/dana.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1086,7 +1086,7 @@
         <field name="image" type="base64" file="payment/static/img/dolfin.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1108,7 +1108,7 @@
         <field name="image" type="base64" file="payment/static/img/duitnow.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1130,7 +1130,7 @@
         <field name="image" type="base64" file="payment/static/img/card.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1152,7 +1152,7 @@
         <field name="image" type="base64" file="payment/static/img/enets.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1174,7 +1174,7 @@
         <field name="image" type="base64" file="payment/static/img/eps.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1196,7 +1196,7 @@
         <field name="image" type="base64" file="payment/static/img/floa_bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1222,7 +1222,7 @@
         <field name="image" type="base64" file="payment/static/img/card.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1244,7 +1244,7 @@
         <field name="image" type="base64" file="payment/static/img/fpx.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1266,7 +1266,7 @@
         <field name="image" type="base64" file="payment/static/img/frafinance.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1288,7 +1288,7 @@
         <field name="image" type="base64" file="payment/static/img/gcash.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1310,7 +1310,7 @@
         <field name="image" type="base64" file="payment/static/img/giropay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1332,7 +1332,7 @@
         <field name="image" type="base64" file="payment/static/img/gopay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1354,7 +1354,7 @@
         <field name="image" type="base64" file="payment/static/img/grabpay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1380,7 +1380,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1402,7 +1402,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1424,7 +1424,7 @@
         <field name="image" type="base64" file="payment/static/img/hoolah.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1452,7 +1452,7 @@
         <field name="image" type="base64" file="payment/static/img/humm.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1480,7 +1480,7 @@
         <field name="image" type="base64" file="payment/static/img/ideal.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1502,7 +1502,7 @@
         <field name="image" type="base64" file="payment/static/img/in3.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1524,7 +1524,7 @@
         <field name="image" type="base64" file="payment/static/img/jeniuspay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1546,7 +1546,7 @@
         <field name="image" type="base64" file="payment/static/img/jkopay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1568,7 +1568,7 @@
         <field name="image" type="base64" file="payment/static/img/kakaopay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1590,7 +1590,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1612,7 +1612,7 @@
         <field name="image" type="base64" file="payment/static/img/kbc.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1634,7 +1634,7 @@
         <field name="image" type="base64" file="payment/static/img/klarna.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1688,7 +1688,7 @@
         <field name="image" type="base64" file="payment/static/img/klarna.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1715,7 +1715,7 @@
         <field name="image" type="base64" file="payment/static/img/klarna.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1762,7 +1762,7 @@
         <field name="image" type="base64" file="payment/static/img/knet.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1784,7 +1784,7 @@
         <field name="image" type="base64" file="payment/static/img/kredivo.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1806,7 +1806,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1828,7 +1828,7 @@
         <field name="image" type="base64" file="payment/static/img/linepay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1854,7 +1854,7 @@
         <field name="image" type="base64" file="payment/static/img/linkaja.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1876,7 +1876,7 @@
         <field name="image" type="base64" file="payment/static/img/lydia.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1899,7 +1899,7 @@
         <field name="image" type="base64" file="payment/static/img/lyfpay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1921,7 +1921,7 @@
         <field name="image" type="base64" file="payment/static/img/mada.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1944,7 +1944,7 @@
         <field name="image" type="base64" file="payment/static/img/mandiri.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1966,7 +1966,7 @@
         <field name="image" type="base64" file="payment/static/img/maya.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -1988,7 +1988,7 @@
         <field name="image" type="base64" file="payment/static/img/maybank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2010,7 +2010,7 @@
         <field name="image" type="base64" file="payment/static/img/mbway.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2032,7 +2032,7 @@
         <field name="image" type="base64" file="payment/static/img/mtn-mobile-money.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2066,7 +2066,7 @@
         <field name="image" type="base64" file="payment/static/img/mobile_pay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2092,7 +2092,7 @@
         <field name="image" type="base64" file="payment/static/img/momo.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2114,7 +2114,7 @@
         <field name="image" type="base64" file="payment/static/img/mpesa.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2136,7 +2136,7 @@
         <field name="image" type="base64" file="payment/static/img/multibanco.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2158,7 +2158,7 @@
         <field name="image" type="base64" file="payment/static/img/mybank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2181,7 +2181,7 @@
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
         <field name="support_refund">none</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">full_only</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2203,7 +2203,7 @@
         <field name="image" type="base64" file="payment/static/img/naver_pay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2225,7 +2225,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2247,7 +2247,7 @@
         <field name="image" type="base64" file="payment/static/img/octopus.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2269,7 +2269,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2291,7 +2291,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="support_refund">full_only</field>
         <field name="supported_country_ids"
@@ -2314,7 +2314,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2336,7 +2336,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2358,7 +2358,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2380,7 +2380,7 @@
         <field name="image" type="base64" file="payment/static/img/ovo.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2402,7 +2402,7 @@
         <field name="image" type="base64" file="payment/static/img/paybright.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2424,7 +2424,7 @@
         <field name="image" type="base64" file="payment/static/img/pace.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2456,7 +2456,7 @@
         <field name="image" type="base64" file="payment/static/img/pay_later.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">none</field>
         <field name="support_refund">full_only</field>
         <field name="supported_country_ids"
@@ -2479,7 +2479,7 @@
         <field name="image" type="base64" file="payment/static/img/pay_easy.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2501,7 +2501,7 @@
         <field name="image" type="base64" file="payment/static/img/pay_id.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2525,7 +2525,7 @@
         <field name="image" type="base64" file="payment/static/img/paylib.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2547,7 +2547,7 @@
         <field name="image" type="base64" file="payment/static/img/payme.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2569,7 +2569,7 @@
         <field name="image" type="base64" file="payment/static/img/paynow.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2591,7 +2591,7 @@
         <field name="image" type="base64" file="payment/static/img/paypal.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
     </record>
 
@@ -2603,7 +2603,7 @@
         <field name="image" type="base64" file="payment/static/img/paypay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2625,7 +2625,7 @@
         <field name="image" type="base64" file="payment/static/img/paysafecard.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="support_refund">full_only</field>
         <field name="supported_country_ids"
@@ -2723,7 +2723,7 @@
         <field name="image" type="base64" file="payment/static/img/paytm.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2745,7 +2745,7 @@
         <field name="image" type="base64" file="payment/static/img/paytrail.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2767,7 +2767,7 @@
         <field name="image" type="base64" file="payment/static/img/payu.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2789,7 +2789,7 @@
         <field name="image" type="base64" file="payment/static/img/pix.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2811,7 +2811,7 @@
         <field name="image" type="base64" file="payment/static/img/poli.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2835,7 +2835,7 @@
         <field name="image" type="base64" file="payment/static/img/pf_pay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2886,7 +2886,7 @@
         <field name="image" type="base64" file="payment/static/img/poste_pay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2908,7 +2908,7 @@
         <field name="image" type="base64" file="payment/static/img/card.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2930,7 +2930,7 @@
         <field name="image" type="base64" file="payment/static/img/promptpay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2952,7 +2952,7 @@
         <field name="image" type="base64" file="payment/static/img/card.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2974,7 +2974,7 @@
         <field name="image" type="base64" file="payment/static/img/p24.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -2997,7 +2997,7 @@
         <field name="image" type="base64" file="payment/static/img/qris.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3019,7 +3019,7 @@
         <field name="image" type="base64" file="payment/static/img/rabbit_line_pay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3041,7 +3041,7 @@
         <field name="image" type="base64" file="payment/static/img/ratepay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3067,7 +3067,7 @@
         <field name="image" type="base64" file="payment/static/img/revolut_pay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">full_only</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3089,7 +3089,7 @@
         <field name="image" type="base64" file="payment/static/img/samsung_pay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
     </record>
 
@@ -3102,7 +3102,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3124,7 +3124,7 @@
         <field name="image" type="base64" file="payment/static/img/sepa.png"/>
         <field name="support_tokenization">True</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3174,7 +3174,7 @@
         <field name="image" type="base64" file="payment/static/img/shopback.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3196,7 +3196,7 @@
         <field name="image" type="base64" file="payment/static/img/shopeepay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3220,7 +3220,7 @@
         <field name="image" type="base64" file="payment/static/img/sofort.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3251,7 +3251,7 @@
         <field name="image" type="base64" file="payment/static/img/swish.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3273,7 +3273,7 @@
         <field name="image" type="base64" file="payment/static/img/techcom.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3295,7 +3295,7 @@
         <field name="image" type="base64" file="payment/static/img/tendopay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3317,7 +3317,7 @@
         <field name="image" type="base64" file="payment/static/img/tenpay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3339,7 +3339,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3361,7 +3361,7 @@
         <field name="image" type="base64" file="payment/static/img/tinka.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3383,7 +3383,7 @@
         <field name="image" type="base64" file="payment/static/img/tmb.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3405,7 +3405,7 @@
         <field name="image" type="base64" file="payment/static/img/toss_pay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3427,7 +3427,7 @@
         <field name="image" type="base64" file="payment/static/img/touch_n_go.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3449,7 +3449,7 @@
         <field name="image" type="base64" file="payment/static/img/truemoney.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3471,7 +3471,7 @@
         <field name="image" type="base64" file="payment/static/img/trustly.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3509,7 +3509,7 @@
         <field name="image" type="base64" file="payment/static/img/card.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3531,7 +3531,7 @@
         <field name="image" type="base64" file="payment/static/img/twint.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3553,7 +3553,7 @@
         <field name="image" type="base64" file="payment/static/img/uatp.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
     </record>
 
@@ -3565,7 +3565,7 @@
         <field name="image" type="base64" file="payment/static/img/unknown.png"/>
         <field name="support_tokenization">True</field>
         <field name="support_express_checkout">True</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
     </record>
 
@@ -3577,7 +3577,7 @@
         <field name="image" type="base64" file="payment/static/img/bank.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3599,7 +3599,7 @@
         <field name="image" type="base64" file="payment/static/img/upi.png"/>
         <field name="support_tokenization">True</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3621,7 +3621,7 @@
         <field name="image" type="base64" file="payment/static/img/flutterwave.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
     </record>
 
@@ -3633,7 +3633,7 @@
         <field name="image" type="base64" file="payment/static/img/venmo.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3655,7 +3655,7 @@
         <field name="image" type="base64" file="payment/static/img/vietcom.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3677,7 +3677,7 @@
         <field name="image" type="base64" file="payment/static/img/vipps.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">True</field>
+        <field name="support_manual_capture">partial</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3699,7 +3699,7 @@
         <field name="image" type="base64" file="payment/static/img/vpay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_currency_ids"
                eval="[Command.set([
@@ -3723,7 +3723,7 @@
         <field name="image" type="base64" file="payment/static/img/wallet.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="support_refund">full_only</field>
         <field name="supported_country_ids"
@@ -3746,7 +3746,7 @@
         <field name="image" type="base64" file="payment/static/img/walley.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">full_only</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3774,7 +3774,7 @@
         <field name="image" type="base64" file="payment/static/img/wechat_pay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_currency_ids"
                eval="[Command.set([
@@ -3800,7 +3800,7 @@
         <field name="image" type="base64" file="payment/static/img/welend.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3822,7 +3822,7 @@
         <field name="image" type="base64" file="payment/static/img/zalopay.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">none</field>
         <field name="supported_country_ids"
                eval="[Command.set([
@@ -3844,7 +3844,7 @@
         <field name="image" type="base64" file="payment/static/img/zip.png"/>
         <field name="support_tokenization">False</field>
         <field name="support_express_checkout">False</field>
-        <field name="support_manual_capture">False</field>
+        <field name="support_manual_capture">none</field>
         <field name="support_refund">partial</field>
         <field name="supported_country_ids"
                eval="[Command.set([

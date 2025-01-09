@@ -1,7 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Command
 from odoo.osv import expression
 
@@ -69,10 +69,15 @@ class PaymentMethod(models.Model):
              " provides all required billing and shipping information, thus allowing to skip the"
              " checkout process.",
     )
-    support_manual_capture = fields.Boolean(
+    support_manual_capture = fields.Selection(
         string="Manual Capture",
-        help="Manual capture allows the authorization of a payment but delays the actual transfer"
-             " of funds until a later date.",
+        help="The payment is authorized and captured in two steps instead of one.",
+        selection=[
+            ('none', "Unsupported"),
+            ('full_only', "Full Only"),
+            ('partial', "Full & Partial"),
+        ],
+        default='none'
     )
     support_refund = fields.Selection(
         string="Refund",
@@ -170,6 +175,21 @@ class PaymentMethod(models.Model):
                     )
                 }
             }
+
+    #== CONSTRAINT METHODS ==#
+
+    @api.constrains('active')
+    def _check_manual_capture_supported_by_payment_methods(self):
+        incompatible_pms = self.filtered(
+            lambda method: method.support_manual_capture == 'none' and any(
+                provider.capture_manually for provider in method.provider_ids
+            )
+        )
+        if incompatible_pms:
+            raise ValidationError(_(
+                "Manual Capture must be disabled in the active providers before enabling %s",
+                ', '.join(incompatible_pms.mapped('name'))
+            ))
 
     #=== CRUD METHODS ===#
 
