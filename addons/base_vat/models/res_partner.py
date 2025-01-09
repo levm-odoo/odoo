@@ -1,5 +1,4 @@
 import datetime
-import string
 import re
 import stdnum
 from stdnum.eu.vat import check_vies

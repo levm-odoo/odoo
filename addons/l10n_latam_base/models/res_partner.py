@@ -17,12 +17,18 @@ class ResPartner(models.Model):
     def _commercial_fields(self):
         return super()._commercial_fields() + ['l10n_latam_identification_type_id']
 
+    def _run_check_identification(self, validation='error'):
+        return
+
     @api.onchange('l10n_latam_identification_id')
     def _onchange_vat(self):
-        if self.l10n_latam_identification_type_id.is_vat:
+        if not self.l10n_latam_identification_type_id or self.l10n_latam_identification_type_id.is_vat:
             super()._onchange_vat()
+        else:
+            self._run_check_identification(validation='none')
 
     def _inverse_vat(self):
-        vat_partners = self.filtered(lambda p: p.l10n_latam_identification_type_id.is_vat)
+        vat_partners = self.filtered(lambda p: not p.l10n_latam_identification_type_id or p.l10n_latam_identification_type_id.is_vat)
         super(ResPartner, vat_partners)._inverse_vat()
+        (self - vat_partners)._run_check_identification()
 
