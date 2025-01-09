@@ -122,7 +122,7 @@ class ResPartner(models.Model):
 
         prefixed_country = ''
         if country in self._get_eu_prefixed_countries():
-            prefixed_country = country.code
+            prefixed_country = country.code.lower()
             if vat_country.isalpha():
                 country_code = _eu_country_vat_inverse.get(vat_country, vat_country)
                 if country_code.upper() in self._get_eu_prefixed_countries().mapped('code'):
@@ -131,6 +131,10 @@ class ResPartner(models.Model):
 
         code_to_check = prefixed_country or country.code.lower()
         vat = self._fix_vat_number(vat, code_to_check)
+
+        if prefixed_country == 'de' and len(vat) != 9: # Old Steuernummer can not be used for intra-community
+            prefixed_country = ''
+
         vat_to_return = prefixed_country.upper() + vat
 
         # The context key 'no_vat_validation' allows you to store/set a VAT number without doing validations.

@@ -77,6 +77,8 @@ class TestStructure(TransactionCase):
         # If no country can be guessed: VAT number should always be considered valid
         # (for technical reasons due to ORM and res.company making related fields towards res.partner for country_id and vat)
         test_partner.write({'vat': '0477472701', 'country_id': None})
+        test_partner.write({'vat': 'BE0477472701', 'country_id': None})
+        test_partner.write({'vat': 'BE0477472702', 'country_id': None})
 
     def test_vat_eu(self):
         """ Foreign companies that trade with non-enterprises in the EU may have a VATIN starting with "EU" instead of
@@ -126,14 +128,14 @@ class TestStructure(TransactionCase):
         with self.assertRaisesRegex(ValidationError, msg):
             test_partner.vat = "2155 ABC 21750017"
 
-    def test_multi_changes(self):
+    def test_company_changes(self):
         ro_country = self.env.ref('base.ro').id
-        test_partner_1 = self.env['res.partner'].create({'name': 'Roman', 'country_id': self.env.ref('base.es').id})
-        test_partner_2 = self.env['res.partner'].create({'name': 'Roman2',
+        test_partner_1 = self.env['res.company'].create({'name': 'Roman', 'country_id': self.env.ref('base.es').id})
+        test_partner_2 = self.env['res.company'].create({'name': 'Roman2',
                                                          'country_id': ro_country,
                                                          'vat': '1234567897'})
-        partners = test_partner_1 + test_partner_2
-        partners.write({'country_id': ro_country})
+        companies = test_partner_1 + test_partner_2
+        companies.write({'country_id': ro_country})
 
 @tagged('-standard', 'external')
 class TestStructureVIES(TestStructure):
