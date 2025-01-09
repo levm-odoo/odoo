@@ -2094,8 +2094,12 @@ class AccountMove(models.Model):
                             sign = -1 if move.is_inbound() else 1
                             delta_amount = tax_group_old_amount * sign - tax_group['tax_amount_currency']
 
-                            # if not move.currency_id.is_zero(delta_amount):
-                            #     first_tax_line.amount_currency -= delta_amount * sign
+                            if not move.currency_id.is_zero(delta_amount):
+                                deductible_lines = move.line_ids.filtered(lambda line: line.display_type == 'deductible' and line.debit > 0)
+                                if deductible_lines:
+                                    deductible_lines[0].amount_currency -= delta_amount * sign # TODO: divide the surpluss of taxes among the different line taking their ratio and tax into account 
+                                else:
+                                    first_tax_line.amount_currency -= delta_amount * sign
             self._compute_amount()
 
     def _inverse_amount_total(self):

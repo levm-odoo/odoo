@@ -92,7 +92,7 @@ class AccountMoveLine(models.Model):
                 }),
                 {
                     'name': line.name + _(" Non-deductible at %s", str(int(line.deductible_amount)) + "%"),
-                    'amount_currency': non_deductible_currency * (1 + taxes.amount / 100), # TODO change this to not kill LAS
+                    'amount_currency': non_deductible_currency,
                     'tax_ids': [],
                 },
             )
