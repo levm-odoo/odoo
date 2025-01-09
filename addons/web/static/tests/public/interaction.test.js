@@ -2167,6 +2167,35 @@ describe("debounced (2)", () => {
         await advanceTime(500);
         expect.verifySteps(["click"]);
     });
+
+    test("debounced handles async event handler", async () => {
+        const def = new Deferred();
+        let clicked = 0;
+        class Test extends Interaction {
+            static selector = ".test";
+            dynamicContent = {
+                span: {
+                    "t-on-click": this.debounced(async () => {
+                        await def;
+                        clicked++;
+                    }, 100),
+                    "t-att-x": () => clicked.toString(),
+                },
+            };
+        }
+        const { el } = await startInteraction(Test, TemplateTest);
+        console.log(el);
+        expect(clicked).toBe(0);
+        expect("span").toHaveAttribute("x", "0");
+        await click("span");
+        await advanceTime(100);
+        expect(clicked).toBe(0);
+        expect("span").toHaveAttribute("x", "0");
+        def.resolve();
+        await animationFrame();
+        expect(clicked).toBe(1);
+        expect("span").toHaveAttribute("x", "1");
+    });
 });
 
 describe("throttled_for_animation (1)", () => {
@@ -2316,6 +2345,35 @@ describe("throttled_for_animation (2)", () => {
         expect.verifySteps([]);
         await click(".test");
         expect.verifySteps(["click"]);
+    });
+
+    test("throttled handles async event handler", async () => {
+        const def = new Deferred();
+        let clicked = 0;
+        class Test extends Interaction {
+            static selector = ".test";
+            dynamicContent = {
+                span: {
+                    "t-on-click": this.throttled(async () => {
+                        await def;
+                        clicked++;
+                    }, 100),
+                    "t-att-x": () => clicked.toString(),
+                },
+            };
+        }
+        const { el } = await startInteraction(Test, TemplateTest);
+        console.log(el);
+        expect(clicked).toBe(0);
+        expect("span").toHaveAttribute("x", "0");
+        await click("span");
+        await advanceTime(100);
+        expect(clicked).toBe(0);
+        expect("span").toHaveAttribute("x", "0");
+        def.resolve();
+        await animationFrame();
+        expect(clicked).toBe(1);
+        expect("span").toHaveAttribute("x", "1");
     });
 });
 
