@@ -159,9 +159,66 @@
                         <filter string="Account Type" name="accounttype" domain="" context="{'group_by':'account_type'}"/>
                     </group>
                     <searchpanel class="account_root w-auto">
-                        <field name="root_id" icon="fa-filter" limit="0"/>
+                        <field name="root_id" icon="fa-filter" limit="1000"/>
                     </searchpanel>
                 </search>
+            </field>
+        </record>
+
+        <record id="view_account_account_kanban_selector" model="ir.ui.view">
+            <field name="name">account.account.kanban.selector</field>
+            <field name="model">account.account</field>
+            <field name="arch" type="xml">
+                <kanban class="o_kanban_mobile account_selector_kanban" limit="1000" js_class="account_selector_kanban">
+                    <templates>
+                        <t t-name="card">
+                            <div class="row">
+                                <field name="display_name" invisible="1"/>
+                                <div class="col-8">
+                                    <field class="fw-bolder text-primary" name="name"/>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <field class="badge rounded-pill" name="code"/>
+                                </div>
+                            </div>
+                            <div>
+                                <strong>Type: </strong>
+                                <field class="text-muted" name="account_type"/>
+                            </div>
+                            <div invisible="not category_id">
+                                <strong>Category: </strong>
+                                <field class="text-muted" name="category_id"/>
+                            </div>
+                            <hr invisible="not description"/>
+                            <div>
+                                <field class="text-muted" name="description"/>
+                            </div>
+                            <hr invisible="not tax_ids"/>
+                            <div class="row">
+                                <strong invisible="not tax_ids">Tax</strong>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <field class="text-muted" name="tax_ids" widget="many2many_tags"/>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="view_account_search_categorized" model="ir.ui.view">
+            <field name="name">account.account.search.categorized</field>
+            <field name="model">account.account</field>
+            <field name="inherit_id" ref="account.view_account_search"/>
+            <field name="mode">primary</field>
+            <field name="arch" type="xml">
+                <searchpanel position="replace">
+                    <searchpanel class="account_root w-auto" fold="False">
+                        <field name="category_id" icon="fa-filter"/>
+                    </searchpanel>
+                </searchpanel>
             </field>
         </record>
 

@@ -1134,7 +1134,7 @@
                                                "/>
                                         <field name="name" widget="section_and_note_text" optional="show"/>
                                         <field name="account_id"
-                                               context="{'partner_id': partner_id, 'move_type': parent.move_type}"
+                                               context="{'partner_id': partner_id, 'move_type': parent.move_type, 'search_view_ref': 'account.view_account_search_categorized', 'kanban_view_ref': 'account.view_account_account_kanban_selector'}"
                                                groups="account.group_account_readonly"
                                                options="{'no_quick_create': True}"
                                                domain="[('account_type', 'not in', ('asset_receivable', 'liability_payable', 'off_balance'))]"
