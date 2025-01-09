@@ -47,6 +47,13 @@ export class ComboConfiguratorDialog extends Component {
         this._initSelectedComboItems();
         this.getPriceUrl = '/sale/combo_configurator/get_price';
         useSubEnv({ currency: { id: this.props.currency_id } });
+        this.props.singleOptionCombos = this.props.combos.filter(
+            combo => combo.combo_items.length === 1
+        );
+        this.props.multiOptionCombos = this.props.combos.filter(
+            combo => combo.combo_items.length > 1
+        );
+
     }
 
     /**

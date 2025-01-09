@@ -44,20 +44,6 @@ export class SaleOrderLineListRenderer extends ProductLabelSectionAndNoteListRen
     /**
      * Combo logic
      */
-
-    /**
-     * Whether the provided record is a section, a note, or a combo.
-     *
-     * This method's name isn't ideal since it doesn't mention combos, but we'd have to override a
-     * few other methods to fix this, and the added complexity isn't worth it.
-     *
-     * @param record The record to check
-     * @return {Boolean} Whether the record is a section, a note, or a combo.
-     */
-    isSectionOrNote(record=null) {
-        return super.isSectionOrNote(record) || this.isCombo(record);
-    }
-
     getRowClass(record) {
         let classNames = super.getRowClass(record);
         if (this.isCombo(record) || this.isComboItem(record)) {
@@ -85,6 +71,16 @@ export class SaleOrderLineListRenderer extends ProductLabelSectionAndNoteListRen
 
     isComboItem(record) {
         return !!record.data.combo_item_id;
+    }
+
+    getColumns(record) {
+        const columns = super.getColumns(record);
+        for (const column of columns) {
+            if(!['product_template_id', 'product_uom_qty', 'discount'].includes(column.name)){
+                column.invisible = this.isCombo(record);
+            }
+        }
+        return columns;
     }
 }
 

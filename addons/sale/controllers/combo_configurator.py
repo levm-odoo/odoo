@@ -150,6 +150,7 @@ class SaleComboConfiguratorController(Controller):
                 'id': combo_item.product_id.id,
                 'product_tmpl_id': combo_item.product_id.product_tmpl_id.id,
                 'display_name': combo_item.product_id.display_name,
+                'description': combo_item.product_id.description_sale,
                 'ptals': ptals_data,
                 **request.env['product.template']._get_additional_configurator_data(
                     combo_item.product_id, date, currency, pricelist, **kwargs

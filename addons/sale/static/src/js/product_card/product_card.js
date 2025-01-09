@@ -21,4 +21,9 @@ export class ProductCard extends Component {
     shouldShowPtal(ptal) {
         return ptal.hasSelectedCustomPtav || ptal.create_variant === 'no_variant';
     }
+
+    arePtavsSelected(){
+        return !this.props.product.ptals.length
+        || this.props.product.ptals.some(ptal => ptal.selected_ptavs.length > 0)
+    }
 }
