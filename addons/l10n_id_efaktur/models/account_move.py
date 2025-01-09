@@ -201,7 +201,11 @@ class AccountMove(models.Model):
             eTax['NPWP'] = invoice_npwp
             eTax['NAMA'] = etax_name
             eTax['ALAMAT_LENGKAP'] = move.partner_id.contact_address.replace('\n', '').strip() if eTax['NPWP'] == '000000000000000' else commercial_partner.l10n_id_tax_address or street
-            eTax['JUMLAH_DPP'] = int(float_round(move.amount_untaxed, 0))  # currency rounded to the unit
+            # eTax['JUMLAH_DPP'] = int(float_round(move.amount_untaxed, 0))  # currency rounded to the unit
+            eTax['JUMLAH_DPP'] = 0
+            # needs to change because amount_untaxed is supposed to be multiplied by the factor of invoice_repartition_line_ids
+            # DPP is the supposed to be the amount we apply the tax amount into
+            # eTax['JUMLAH_DPP'] = 0
             eTax['JUMLAH_PPN'] = int(float_round(move.amount_tax, 0, rounding_method="DOWN"))  # tax amount ALWAYS rounded down
             eTax['ID_KETERANGAN_TAMBAHAN'] = '1' if move.l10n_id_kode_transaksi == '07' else ''
             eTax['REFERENSI'] = number_ref
@@ -212,7 +216,7 @@ class AccountMove(models.Model):
             eTax['UANG_MUKA_DPP'] = float_repr(abs(sum(lines.mapped(lambda l: float_round(l.price_subtotal, 0)))), 0)
             eTax['UANG_MUKA_PPN'] = float_repr(abs(sum(lines.mapped(lambda l: float_round(l.price_total - l.price_subtotal, 0)))), 0)
 
-            fk_values_list = ['FK'] + [eTax[f] for f in FK_HEAD_LIST[1:]]
+            # fk_values_list = ['FK'] + [eTax[f] for f in FK_HEAD_LIST[1:]]
 
             # HOW TO ADD 2 line to 1 line for free product
             free, sales = [], []
@@ -235,15 +239,20 @@ class AccountMove(models.Model):
                 invoice_line_total_price = line.price_subtotal / discount if discount else 0
                 invoice_line_unit_price = invoice_line_total_price / line.quantity if line.quantity else 0
 
+                tax_repartition_lines = line.tax_ids.invoice_repartition_line_ids.filtered(lambda x: x.repartition_type == 'tax')
+                total_factor = sum(tax_repartition_lines.mapped('factor'))
+
                 line_dict = {
                     'KODE_OBJEK': line.product_id.default_code or '',
                     'NAMA': line.product_id.name or '',
                     'HARGA_SATUAN': float_repr(idr.round(invoice_line_unit_price), idr.decimal_places),
                     'JUMLAH_BARANG': line.quantity,
                     'HARGA_TOTAL': idr.round(invoice_line_total_price),
-                    'DPP': line.price_subtotal,
+                    'DPP': line.price_subtotal * total_factor,
                     'product_id': line.product_id.id,
                 }
+
+                eTax['JUMLAH_DPP'] += line_dict['DPP']
 
                 if line.price_subtotal < 0:
                     for tax in line.tax_ids:
@@ -334,6 +343,8 @@ class AccountMove(models.Model):
                     'DPP': float_repr(sale['DPP'], idr.decimal_places),
                     'PPN': float_repr(sale['PPN'], idr.decimal_places),
                 })
+
+            fk_values_list = ['FK'] + [eTax[f] for f in FK_HEAD_LIST[1:]]
 
             output_head += _csv_row(fk_values_list, delimiter)
             for sale in sales:
