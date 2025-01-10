@@ -24,6 +24,7 @@
                 <div class="row pt48 pb16">
                     <div class="d-none" id="jobs_grid_left"/>
                     <div class="col-lg" id="jobs_grid">
+<<<<<<< 17.0
                         <div class="row flex-column">
                             <t t-if="not jobs">
                                 <div class="col">
@@ -39,6 +40,87 @@
                                             but feel free to <span class="fw-bold">contact us</span> for a spontaneous application.
                                         </p>
                                         <img class="img-fluid o_we_custom_image pb24" src="/website_hr_recruitment/static/src/img/job_not_found.svg" style="width: 50% !important;" alt="Job not found"/>
+||||||| f20ee6c6eed80b600870bf51d80d8cb96b821a35
+                        <div t-if="not jobs">
+                            <div class="text-center text-muted">
+                                <h3 class="css_editable_hidden"><a t-attf-href="/contactus">Contact us</a> for job opportunities.</h3>
+                                <h4 groups="hr_recruitment.group_hr_recruitment_manager">
+                                    Create new job pages from the <strong><i>+New</i></strong> top-right button.
+                                </h4>
+                            </div>
+                        </div>
+                        <a t-foreach="jobs" t-as="job" t-attf-href="/jobs/detail/#{ slug(job) }" t-attf-class="text-decoration-none#{' mt-3' if job_index else ''}">
+                            <div class="card card-default mb32">
+                                <div class="card-body" t-att-data-publish="job.website_published and 'on' or 'off'">
+                                    <span t-if="not job.website_published" class="badge text-bg-danger mb8 p-2">unpublished</span>
+                                    <h3 class="text-secondary mt0 mb4">
+                                        <span t-field="job.name"/>
+                                    </h3>
+                                    <h5 t-if="job.no_of_recruitment &gt;= 1">
+                                        <t t-esc="job.no_of_recruitment"/> open positions
+                                    </h5>
+                                    <div t-if="editable"
+                                        t-field="job.description"
+                                        class="mt16 mb0 css_non_editable_mode_hidden"/>
+                                    <div t-esc="job.description or ''"
+                                        class="mt16 mb0 css_editable_mode_hidden o_website_hr_recruitment_job_description"
+                                    />
+                                    <div class="o_job_infos mt16">
+                                        <span t-field="job.address_id" t-options='{
+                                            "widget": "contact",
+                                            "fields": ["address"],
+                                            "no_tag_br": True
+                                            }'/>
+                                        <div t-if="job.contract_type_id">
+                                            <i class="fa fa-fw fa-suitcase" title="Employment type" role="img" aria-label="Employment type"/><span t-field="job.contract_type_id"/>
+                                        </div>
+                                        <div>
+                                            <i class="fa fa-fw fa-clock-o" title="Publication date" role="img" aria-label="Publication date"/><span t-field="job.write_date"/>
+                                        </div>
+=======
+                        <div t-if="not jobs">
+                            <div class="text-center text-muted">
+                                <h3 class="css_editable_hidden"><a t-attf-href="/contactus">Contact us</a> for job opportunities.</h3>
+                                <h4 groups="hr_recruitment.group_hr_recruitment_manager">
+                                    Create new job pages from the <strong><i>+New</i></strong> top-right button.
+                                </h4>
+                            </div>
+                        </div>
+                        <a t-foreach="jobs" t-as="job" t-attf-href="/jobs/detail/#{ slug(job) }" t-attf-class="text-decoration-none#{' mt-3' if job_index else ''}">
+                            <div class="card card-default mb32">
+                                <div class="card-body" t-att-data-publish="job.website_published and 'on' or 'off'">
+                                    <span t-if="not job.website_published" class="badge text-bg-danger mb8 p-2">unpublished</span>
+                                    <h3 class="text-secondary mt0 mb4">
+                                        <span t-field="job.name"/>
+                                    </h3>
+                                    <h5 t-if="job.no_of_recruitment &gt;= 1">
+                                        <t t-esc="job.no_of_recruitment"/>
+                                        <t t-if="job.no_of_recruitment == 1">
+                                            open position
+                                        </t>
+                                        <t t-else="">
+                                            open positions
+                                        </t>
+                                    </h5>
+                                    <div t-if="editable"
+                                        t-field="job.description"
+                                        class="mt16 mb0 css_non_editable_mode_hidden"/>
+                                    <div t-esc="job.description or ''"
+                                        class="mt16 mb0 css_editable_mode_hidden o_website_hr_recruitment_job_description"
+                                    />
+                                    <div class="o_job_infos mt16">
+                                        <span t-field="job.address_id" t-options='{
+                                            "widget": "contact",
+                                            "fields": ["address"],
+                                            "no_tag_br": True
+                                            }'/>
+                                        <div t-if="job.contract_type_id">
+                                            <i class="fa fa-fw fa-suitcase" title="Employment type" role="img" aria-label="Employment type"/><span t-field="job.contract_type_id"/>
+                                        </div>
+                                        <div>
+                                            <i class="fa fa-fw fa-clock-o" title="Publication date" role="img" aria-label="Publication date"/><span t-field="job.write_date"/>
+                                        </div>
+>>>>>>> 5d93103bf9e9f643559d8152c33ca1440d52d216
                                     </div>
                                 </div>
                             </t>
