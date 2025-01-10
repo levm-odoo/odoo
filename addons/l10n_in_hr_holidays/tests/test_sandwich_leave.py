@@ -49,7 +49,18 @@ class TestSandwichLeave(TransactionCase):
                 'request_date_to': "2023-08-16",
             })
 
-            leave = before_holiday_leave._l10n_in_apply_sandwich_rule(public_holiday, employee_leaves)
+            leave = before_holiday_leave._l10n_in_apply_sandwich_rule(before_holiday_leave.number_of_days, public_holiday, employee_leaves)
             self.assertEqual(leave, 1, "The total leaves should be 1")
-            sandwiched_leave = after_holiday_leave._l10n_in_apply_sandwich_rule(public_holiday, employee_leaves)
+
+            sandwiched_leave = after_holiday_leave._l10n_in_apply_sandwich_rule(after_holiday_leave.number_of_days, public_holiday, employee_leaves)
             self.assertEqual(sandwiched_leave, 2, "The total leaves should be 2 including sandwich leave")
+
+            non_working_holiday = self.env['hr.leave'].create({
+                'name': 'Test Leave',
+                'employee_id': self.rahul_emp.id,
+                'holiday_status_id': self.leave_type.id,
+                'request_date_from': "2023-08-12",
+                'request_date_to': "2023-08-12",
+            })
+            non_working_holiday_duration = non_working_holiday._l10n_in_apply_sandwich_rule(non_working_holiday.number_of_days, public_holiday, employee_leaves)
+            self.assertEqual(non_working_holiday_duration, 0, "The Total leave should be 0 because of the non-working holiday")
