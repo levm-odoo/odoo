@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import logging
+import time
 import typing
 import warnings
 from collections.abc import Mapping
@@ -240,6 +241,60 @@ def depends_context(*args):
     * `active_test` (value in env.context or value in field.context).
     """
     return attrsetter('_depends_context', args)
+
+
+class CronFunction:
+    def __init__(self, method, xmlid, yield_calls: bool, env=None):  # TODO type
+        self.method = method
+        self.xmlid = xmlid
+        self.yield_calls = yield_calls
+        self.env = env
+
+    def __get__(self, instance, owner):
+        # bind to env
+        return CronFunction(self.method, self.xmlid, self.yield_calls, instance.env)
+
+    @property
+    def _cron(self):
+        if not self.xmlid:
+            raise ValueError("CronFunction not bound to a CRON external identifier")
+        return self.env.ref(self.xmlid)
+
+    def __call__(self, *args, **kwargs):
+        env = self.env
+        assert env, "CRON function not bound"
+        assert not self.xmlid or env.context.get('cron_id') == self._cron.id, f"Can only call from CRON {self.xmlid}"
+
+        if self.yield_calls:
+            endtime = env.context.get('cron_endtime')
+            cr = env.cr
+            generator = self.method(*args, **kwargs)
+            isolated_method = next(generator, None)
+            while isolated_method is not None:
+                cr.commit()  # commit before execution, the generator may have written something
+                try:
+                    result = isolated_method()
+                    cr.commit()
+                except Exception as exc:
+                    cr.rollback()
+                    isolated_method = generator.throw(exc)
+                else:
+                    if endtime and time.time() >= endtime:
+                        generator.close()
+                        break
+                    isolated_method = generator.send(result)
+        else:
+            return self.method(*args, **kwargs)
+
+    def trigger(self, when=None, *, soon=False):
+        return self._cron._trigger(when, soon=soon)
+
+    def progress(self, *, done, remaining):
+        return self.env['ir.cron']._notify_progress(done=done, remaining=remaining)
+
+
+def cron(xmlid='', yield_calls=False):
+    return lambda method: model(CronFunction(method=method, xmlid=xmlid, yield_calls=yield_calls))
 
 
 def autovacuum(method):
