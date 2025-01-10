@@ -4798,7 +4798,7 @@ class BaseModel(metaclass=MetaModel):
             for fields in determine_inverses.values():
                 # determine which records to inverse for those fields
                 inv_names = {field.name for field in fields}
-                rec_vals = [
+                batch = [
                     (data['record'], {
                         name: data['inversed'][name]
                         for name in inv_names
@@ -4808,19 +4808,10 @@ class BaseModel(metaclass=MetaModel):
                     if not inv_names.isdisjoint(data['inversed'])
                 ]
 
-                # If a field is not stored, its inverse method will probably
-                # write on its dependencies, which will invalidate the field on
-                # all records. We therefore inverse the field record by record.
-                if all(field.store or field.company_dependent for field in fields):
-                    batches = [rec_vals]
-                else:
-                    batches = [[rec_data] for rec_data in rec_vals]
-
-                for batch in batches:
-                    for record, vals in batch:
-                        record._update_cache(vals)
-                    batch_recs = self.concat(*(record for record, vals in batch))
-                    next(iter(fields)).determine_inverse(batch_recs)
+                for record, vals in batch:
+                    record._update_cache(vals)
+                batch_recs = self.concat(*(record for record, vals in batch))
+                next(iter(fields)).determine_inverse(batch_recs)
 
         # check Python constraints for non-stored inversed fields
         for data in data_list:
