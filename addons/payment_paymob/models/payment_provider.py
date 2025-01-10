@@ -39,12 +39,13 @@ class PaymentProvider(models.Model):
         required_if_provider='paymob',
         groups='base.group_system',
     )
-    paymob_integration_ids = fields.Many2many(
-        string="Integration IDs",
-        help="Integration IDs configured on the paymob portal",
-        comodel_name="payment.method.paymob",
-        relation='payment_provider_payment_method_paymob_rel',
-    )
+
+    # paymob_integration_ids = fields.Many2many(
+    #     string="Integration IDs",
+    #     help="Integration IDs configured on the paymob portal",
+    #     comodel_name="payment.method.paymob",
+    #     relation='payment_provider_payment_method_paymob_rel',
+    # )
 
     # ==== CONSTRAINT METHODS === #
 
@@ -168,21 +169,21 @@ class PaymentProvider(models.Model):
         return json.dumps(inline_form_values)
 
 
-class PaymobPaymentMethod(models.Model):
-    _name = 'payment.method.paymob'
-    _description = "Paymob Payment Method"
+# class PaymobPaymentMethod(models.Model):
+#     _name = 'payment.method.paymob'
+#     _description = "Paymob Payment Method"
 
-    name = fields.Char(string="Integration ID", required=True)
-    provider_ids = fields.Many2many(
-        comodel_name='payment.provider',
-        relation='payment_provider_payment_method_paymob_rel',
-        string="Providers",
-        help="The list of providers supporting this payment method.",
-    )
+#     name = fields.Char(string="Integration ID", required=True)
+#     provider_ids = fields.Many2many(
+#         comodel_name='payment.provider',
+#         relation='payment_provider_payment_method_paymob_rel',
+#         string="Providers",
+#         help="The list of providers supporting this payment method.",
+#     )
 
-    @api.model
-    def name_create(self, name):
-        existing_integration = self.search([('name', '=ilike', name.strip())], limit=1)
-        if existing_integration:
-            return existing_integration.id, existing_integration.display_name
-        return super().name_create(name)
+#     @api.model
+#     def name_create(self, name):
+#         existing_integration = self.search([('name', '=ilike', name.strip())], limit=1)
+#         if existing_integration:
+#             return existing_integration.id, existing_integration.display_name
+#         return super().name_create(name)
