@@ -4,6 +4,7 @@ import { ConfirmationDialog } from '@web/core/confirmation_dialog/confirmation_d
 import { renderToMarkup } from "@web/core/utils/render";
 import publicWidget from '@web/legacy/js/public/public_widget';
 import { InputConfirmationDialog } from './components/input_confirmation_dialog/input_confirmation_dialog';
+import { FormConfirmationDialog } from './components/input_confirmation_dialog/form_confirmation_dialog';
 import { _t } from "@web/core/l10n/translation";
 import { user } from "@web/core/user";
 
@@ -32,13 +33,22 @@ publicWidget.registry.NewAPIKeyButton = publicWidget.Widget.extend({
             this.dialog
         );
 
-        this.call("dialog", "add", InputConfirmationDialog, {
+        const { duration } = await this.bindService("field").loadFields("res.users.apikeys.description", {
+            fieldNames: ["duration"],
+        });
+
+        this.call("dialog", "add", FormConfirmationDialog, {
             title: _t("New API Key"),
-            body: renderToMarkup("portal.keydescription"),
+            body: renderToMarkup("portal.keydescription", {
+                // Remove `'Custom Date'` selection for portal user
+                duration_selection: duration.selection.filter((option) => option[0] !== "-1"),
+            }),
             confirmLabel: _t("Confirm"),
-            confirm: async ({ inputEl }) => {
-                const description = inputEl.value;
-                const wizard_id = await this.orm.create("res.users.apikeys.description", [{ name: description }]);
+            confirm: async ({ formValues }) => {
+                const wizard_id = await this.orm.create("res.users.apikeys.description", [{
+                    name: formValues.description,
+                    duration: formValues.duration
+                }]);
                 const res = await handleCheckIdentity(
                     this.orm.call("res.users.apikeys.description", "make_key", [wizard_id]),
                     this.orm,
