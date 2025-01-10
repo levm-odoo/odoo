@@ -154,3 +154,30 @@ export const getOrderChanges = (order, skipped = false, orderPreparationCategori
     }
     return result;
 };
+
+export const customOrderChanges = (title, orderLines) => {
+    const customChanges = orderLines.reduce((result, line) => {
+        const product = line.product_id;
+        const lineDetails = {
+            uuid: line.uuid,
+            name: line.getFullProductName(),
+            basic_name: line.product_id.name,
+            isCombo: line.combo_item_id?.id,
+            product_id: product.id,
+            attribute_value_ids: line.attribute_value_ids.map((a) => a.name),
+            quantity: line.qty,
+            note: line.note,
+            pos_categ_id: product.pos_categ_ids[0]?.id ?? 0,
+            pos_categ_sequence: product.pos_categ_ids[0]?.sequence ?? 0,
+        };
+        result.push(lineDetails);
+        return result;
+    }, []);
+    return {
+        custom: customChanges,
+        customTitle: title,
+        new: [],
+        cancelled: [],
+        noteUpdate: [],
+    };
+};

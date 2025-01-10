@@ -85,6 +85,7 @@ export class PosData extends Reactive {
         // This methods will synchronize local data and state in indexedDB. This methods is mostly
         // used with models like pos.order, pos.order.line, pos.payment etc. These models are created
         // in the frontend and are not loaded from the backend.
+
         const modelsParams = Object.entries(this.opts.databaseTable);
         for (const [model, params] of modelsParams) {
             const put = [];

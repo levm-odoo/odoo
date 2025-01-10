@@ -6,6 +6,9 @@ import { EditOrderNamePopup } from "@pos_restaurant/app/popup/edit_order_name_po
 import { ProductScreen } from "@point_of_sale/app/screens/product_screen/product_screen";
 import { ReceiptScreen } from "@point_of_sale/app/screens/receipt_screen/receipt_screen";
 import { TipScreen } from "../screens/tip_screen/tip_screen";
+import { SelectionPopup } from "@point_of_sale/app/components/popups/selection_popup/selection_popup";
+import { makeAwaitable } from "@point_of_sale/app/utils/make_awaitable_dialog";
+import { customOrderChanges } from "@point_of_sale/app/models/utils/order_change";
 
 patch(PosStore.prototype, {
     /**
@@ -295,10 +298,34 @@ patch(PosStore.prototype, {
         return context;
     },
     async addLineToCurrentOrder(vals, opts = {}, configure = true) {
-        if (this.config.module_pos_restaurant && !this.getOrder().uiState.booked) {
-            this.getOrder().setBooked(true);
+        let currentCourse;
+        if (this.config.module_pos_restaurant) {
+            const order = this.getOrder();
+            if (!order.uiState.booked) {
+                order.setBooked(true);
+            }
+            if (order.hasCourses()) {
+                let course = order.getSelectedCourse();
+                if (!course) {
+                    course = order.getLastCourse();
+                }
+                currentCourse = course;
+                order.selectCourse(course);
+                vals = { ...vals, course_id: course };
+            }
         }
-        return super.addLineToCurrentOrder(vals, opts, configure);
+        const result = await super.addLineToCurrentOrder(vals, opts, configure);
+
+        if (currentCourse && result.combo_line_ids) {
+            result.combo_line_ids.forEach((line) => {
+                line.course_id = currentCourse;
+            });
+        }
+
+        if (currentCourse) {
+            this.getOrder().cleanUpCourses(currentCourse.uuid);
+        }
+        return result;
     },
     async getServerOrders() {
         if (this.config.module_pos_restaurant) {
@@ -671,5 +698,104 @@ patch(PosStore.prototype, {
             return;
         }
         return this.floorScrollPositions[floorId];
+    },
+    shouldCreatePendingOrder(order) {
+        return super.shouldCreatePendingOrder(order) || order.course_ids?.length > 0;
+    },
+    setOrder(order) {
+        order?.ensureCourseSelection();
+        super.setOrder(order);
+    },
+    addCourse() {
+        const order = this.getOrder();
+
+        const course = this.data.models["restaurant.order.course"].create({
+            order_id: order,
+            index: order.getNextCourseIndex(),
+        });
+
+        if (order.course_ids.length === 1 && order.lines.length > 0) {
+            // Assign order lines to the first course
+            order.lines.forEach((line) => (line.course_id = course));
+            // Create a second empty course
+            this.data.models["restaurant.order.course"].create({
+                order_id: order,
+                index: order.getNextCourseIndex(),
+            });
+        }
+        order.recomputeOrderData(); // To ensure that courses are stored locally
+        order.selectCourse(course);
+        return course;
+    },
+    async sendOrderInPreparationUpdateLastChange(order, cancelled = false) {
+        if (!cancelled) {
+            const firstCourse = order.getFirstCourse();
+            if (firstCourse && !firstCourse.fired) {
+                firstCourse.fired = true;
+                this.getOrder().deselectCourse();
+            }
+        }
+        return super.sendOrderInPreparationUpdateLastChange(order, cancelled);
+    },
+    async fireCourse(course) {
+        const order = this.getOrder();
+        if (!order || !course || course.fired) {
+            return false;
+        }
+        course.fired = true;
+        this.addPendingOrder([order.id]);
+        order.deselectCourse();
+        await this.syncAllOrders();
+        course = this.models["restaurant.order.course"].getBy("uuid", course.uuid);
+        await this._onCourseFired(course);
+        return true;
+    },
+
+    async _onCourseFired(course) {
+        try {
+            const changes = customOrderChanges(
+                _t("Course %s fired", "" + course.index),
+                course.lines
+            );
+            await this.printChanges(this.getOrder(), changes, false);
+        } catch (e) {
+            console.error("Unable to print course", e);
+        }
+    },
+
+    async transferCourse() {
+        const order = this.getOrder();
+        if (!order) {
+            return;
+        }
+        const selectedLine = order.getSelectedOrderline();
+        const selectedCourse = order.getSelectedCourse()
+            ? order.getSelectedCourse()
+            : selectedLine.course_id;
+        const selectionList = this.getOrder().courses.map((course) => ({
+            id: course.id,
+            label: course.name,
+            isSelected: course.id === selectedCourse?.id,
+            item: course,
+        }));
+        const dialogTitle = selectedLine
+            ? _t('Transfer "%s" to:', selectedLine.getFullProductName())
+            : _t('Transfer all products of "%s" into:', selectedCourse.name);
+        const destCourse = await makeAwaitable(this.dialog, SelectionPopup, {
+            title: dialogTitle,
+            list: selectionList,
+        });
+        if (!destCourse) {
+            return;
+        }
+        if (selectedLine) {
+            selectedLine.course_id = destCourse.id;
+        } else {
+            const lines = [...selectedCourse.lines];
+            lines.forEach((line) => {
+                line.course_id = destCourse.id;
+            });
+        }
+        order.recomputeOrderData();
     },
 });

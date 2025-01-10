@@ -1077,9 +1077,7 @@ export class PosStore extends WithLazyGetterTrap {
     getPendingOrder() {
         const orderToCreate = this.models["pos.order"].filter(
             (order) =>
-                this.pendingOrder.create.has(order.id) &&
-                (order.lines.length > 0 ||
-                    order.payment_ids.some((p) => p.payment_method_id.type === "pay_later"))
+                this.pendingOrder.create.has(order.id) && this.shouldCreatePendingOrder(order)
         );
         const orderToUpdate = this.models["pos.order"].readMany(
             Array.from(this.pendingOrder.write)
@@ -1093,6 +1091,13 @@ export class PosStore extends WithLazyGetterTrap {
             orderToCreate,
             orderToUpdate,
         };
+    }
+
+    shouldCreatePendingOrder(order) {
+        return (
+            order.lines.length > 0 ||
+            order.payment_ids.some((p) => p.payment_method_id.type === "pay_later")
+        );
     }
 
     getOrderIdsToDelete() {
@@ -1581,6 +1586,17 @@ export class PosStore extends WithLazyGetterTrap {
                     unsuccedPrints.push(printer.name);
                 }
             }
+
+            if (orderChange.custom?.length) {
+                orderData.changes = {
+                    title: orderChange.customTitle,
+                    data: changes.custom,
+                };
+                const result = await this.printOrderChanges(orderData, printer);
+                if (!result.successful) {
+                    unsuccedPrints.push(printer.name);
+                }
+            }
         }
 
         // printing errors
@@ -1616,6 +1632,7 @@ export class PosStore extends WithLazyGetterTrap {
             new: currentOrderChange["new"].filter(filterFn),
             cancelled: currentOrderChange["cancelled"].filter(filterFn),
             noteUpdate: currentOrderChange["noteUpdate"].filter(filterFn),
+            custom: currentOrderChange["custom"]?.filter(filterFn),
         };
     }
 
