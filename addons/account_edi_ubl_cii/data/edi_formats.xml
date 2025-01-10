@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <record model="edi.format" id="website.website2">
+            <field name="sequence"/>
+            <field name="name">ubl.bis3</field>
+            <field name="is_peppol_format">True</field>
+            <field name="applicable_countries">
+                <record model="res.country" ref=""/>
+            </field>
+            <field name="default_countries">
+            </field>
+        </record>
+</odoo>
