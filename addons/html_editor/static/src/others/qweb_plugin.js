@@ -19,17 +19,20 @@ const isUnsplittableQWebElement = (node) =>
             "t-raw",
         ].some((attr) => node.getAttribute(attr)));
 
+const PROTECTED_QWEB_SELECTOR = "[t-esc], [t-raw], [t-out], [t-field]";
+
 export class QWebPlugin extends Plugin {
     static id = "qweb";
-    static dependencies = ["overlay", "selection"];
+    static dependencies = ["overlay", "protectedNode", "selection"];
     resources = {
         /** Handlers */
         selectionchange_handlers: this.onSelectionChange.bind(this),
         clean_handlers: this.clearDataAttributes.bind(this),
         clean_for_save_handlers: ({ root }) => {
             this.clearDataAttributes(root);
-            for (const element of root.querySelectorAll("[t-esc], [t-raw], [t-out], [t-field]")) {
+            for (const element of root.querySelectorAll(PROTECTED_QWEB_SELECTOR)) {
                 element.removeAttribute("contenteditable");
+                delete element.dataset.oeProtected;
             }
         },
         normalize_handlers: this.normalize.bind(this),
@@ -45,7 +48,7 @@ export class QWebPlugin extends Plugin {
         this.picker = this.dependencies.overlay.createOverlay(QWebPicker, {
             positionOptions: { position: "top-start" },
         });
-        this.addDomListener(this.editable, "click", this.onClick);
+        this.addDomListener(this.editable, "click", this.onClick, false, () => true);
         this.groupIndex = 0;
     }
     isMutationRecordSavable(mutationRecord) {
@@ -89,8 +92,8 @@ export class QWebPlugin extends Plugin {
     normalize(root) {
         this.normalizeInline(root);
 
-        for (const element of selectElements(root, "[t-esc], [t-raw], [t-out], [t-field]")) {
-            element.setAttribute("contenteditable", "false");
+        for (const element of selectElements(root, PROTECTED_QWEB_SELECTOR)) {
+            this.dependencies.protectedNode.setProtectingNode(element, true);
         }
         this.applyGroupQwebBranching(root);
     }
