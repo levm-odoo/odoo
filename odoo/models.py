@@ -6674,6 +6674,10 @@ class BaseModel(metaclass=MetaModel):
             else:  # Don't support new ids because search() doesn't work on new records
                 ids = self._ids
             ids = tuple(reversed(ids)) if reverse else ids
+
+        elif any(isinstance(i, NewId) for i in self._ids):
+            # if there is a combination of newid and id it leads to a traceback so don't need to sort them
+            ids = tuple(reversed(self._ids)) if reverse else self._ids
         else:
             if isinstance(key, str):
                 key = itemgetter(key)
