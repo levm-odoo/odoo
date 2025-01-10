@@ -21,7 +21,7 @@ class TestError(common.HttpCase):
         """ Create: mandatory field not provided """
         self.rpc("test_rpc.model_b", "create", {"name": "B1"})
         try:
-            with mute_logger("odoo.sql_db"):
+            with mute_logger("odoo.sql_db", "odoo.http"):
                 self.rpc("test_rpc.model_b", "create", {})
             raise
         except Exception as e:
@@ -41,7 +41,7 @@ class TestError(common.HttpCase):
         self.rpc("test_rpc.model_a", "create", {"name": "A1", "field_b1": b1, "field_b2": b2})
 
         try:
-            with mute_logger("odoo.sql_db"):
+            with mute_logger("odoo.sql_db", "odoo.http"):
                 self.rpc("test_rpc.model_b", "unlink", b1)
             raise
         except Exception as e:
@@ -55,7 +55,7 @@ class TestError(common.HttpCase):
 
         # Unlink b2 => ON DELETE RESTRICT constraint raises
         try:
-            with mute_logger("odoo.sql_db"):
+            with mute_logger("odoo.sql_db", "odoo.http"):
                 self.rpc("test_rpc.model_b", "unlink", b2)
             raise
         except Exception as e:

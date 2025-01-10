@@ -6,7 +6,17 @@ from xmlrpc.client import Fault
 from passlib.totp import TOTP
 
 from odoo import http
+<<<<<<< 17.0
 from odoo.tests import tagged, get_db_name, new_test_user, HttpCase
+||||||| a0112da2d099f6812635d42dd9d7aa4c980171ca
+from odoo.addons.base.tests.common import HttpCaseWithUserDemo
+from odoo.exceptions import AccessDenied
+from odoo.service import common as auth, model
+from odoo.tests import tagged, get_db_name
+=======
+from odoo.addons.base.tests.common import HttpCaseWithUserDemo
+from odoo.tests import tagged, get_db_name
+>>>>>>> 3859cc5539e438835b0cc896236e417c21f1ff62
 from odoo.tools import mute_logger
 
 from ..controllers.home import Home
@@ -69,8 +79,16 @@ class TestTOTP(TestTOTPMixin, HttpCase):
             self.xmlrpc_common.authenticate(get_db_name(), 'test_user', 'test_user', {'interactive': True}),
             'Trying to fake the auth type should not work'
         )
+<<<<<<< 17.0
         uid = self.user_test.id
         with self.assertRaisesRegex(Fault, r'Access Denied'):
+||||||| a0112da2d099f6812635d42dd9d7aa4c980171ca
+        uid = self.user_demo.id
+        with self.assertRaisesRegex(Fault, r'Access Denied'):
+=======
+        uid = self.user_demo.id
+        with self.assertRaisesRegex(Fault, r'Access Denied'), mute_logger('odoo.http'):
+>>>>>>> 3859cc5539e438835b0cc896236e417c21f1ff62
             self.xmlrpc_object.execute_kw(
                 get_db_name(), uid, 'test_user',
                 'res.users', 'read', [uid, ['login']]
