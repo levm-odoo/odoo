@@ -11,6 +11,7 @@ from dateutil.relativedelta import relativedelta
 from odoo import fields, models, api, _
 from odoo.exceptions import UserError
 from odoo.http import request
+from odoo.tools.constants import GC_UNLINK_LIMIT
 from odoo.tools.profiler import make_session
 from odoo.tools.speedscope import Speedscope
 
@@ -46,7 +47,9 @@ class IrProfile(models.Model):
     def _gc_profile(self):
         # remove profiles older than 30 days
         domain = [('create_date', '<', fields.Datetime.now() - datetime.timedelta(days=30))]
-        return self.sudo().search(domain).unlink()
+        records = self.sudo().search(domain, limit=GC_UNLINK_LIMIT)
+        records.unlink()
+        return len(records), len(records) == GC_UNLINK_LIMIT
 
     def _compute_speedscope(self):
         for execution in self:
