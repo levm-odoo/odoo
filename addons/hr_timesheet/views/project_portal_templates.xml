@@ -25,11 +25,20 @@
             </div>
         </xpath>
         <xpath expr="//div[@name='portal_my_task_planned_hours']" position="after">
-            <div t-if="task.planned_hours > 0"><strong>Progress:</strong> <span t-field="task.progress"/>%</div>
+            <!-- 
+                LEADS TO INTERNAL SERVOR ERROR 
+                seperate the template which holds the task progress
+            -->
+            <t t-call="hr_timesheet.portal_my_task_progress_template"/>
         </xpath>
         <xpath expr="//div[@name='portal_my_task_planned_hours']/t" position="replace">
             <t t-call="hr_timesheet.portal_my_task_planned_hours_template"></t>
         </xpath>
+    </template>
+
+    <!-- task progress template. Overrided in sale_timesheet_enterprise if invoicing policy is set  -->
+    <template id="portal_my_task_progress_template">
+        <div><strong>Progress:</strong> <span t-field="task.progress"/>%</div>
     </template>
 
     <template id="portal_my_task_planned_hours_template">
