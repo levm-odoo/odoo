@@ -31,6 +31,10 @@
                 "message": "Component should declare static template"
             },
             {
+                "selector": "CallExpression[callee.name='_t'] > :first-child:not(Literal, BinaryExpression[left.type='Literal'][right.type='Literal'], BinaryExpression[left.type='Literal'][right.type='BinaryExpression'], BinaryExpression[left.type='BinaryExpression'][right.type='Literal'], BinaryExpression[left.type='BinaryExpression'][right.type='BinaryExpression'])",
+                "message": "First argument passed to _t function should be static"
+            },
+            {
                 "selector": "CallExpression[callee.name='_t'] > :first-child[value=/(.*%s){2,}/]",
                 "message": "Usage of _t function with multiple unnamed placeholders"
             },
