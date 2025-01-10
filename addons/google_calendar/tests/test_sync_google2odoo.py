@@ -1278,6 +1278,8 @@ class TestSyncGoogle2Odoo(TestSyncGoogle):
     def test_event_reminder_emails_with_google_id(self):
         """
         Odoo shouldn't send email reminders for synced events.
+        Test that events synced to Google (with a `google_id`) 
+        are excluded from email alarm notifications.
         """
         now = datetime.now()
         google_id = 'oj44nep1ldf8a3ll02uip0c9aa'

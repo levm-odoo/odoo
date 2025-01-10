@@ -343,6 +343,8 @@ class TestSyncMicrosoft2Odoo(TransactionCase):
     def test_event_reminder_emaisl_with_microsoft_id(self):
         """
         Odoo shouldn't send email reminders for synced events.
+        Test that events synced to Microsoft (with a `microsoft_id`) 
+        are excluded from email alarm notifications.
         """
         now = datetime.now()
         start = now - relativedelta(minutes=30)

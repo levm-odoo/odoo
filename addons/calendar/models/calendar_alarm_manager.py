@@ -143,9 +143,11 @@ class AlarmManager(models.AbstractModel):
     
     @api.model
     def _get_notify_alert_extra_conditions(self):
-        """To be overriden"""
+        """
+        To be Overriden on google_calendar and microsoft_calendar 
+        adding extra conditions to extract only the unsynced events         
+        """
         return ""
-
 
     def _get_events_by_alarm_to_notify(self, alarm_type):
         """
