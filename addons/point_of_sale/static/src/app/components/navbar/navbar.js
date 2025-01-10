@@ -176,4 +176,7 @@ export class Navbar extends Component {
         const screens = ["ProductScreen", "PaymentScreen", "ReceiptScreen", "TipScreen"];
         return screens.includes(this.pos.mainScreen.component.name) ? "register" : "order";
     }
+    toggleOpenCart() {
+        this.pos.openCart = !this.pos.openCart;
+    }
 }

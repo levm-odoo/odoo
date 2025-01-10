@@ -1,7 +1,11 @@
-import { Component } from "@odoo/owl";
+import { Component, useRef } from "@odoo/owl";
 
 export class ProductCard extends Component {
     static template = "point_of_sale.ProductCard";
+    setup() {
+        super.setup();
+        this.env.product_cards.push(this);
+    }
     static props = {
         class: { String, optional: true },
         name: String,
@@ -16,6 +20,7 @@ export class ProductCard extends Component {
         showWarning: { type: Boolean, optional: true },
         productCartQty: { type: [Number, undefined], optional: true },
     };
+    selfRef = useRef("posProductCard");
     static defaultProps = {
         onClick: () => {},
         onProductInfoClick: () => {},

@@ -3,7 +3,15 @@ import { useService } from "@web/core/utils/hooks";
 import { useBarcodeReader } from "@point_of_sale/app/hooks/barcode_reader_hook";
 import { _t } from "@web/core/l10n/translation";
 import { usePos } from "@point_of_sale/app/hooks/pos_hook";
-import { Component, onMounted, useEffect, useState, onWillRender, onWillUnmount } from "@odoo/owl";
+import {
+    Component,
+    onMounted,
+    useEffect,
+    useState,
+    onWillRender,
+    onWillUnmount,
+    useSubEnv,
+} from "@odoo/owl";
 import { CategorySelector } from "@point_of_sale/app/components/category_selector/category_selector";
 import { Input } from "@point_of_sale/app/components/inputs/input/input";
 import {
@@ -47,10 +55,14 @@ export class ProductScreen extends Component {
         this.dialog = useService("dialog");
         this.notification = useService("notification");
         this.numberBuffer = useService("number_buffer");
+        useSubEnv({
+            product_cards: [],
+        });
         this.state = useState({
             previousSearchWord: "",
             currentOffset: 0,
             quantityByProductTmplId: {},
+            openCart: false,
         });
         onMounted(() => {
             this.pos.openOpeningControl();
@@ -369,11 +381,59 @@ export class ProductScreen extends Component {
 
     async addProductToOrder(product) {
         await this.pos.addLineToCurrentOrder({ product_tmpl_id: product }, {});
+        const productToFly = this.env.product_cards.find((p) => p.props.productId === product.id);
+        this.flyToCart(productToFly);
     }
 
     async onProductInfoClick(productTemplate) {
         const info = await this.pos.getProductInfo(productTemplate, 1);
         this.dialog.add(ProductInfoPopup, { info: info, productTemplate: productTemplate });
+    }
+
+    toggleOpenCart() {
+        this.state.openCart = !this.state.openCart;
+    }
+    flyToCart(product) {
+        const productCardEl = product.selfRef.el;
+        if (!productCardEl) {
+            return;
+        }
+
+        const toOrder = document.querySelector(".order-cart");
+        if (!toOrder || window.getComputedStyle(toOrder).display === "none") {
+            return;
+        }
+
+        let pic = product.selfRef.el.querySelector(".product-img");
+        if (!pic) {
+            pic = product.selfRef.el.querySelector(".product-content");
+        }
+
+        const picRect = pic.getBoundingClientRect();
+        const clonedPic = pic.cloneNode(true);
+        const toOrderRect = toOrder.getBoundingClientRect();
+
+        clonedPic.classList.remove("w-100", "h-100");
+        clonedPic.classList.add("position-fixed", "border", "border-white", "border-4", "z-1");
+        clonedPic.style.top = `${picRect.top}px`;
+        clonedPic.style.left = `${picRect.left}px`;
+        clonedPic.style.width = `${picRect.width}px`;
+        clonedPic.style.height = `${picRect.height}px`;
+        clonedPic.style.transition = "all 400ms cubic-bezier(0.6, 0, 0.9, 1.000)";
+
+        document.body.appendChild(clonedPic);
+
+        requestAnimationFrame(() => {
+            const offsetTop = toOrderRect.top - picRect.top - picRect.height * 0.5;
+            const offsetLeft = toOrderRect.left - picRect.left - picRect.width * 0.25;
+            clonedPic.style.transform =
+                "translateY(" + offsetTop + "px) translateX(" + offsetLeft + "px) scale(0.5)";
+            clonedPic.style.opacity = "0"; // Fading out the card
+        });
+
+        clonedPic.addEventListener("transitionend", () => {
+            clonedPic.remove();
+        });
     }
 }
 

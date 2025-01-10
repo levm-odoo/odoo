@@ -30,3 +30,10 @@
 .btn-switchpane, .pay-order-button {
     min-height: 70px;
 }
+
+.hide_cart {
+    &:hover {
+    background-color: $primary !important;
+    border-color: $primary !important;
+    color: white !important;
+}}

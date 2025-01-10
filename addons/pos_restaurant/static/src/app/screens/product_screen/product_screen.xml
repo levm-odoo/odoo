@@ -53,23 +53,23 @@
                 <small t-else=""><t t-esc="items"/> items</small>
             </button>
         </xpath>
-        <xpath expr="//ActionpadWidget" position="attributes">
+        <!-- <xpath expr="//ActionpadWidget" position="attributes">
             <attribute name="setTable">() => this.setTable()</attribute>
             <attribute name="assignOrder">() => this.assignOrder()</attribute>
-        </xpath>
-        <xpath expr="//div[hasclass('control-buttons')]" position="attributes">
+        </xpath> -->
+        <!-- <xpath expr="//div[hasclass('control-buttons')]" position="attributes">
             <attribute name="t-if">this.pos.numpadMode != 'table'</attribute>
-        </xpath>
-        <xpath expr="//div[hasclass('control-buttons')]" position="after">
+        </xpath> -->
+        <!-- <xpath expr="//div[hasclass('control-buttons')]" position="after">
             <div t-if="this.pos.numpadMode == 'table'" class="input">
                 <div class="d-flex justify-content-center p-3">
                     <span t-if="this.state.tableBuffer" t-esc="this.state.tableBuffer" class="input-value fs-2 fw-bolder" t-att-class="{'text-danger opacity-75': !this.state.isValidBuffer}"/>
                     <span t-else="" class="text-muted fs-2">Enter a table number</span>
                 </div>
             </div>
-        </xpath>
-        <xpath expr="//Numpad" position="attributes">
+        </xpath> -->
+        <!-- <xpath expr="//Numpad" position="attributes">
             <attribute name="t-if" add="this.pos.numpadMode=='table'" separator=" or "></attribute>
-        </xpath>
+        </xpath> -->
     </t>
 </templates>

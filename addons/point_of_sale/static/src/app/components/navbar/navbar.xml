@@ -6,6 +6,15 @@
             <div class="pos-leftheader d-flex align-items-center gap-2" t-att-class="{ 'flex-grow-1': ui.isSmall, 'd-none': ui.isSmall and state.searchBarOpen }">
                 <div class="d-flex flex-shrink-0 gap-1 position-relative">
                     <div class="navbar-menu d-flex d-lg-grid overflow-hidden position-relative">
+                        <button t-if="!ui.isSmall" t-on-click="toggleOpenCart" class="order-cart btn btn-lg lh-lg text-primary fw-bolder position-relative">
+                            <span t-if="pos.getOrder()?.lines.length"
+                                t-out="pos.getOrder()?.lines.length"
+                                class="badge text-bg-primary position-absolute top-0 end-0 mt-n1 me-n1 rounded-pill"
+                                style="right:15% !important; top:10% !important"
+                            ></span>
+                            <i class="fa fa-shopping-cart fa-stack"></i>
+                        </button>
+
                         <button class="register-label btn btn-lg lh-lg" t-att-class="{'text-primary fw-bolder': mainButton === 'register'}" t-on-click="() => this.pos.showOrderScreen(true)">
                             <span t-if="!ui.isSmall">Register</span>
                             <i t-else="" class="fa fa-fw fa-pencil" t-att-class="{'fa-lg' : !ui.isSmall}"/>

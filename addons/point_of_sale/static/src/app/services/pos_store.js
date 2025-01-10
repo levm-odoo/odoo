@@ -139,6 +139,7 @@ export class PosStore extends WithLazyGetterTrap {
         this.totalPriceOnScale = 0;
 
         this.orderCounter = new Counter(0);
+        this.openCart = false;
 
         // FIXME POSREF: the hardwareProxy needs the pos and the pos needs the hardwareProxy. Maybe
         // the hardware proxy should just be part of the pos service?
