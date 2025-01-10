@@ -16,7 +16,8 @@ _lt = LazyTranslate(__name__)
 _logger = logging.getLogger(__name__)
 
 _eu_country_vat = {
-    'GR': 'EL'
+    'GR': 'EL',
+    'GB': 'XI',
 }
 
 _eu_country_vat_inverse = {v: k for k, v in _eu_country_vat.items()}
@@ -81,11 +82,6 @@ _ref_vat = {
     'sa': _lt('310175397400003 [Fifteen digits, first and last digits should be "3"]')
 }
 
-_region_specific_vat_codes = {
-    'xi',
-    't',
-}
-
 
 class ResPartner(models.Model):
     _inherit = 'res.partner'
@@ -123,7 +119,7 @@ class ResPartner(models.Model):
         if country in self._get_eu_prefixed_countries():
             prefixed_country = country.code.lower()
             if vat_country.isalpha():
-                country_code = _eu_country_vat_inverse.get(vat_country, vat_country)
+                country_code = _eu_country_vat_inverse.get(vat_country.upper(), vat_country)
                 if country_code.upper() in self._get_eu_prefixed_countries().mapped('code'):
                     vat = vat_number
                     prefixed_country = vat_country
@@ -133,6 +129,9 @@ class ResPartner(models.Model):
 
         if prefixed_country == 'de' and len(vat) != 9: # Old Steuernummer can not be used for intra-community
             prefixed_country = ''
+
+        if prefixed_country == 'gr':
+            prefixed_country = 'el'
 
         vat_to_return = prefixed_country.upper() + vat
 
@@ -150,20 +149,18 @@ class ResPartner(models.Model):
                 return ''
         return vat_to_return
 
-    def _inverse_vat(self):
+    def _check_vat(self, validation="error"):
         for partner in self:
-            validation = self._context.get('empty_bad_vat') and 'setnull' or 'error'
-            partner.vat = self._run_vat_checks(partner.commercial_partner_id.country_id,
-                                               partner.vat,
-                                               partner_name=partner.name,
-                                               validation=validation)
+            partner.vat = self._run_vat_checks(partner.commercial_partner_id.country_id, partner.vat,
+                                               partner_name=partner.name, validation=validation)
+
+    def _inverse_vat(self):
+        validation = self._context.get('empty_bad_vat') and 'setnull' or 'error'
+        self._check_vat(validation=validation)
 
     @api.onchange('vat', 'country_id')
     def _onchange_vat(self):
-        for partner in self:
-            partner.vat = self._run_vat_checks(partner.commercial_partner_id.country_id,
-                                               partner.vat,
-                                               validation='none')
+        self._check_vat(validation='none')
 
     @api.depends_context('company')
     @api.depends('vat')
