@@ -813,10 +813,7 @@ class ResPartner(models.Model):
         """ Checks a VAT number syntactically to ensure its validity upon saving.
 
         :param vat_number: a string with the VAT number to check.
-        :param default_country: a res.country object
-        :param partner_is_company: True if the partner is a company, else False.
-            .. deprecated:: 16.0
-                Will be removed in 16.2
+        :param country_code: a country_code to check for
 
         :return: The country code (in lower case) of the country the VAT number
                  was validated for, if it was validated. False if it could not be validated
