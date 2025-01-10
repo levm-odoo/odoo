@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="l10n_in_pan_entity_view_form" model="ir.ui.view">
+        <field name="name">l10n_in.pan.entity.view.form.inherit</field>
+        <field name="model">l10n_in.pan.entity</field>
+        <field name="inherit_id" ref="l10n_in.l10n_in_pan_entity_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="TDS" widget="one2many_list">
+                    <field name="l10n_in_tax_tds_ids" context="{'default_section_type': 'tds'}">
+                        <list editable="top"
+                              decoration-muted="valid_upto &lt; context_today().strftime('%Y-%m-%d')"
+                              decoration-info="valid_upto &gt; context_today().strftime('%Y-%m-%d')">
+                            <field name="section_type" column_invisible="1"/> <!-- To save the section type -->
+                            <field name="valid_from"/>
+                            <field name="valid_upto"/>
+                            <field name="certificate_number" string="Certificate u/s 197"/>
+                            <field name="tax_id" widget="many2one"
+                                   domain="[('l10n_in_section_id.tax_source_type', '=', 'tds'), ('l10n_in_tds_tax_type', '=', 'purchase')]"/>
+                            <field name="l10n_in_section_id" force_save="1" optional="hide"/>
+                        </list>
+                    </field>
+                </page>
+                <page string="TCS">
+                    <field name="l10n_in_tax_tcs_ids" context="{'default_section_type': 'tcs'}" widget="one2many_list">
+                        <list editable="top"
+                              decoration-muted="valid_upto &lt; context_today().strftime('%Y-%m-%d')"
+                              decoration-info="valid_upto &gt; context_today().strftime('%Y-%m-%d')">
+                            <field name="section_type" column_invisible="1"/> <!-- To save the section type -->
+                            <field name="valid_from"/>
+                            <field name="valid_upto"/>
+                            <field name="certificate_number" string="Certificate u/s 206C"/>
+                            <field name="tax_id" widget="many2one"
+                                   domain="[('l10n_in_section_id.tax_source_type', '=', 'tcs'), ('type_tax_use', '=', 'sale')]"/>
+                            <field name="l10n_in_section_id" force_save="1" optional="hide"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

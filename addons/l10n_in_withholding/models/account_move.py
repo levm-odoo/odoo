@@ -59,7 +59,7 @@ class AccountMove(models.Model):
 
     def _get_l10n_in_invalid_tax_lines(self):
         self.ensure_one()
-        if self.country_code == 'IN' and not self.commercial_partner_id.l10n_in_pan:
+        if self.country_code == 'IN' and not self.commercial_partner_id.l10n_in_pan_entity_id:
             lines = self.env['account.move.line']
             for line in self.invoice_line_ids:
                 for tax in line.tax_ids:
@@ -70,7 +70,7 @@ class AccountMove(models.Model):
                         lines |= line._origin
             return lines
 
-    @api.depends('invoice_line_ids.tax_ids', 'commercial_partner_id.l10n_in_pan', 'invoice_line_ids.price_total')
+    @api.depends('invoice_line_ids.tax_ids', 'commercial_partner_id.l10n_in_pan_entity_id', 'invoice_line_ids.price_total')
     def _compute_l10n_in_warning(self):
         super()._compute_l10n_in_warning()
         for move in self:
@@ -105,7 +105,8 @@ class AccountMove(models.Model):
                         'views': [(self.env.ref('l10n_in_withholding.view_move_line_list_l10n_in_withholding').id, 'list')],
                         'context': {
                             'default_tax_type_use': move.invoice_filter_type_domain,
-                            'move_type': move.move_type == 'in_invoice'
+                            'move_type': move.move_type == 'in_invoice',
+                            'tds_tcs_applicable_lines_ids': tds_tcs_applicable_lines.ids,
                         },
                     }
                 }
@@ -157,8 +158,8 @@ class AccountMove(models.Model):
             ('company_id', 'child_of', self.company_id.root_id.id),
             ('parent_state', '=', 'posted')
         ]
-        if commercial_partner_id.l10n_in_pan:
-            default_domain += [('move_id.commercial_partner_id.l10n_in_pan', '=', commercial_partner_id.l10n_in_pan)]
+        if commercial_partner_id.l10n_in_pan_entity_id:
+            default_domain += [('move_id.commercial_partner_id.l10n_in_pan_entity_id', '=', commercial_partner_id.l10n_in_pan_entity_id.id)]
         else:
             default_domain += [('move_id.commercial_partner_id', '=', commercial_partner_id.id)]
         frequency_domains = {
@@ -197,16 +198,17 @@ class AccountMove(models.Model):
             case _:
                 return False
 
-    def _get_l10n_in_tds_tcs_applicable_sections(self):
-        def _group_by_section_alert(invoice_lines):
-            group_by_lines = {}
-            for line in invoice_lines:
-                group_key = line.account_id.l10n_in_tds_tcs_section_id
-                if group_key and not line.company_currency_id.is_zero(line.price_total):
-                    group_by_lines.setdefault(group_key, [])
-                    group_by_lines[group_key].append(line)
-            return group_by_lines
+    def _l10n_in_group_by_section_alert(self):
+        self.ensure_one()
+        group_by_lines = {}
+        for line in self.invoice_line_ids:
+            group_key = line.account_id.l10n_in_tds_tcs_section_id
+            if group_key and not line.company_currency_id.is_zero(line.price_total):
+                group_by_lines.setdefault(group_key, [])
+                group_by_lines[group_key].append(line)
+        return group_by_lines
 
+    def _get_l10n_in_tds_tcs_applicable_sections(self):
         def _is_section_applicable(section_alert, threshold_sums, invoice_currency_rate, lines):
             lines_total = sum(
                     (line.price_total * invoice_currency_rate) if section_alert.consider_amount == 'total_amount' else line.balance
@@ -228,7 +230,7 @@ class AccountMove(models.Model):
             warning = set()
             commercial_partner_id = self.commercial_partner_id
             existing_section = (self.l10n_in_withhold_move_ids.line_ids + self.line_ids).tax_ids.l10n_in_section_id
-            for section_alert, lines in _group_by_section_alert(self.invoice_line_ids).items():
+            for section_alert, lines in self._l10n_in_group_by_section_alert().items():
                 if (
                     (section_alert not in existing_section
                     or self._get_tcs_applicable_lines(lines))

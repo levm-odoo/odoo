@@ -70,10 +70,18 @@ class L10n_InWithholdWizard(models.TransientModel):
         compute='_compute_l10n_in_tds_tax_type'
     )
     l10n_in_withholding_warning = fields.Json(string="Withholding warning", compute='_compute_l10n_in_withholding_warning')
-    base = fields.Monetary(string="Base Amount")
+    base = fields.Monetary(
+        string="Base Amount",
+    )
+    l10n_in_section_id = fields.Many2one(
+        comodel_name='l10n_in.section.alert',
+        string="TDS Section",
+    )
     tax_id = fields.Many2one(
         comodel_name='account.tax',
-        string="TDS Section",
+        string="Tax",
+        compute='_compute_tax_id', precompute=True,
+        readonly=False, store=True,
         required=True,
     )
     amount = fields.Monetary(
@@ -125,7 +133,7 @@ class L10n_InWithholdWizard(models.TransientModel):
     def _compute_l10n_in_withholding_warning(self):
         for wizard in self:
             warnings = {}
-            if wizard.tax_id and wizard.l10n_in_tds_tax_type == 'purchase' and not wizard.related_move_id.commercial_partner_id.l10n_in_pan \
+            if wizard.tax_id and wizard.l10n_in_tds_tax_type == 'purchase' and not wizard.related_move_id.commercial_partner_id.l10n_in_pan_entity_id \
                 and wizard.tax_id.amount != max(wizard.tax_id.l10n_in_section_id.l10n_in_section_tax_ids, key=lambda t: abs(t.amount)).amount:
                 warnings['lower_tds_tax'] = {
                     'message': _("As the Partner's PAN missing/invalid, it's advisable to apply TDS at the higher rate.")
@@ -142,6 +150,32 @@ class L10n_InWithholdWizard(models.TransientModel):
                     'message': message
                 }
             wizard.l10n_in_withholding_warning = warnings
+
+    @api.depends('related_move_id', 'related_payment_id', 'tax_id', 'l10n_in_section_id', 'date')
+    def _compute_tax_id(self):
+        for wizard in self:
+            if wizard.related_move_id:
+                move_id = wizard.related_move_id
+                warning_sections = move_id._get_l10n_in_tds_tcs_applicable_sections()
+                group_by_section = move_id._l10n_in_group_by_section_alert()
+                pan_entity = move_id.commercial_partner_id.l10n_in_pan_entity_id
+                invoice_date = wizard.date
+                if wizard.l10n_in_section_id and wizard.l10n_in_section_id not in warning_sections:
+                    wizard.tax_id = wizard.l10n_in_section_id._get_applicable_tax_for_section(pan_entity, invoice_date).id
+                    wizard.base = 0.0
+                elif warning_sections:
+                    if not wizard.l10n_in_section_id:
+                        wizard.l10n_in_section_id = warning_sections[0].id
+                        wizard.tax_id = warning_sections[0]._get_applicable_tax_for_section(pan_entity, invoice_date).id
+                        wizard.base = sum(line.price_subtotal for line in group_by_section[warning_sections[0]])
+                    elif wizard.l10n_in_section_id in warning_sections:
+                        wizard.tax_id = wizard.l10n_in_section_id._get_applicable_tax_for_section(pan_entity, invoice_date).id
+                        wizard.base = sum(line.price_subtotal for line in group_by_section[wizard.l10n_in_section_id])
+                    else:
+                        wizard.tax_id = False
+                        wizard.base = 0.0
+                else:
+                    wizard.base = 0.0
 
     @api.depends('tax_id', 'base')
     def _compute_amount(self):
@@ -246,6 +280,7 @@ class L10n_InWithholdWizard(models.TransientModel):
         credit = 0.0 if withhold_type in ('in_withhold', 'out_refund_withhold') else self.base
         vals.append(append_vals(1.0, self.base, debit, credit, withholding_account_id, [Command.set(self.tax_id.ids)]))
         total_amount = self.base
+
         total_tax = self.amount
 
         # Create move line for the base amount
