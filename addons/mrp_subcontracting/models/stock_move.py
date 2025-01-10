@@ -157,9 +157,6 @@ class StockMove(models.Model):
         """ Open the produce wizard in order to register tracked components for
         subcontracted product. Otherwise use standard behavior.
         """
-        self.ensure_one()
-        if self.state != 'done' and (self._subcontrating_should_be_record() or self._subcontrating_can_be_record()):
-            return self._action_record_components()
         action = super(StockMove, self).action_show_details()
         if self.is_subcontract and all(p._has_been_recorded() for p in self._get_subcontract_production()):
             action['views'] = [(self.env.ref('stock.view_stock_move_operations').id, 'form')]
