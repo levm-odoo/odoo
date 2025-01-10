@@ -123,6 +123,7 @@
                             string="Create Invoices"
                             class="btn-secondary"/>
                 </header>
+                <field name="sequence" widget="handle"/>
                 <field name="message_needaction" column_invisible="True"/>
                 <field name="currency_id" column_invisible="True"/>
 

@@ -44,7 +44,7 @@ class SaleOrder(models.Model):
     _name = 'sale.order'
     _inherit = ['portal.mixin', 'product.catalog.mixin', 'mail.thread', 'mail.activity.mixin', 'utm.mixin']
     _description = "Sales Order"
-    _order = 'date_order desc, id desc'
+    _order = 'date_order desc, id desc' # sequence
     _check_company_auto = True
 
     _date_order_conditional_required = models.Constraint(
@@ -65,6 +65,8 @@ class SaleOrder(models.Model):
         required=True, copy=False, readonly=False,
         index='trigram',
         default=lambda self: _('New'))
+
+    sequence = fields.Integer(default=10)
 
     company_id = fields.Many2one(
         comodel_name='res.company',

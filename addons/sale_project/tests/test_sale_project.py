@@ -568,7 +568,7 @@ class TestSaleProject(HttpCase, TestSaleProjectCommon):
             'partner_id': self.partner.id,
         })
         so.action_confirm()
-        SaleOrderLine = self.env['sale.order.line'].with_context(default_order_id=so.id)
+        SaleOrderLine = self.env['sale.order.line'].with_context(default_order_id=so.id, form_view_ref='sale_project.sale_order_line_view_form_editable')
         self.assertEqual(self.product_service_ordered_prepaid.service_policy, 'ordered_prepaid')
         self.assertEqual(self.product_service_delivered_milestone.service_policy, 'delivered_milestones')
         self.assertEqual(self.product_service_delivered_manual.service_policy, 'delivered_manual')
@@ -613,6 +613,37 @@ class TestSaleProject(HttpCase, TestSaleProjectCommon):
             sol_form.qty_delivered = 1
             self.assertEqual(sol_form.qty_delivered_method, 'manual')
             self.assertEqual(sol_form.qty_delivered, 1, 'quantity delivered is editable')
+
+    def test_sale_order_line_view_form_editable_default_so(self):
+        """ Check the default SO when creating SOL on the fly
+
+            Test Case:
+            =========
+            1. create a billable project without neither SO nor SOL
+            2. create some SOs linked to the project
+            3. open form view of `sale.order.line` to create a SOL
+            4. SOL should be linked to the SO with the highest sequence
+        """
+        self.assertFalse(self.project_global.sale_order_id)
+        self.assertFalse(self.project_global.sale_line_id)
+
+        so1, so2 = self.env['sale.order'].create([
+            {
+                'partner_id': self.partner.id,
+                'project_id': self.project_global.id,
+            },
+            {
+                'partner_id': self.partner.id,
+                'project_id': self.project_global.id,
+            },
+        ])
+
+        (so1 + so2).action_confirm()
+
+        view = 'sale_project.sale_order_line_view_form_editable'
+        with Form(self.env['sale.order.line'].with_context(form_view_ref=view, default_partner_id=self.partner.id, link_to_project=self.project_global.id), view) as sol_form:
+            self.assertEqual(sol_form.order_id, so2, "The SOL should be linked to the SO with the highest sequence")
+            sol_form.product_id = self.product_order_service2
 
     def test_generated_project_stages(self):
         """ This test checks that when a project is created on SO confirmation, the following stages are automatically
