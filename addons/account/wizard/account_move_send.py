@@ -441,9 +441,10 @@ class AccountMoveSend(models.TransientModel):
         """
         # create an attachment that will become 'invoice_pdf_report_file'
         # note: Binary is used for security reason
-        invoice.message_main_attachment_id = self.env['ir.attachment'].create(invoice_data['pdf_attachment_values'])
-        invoice.invalidate_recordset(fnames=['invoice_pdf_report_id', 'invoice_pdf_report_file'])
-        invoice.is_move_sent = True
+        invoice_sudo = invoice.sudo()
+        invoice_sudo.message_main_attachment_id = self.sudo().env['ir.attachment'].create(invoice_data['pdf_attachment_values'])
+        invoice_sudo.invalidate_recordset(fnames=['invoice_pdf_report_id', 'invoice_pdf_report_file'])
+        invoice_sudo.is_move_sent = True
 
     @api.model
     def _hook_if_errors(self, moves_data, from_cron=False, allow_fallback_pdf=False):
@@ -744,10 +745,11 @@ class AccountMoveSend(models.TransientModel):
 
         # Update send and print values of moves
         for move, move_data in moves_data.items():
+            sudo_move = move#.sudo()
             if from_cron and move_data.get('error'):
-                move.send_and_print_values = {'error': True}
+                sudo_move.send_and_print_values = {'error': True}
             else:
-                move.send_and_print_values = False
+                sudo_move.send_and_print_values = False
 
         to_download = {move: move_data for move, move_data in moves_data.items() if move_data.get('download')}
         if to_download:
@@ -792,7 +794,7 @@ class AccountMoveSend(models.TransientModel):
             }
 
         return self._process_send_and_print(
-            self.move_ids,
+            self.move_ids.sudo(),
             wizard=self,
             allow_fallback_pdf=allow_fallback_pdf,
             **kwargs,
