@@ -41,18 +41,17 @@ class ReportMrpReport_Bom_Structure(models.AbstractModel):
         date_today = self.env.context.get('from_date', fields.Date.today())
         earliest_capacity = 0
         lead_time = bom_data['lead_time']
-        availability_delay = bom_data['availability_delay']
-        same_delay = lead_time == availability_delay
         res = {}
         if bom_data.get('producible_qty', 0):
             # Some quantities are producible today, at the earliest time possible
             earliest_capacity = bom_data['producible_qty']
 
         if bom_data['availability_state'] != 'unavailable':
-            if same_delay:
+            availability_delay = bom_data['availability_delay']
+            if lead_time and lead_time == availability_delay:
                 # Means that stock will be resupplied at date_today, so the whole manufacture can start at date_today.
                 earliest_capacity = bom_qty
-            elif (balance := bom_qty - bom_data.get('producible_qty', 0)) > 0:
+            elif (balance := bom_qty - bom_data.get('producible_qty', 0) - bom_data.get('quantity_available', 0)) > 0:
                 res['leftover_capacity'] = balance
                 res['leftover_date'] = format_date(self.env, date_today + timedelta(days=availability_delay))
 

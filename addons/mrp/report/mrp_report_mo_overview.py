@@ -89,7 +89,7 @@ class ReportMrpReport_Mo_Overview(models.AbstractModel):
                 line_cost = line.product_id.uom_id._compute_price(line.product_id.standard_price, line.product_uom_id) * line.product_qty
                 initial_bom_cost += currency.round(line_cost * production.product_uom_qty / production.bom_id.product_qty)
             for operation in missing_operations:
-                cost = (operation._get_duration_expected(production.product_id, production.product_qty) / 60.0) * operation.workcenter_id.costs_hour
+                cost = (operation._get_duration_expected(production.product_id, production.product_qty, production.product_uom_id) / 60.0) * operation.workcenter_id.costs_hour
                 bom_cost = self.env.company.currency_id.round(cost)
                 initial_bom_cost += currency.round(bom_cost * production.product_uom_qty / production.bom_id.product_qty)
 
@@ -274,7 +274,8 @@ class ReportMrpReport_Mo_Overview(models.AbstractModel):
         operations = production.bom_id.operation_ids + kit_operation if kit_operation else production.bom_id.operation_ids
         if workorder.operation_id not in operations:
             return False
-        capacity = workorder.operation_id.workcenter_id._get_capacity(production.product_id)
+        # capacity = workorder.operation_id.workcenter_id._get_capacity(production.product_id, production.product_uom_id)
+        (capacity, _setup, _cleanup) = workorder.operation_id.workcenter_id._find_capacity(production.product_id, production.product_uom_id, production.bom_id.product_qty)
         operation_cycle = float_round(production.product_uom_qty / capacity, precision_rounding=1, rounding_method='UP')
         return workorder.operation_id._compute_operation_cost() * operation_cycle
 

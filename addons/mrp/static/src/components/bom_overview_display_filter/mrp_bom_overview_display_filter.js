@@ -26,10 +26,10 @@ export class BomOverviewDisplayFilter extends Component {
 
     setup() {
         this.displayOptions = {
-            availabilities: _t('Availabilities'),
+            // availabilities: _t('Availabilities'),
             leadTimes: _t('Lead Times'),
             costs: _t('Costs'),
-            operations: _t('Operations'),
+            // operations: _t('Operations'),
         };
     }
 

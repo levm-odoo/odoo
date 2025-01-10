@@ -61,6 +61,8 @@ class MrpRoutingWorkcenter(models.Model):
                                      string="Blocks", help="Operations that cannot start before this operation is completed.",
                                      domain="[('allow_operation_dependencies', '=', True), ('id', '!=', id), ('bom_id', '=', bom_id)]",
                                      copy=False)
+    cycle_number = fields.Integer("Repetitions", compute="_compute_cycle_number_total_time", store=True)
+    time_total = fields.Float('Total Duration', compute="_compute_cycle_number_total_time", store=True)
 
     @api.depends('time_mode', 'time_mode_batch')
     def _compute_time_computed_on(self):
@@ -88,9 +90,11 @@ class MrpRoutingWorkcenter(models.Model):
             cycle_number = 0  # Never 0 unless infinite item['workcenter_id'].capacity
             for item in data:
                 total_duration += item['duration']
-                capacity = item['workcenter_id']._get_capacity(item.product_id)
+                # capacity = item['workcenter_id']._get_capacity(item.product_id, item.product_uom_id)
+                (capacity, _setup, _cleanup) = item['workcenter_id']._find_capacity(item.product_id, item.product_uom_id, operation.bom_id.product_qty)
                 qty_produced = item.product_uom_id._compute_quantity(item['qty_produced'], item.product_id.uom_id)
-                cycle_number += float_round((qty_produced / capacity or 1.0), precision_digits=0, rounding_method='UP')
+                # cycle_number += float_round((qty_produced / capacity or 1.0), precision_digits=0, rounding_method='UP')
+                cycle_number += float_round((qty_produced / capacity), precision_digits=0, rounding_method='UP')
             if cycle_number:
                 operation.time_cycle = total_duration / cycle_number
             else:
@@ -103,6 +107,20 @@ class MrpRoutingWorkcenter(models.Model):
         count_data = {operation.id: count for operation, count in data}
         for operation in self:
             operation.workorder_count = count_data.get(operation.id, 0)
+
+    @api.depends('bom_id.product_id', 'bom_id.product_qty', 'workcenter_id.capacity_ids', 'time_cycle')
+    def _compute_cycle_number_total_time(self):
+        for operation in self:
+            workcenter = operation.workcenter_id
+            product = operation.bom_id.product_id or operation.bom_id.product_tmpl_id.product_variant_ids
+            if len(product) > 1:
+                operation.cycle_number = 1
+                operation.time_total = workcenter.time_start + workcenter.time_stop + operation.time_cycle_manual
+                continue
+            quantity = operation.bom_id.product_qty
+            (capacity, setup, cleanup) = workcenter._find_capacity(product, product.uom_id, quantity)
+            operation.cycle_number = float_round(quantity / capacity, precision_digits=0, rounding_method="UP")
+            operation.time_total = setup + cleanup + operation.cycle_number * operation.time_cycle
 
     @api.constrains('blocked_by_operation_ids')
     def _check_no_cyclic_dependencies(self):
@@ -183,9 +201,13 @@ class MrpRoutingWorkcenter(models.Model):
         unit = unit or product.uom_id
         quantity = self.bom_id.product_uom_id._compute_quantity(quantity, unit)
         workcenter = workcenter or self.workcenter_id
-        capacity = workcenter._get_capacity(product)
+        # capacity = workcenter._get_capacity(product, unit)
+        # cycle_number = float_round(quantity / capacity, precision_digits=0, rounding_method='UP')
+        # return workcenter._get_expected_duration(product, unit) + cycle_number * self.time_cycle * 100.0 / workcenter.time_efficiency
+        (capacity, setup, cleanup) = workcenter._find_capacity(product, unit, self.bom_id.product_qty)
+        # ! test_20_bom_report & test_bom_report_dozens
         cycle_number = float_round(quantity / capacity, precision_digits=0, rounding_method='UP')
-        return workcenter._get_expected_duration(product) + cycle_number * self.time_cycle * 100.0 / workcenter.time_efficiency
+        return setup + cleanup + cycle_number * self.time_cycle * 100.0 / workcenter.time_efficiency
 
     def _compute_operation_cost(self):
         return (self.time_cycle / 60.0) * (self.workcenter_id.costs_hour)

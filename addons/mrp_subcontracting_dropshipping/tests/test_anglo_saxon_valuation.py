@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from freezegun import freeze_time
+
 from odoo.addons.stock_account.tests.test_anglo_saxon_valuation_reconciliation_common import ValuationReconciliationTestCommon
 from odoo import Command
 from odoo.tests import tagged, Form
@@ -203,6 +205,7 @@ class TestSubcontractingDropshippingValuation(ValuationReconciliationTestCommon)
             ]
         )
 
+    @freeze_time('2024-01-01')
     def test_account_line_entry_kit_bom_dropship(self):
         """ An order delivered via dropship for some kit bom product variant should result in
         accurate journal entries in the expense and stock output accounts if the cost on the

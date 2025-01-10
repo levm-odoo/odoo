@@ -10,17 +10,22 @@
                         <hr t-if="data.bom_code"/>
                         <h6 t-if="data.bom_code">Reference: <t t-esc="data.bom_code"/></h6>
                     </div>
-                    <div class="text-center">
-                        <h3><t t-esc="formatFloat(data.quantity_available, {'digits': [false, precision]})"/> <t t-if="showUom" t-esc="props.uomName"/></h3>
-                        <span>Free to Use</span>
-                    </div>
-                    <div t-if="data.hasOwnProperty('earliest_capacity')" class="ps-5 text-center">
-                        <h3><t t-esc="formatFloat(data.earliest_capacity)"/> <t t-if="showUom" t-esc="props.uomName"/></h3>
-                        <span t-esc="data.earliest_date"/>
-                    </div>
-                    <div t-if="data.hasOwnProperty('leftover_capacity')" class="ps-5 text-center">
-                        <h3><t t-esc="formatFloat(data.leftover_capacity)"/> <t t-if="showUom" t-esc="props.uomName"/></h3>
-                        <span t-esc="data.leftover_date"/>
+                    <div t-if="props.showOptions.availabilities" class="d-flex gap-3">
+                        <div class="text-center">
+                            <h3>?Availabilities?</h3>
+                        </div>
+                        <div class="text-center">
+                            <h3><t t-esc="formatFloat(data.quantity_available, {'digits': [false, precision]})"/> <t t-if="showUom" t-esc="props.uomName"/></h3>
+                            <span>Now</span>
+                        </div>
+                        <div t-if="data.hasOwnProperty('earliest_capacity')" class="ps-5 text-center">
+                            <h3><t t-esc="formatFloat(data.earliest_capacity)"/> <t t-if="showUom" t-esc="props.uomName"/></h3>
+                            <span>On !earliest! <t t-esc="data.earliest_date"/></span>
+                        </div>
+                        <div t-if="data.hasOwnProperty('leftover_capacity')" class="ps-5 text-center">
+                            <h3><t t-esc="formatFloat(data.leftover_capacity)"/> <t t-if="showUom" t-esc="props.uomName"/></h3>
+                            <span>On !leftover! <t t-esc="data.leftover_date"/></span>
+                        </div>
                     </div>
                 </div>
                 <table class="o_mrp_bom_expandable table">
