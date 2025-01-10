@@ -30,7 +30,7 @@ class TestEGEdiCommon(AccountEdiTestCommon):
         # ==== Business ====
 
         cls.partner_a.write({
-            'vat': '123456789012345',
+            'vat': '123456789',
             'country_id': cls.env.ref('base.eg').id,
             'city': 'Iswan',
             'state_id': cls.env.ref('base.state_eg_c').id,

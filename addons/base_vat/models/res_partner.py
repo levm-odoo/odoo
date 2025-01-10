@@ -101,7 +101,7 @@ class ResPartner(models.Model):
     @api.model
     def _run_vat_checks(self, country, vat, partner_name='', validation='error'):
         """Returns vat, country. Raises an error
-         Validation can be 'error', 'none' (only fixing) or 'setnull'
+         Validation can be 'error', 'none' (only formatting) or 'setnull' (returning '' when not valid)
          partner_name is just for the error message
           """
         if not country:
@@ -174,7 +174,6 @@ class ResPartner(models.Model):
                 and not to_check[:2].upper() == company_code
                 and self.env.company.vat_check_vies
             )
-
 
     @api.depends('vat')
     def _compute_vies_valid(self):
@@ -664,6 +663,11 @@ class ResPartner(models.Model):
     def format_vat_ch(self, vat):
         stdnum_vat_format = getattr(stdnum.util.get_cc_module('ch', 'vat'), 'format', None)
         return stdnum_vat_format('CH' + vat)[2:] if stdnum_vat_format else vat
+
+    def format_vat_cl(self, vat):
+        vat = vat.replace('.', '').replace('CL', '').replace(' ', '').replace('-','').upper()
+        if len(vat) > 2:
+            return vat[:-1] + '-' + vat[-1]
 
     def format_vat_hu(self, vat):
         stdnum_vat_fix_func = getattr(stdnum.util.get_cc_module('hu', 'vat'), 'compact', None)
