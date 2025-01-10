@@ -26,6 +26,20 @@
                 </div>
             </t>
         </xpath>
+        <xpath expr="//div[@t-foreach='subtotal.tax_groups']" position="before">
+            <div t-if="props.data.headerData.company.country_id?.code === 'IN'" t-foreach="props.data.tax_details" t-as="tax" t-key="tax.id" class="d-flex">
+                <t t-if="showTaxGroupLabels">
+                    <span t-if="tax._pos_receipt_label" t-esc="tax._pos_receipt_label" class="me-2"/>
+                    <span t-else="" class="me-2" style="visibility: hidden;">A</span>
+                </t>
+                <span>
+                    <span t-esc="tax.name"/>
+                    on
+                    <span t-esc="props.formatCurrency(tax.base)"/>
+                </span>
+                <span t-esc="props.formatCurrency(tax.amount)" class="ms-auto"/>
+            </div>
+        </xpath>
         <xpath expr="//div[@class='before-footer']" position="after">
             <br/>
             <t t-set="l10n_in_hsn_summary" t-value="props.data?.l10n_in_hsn_summary"/>
