@@ -56,9 +56,7 @@ class ResPartner(models.Model):
 
         # Compute all work intervals per calendar
         for calendar, employees in employees_by_calendar.items():
-            calendar = calendar or self.env.company.resource_calendar_id # No calendar if fully flexible
-            work_intervals = calendar._work_intervals_batch(start_period, stop_period, resources=employees, tz=timezone(calendar.tz))
-            del work_intervals[False]
+            work_intervals = employees._get_work_intervals_batch(start_period, stop_period, tz=timezone(calendar.tz))  # TODO BEDO
             # Merge all employees intervals to avoid to compute it multiples times
             if merge:
                 interval_by_calendar[calendar] = reduce(Intervals.__and__, work_intervals.values())

@@ -154,18 +154,17 @@ class HrWorkEntry(models.Model):
         :return: leave work entries completely outside the contract's calendar
         """
         work_entries = self._get_leaves_entries_outside_schedule()
-        entries_by_calendar = defaultdict(lambda: self.env['hr.work.entry'])
-        for work_entry in work_entries:
-            calendar = work_entry.contract_id.resource_calendar_id
-            entries_by_calendar[calendar] |= work_entry
+        if not work_entries:
+            return False
+        entries_by_calendar = work_entries.grouped(lambda we: we.contract_id.resource_calendar_id)
 
         outside_entries = self.env['hr.work.entry']
         datetime_start = min(work_entries.mapped('date_start'))
         datetime_stop = max(work_entries.mapped('date_stop'))
         calendars = work_entries.contract_id.resource_calendar_id
-        all_calendar_intervals = calendars._get_attendance_intervals(pytz.utc.localize(datetime_start), pytz.utc.localize(datetime_stop))
+        all_calendar_intervals = calendars._get_attendance_intervals_batch(pytz.utc.localize(datetime_start), pytz.utc.localize(datetime_stop))
         for calendar, entries in entries_by_calendar.items():
-            calendar_intervals = all_calendar_intervals
+            calendar_intervals = all_calendar_intervals[calendar]
             entries_intervals = entries._to_intervals()
             overlapping_entries = self._from_intervals(entries_intervals & calendar_intervals)
             outside_entries |= entries - overlapping_entries

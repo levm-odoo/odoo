@@ -56,16 +56,3 @@ class ResourceResource(models.Model):
                 self.env['resource.calendar.attendance']
             )])
         return calendars_within_period_per_resource
-
-    def _get_calendar_periods(self, start, stop):
-        """
-        :param datetime start: the start of the period
-        :param datetime stop: the stop of the period
-        """
-        result = super()._get_calendar_periods(start, stop)
-        employee_periods = self.employee_id._get_calendar_periods(start, stop)
-        for resource in self:
-            if not resource.employee_id:
-                continue
-            result[resource] = employee_periods[resource.employee_id]
-        return result

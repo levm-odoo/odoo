@@ -8,7 +8,7 @@ from odoo import api, fields, models
 from odoo.osv import expression
 
 from odoo.addons.base.models.res_partner import _tz_get
-from .utils import Intervals, make_aware, timezone_datetime, WorkIntervals
+from .utils import Intervals, make_aware, WorkIntervals
 
 
 class ResourceResource(models.Model):
@@ -134,25 +134,6 @@ class ResourceResource(models.Model):
             )
         return result
 
-    def _get_unavailable_intervals(self, start, end):
-        """ Compute the intervals during which employee is unavailable with hour granularity between start and end
-            Note: this method is used in enterprise (forecast and planning)
-
-        """
-        start_datetime = timezone_datetime(start)
-        end_datetime = timezone_datetime(end)
-        resource_mapping = {}
-        calendar_mapping = defaultdict(lambda: self.env['resource.resource'])
-        for resource in self:
-            calendar_mapping[resource.calendar_id or resource.company_id.resource_calendar_id] |= resource
-
-        for calendar, resources in calendar_mapping.items():
-            if not calendar:
-                continue
-            resources_unavailable_intervals = calendar._unavailable_intervals_batch(start_datetime, end_datetime, resources, tz=timezone(calendar.tz))
-            resource_mapping.update(resources_unavailable_intervals)
-        return resource_mapping
-
     def _get_calendars_validity_within_period(self, start, end, default_company=None):
         """ Gets a dict of dict with resource's id as first key and resource's calendar as secondary key
             The value is the validity interval of the calendar for the given resource.
@@ -199,7 +180,7 @@ class ResourceResource(models.Model):
                     resource_work_intervals[resource.id] |= Intervals([(start, end, self.env['resource.calendar.attendance'])])
                 continue
             # For each calendar used by the resources, retrieve the work intervals for every resources using it
-            work_intervals_batch = calendar._work_intervals_batch(start, end, resources=resources, compute_leaves=compute_leaves)
+            work_intervals_batch = resources._get_work_intervals_batch(start, end, compute_leaves=compute_leaves)
             for resource in resources:
                 # Make the conjunction between work intervals and calendar validity
                 resource_work_intervals[resource.id] |= work_intervals_batch[resource.id] & resource_calendar_validity_intervals[resource.id][calendar]
@@ -232,21 +213,37 @@ class ResourceResource(models.Model):
         """
         calendar_periods_by_resource = {}
         for resource in self:
-            calendar = resource.resource_calendar_id or resource.company_id.resource_calendar_id
+            calendar = resource.calendar_id or resource.company_id.resource_calendar_id
             calendar_periods_by_resource[resource] = [(start, stop, calendar)]
         return calendar_periods_by_resource
 
-    def _get_attendance_intervals(self, start_dt, end_dt, domain=None, tz=None, lunch=False, inverse_result=False):
+    def _get_attendance_intervals_batch(self, start_dt, end_dt, domain=None, tz=None, calendar=False, lunch=False, inverse_result=False):
         assert start_dt.tzinfo and end_dt.tzinfo
 
-        attendance_intervals_per_calendar = self.calendar_id._get_attendance_intervals(
+        if calendar:
+            calendar_intervals = calendar._get_attendance_intervals_batch(start_dt, end_dt, domain, tz, lunch, inverse_result)
+            return {resource: calendar_intervals[calendar] for resource in self}
+
+        all_calendar_periods = self._get_calendar_periods(start_dt, end_dt)
+        all_calendars = self.env['resource.calendar']
+        for calendar_periods in all_calendar_periods.values():
+            for period in calendar_periods:
+                all_calendars |= period[2]
+        attendance_intervals_per_calendar = all_calendars._get_attendance_intervals_batch(
             start_dt, end_dt, domain, tz, lunch, inverse_result)
 
-        return {
-            resource: attendance_intervals_per_calendar[resource.calendar_id] for resource in self
-        }
+        result_per_resource = defaultdict(WorkIntervals)
+        for resource in self:
+            calendar_periods = all_calendar_periods.get(resource, [])
+            for calendar_period in calendar_periods:
+                attendance_intervals = attendance_intervals_per_calendar.get(calendar_period[2], None)
+                if not attendance_intervals:
+                    continue
+                result_per_resource[resource] |= attendance_intervals & WorkIntervals([calendar_period])
 
-    def _get_leave_intervals(self, start_dt, end_dt, domain=None, tz=None):
+        return result_per_resource
+
+    def _get_leave_intervals_batch(self, start_dt, end_dt, domain=None, tz=None):
         assert start_dt.tzinfo and end_dt.tzinfo
 
         if domain is None:
@@ -255,7 +252,7 @@ class ResourceResource(models.Model):
         domain = expression.AND([
             domain,
             [
-                ('resource_id', 'in', [False] + self.resource_id.ids),  # public leaves don't have a resource_id
+                ('resource_id', 'in', [False] + self.ids),  # public leaves don't have a resource_id
                 ('date_from', '<=', end_dt),
                 ('date_to', '>=', start_dt),
             ]
@@ -272,7 +269,7 @@ class ResourceResource(models.Model):
             leave_date_from = leave.date_from
             leave_date_to = leave.date_to
             for resource in self:
-                if leave_resource and leave_resource != resource.resource_id or\
+                if leave_resource and leave_resource != resource or\
                         not leave_resource and leave_company and resource.company_id != leave_company:
                     continue
                 tz = tz if tz else timezone(resource.tz)
@@ -291,10 +288,40 @@ class ResourceResource(models.Model):
                 result[resource].append((max(start, dt0), min(end, dt1), leave_calendar))
         return {resource: WorkIntervals(result[resource]) for resource in self}
 
-    def _get_work_intervals(self, start_dt, end_dt, domain=None, tz=None):
-        attendance_intervals = self._get_attendance_intervals(start_dt, end_dt, tz=tz or self.env.context.get("employee_timezone"))
-        leave_intervals = self._get_leave_intervals(start_dt, end_dt, domain, tz=tz)
+    def _get_work_intervals_batch(self, start_dt, end_dt, domain=None, tz=None, calendar=None, compute_leaves=True):
+        attendance_intervals = self._get_attendance_intervals_batch(
+            start_dt, end_dt,
+            tz=tz or self.env.context.get("employee_timezone"), calendar=calendar)
+        if not compute_leaves:
+            return attendance_intervals
+        leave_intervals = self._get_leave_intervals_batch(start_dt, end_dt, domain, tz=tz)
         return {
             resource: (attendance_intervals[resource] - leave_intervals[resource])
             for resource in self
         }
+
+    def _get_absence_intervals_batch(self, start_dt, end_dt, domain=None, tz=None, calendar=None):
+        leave_intervals = self._get_leave_intervals_batch(start_dt, end_dt, domain, tz)
+        absence_intervals = self._get_attendance_intervals_batch(
+            start_dt, end_dt, domain,
+            tz, calendar, inverse_result=True)
+        return {
+            resource: leave_intervals[resource] | absence_intervals[resource]
+            for resource in self
+        }
+
+    def _get_attendance_intervals(self, start_dt, end_dt, domain=None, tz=None, calendar=False, lunch=False, inverse_result=False):
+        self.ensure_one()
+        return self._get_attendance_intervals_batch(start_dt, end_dt, domain, tz)[self]
+
+    def _get_leave_intervals(self, start_dt, end_dt, domain=None, tz=None):
+        self.ensure_one()
+        return self._get_leave_intervals_batch(start_dt, end_dt, domain, tz)[self]
+
+    def _get_work_intervals(self, start_dt, end_dt, domain=None, tz=None, calendar=None, compute_leaves=True):
+        self.ensure_one()
+        return self._get_work_intervals_batch(start_dt, end_dt, domain, tz, calendar, compute_leaves)[self]
+
+    def _get_absence_intervals(self, start_dt, end_dt, domain=None, tz=None, calendar=None):
+        self.ensure_one()
+        return self._get_absence_intervals_batch(start_dt, end_dt, domain, tz, calendar)[self]

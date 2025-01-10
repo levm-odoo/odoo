@@ -162,7 +162,7 @@ class HrEmployeeBase(models.AbstractModel):
             if employee.company_id.sudo().hr_presence_control_login:
                 if employee.user_id._is_user_available():
                     state = 'present'
-                elif 'offline' in str(employee.user_id.im_status) and employee.id in working_now_list:
+                elif 'offline' in str(employee.user_id.im_status) and employee in working_now_list:
                     state = 'absent'
             if not employee.active:
                 state = 'archive'
@@ -273,23 +273,15 @@ class HrEmployeeBase(models.AbstractModel):
 
     @api.model
     def _get_employee_working_now(self):
-        working_now = []
-        # We loop over all the employee tz and the resource calendar_id to detect working hours in batch.
-        all_employee_tz = set(self.mapped('tz'))
-        for tz in all_employee_tz:
-            employee_ids = self.filtered(lambda e: e.tz == tz)
-            resource_calendar_ids = employee_ids.mapped('resource_calendar_id')
-            for calendar_id in resource_calendar_ids:
-                res_employee_ids = employee_ids.filtered(lambda e: e.resource_calendar_id.id == calendar_id.id)
-                start_dt = fields.Datetime.now()
-                stop_dt = start_dt + timedelta(hours=1)
-                from_datetime = utc.localize(start_dt).astimezone(timezone(tz or 'UTC'))
-                to_datetime = utc.localize(stop_dt).astimezone(timezone(tz or 'UTC'))
-                # Getting work interval of the first is working. Functions called on resource_calendar_id
-                # are waiting for singleton
-                work_interval = res_employee_ids[0].resource_calendar_id._work_intervals_batch(from_datetime, to_datetime)[False]
-                # Employee that is not supposed to work have empty items.
-                if len(work_interval._items) > 0:
-                    # The employees should be working now according to their work schedule
-                    working_now += res_employee_ids.ids
+        working_now = self.env['hr.employee']
+        employee_per_tz = self.grouped('tz')
+        for tz, employees in employee_per_tz.items():
+            start_dt = fields.Datetime.now()
+            stop_dt = start_dt + timedelta(hours=1)
+            from_datetime = utc.localize(start_dt).astimezone(timezone(tz or 'UTC'))
+            to_datetime = utc.localize(stop_dt).astimezone(timezone(tz or 'UTC'))
+            work_intervals = employees._get_work_intervals_batch(from_datetime, to_datetime)
+            for employee in employees:
+                if len(work_intervals[employee]._items) > 0:
+                    working_now |= employee
         return working_now

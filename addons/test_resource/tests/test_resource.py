@@ -36,8 +36,8 @@ def list_leaves(employee, from_datetime, to_datetime):
     if not to_datetime.tzinfo:
         to_datetime = to_datetime.replace(tzinfo=utc)
 
-    attendances = employee._get_attendance_intervals(from_datetime, to_datetime)[employee]
-    leaves = employee._get_leave_intervals(from_datetime, to_datetime)[employee]
+    attendances = employee._get_attendance_intervals(from_datetime, to_datetime)
+    leaves = employee._get_leave_intervals(from_datetime, to_datetime)
     result = []
     for start, stop, leave in (leaves & attendances):
         hours = (stop - start).total_seconds() / 3600
@@ -580,14 +580,14 @@ class TestCalendar(TestResourceCommon):
         attendances = calendar._get_attendance_intervals(
             datetime.combine(date(2023, 1, 1), datetime.min.time(), tzinfo=timezone("UTC")),
             datetime.combine(date(2023, 1, 31), datetime.max.time(), tzinfo=timezone("UTC")))
-        last_attendance = list(attendances[calendar])[-1]
+        last_attendance = list(attendances)[-1]
         self.assertEqual(last_attendance[0].replace(tzinfo=None), datetime(2023, 1, 31, 8))
         self.assertEqual(last_attendance[1].replace(tzinfo=None), datetime(2023, 1, 31, 15, 59, 59, 999999))
 
         attendances = calendar._get_attendance_intervals(
             datetime.combine(date(2023, 1, 1), datetime.min.time(), tzinfo=timezone("America/Los_Angeles")),
             datetime.combine(date(2023, 1, 31), datetime.max.time(), tzinfo=timezone("America/Los_Angeles")))
-        last_attendance = list(attendances[calendar])[-1]
+        last_attendance = list(attendances)[-1]
         self.assertEqual(last_attendance[0].replace(tzinfo=None), datetime(2023, 1, 31, 8))
         self.assertEqual(last_attendance[1].replace(tzinfo=None), datetime(2023, 1, 31, 16))
 
@@ -1343,8 +1343,11 @@ class TestTimezones(TestResourceCommon):
             'name': 'resource',
             'tz': self.tz3,
         })
-        intervals = resource._get_unavailable_intervals(datetime(2022, 9, 21), datetime(2022, 9, 22))
-        self.assertEqual(list(intervals.values())[0], [
+        intervals = [
+            (interval[0], interval[1])
+            for interval in resource._get_absence_intervals(datetime(2022, 9, 21), datetime(2022, 9, 22))
+        ]
+        self.assertEqual(intervals, [
             (datetime(2022, 9, 21, 0, 0, tzinfo=utc), datetime(2022, 9, 21, 6, 0, tzinfo=utc)),
             (datetime(2022, 9, 21, 10, 0, tzinfo=utc), datetime(2022, 9, 21, 11, 0, tzinfo=utc)),
             (datetime(2022, 9, 21, 15, 0, tzinfo=utc), datetime(2022, 9, 22, 0, 0, tzinfo=utc)),
@@ -1459,5 +1462,5 @@ class TestResource(TestResourceCommon):
         })
 
         resource.company_id.resource_calendar_id = False
-        unavailabilities = resource._get_unavailable_intervals(datetime(2024, 7, 11), datetime(2024, 7, 12))
+        unavailabilities = resource._get_absence_intervals(datetime(2024, 7, 11), datetime(2024, 7, 12))
         self.assertFalse(unavailabilities)

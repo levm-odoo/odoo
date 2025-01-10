@@ -307,7 +307,7 @@ class MrpWorkcenter(models.Model):
         :param end_datetime: filter unavailability with only slots before this end_datetime
         :rtype: dict
         """
-        unavailability_ressources = self.resource_id._get_unavailable_intervals(start_datetime, end_datetime)
+        unavailability_ressources = self.resource_id._get_absence_intervals_batch(start_datetime, end_datetime)
         return {wc.id: unavailability_ressources.get(wc.resource_id.id, []) for wc in self}
 
     def _get_first_available_slot(self, start_datetime, duration, forward=True, leaves_to_ignore=False, extra_leaves_slots=[]):
@@ -343,8 +343,8 @@ class MrpWorkcenter(models.Model):
             if forward:
                 date_start = start_datetime + delta * n
                 date_stop = date_start + delta
-                available_intervals = get_available_intervals(date_start, date_stop)[resource.id]
-                workorder_intervals = get_workorder_intervals(date_start, date_stop)[resource.id]
+                available_intervals = get_available_intervals(date_start, date_stop)
+                workorder_intervals = get_workorder_intervals(date_start, date_stop)
                 for start, stop, _records in available_intervals:
                     start_interval = start_interval or start
                     interval_minutes = (stop - start).total_seconds() / 60
@@ -360,9 +360,9 @@ class MrpWorkcenter(models.Model):
                 # same process but starting from end on reversed intervals
                 date_stop = start_datetime - delta * n
                 date_start = date_stop - delta
-                available_intervals = get_available_intervals(date_start, date_stop)[resource.id]
+                available_intervals = get_available_intervals(date_start, date_stop)
                 available_intervals = reversed(available_intervals)
-                workorder_intervals = get_workorder_intervals(date_start, date_stop)[resource.id]
+                workorder_intervals = get_workorder_intervals(date_start, date_stop)
                 for start, stop, _records in available_intervals:
                     stop_interval = stop_interval or stop
                     interval_minutes = (stop - start).total_seconds() / 60

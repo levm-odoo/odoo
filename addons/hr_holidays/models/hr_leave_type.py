@@ -598,7 +598,7 @@ class HrLeaveType(models.Model):
                     emp_attendances = employee._get_work_intervals(
                         datetime.combine(target_date, time.min).replace(tzinfo=pytz.UTC),
                         datetime.combine(closest_expiration_date, time.max).replace(tzinfo=pytz.UTC)
-                    )[employee]
+                    )
                     closest_allocation_dict = get_attendance_intervals_days_data(emp_attendances)
                     if leave_type.request_unit in ['hour']:
                         closest_allocation_duration = closest_allocation_dict['hours']

@@ -219,7 +219,7 @@ class HrAttendance(models.Model):
                 check_out_tz = attendance.check_out.astimezone(tz)
                 lunch_intervals = []
                 if not employee.is_flexible:
-                    lunch_intervals = employee._get_attendance_intervals(check_in_tz, check_out_tz, lunch=True)[employee]
+                    lunch_intervals = employee._get_attendance_intervals(check_in_tz, check_out_tz, lunch=True)
                 attendance_intervals = Intervals([(check_in_tz, check_out_tz, attendance)]) - lunch_intervals
                 delta = sum((i[1] - i[0]).total_seconds() for i in attendance_intervals)
                 attendance.worked_hours = delta / 3600.0
@@ -326,7 +326,7 @@ class HrAttendance(models.Model):
                 check_in_day_start = attendance._get_day_start_and_day(attendance.employee_id, attendance.check_in)
                 attendances_per_day[check_in_day_start[1]] += attendance
 
-            # As _get_attendance_intervals and _get_leave_intervals both take localized dates we need to localize those date
+            # As _get_attendance_interval and _get_leave_intervals both take localized dates we need to localize those date
             start = pytz.utc.localize(min(attendance_dates, key=itemgetter(0))[0])
             stop = pytz.utc.localize(max(attendance_dates, key=itemgetter(0))[0] + timedelta(hours=24))
 

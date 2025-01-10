@@ -88,8 +88,8 @@ class HrContract(models.Model):
     def _get_resource_calendar_leaves(self, start_dt, end_dt):
         return self.env['resource.calendar.leaves'].search(self._get_leave_domain(start_dt, end_dt))
 
-    def _get_attendance_intervals(self, start_dt, end_dt):
-        return self.employee_id._get_attendance_intervals(start_dt, end_dt)
+    def _get_work_entry_source_intervals(self, start_dt, end_dt):
+        return self.employee_id._get_attendance_intervals_batch(start_dt, end_dt)
 
     def _get_interval_work_entry_type(self, interval):
         self.ensure_one()
@@ -107,7 +107,7 @@ class HrContract(models.Model):
         contract_vals = []
         bypassing_work_entry_type_codes = self._get_bypassing_work_entry_type_codes()
 
-        attendances_by_employee = self._get_attendance_intervals(start_dt, end_dt)
+        attendances_by_employee = self._get_work_entry_source_intervals(start_dt, end_dt)
 
         resource_calendar_leaves = self._get_resource_calendar_leaves(start_dt, end_dt)
         # {resource: resource_calendar_leaves}
@@ -161,7 +161,7 @@ class HrContract(models.Model):
                 real_leaves = attendances - real_attendances
             else:
                 # In the case of attendance based contracts use regular attendances to generate leave intervals
-                static_attendances = employee._get_attendance_intervals(start_dt, end_dt, tz=tz)[employee]
+                static_attendances = employee._get_attendance_intervals(start_dt, end_dt, tz=tz)
                 real_leaves = static_attendances & leaves
 
             if not contract.has_static_work_entries():
