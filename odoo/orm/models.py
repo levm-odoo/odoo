@@ -5417,8 +5417,8 @@ class BaseModel(metaclass=MetaModel):
             # figure out the applicable order_by for the m2o
             # special case: ordering by "x_id.id" doesn't recurse on x_id's comodel
             comodel = self.env[field.comodel_name]
-            if property_name == 'id':
-                coorder = 'id'
+            if property_name == 'id' or comodel._order in ('id', 'id asc', 'id desc'):
+                coorder = 'id' if property_name == 'id' else comodel._order
                 sql_field = self._field_to_sql(alias, fname, query)
             else:
                 coorder = comodel._order
