@@ -1,7 +1,7 @@
 import { Plugin } from "../plugin";
 import { isBlock } from "../utils/blocks";
 import { fillEmpty, splitTextNode } from "../utils/dom";
-import { isTextNode, isVisible } from "../utils/dom_info";
+import { isTab, isTextNode, isVisible } from "../utils/dom_info";
 import { prepareUpdate } from "../utils/dom_state";
 import { childNodes, closestElement, firstLeaf, lastLeaf } from "../utils/dom_traversal";
 import { DIRECTIONS, childNodeIndex, nodeSize } from "../utils/position";
@@ -212,8 +212,8 @@ export class SplitPlugin extends Plugin {
         if ([firstNode, lastNode].includes(limitAncestor)) {
             return limitAncestor;
         }
-        let before = firstNode.previousSibling;
-        let after = lastNode.nextSibling;
+        let before = isTab(firstNode.parentElement) ? firstNode.parentElement.previousSibling : firstNode.previousSibling;
+        let after = isTab(lastNode.parentElement) ? lastNode.parentElement.nextSibling : lastNode.nextSibling;
         let beforeSplit, afterSplit;
         if (!before && !after && elements[0] !== limitAncestor) {
             return this.splitAroundUntil(elements[0].parentElement, limitAncestor);
