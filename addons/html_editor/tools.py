@@ -51,7 +51,7 @@ def get_video_source_data(video_url):
 def get_video_url_data(video_url, autoplay=False, loop=False,
                        hide_controls=False, hide_fullscreen=False,
                        hide_dm_logo=False, hide_dm_share=False,
-                       isActive=False, startAt="0"):
+                       startAt=None):
     """ Computes the platform name, the embed_url, the video id and the video params of the given URL
         (or error message in case of invalid URL).
     """
@@ -67,7 +67,7 @@ def get_video_url_data(video_url, autoplay=False, loop=False,
     if platform == 'youtube':
         params['rel'] = 0
         params['autoplay'] = autoplay and 1 or 0
-        if isActive:
+        if startAt:
             params["start"] = startAt.rstrip("s")
         if autoplay:
             params['mute'] = 1
@@ -96,11 +96,11 @@ def get_video_url_data(video_url, autoplay=False, loop=False,
         if loop:
             params['loop'] = 1
         embed_url = f"//player.vimeo.com/video/{video_id}?{url_encode(params)}"
-        if isActive and startAt != "0":
+        if startAt:
             embed_url = f"{embed_url}#t={startAt}"
     elif platform == 'dailymotion':
         params['autoplay'] = autoplay and 1 or 0
-        if isActive:
+        if startAt:
             params["startTime"] = startAt.rstrip("s")
         if autoplay:
             params['mute'] = 1

@@ -120,8 +120,7 @@ export class VideoSelector extends Component {
                             if (params.has("t")) {
                                 this.state.timestamp.isActive = true;
                                 this.state.timestamp.startAt = params.get("t");
-                            }
-                            else if (params.has("start")) { // Legacy support
+                            } else if (params.has("start")) { // Legacy support
                                 this.state.timestamp.isActive = true;
                                 this.state.timestamp.startAt = params.get("start");
                             } else {

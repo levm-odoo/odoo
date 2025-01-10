@@ -317,12 +317,12 @@ class HTML_Editor(http.Controller):
     def video_url_data(self, video_url, autoplay=False, loop=False,
                        hide_controls=False, hide_fullscreen=False,
                        hide_dm_logo=False, hide_dm_share=False,
-                       isActive=False, startAt="0"):
+                       startAt="0"):
         return get_video_url_data(
             video_url, autoplay=autoplay, loop=loop,
             hide_controls=hide_controls, hide_fullscreen=hide_fullscreen,
             hide_dm_logo=hide_dm_logo, hide_dm_share=hide_dm_share,
-            isActive=isActive, startAt=startAt
+            startAt=startAt
         )
 
     @http.route(['/web_editor/attachment/add_data', '/html_editor/attachment/add_data'], type='jsonrpc', auth='user', methods=['POST'], website=True)
