@@ -28,11 +28,14 @@ export class PaymentScreen extends Component {
         PaymentScreenStatus,
     };
     static props = {
-        orderUuid: String,
+        orderUuid: { type: String, optional: true },
     };
 
     setup() {
         this.pos = usePos();
+        if (!this.props.orderUuid) {
+            this.pos.showScreen("ProductScreen");
+        }
         this.ui = useState(useService("ui"));
         this.dialog = useService("dialog");
         this.invoiceService = useService("account_move");
