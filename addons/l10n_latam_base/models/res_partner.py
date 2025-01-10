@@ -9,7 +9,7 @@ class ResPartner(models.Model):
     l10n_latam_identification_type_id = fields.Many2one('l10n_latam.identification.type',
         string="Identification Type", index='btree_not_null', auto_join=True,
         default=lambda self: self.env.ref('l10n_latam_base.it_vat', raise_if_not_found=False),
-        inverse="_inverse_vat",
+        inverse="_inverse_vat", # To trigger the vat checking
         help="The type of identification")
     vat = fields.Char(string='Identification Number', help="Identification Number for selected type")
 
@@ -20,15 +20,14 @@ class ResPartner(models.Model):
     def _run_check_identification(self, validation='error'):
         return
 
+    def _check_vat(self, validation='error'):
+        partners_vat = self.filtered(lambda p: not p.l10n_latam_identification_type_id
+                                               or p.l10n_latam_identification_type_id.is_vat)
+        super(ResPartner, partners_vat)._check_vat(validation=validation)
+        (self - partners_vat)._run_check_identification(validation=validation)
+
     @api.onchange('l10n_latam_identification_id')
     def _onchange_vat(self):
-        if not self.l10n_latam_identification_type_id or self.l10n_latam_identification_type_id.is_vat:
-            super()._onchange_vat()
-        else:
-            self._run_check_identification(validation='none')
+        super()._onchange_vat()
 
-    def _inverse_vat(self):
-        vat_partners = self.filtered(lambda p: not p.l10n_latam_identification_type_id or p.l10n_latam_identification_type_id.is_vat)
-        super(ResPartner, vat_partners)._inverse_vat()
-        (self - vat_partners)._run_check_identification()
 

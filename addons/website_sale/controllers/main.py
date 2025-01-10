@@ -1221,7 +1221,7 @@ class WebsiteSale(payment_portal.PaymentPortal):
         # Validate the VAT number.
         ResPartnerSudo = request.env['res.partner'].sudo()
         if (
-            address_values.get('vat') and hasattr(ResPartnerSudo, 'check_vat')
+            address_values.get('vat') and hasattr(ResPartnerSudo, '_check_vat')
             and 'vat' not in invalid_fields
         ):
             partner_dummy = ResPartnerSudo.new({
@@ -1230,7 +1230,7 @@ class WebsiteSale(payment_portal.PaymentPortal):
                 if fname in address_values
             })
             try:
-                partner_dummy.check_vat()
+                partner_dummy._check_vat()
             except ValidationError as exception:
                 invalid_fields.add('vat')
                 error_messages.append(exception.args[0])
