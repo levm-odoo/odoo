@@ -55,8 +55,9 @@ class SaleCommon(
                     'product_id': self.product.id,
                 }),
             ],
+            **values
         }
-        return self.env['sale.order'].create(dict(default_values, **values))
+        return self.env['sale.order'].create(default_values)
 
 
 class TestSaleCommon(AccountTestInvoicingCommon):

@@ -4,7 +4,7 @@ from base64 import b64encode
 from functools import partial
 
 from odoo.fields import Command
-from odoo.tests import tagged
+from odoo.tests import Form, tagged
 from odoo.tools.misc import file_open
 
 from odoo.addons.base.tests.common import HttpCaseWithUserDemo
@@ -56,6 +56,18 @@ class TestPDFQuoteBuilder(HttpCaseWithUserDemo, SaleCommon):
             'res_model': 'product.product',
             'res_id': cls.product.id,
         })
+
+    def _create_so_form(self, **values):
+        """Default values limited to preexisting ones. No Command"""
+        so_form = Form(self.env['sale.order'])
+        default_values = {
+            'partner_id': self.partner,
+            **values
+        }
+        for field_name, value in default_values.items():
+            so_form[field_name] = value
+        so_form.save()
+        return so_form
 
     def test_compute_customizable_pdf_form_fields_when_no_file(self):
         self.env['quotation.document'].search([]).action_archive()
@@ -172,14 +184,11 @@ class TestPDFQuoteBuilder(HttpCaseWithUserDemo, SaleCommon):
         # Assert documents are selected
 
     def test_quotation_document_is_added_iff_default(self):
-        self.assertFalse(self._create_so().get_selected_quotation_documents())
+        self.assertFalse(self._create_so().quotation_document_ids)
 
         self.header.add_by_default = True
 
-        self.assertEqual(
-            self._create_so().get_selected_quotation_documents(),
-            self.header,
-        )
+        self.assertEqual(self._create_so().quotation_document_ids, self.header)
 
     def test_default_quotation_document_is_added_iff_available(self):
         # header is default but only for quote_tmpl
@@ -189,11 +198,11 @@ class TestPDFQuoteBuilder(HttpCaseWithUserDemo, SaleCommon):
             'quotation_template_ids': [Command.link(so_tmpl.id)],
         })
 
-        so_without_tmpl = self._create_so()
-        so_with_tmpl = self._create_so(sale_order_template_id=so_tmpl.id)
+        sof_without_tmpl = self._create_so_form()
+        sof_with_tmpl = self._create_so_form(sale_order_template_id=so_tmpl)
 
-        self.assertFalse(so_without_tmpl.get_selected_quotation_documents())
-        self.assertEqual(so_with_tmpl.get_selected_quotation_documents(), self.header)
+        self.assertFalse(sof_without_tmpl.record.quotation_document_ids)
+        self.assertEqual(sof_with_tmpl.record.quotation_document_ids, self.header)
 
     def test_quotation_document_is_removed_if_unavailable(self):
         so_tmpl = self.env['sale.order.template'].create({'name': "Awesome Template"})
@@ -201,9 +210,10 @@ class TestPDFQuoteBuilder(HttpCaseWithUserDemo, SaleCommon):
             'add_by_default': True,
             'quotation_template_ids': [Command.link(so_tmpl.id)],
         })
-        so = self._create_so(sale_order_template_id=so_tmpl.id)
-        self.assertEqual(so.get_selected_quotation_documents(), self.header)
+        sof = self._create_so_form(sale_order_template_id=so_tmpl)
+        self.assertEqual(sof.record.quotation_document_ids, self.header)
 
-        so.sale_order_template_id = False
+        sof.sale_order_template_id = self.env['sale.order.template']
+        sof.save()
 
-        self.assertFalse(so.get_selected_quotation_documents())
+        self.assertFalse(sof.record.quotation_document_ids)

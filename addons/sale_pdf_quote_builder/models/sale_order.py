@@ -8,6 +8,13 @@ from odoo import _, api, fields, models
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
+    def _default_quotation_document_ids(self):
+        return self.env['quotation.document'].search([
+            *self.env['quotation.document']._check_company_domain(self.env.companies),
+            ('quotation_template_ids', '=', False),
+            ('add_by_default', '=', True),
+        ])
+
     available_product_document_ids = fields.Many2many(
         string="Available Product Documents",
         comodel_name='quotation.document',
@@ -16,10 +23,10 @@ class SaleOrder(models.Model):
     is_pdf_quote_builder_available = fields.Boolean(
         compute='_compute_is_pdf_quote_builder_available',
     )
-    # Note: use `get_selected_quotation_documents` to read this field
     quotation_document_ids = fields.Many2many(
         string="Headers/Footers",
         comodel_name='quotation.document',
+        default=_default_quotation_document_ids,
         readonly=False,
         check_company=True,
     )
@@ -30,7 +37,7 @@ class SaleOrder(models.Model):
 
     # === COMPUTE METHODS === #
 
-    @api.depends('sale_order_template_id.quotation_document_ids')
+    @api.depends('sale_order_template_id')
     def _compute_available_product_document_ids(self):
         for order in self:
             order.available_product_document_ids = self.env['quotation.document'].search(
@@ -49,27 +56,22 @@ class SaleOrder(models.Model):
                 or order.order_line.available_product_document_ids
             )
 
-    # === CRUD METHODS === #
+    # === ONCHANGE METHODS === #
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        orders = super().create(vals_list)
-        default_documents = self.env['quotation.document'].search([('add_by_default', '=', True)])
-        for order in orders:
-            order.quotation_document_ids |= default_documents & order.available_product_document_ids
-        return orders
+    @api.onchange('sale_order_template_id')
+    def _onchange_sale_order_template_id(self):
+        super()._onchange_sale_order_template_id()
+
+        # Remove documents which are no longer available.
+        self.quotation_document_ids &= self.available_product_document_ids
+
+        if not self.sale_order_template_id.quotation_document_ids:
+            return
+        self.quotation_document_ids |= self.sale_order_template_id.quotation_document_ids.filtered(
+            lambda doc: doc.company_id.id in [False, self.company_id.id] and doc.add_by_default
+        )
 
     # === ACTION METHODS === #
-
-    def get_selected_quotation_documents(self):
-        """Ensures that quotation documents are always available documents.
-
-        Making `quotation_document_ids` a compute field dependent on
-        `available_product_document_ids` would cause significant performance issues every time a
-        user wants to modify `sale_order_template_id.quotation_document_ids`.
-        """
-        self.quotation_document_ids &= self.available_product_document_ids
-        return self.quotation_document_ids
 
     def get_update_included_pdf_params(self):
         if not self:
@@ -90,7 +92,7 @@ class SaleOrder(models.Model):
         footers_available = self.available_product_document_ids.filtered(
             lambda doc: doc.document_type == 'footer'
         )
-        selected_documents = self.get_selected_quotation_documents()
+        selected_documents = self.quotation_document_ids
         selected_headers = selected_documents.filtered(lambda doc: doc.document_type == 'header')
         selected_footers = selected_documents - selected_headers
         lines_params = []
