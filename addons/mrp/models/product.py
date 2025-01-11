@@ -32,6 +32,17 @@ class ProductTemplate(models.Model):
         compute='_compute_mrp_product_qty', compute_sudo=False)
     is_kits = fields.Boolean(compute='_compute_is_kits', search='_search_is_kits')
 
+    @api.depends('bom_ids')
+    def _compute_route_ids(self):
+        super()._compute_route_ids()
+        for template in self:
+            manufacturing_route = self.env.ref('mrp.route_warehouse0_manufacture')
+            has_normal_bom = any(bom.type == 'normal' for bom in template.bom_ids)
+            if template.bom_ids and has_normal_bom and manufacturing_route:
+                template.write({'route_ids': [(4, manufacturing_route.id)]})
+            else:
+                template.write({'route_ids': [(3, manufacturing_route.id)]})
+
     def _compute_bom_count(self):
         for product in self:
             product.bom_count = self.env['mrp.bom'].search_count(['|', ('product_tmpl_id', '=', product.id), ('byproduct_ids.product_id.product_tmpl_id', '=', product.id)])
