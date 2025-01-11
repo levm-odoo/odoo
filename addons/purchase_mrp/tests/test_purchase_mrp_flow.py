@@ -162,9 +162,10 @@ class TestPurchaseMrpFlow(AccountTestInvoicingCommon):
         p.uom_id = uom_id
         p.uom_po_id = uom_id
         p.route_ids.clear()
+        cls.product = p.save()
         for r in routes:
-            p.route_ids.add(r)
-        return p.save()
+            cls.product.route_ids = [Command.link(r.id)]
+        return cls.product
 
         # Helper to process quantities based on a dict following this structure :
         #
