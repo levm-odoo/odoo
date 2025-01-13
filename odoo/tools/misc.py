@@ -66,6 +66,7 @@ __all__ = [
     'DotDict',
     'OrderedSet',
     'Reverse',
+    'StackMap',
     'babel_locale_parse',
     'clean_context',
     'consteq',
