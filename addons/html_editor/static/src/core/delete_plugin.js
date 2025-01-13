@@ -1187,7 +1187,11 @@ export class DeletePlugin extends Plugin {
             return;
         }
 
-        if (isEmpty(closestUnmergeable) && !this.isUnremovable(closestUnmergeable)) {
+        if (
+            (isEmpty(closestUnmergeable) ||
+                this.delegateTo("is_empty_handlers", closestUnmergeable)) &&
+            !this.isUnremovable(closestUnmergeable)
+        ) {
             closestUnmergeable.remove();
             this.dependencies.selection.setSelection({
                 anchorNode: destContainer,
