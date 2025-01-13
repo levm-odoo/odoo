@@ -36,7 +36,7 @@ class MailMessageSchedule(models.Model):
     def create(self, vals_list):
         schedules = super().create(vals_list)
         if schedules:
-            self.env.ref('mail.ir_cron_send_scheduled_message')._trigger_list(
+            self.env.ref('mail.ir_cron_send_scheduled_message')._trigger(
                 set(schedules.mapped('scheduled_datetime'))
             )
         return schedules

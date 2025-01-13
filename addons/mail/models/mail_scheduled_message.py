@@ -91,7 +91,7 @@ class MailScheduledMessage(models.Model):
                 })
         # schedule cron trigger
         if scheduled_messages:
-            self.env.ref('mail.ir_cron_post_scheduled_message')._trigger_list(
+            self.env.ref('mail.ir_cron_post_scheduled_message')._trigger(
                 set(scheduled_messages.mapped('scheduled_date'))
             )
         return scheduled_messages

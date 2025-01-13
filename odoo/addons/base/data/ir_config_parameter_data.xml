@@ -5,5 +5,9 @@
             <field name="key">base.default_max_email_size</field>
             <field name="value">10</field>
         </record>
+        <record id="ir_trigger_soon_delay" model="ir.config_parameter">
+            <field name="key">base.ir_trigger_soon_delay</field>
+            <field name="value">30</field>
+        </record>
     </data>
 </odoo>

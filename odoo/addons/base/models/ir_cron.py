@@ -6,6 +6,7 @@ import os
 import psycopg2
 import psycopg2.errors
 import pytz
+from collections.abc import Collection
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
@@ -531,7 +532,7 @@ class IrCron(models.Model):
         self.env.cr.execute("""
             DELETE FROM ir_cron_trigger
             WHERE cron_id = %s
-              AND call_at < (now() at time zone 'UTC')
+              AND (call_at < (now() at time zone 'UTC') OR is_soon)
         """, [job['id']])
 
     def _reschedule_asap(self, job):
@@ -635,15 +636,14 @@ class IrCron(models.Model):
         active = bool(self.env[model].search_count(domain))
         return self.try_write({'active': active})
 
-    def _trigger(self, at=None):
+    def _trigger(self, at: datetime | Collection[datetime] | None = None, *, soon: bool = False):
         """
-        Schedule a cron job to be executed soon independently of its
-        ``nextcall`` field value.
+        Schedule a cron job to be executed as of the given date independently
+        of its ``nextcall`` field value.
 
         By default, the cron is scheduled to be executed the next time
         the cron worker wakes up, but the optional `at` argument may be
-        given to delay the execution later, with a precision down to 1
-        minute.
+        given to delay the execution later.
 
         The method may be called with a datetime or an iterable of
         datetime. The actual implementation is in :meth:`~._trigger_list`,
@@ -652,25 +652,38 @@ class IrCron(models.Model):
         :param Optional[Union[datetime.datetime, list[datetime.datetime]]] at:
             When to execute the cron, at one or several moments in time
             instead of as soon as possible.
+        :param bool soon:
+            When set, the trigger is deleted after next successful run.
+            If no ``at`` is given we add a few seconds configured in
+            ``base.ir_trigger_soon_delay`` system setting.
         :return: the created triggers records
         :rtype: recordset
         """
         if at is None:
-            at_list = [fields.Datetime.now()]
+            at = fields.Datetime.now()
+            if soon:
+                at += timedelta(seconds=self._get_trigger_delay_seconds())
+            at_list = [at]
         elif isinstance(at, datetime):
             at_list = [at]
         else:
             at_list = list(at)
             assert all(isinstance(at, datetime) for at in at_list)
 
-        return self._trigger_list(at_list)
+        return self._trigger_list(at_list, soon)
 
-    def _trigger_list(self, at_list):
+    @api.model
+    def _get_trigger_delay_seconds(self):
+        return float(self.env['ir.config_parameter'].sudo().get_param('base.ir_trigger_soon_delay', 0))
+
+    def _trigger_list(self, at_list: list[datetime], soon: bool):
         """
         Implementation of :meth:`~._trigger`.
 
         :param list[datetime.datetime] at_list:
             Execute the cron later, at precise moments in time.
+        :param bool soon:
+            Remove after first execution.
         :return: the created triggers records
         :rtype: recordset
         """
@@ -685,7 +698,7 @@ class IrCron(models.Model):
             return self.env['ir.cron.trigger']
 
         triggers = self.env['ir.cron.trigger'].sudo().create([
-            {'cron_id': self.id, 'call_at': at}
+            {'cron_id': self.id, 'call_at': at, 'soon': soon}
             for at in at_list
         ])
         if _logger.isEnabledFor(logging.DEBUG):
@@ -752,6 +765,7 @@ class IrCronTrigger(models.Model):
 
     cron_id = fields.Many2one("ir.cron", index=True)
     call_at = fields.Datetime(index=True)
+    is_soon = fields.Boolean()
 
     @api.autovacuum
     def _gc_cron_triggers(self):
