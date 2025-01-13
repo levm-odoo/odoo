@@ -124,6 +124,11 @@ class _PosixOnlyOption(_OdooOption):
         super().__init__(*opts, **attrs)
 
 
+class _RunTimeOnlyOption(_FileOnlyOption):
+    def __init__(self, **attrs):
+        super().__init__(**attrs, file_loadable=False)
+
+
 def _deduplicate_loggers(loggers):
     """ Avoid saving multiple logging levels for the same loggers to a save
     file, that just takes space and the list can potentially grow unbounded
@@ -175,9 +180,12 @@ class configmanager:
         OdooOption = type('OdooOption', (_OdooOption,), {'config': self})
         FileOnlyOption = type('FileOnlyOption', (_FileOnlyOption, OdooOption), {})
         PosixOnlyOption = type('PosixOnlyOption', (_PosixOnlyOption, OdooOption), {})
+        RunTimeOnlyOption = type('RunTimeOnlyOption', (_RunTimeOnlyOption, OdooOption), {})
 
         version = "%s %s" % (release.description, release.version)
         parser = optparse.OptionParser(version=version, option_class=OdooOption)
+
+        parser.add_option(RunTimeOnlyOption(dest='load_data_init'))
 
         parser.add_option(FileOnlyOption(dest='admin_passwd', my_default='admin'))
         parser.add_option(FileOnlyOption(dest='bin_path', type='path', my_default='', file_exportable=False))

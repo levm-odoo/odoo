@@ -75,6 +75,7 @@ class TestConfigManager(TransactionCase):
             'save': False,
             'init': {},
             'update': {},
+            'load_data_init': {},
             'without_demo': False,
             'import_partial': '',
             'pidfile': '',
@@ -189,6 +190,7 @@ class TestConfigManager(TransactionCase):
             'save': False,
             'init': {},  # blacklist for save, ignored from the config file
             'update': {},  # blacklist for save, ignored from the config file
+            'load_data_init': {},  # blacklist for save, ignored from the config file
             'without_demo': True,
             'import_partial': '/tmp/import-partial',
             'pidfile': '/tmp/pidfile',
@@ -406,6 +408,9 @@ class TestConfigManager(TransactionCase):
             'websocket_rate_limit_burst': 10,
             'websocket_rate_limit_delay': 0.2,
             'x_sendfile': False,
+
+            # new options since 18.2
+            'load_data_init': {},
         })
 
         output = [
@@ -461,6 +466,7 @@ class TestConfigManager(TransactionCase):
             'save': False,
             'init': {'hr': True, 'stock': True},
             'update': {'account': True, 'website': True},
+            'load_data_init': {},
             'without_demo': True,
             'import_partial': '/tmp/import-partial',
             'pidfile': '/tmp/pidfile',
