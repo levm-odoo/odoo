@@ -470,6 +470,25 @@ def call_kw(model, name, args, kwargs):
     return result
 
 
+class Protector():
+    def __init__(self, env):
+        self.env = env
+        self.protected = env._protected
+        self.top = None
+
+    def __enter__(self):
+        return self
+
+    def protect(self, what):
+        assert self.top is None, "Cannot protect twice in the same context"
+        self.top = self.protected.pushmap()
+        self.env._protect(what)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.top is not None:
+            assert self.protected.popmap() is self.top
+
+
 class Environment(Mapping):
     """ The environment stores various contextual data used by the ORM:
 
@@ -756,6 +775,20 @@ class Environment(Mapping):
         """ Return the recordset for which ``field`` should not be invalidated or recomputed. """
         return self[field.model_name].browse(self._protected.get(field, ()))
 
+    def _protect(self, what, records=None):
+        protected = self._protected
+        if records is not None:  # Handle first signature
+            ids_by_field = {field: records._ids for field in what}
+        else:  # Handle second signature
+            ids_by_field = defaultdict(list)
+            for fields, what_records in what:
+                for field in fields:
+                    ids_by_field[field].extend(what_records._ids)
+
+        for field, rec_ids in ids_by_field.items():
+            ids = protected.get(field)
+            protected[field] = ids.union(rec_ids) if ids else frozenset(rec_ids)
+
     @contextmanager
     def protecting(self, what, records=None):
         """ Prevent the invalidation or recomputation of fields on records.
@@ -765,22 +798,16 @@ class Environment(Mapping):
         - ``what`` a collection of pairs ``(fields, records)``.
         """
         protected = self._protected
+        top = None
         try:
-            protected.pushmap()
-            if records is not None:  # Handle first signature
-                ids_by_field = {field: records._ids for field in what}
-            else:  # Handle second signature
-                ids_by_field = defaultdict(list)
-                for fields, what_records in what:
-                    for field in fields:
-                        ids_by_field[field].extend(what_records._ids)
-
-            for field, rec_ids in ids_by_field.items():
-                ids = protected.get(field)
-                protected[field] = ids.union(rec_ids) if ids else frozenset(rec_ids)
+            top = protected.pushmap()
+            self._protect(what, records)
             yield
         finally:
-            protected.popmap()
+            assert protected.popmap() is top
+
+    def protector(self):
+        return Protector(self)
 
     def fields_to_compute(self):
         """ Return a view on the field to compute. """

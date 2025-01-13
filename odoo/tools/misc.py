@@ -1096,7 +1096,9 @@ class StackMap(MutableMapping):
         return u"<StackMap %s>" % self._maps
 
     def pushmap(self, m=None):
-        self._maps.append({} if m is None else m)
+        top = {} if m is None else m
+        self._maps.append(top)
+        return top
 
     def popmap(self):
         return self._maps.pop()
