@@ -62,6 +62,7 @@ const closestBlock = OdooEditorLib.closestBlock;
 const getRangePosition = OdooEditorLib.getRangePosition;
 const fillEmpty = OdooEditorLib.fillEmpty;
 const isVisible = OdooEditorLib.isVisible;
+const isEmptyBlock = OdooEditorLib.isEmptyBlock;
 
 function getJqueryFromDocument(doc) {
     if (doc.defaultView && doc.defaultView.$) {
@@ -2009,7 +2010,13 @@ export class Wysiwyg extends Component {
             if (!this.lastMediaClicked) {
                 return;
             }
+            const blockEl = closestBlock(this.lastMediaClicked);
             $(this.lastMediaClicked).remove();
+            if (isEmptyBlock(blockEl)) {
+                fillEmpty(blockEl);
+                setSelection(blockEl, 0);
+            }
+            this.odooEditor.historyStep();
             this.lastMediaClicked = undefined;
             this.odooEditor.toolbarHide();
         });
