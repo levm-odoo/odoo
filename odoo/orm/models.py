@@ -4489,7 +4489,7 @@ class BaseModel(metaclass=MetaModel):
         vals = {key: val for key, val in vals.items() if key not in bad_names}
         if self._log_access:
             vals.setdefault('write_uid', self.env.uid)
-            vals.setdefault('write_date', self.env.cr.now())
+            vals.setdefault('write_date', self.env.cr.now().replace(microsecond=0))
 
         field_values = []                           # [(field, value)]
         determine_inverses = defaultdict(list)      # {inverse: fields}
@@ -4632,7 +4632,7 @@ class BaseModel(metaclass=MetaModel):
 
         if self._log_access:
             # set magic fields (already done by write(), but not for computed fields)
-            log_vals = {'write_uid': self.env.uid, 'write_date': self.env.cr.now()}
+            log_vals = {'write_uid': self.env.uid, 'write_date': self.env.cr.now().replace(microsecond=0)}
             vals_list = [(log_vals | vals) for vals in vals_list]
 
         # determine SQL updates, grouped by set of updated fields:
@@ -4887,9 +4887,9 @@ class BaseModel(metaclass=MetaModel):
                 vals.pop(fname, None)
             if self._log_access:
                 vals.setdefault('create_uid', self.env.uid)
-                vals.setdefault('create_date', self.env.cr.now())
+                vals.setdefault('create_date', self.env.cr.now().replace(microsecond=0))
                 vals.setdefault('write_uid', self.env.uid)
-                vals.setdefault('write_date', self.env.cr.now())
+                vals.setdefault('write_date', self.env.cr.now().replace(microsecond=0))
 
             result_vals_list.append(vals)
 
