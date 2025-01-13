@@ -113,7 +113,7 @@ class ResPartner(models.Model):
         if len(vat) > 2 and vat_country == 'eu' and country not in self.env.ref('base.europe').country_ids:
             # Foreign companies that trade with non-enterprises in the EU
             # may have a VATIN starting with "EU" instead of a country code.
-            return vat
+            return vat, False
 
         prefixed_country = ''
         if country in self._get_eu_prefixed_countries():
@@ -138,7 +138,7 @@ class ResPartner(models.Model):
         # The context key 'no_vat_validation' allows you to store/set a VAT number without doing validations.
         # This is for API pushes from external platforms where you have no control over VAT numbers.
         if validation == 'none':
-            return vat_to_return
+            return vat_to_return, country_code
 
         if not self._run_vat_test(vat, code_to_check):
             partner_label = _("partner [%s]", partner_name)
@@ -146,7 +146,7 @@ class ResPartner(models.Model):
             if validation == 'error':
                 raise ValidationError(msg)
             else:
-                return ''
+                return '', country_code
         return vat_to_return, code_to_check
 
     def _check_vat(self, validation="error"):

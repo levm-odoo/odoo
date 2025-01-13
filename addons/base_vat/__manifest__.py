@@ -40,4 +40,5 @@ only the country code will be validated.
         'views/res_partner_views.xml',
     ],
     'license': 'LGPL-3',
+    'autoinstall': 'account',
 }
