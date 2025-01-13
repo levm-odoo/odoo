@@ -30,9 +30,15 @@ export class ReceiptScreen extends Component {
         this.doFullPrint = useTrackedAsync(() => this.pos.printReceipt());
         this.doBasicPrint = useTrackedAsync(() => this.pos.printReceipt({ basic: true }));
         onMounted(() => {
-            const order = this.pos.get_order();
             this.currentOrder.uiState.locked = true;
-            this.pos.sendOrderInPreparation(order);
+            const order = this.pos.get_order();
+            //TODO-manv
+            if (!order.uiState.isSplitted && !order.uiState.splittedOrderUuid) {
+                console.log("update pd order");
+                this.pos.sendOrderInPreparation(order);
+            } else {
+                console.log("splitted/splitting order");
+            }
         });
     }
 
