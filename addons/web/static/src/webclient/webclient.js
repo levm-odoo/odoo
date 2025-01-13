@@ -60,18 +60,22 @@ export class WebClient extends Component {
         if (stateLoaded) {
             // Set the menu based on the action after it was loaded (eg when the action in url is an
             // xmlid)
+            const setMenu = () => {
+                const currentController = this.actionService.currentController;
+                const actionId = currentController && currentController.action.id;
+                const allMenus = this.menuService.getAll();
+                let menuId = allMenus.find((m) => m.actionID === actionId)?.appID;
+                if (!menuId) {
+                    const firstAction = router.current.actionStack?.[0]?.action;
+                    menuId = allMenus.find((m) => m.actionID === firstAction || m.actionPath === firstAction)?.appID;
+                }
+                if (menuId) {
+                    this.menuService.setCurrentMenu(menuId);
+                }
+            };
+            setMenu();
             await this.menuService.menusReady;
-            const currentController = this.actionService.currentController;
-            const actionId = currentController && currentController.action.id;
-            const allMenus = this.menuService.getAll();
-            let menuId = allMenus.find((m) => m.actionID === actionId)?.appID;
-            if (!menuId) {
-                const firstAction = router.current.actionStack?.[0]?.action;
-                menuId = allMenus.find((m) => m.actionID === firstAction || m.actionPath === firstAction)?.appID;
-            }
-            if (menuId) {
-                this.menuService.setCurrentMenu(menuId);
-            }
+            setMenu();
 
             // Scroll to anchor after the state is loaded
             if (browser.location.hash !== "") {

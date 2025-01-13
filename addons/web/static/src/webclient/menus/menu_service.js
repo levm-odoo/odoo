@@ -14,9 +14,10 @@ export const menuService = {
         };
 
         const menusReady = _fetchMenus();
-        let menusData = {};
+        let menusData = JSON.parse(browser.localStorage.getItem("webclient_menus") || "{}");
         menusReady.then((res) => {
             menusData = res;
+            browser.localStorage.setItem("webclient_menus", JSON.stringify(menusData));
         });
 
         function getMenu(menuId) {
@@ -25,7 +26,6 @@ export const menuService = {
 
         let currentAppId;
         async function setCurrentMenu(menu) {
-            await menusReady;
             menu = typeof menu === "number" ? getMenu(menu) : menu;
             if (menu && menu.appID !== currentAppId) {
                 currentAppId = menu.appID;
@@ -56,7 +56,6 @@ export const menuService = {
                 return menu || {};
             },
             async selectMenu(menu) {
-                await menusReady;
                 menu = typeof menu === "number" ? this.getMenu(menu) : menu;
                 if (!menu.actionID) {
                     return;
