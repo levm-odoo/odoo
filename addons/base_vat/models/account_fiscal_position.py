@@ -1,53 +1,33 @@
 # -*- coding: utf-8 -*-
 
-from odoo import api, models, _
+from odoo import api, models, fields, _
 from odoo.exceptions import ValidationError
 
 
 class AccountFiscalPosition(models.Model):
     _inherit = 'account.fiscal.position'
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        new_vals = []
-        for vals in vals_list:
-            new_vals.append(self.adjust_vals_country_id(vals))
-        return super().create(new_vals)
+    country_id = fields.Many2one(inverse='_inverse_vat')
+    foreign_vat = fields.Char(inverse='_inverse_vat')
 
-    def write(self, vals):
-        vals = self.adjust_vals_country_id(vals)
-        return super().write(vals)
+    @api.onchange('country_id', 'country_group_id', 'foreign_vat')
+    def _onchange_vat(self):
+        if not self.country_id and self.country_group_id and self.foreign_vat and len(self.foreign_vat) > 1:
+            # TODO: and Greece?  (EL -> GR)
+            self.country_id = self.country_group_id.country_ids.filtered(lambda c: c.code == self.foreign_vat[:2].upper()).id or False
+        vat, country_code = self.env['res.partner']._run_vat_checks(self.country_id, self.foreign_vat, validation="none")
+        self.vat = vat
+        if country_code != self.country_id.code.lower():
+            self.country_id = self.env['res.country_id'].search([('code', '=', country_code.upper())])
 
-    def adjust_vals_country_id(self, vals):
-        foreign_vat = vals.get('foreign_vat')
-        country_group_id = vals.get('country_group_id')
-        if foreign_vat and country_group_id and not (self.country_id or vals.get('country_id')):
-            vals['country_id'] = self.env['res.country.group'].browse(country_group_id).country_ids.filtered(lambda c: c.code == foreign_vat[:2].upper()).id or False
-        return vals
-
-    @api.constrains('country_id', 'foreign_vat')
-    def _validate_foreign_vat(self):
+    def _inverse_vat(self):
         for record in self:
             if not record.foreign_vat:
                 continue
 
-            if record.country_group_id:
-                # Checks the foreign vat is a VAT Number linked to a country of the country group
-                foreign_vat_country = self.country_group_id.country_ids.filtered(lambda c: c.code == record.foreign_vat[:2].upper())
-                if not foreign_vat_country:
-                    raise ValidationError(_("The country detected for this foreign VAT number does not match any of the countries composing the country group set on this fiscal position."))
-                if record.country_id:
-                    checked_country_code = self.env['res.partner']._run_vat_test(record.foreign_vat, record.country_id) or self.env['res.partner']._run_vat_test(record.foreign_vat, foreign_vat_country)
-                    if not checked_country_code:
-                        record.raise_vat_error_message(foreign_vat_country)
-                else:
-                    checked_country_code = self.env['res.partner']._run_vat_test(record.foreign_vat, foreign_vat_country)
-                    if not checked_country_code:
-                        record.raise_vat_error_message(record.country_id)
-            elif record.country_id:
-                foreign_vat_country = self.env['res.country'].search([('code', '=', record.foreign_vat[:2].upper())], limit=1)
-                checked_country_code = self.env['res.partner']._run_vat_test(record.foreign_vat, foreign_vat_country or record.country_id)
-                if not checked_country_code:
+            if record.country_id:
+                vat, country_code = self.env['res.partner']._run_vat_check(record.country_id, vat) # TODO :improve error message
+                if country_code != record.country_id.code.lower():
                     record.raise_vat_error_message()
 
             if record.foreign_vat and not record.country_id and not record.country_group_id:
