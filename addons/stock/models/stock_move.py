@@ -362,7 +362,7 @@ class StockMove(models.Model):
             mls_to_unlink = set()
             # Since the move lines might have been created in a certain order to respect
             # a removal strategy, they need to be unreserved in the opposite order
-            for ml in reversed(move.move_line_ids.sorted('id')):
+            for ml in reversed(move.move_line_ids.filtered(lambda ml: not ml.picked if self.env.context.get('unreserve_unpicked_only') else True).sorted('id')):
                 if float_is_zero(quantity, precision_rounding=move.product_uom.rounding):
                     break
                 qty_ml_dec = min(ml.quantity, ml.product_uom_id._compute_quantity(quantity, ml.product_uom_id, round=False))
