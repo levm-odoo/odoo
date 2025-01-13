@@ -27,6 +27,7 @@ class MailMail(models.Model):
         facilities to queue and send new email messages.  """
     _name = 'mail.mail'
     _description = 'Outgoing Mails'
+    _inherit = ['ir.async.job']
     _inherits = {'mail.message': 'mail_message_id'}
     _order = 'id desc'
     _rec_name = 'subject'
@@ -95,6 +96,9 @@ class MailMail(models.Model):
     scheduled_date = fields.Datetime('Scheduled Send Date',
         help="If set, the queue manager will send the email after the date. If not set, the email will be send as soon as possible. Unless a timezone is specified, it is considered as being in UTC timezone.")
     fetchmail_server_id = fields.Many2one('fetchmail.server', "Inbound Mail Server", readonly=True)
+
+    job_state = fields.Selection(compute='_compute_job_state', inverse='inverse_job_state', search='_search_job_state')
+    job_error = fields.Selection(compute='_compute_job_error', inverse='inverse_job_error')
 
     def _compute_body_content(self):
         for mail in self:
