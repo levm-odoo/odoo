@@ -328,7 +328,7 @@ export function useClickableBuilderComponent() {
         for (const clean of new Set(cleans)) {
             clean(applySpecs);
         }
-        let shouldClean = shouldToggle && isApplied();
+        let shouldClean = !comp.env.selectableContext && shouldToggle && isApplied();
         shouldClean = comp.props.inverseAction ? !shouldClean : shouldClean;
         for (const applySpec of applySpecs) {
             if (shouldClean) {
