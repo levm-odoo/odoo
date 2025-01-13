@@ -1304,6 +1304,64 @@ QUnit.module("WebEditor.HtmlField", ({ beforeEach }) => {
         const isRotated = isElementRotated(img);
         assert.notOk(isRotated, "The image should not be rotated");
     });
+
+    QUnit.module("Image Delete");
+
+    QUnit.test("Image should delete without making any element", async (assert) => {
+        assert.expect(1);
+        serverData.models.partner.records.push({
+            id: 1,
+            txt: `<p class="content"><br></p>`,
+        });
+        let htmlField;
+        const wysiwygPromise = makeDeferred();
+        patchWithCleanup(HtmlField.prototype, {
+            async startWysiwyg() {
+                await super.startWysiwyg(...arguments);
+                htmlField = this;
+                wysiwygPromise.resolve();
+            },
+            // To prevent saving when calling onWillUnmount
+            async commitChanges() { },
+        });
+
+        await makeView({
+            type: "form",
+            resId: 1,
+            resModel: "partner",
+            serverData,
+            arch: `
+                <form>
+                    <field name="txt" widget="html"/>
+                </form>`,
+        });
+        await wysiwygPromise;
+        const editor = htmlField.wysiwyg.odooEditor;
+
+        const paragraph = editor.editable.querySelector(".content");
+        setSelection(paragraph, 0, paragraph, 0);
+        await nextTick();
+
+        // Paste image.
+        const img = await pasteImage(
+            editor,
+            "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII"
+        );
+        // p.childnodes = [text, img]
+        setSelection(paragraph, 1, paragraph, 2);
+        await nextTick();
+
+        // we need to trigger a mousup event manually so the wysiwyg run `_updateEditorUI`
+        const mouseUpEvent = new MouseEvent("mouseup", {
+            view: window,
+            bubbles: true,
+            cancelable: true,
+        });
+        img.dispatchEvent(mouseUpEvent);
+        await nextTick();
+        document.querySelector("#image-delete").click();
+        assert.equal(editor.editable.innerHTML, '<p class="content"></p>');
+    });
 });
 
 export const mediaDialogServices = {

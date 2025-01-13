@@ -2427,7 +2427,7 @@ export function unwrapContents(node) {
 export function fillEmpty(el) {
     const fillers = {};
     const blockEl = closestBlock(el);
-    if (isShrunkBlock(blockEl)) {
+    if (isShrunkBlock(blockEl) && !blockEl.classList.contains('.note-editable')) {
         const br = document.createElement('br');
         blockEl.appendChild(br);
         fillers.br = br;
