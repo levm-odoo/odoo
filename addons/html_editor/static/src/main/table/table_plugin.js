@@ -75,6 +75,7 @@ export class TablePlugin extends Plugin {
         "resetTableSize",
         "clearColumnContent",
         "clearRowContent",
+        "isHoveringTdBorder",
     ];
     resources = {
         user_commands: [
@@ -107,6 +108,7 @@ export class TablePlugin extends Plugin {
     };
 
     setup() {
+        this.addDomListener(this.editable, "dblclick", this.resetRowOrColumnOnDblClick);
         this.addDomListener(this.editable, "mousedown", this.onMousedown);
         this.addDomListener(this.editable, "mouseup", this.onMouseup);
         this.addDomListener(this.editable, "keydown", (ev) => {
@@ -355,6 +357,52 @@ export class TablePlugin extends Plugin {
             });
         }
         this.dependencies.selection.setSelection(selectionToRestore);
+    }
+
+    /**
+     * Resizes rows and columns based on the mouse's double-click on the borders.
+     * Adjusts width of columns or height of rows depending on the cursor position.
+     * Adjacent rows/columns are resized as well.
+     *
+     * @param {MouseEvent} ev - The double-click mouse event.
+     */
+    resetRowOrColumnOnDblClick(ev) {
+        const isHoveringTdBorder = this.isHoveringTdBorder(ev);
+        if (!isHoveringTdBorder) {
+            return;
+        }
+        const cell = ev.target;
+        if (["left", "right"].includes(isHoveringTdBorder)) {
+            const table = closestElement(cell, "table");
+            const currentColumnIndex = getColumnIndex(cell);
+            const currentColumnCells = Array.from(
+                table.querySelectorAll(`tr td:nth-of-type(${currentColumnIndex + 1})`),
+            );
+            this.resetColumnSize(currentColumnCells[0]);
+            const isLeftSideClick = isHoveringTdBorder === "left";
+            if (
+                (isLeftSideClick && currentColumnIndex > 0) ||
+                (!isLeftSideClick && currentColumnIndex < table.rows[0].cells.length - 1)
+            ) {
+                const siblingColumnIndex = isLeftSideClick
+                    ? currentColumnIndex - 1
+                    : currentColumnIndex + 1;
+                const siblingColumnCells = Array.from(
+                    table.querySelectorAll(`tr td:nth-of-type(${siblingColumnIndex + 1})`)
+                );
+                this.resetColumnSize(siblingColumnCells[0]);
+            }
+        } else if (["top", "bottom"].includes(isHoveringTdBorder)) {
+            const currentRow = cell.parentElement;
+            this.resetRowSize(currentRow);
+            const siblingRow =
+                isHoveringTdBorder === "top"
+                    ? currentRow.previousElementSibling
+                    : currentRow.nextElementSibling;
+            if (siblingRow) {
+                this.resetRowSize(siblingRow);
+            }
+        }
     }
 
     /**
@@ -630,6 +678,32 @@ export class TablePlugin extends Plugin {
                     focusOffset: 0,
                 });
                 return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * If the mouse is hovering over one of the borders of a table cell element,
+     * return the side of that border ('left'|'top'|'right'|'bottom').
+     * Otherwise, return false.
+     *
+     * @private
+     * @param {MouseEvent} ev
+     * @returns {string|boolean}
+     */
+    isHoveringTdBorder(ev) {
+        const target = /** @type {HTMLElement} */ (ev.target);
+        if (ev.target && target.nodeName === "TD" && target.isContentEditable) {
+            const targetRect = target.getBoundingClientRect();
+            if (ev.clientX <= targetRect.x + BORDER_SENSITIVITY) {
+                return "left";
+            } else if (ev.clientY <= targetRect.y + BORDER_SENSITIVITY) {
+                return "top";
+            } else if (ev.clientX >= targetRect.x + target.clientWidth - BORDER_SENSITIVITY) {
+                return "right";
+            } else if (ev.clientY >= targetRect.y + target.clientHeight - BORDER_SENSITIVITY) {
+                return "bottom";
             }
         }
         return false;
@@ -985,6 +1059,9 @@ export class TablePlugin extends Plugin {
 
     selectTableCells(selection) {
         const table = closestElement(selection.commonAncestorContainer, "table");
+        if (!table) {
+            return;
+        }
         table.classList.toggle("o_selected_table", true);
         const columns = getTableCells(table);
         const startCol =

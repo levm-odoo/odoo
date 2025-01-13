@@ -5,7 +5,6 @@ import {
     getAdjacentPreviousSiblings,
 } from "@html_editor/utils/dom_traversal";
 import { getColumnIndex } from "@html_editor/utils/table";
-import { BORDER_SENSITIVITY } from "@html_editor/main/table/table_plugin";
 
 export class TableResizePlugin extends Plugin {
     static id = "tableResize";
@@ -16,31 +15,6 @@ export class TableResizePlugin extends Plugin {
         this.addDomListener(this.editable, "mousemove", this.onMousemove);
     }
 
-    /**
-     * If the mouse is hovering over one of the borders of a table cell element,
-     * return the side of that border ('left'|'top'|'right'|'bottom').
-     * Otherwise, return false.
-     *
-     * @private
-     * @param {MouseEvent} ev
-     * @returns {string|boolean}
-     */
-    isHoveringTdBorder(ev) {
-        const target = /** @type {HTMLElement} */ (ev.target);
-        if (ev.target && target.nodeName === "TD" && target.isContentEditable) {
-            const targetRect = target.getBoundingClientRect();
-            if (ev.clientX <= targetRect.x + BORDER_SENSITIVITY) {
-                return "left";
-            } else if (ev.clientY <= targetRect.y + BORDER_SENSITIVITY) {
-                return "top";
-            } else if (ev.clientX >= targetRect.x + target.clientWidth - BORDER_SENSITIVITY) {
-                return "right";
-            } else if (ev.clientY >= targetRect.y + target.clientHeight - BORDER_SENSITIVITY) {
-                return "bottom";
-            }
-        }
-        return false;
-    }
     /**
      * Change the cursor to a resizing cursor, in the direction specified. If no
      * direction is specified, return the cursor to its default.
@@ -245,7 +219,7 @@ export class TableResizePlugin extends Plugin {
     }
 
     onMousedown(ev) {
-        const isHoveringTdBorder = this.isHoveringTdBorder(ev);
+        const isHoveringTdBorder = this.dependencies.table.isHoveringTdBorder(ev);
         const isRTL = this.config.direction === "rtl";
         if (isHoveringTdBorder) {
             ev.preventDefault();
@@ -306,8 +280,9 @@ export class TableResizePlugin extends Plugin {
     }
     onMousemove(ev) {
         const direction =
-            { top: "row", right: "col", bottom: "row", left: "col" }[this.isHoveringTdBorder(ev)] ||
-            false;
+            { top: "row", right: "col", bottom: "row", left: "col" }[
+                this.dependencies.table.isHoveringTdBorder(ev)
+            ] || false;
         if (direction || !this.isResizingTable) {
             this.setTableResizeCursor(direction);
         }
