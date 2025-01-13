@@ -146,7 +146,7 @@
                                    <th name="th_description" class="text-start"><span>Description</span></th>
                                    <th name="th_quantity" class="text-end"><span>Quantity</span></th>
                                    <th name="th_priceunit" class="text-end d-md-table-cell"><span>Unit Price</span></th>
-                                   <th name="th_taxes" class="text-start d-md-table-cell"><span>Taxes</span></th>
+                                   <th name="th_taxes" class="text-end d-md-table-cell"><span>Taxes</span></th>
                                    <th name="th_subtotal" class="text-end">
                                        <span>Amount</span>
                                    </th>
