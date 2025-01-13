@@ -9,7 +9,9 @@ export const menuService = {
             if (!res.ok) {
                 throw new Error("Error while fetching menus");
             }
-            await new Promise((r) => setTimeout(r, 3000))
+            if (window.slow) {
+                await new Promise((r) => setTimeout(r, 3000))
+            }
             return res.json();
         };
 
