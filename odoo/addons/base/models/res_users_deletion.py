@@ -35,7 +35,7 @@ class ResUsersDeletion(models.Model):
             if user_deletion.user_id:
                 user_deletion.user_id_int = user_deletion.user_id.id
 
-    @api.model
+    @api.cron('base.ir_cron_res_users_deletion')
     def _gc_portal_users(self, batch_size=50):
         """Remove the portal users that asked to deactivate their account.
 
@@ -53,7 +53,7 @@ class ResUsersDeletion(models.Model):
 
         todo_requests = delete_requests - done_requests
         cron_done, cron_remaining = len(done_requests), len(todo_requests)
-        self.env['ir.cron']._notify_progress(done=cron_done, remaining=cron_remaining)
+        self._gc_portal_users.notify(done=cron_done, remaining=cron_remaining)
         batch_requests = todo_requests[:batch_size]
 
         auto_commit = not getattr(threading.current_thread(), "testing", False)
@@ -79,7 +79,7 @@ class ResUsersDeletion(models.Model):
             # make sure we never rollback the work we've done, this can take a long time
             cron_done, cron_remaining = cron_done + 1, cron_remaining - 1
             if auto_commit:
-                self.env['ir.cron']._notify_progress(done=cron_done, remaining=cron_remaining)
+                self._gc_portal_users.notify(done=cron_done, remaining=cron_remaining)
                 self.env.cr.commit()
             if delete_request.state == "fail":
                 continue
@@ -99,4 +99,4 @@ class ResUsersDeletion(models.Model):
             # make sure we never rollback the work we've done, this can take a long time
             if auto_commit:
                 self.env.cr.commit()
-        self.env['ir.cron']._notify_progress(done=cron_done, remaining=cron_remaining)
+        self._gc_portal_users.notify(done=cron_done, remaining=cron_remaining)

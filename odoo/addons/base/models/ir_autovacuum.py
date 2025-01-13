@@ -24,6 +24,7 @@ class IrAutovacuum(models.AbstractModel):
     _name = 'ir.autovacuum'
     _description = 'Automatic Vacuum'
 
+    @api.cron('base.autovacuum_job', yield_call=True)
     def _run_vacuum_cleaner(self):
         """
         Perform a complete database cleanup by safely calling every
@@ -37,11 +38,11 @@ class IrAutovacuum(models.AbstractModel):
             for attr, func in inspect.getmembers(cls, is_autovacuum):
                 _logger.debug('Calling %s.%s()', model, attr)
                 try:
-                    func(model)
-                    self.env.cr.commit()
+                    yield lambda: func(model)
                 except Exception:
                     _logger.exception("Failed %s.%s()", model, attr)
-                    self.env.cr.rollback()
+                except GeneratorExit:
+                    return
 
     @api.autovacuum
     def _gc_orm_signaling(self):
