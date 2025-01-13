@@ -1,18 +1,14 @@
-import { browser } from "../../core/browser/browser";
-import { registry } from "../../core/registry";
+import { browser } from "@web/core/browser/browser";
+import { registry } from "@web/core/registry";
 
 export const menuService = {
-    dependencies: ["action"],
-    async start(env) {
+    dependencies: ["action", "orm"],
+    async start(env, { orm }) {
         const _fetchMenus = async () => {
-            const res = await browser.fetch(`/web/webclient/load_menus`);
-            if (!res.ok) {
-                throw new Error("Error while fetching menus");
-            }
             if (window.slow) {
                 await new Promise((r) => setTimeout(r, 3000))
             }
-            return res.json();
+            return orm.call("ir.ui.menu", "load_web_menus", [!!odoo.debug]);
         };
 
         const menusReady = _fetchMenus();
