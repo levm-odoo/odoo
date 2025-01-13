@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+from odoo import Command
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.tests import tagged
 
@@ -65,3 +66,66 @@ class TestProductMargin(AccountTestInvoicingCommon):
 
         # Check expected margin
         self.assertEqual(result[ipad.id]['expected_margin'], expected_margin, "Wrong Expected Margin.")
+
+    def test_discount_and_downpayment_debited_from_product_margin(self):
+        if self.env['ir.module.module'].search([('name', '=', 'sale'), ('state', '=', 'installed')]):
+            customer = self.env['res.partner'].create({'name': 'Customer'})
+
+
+            sale_order = self.env['sale.order'].create({
+                'partner_id': customer.id,
+            })
+
+            ipad = self.env['product.product'].create({
+                'name': 'Ipad',
+                'standard_price': 1000.0,
+                'list_price': 1000.0,
+            })
+
+            sale_order.write({'order_line': [
+                Command.create({
+                    'product_id': ipad.id,
+                    'tax_id': [(5, 0, 0)],
+                }),]
+            })
+
+            self.env['sale.order.discount'].create({
+                'sale_order_id': sale_order.id,
+                'discount_percentage': 0.5,
+                'discount_type': 'so_discount',
+            }).action_apply_discount()
+            sale_order.action_confirm()
+
+            so_context = {
+                'active_model': 'sale.order',
+                'active_ids': [sale_order.id],
+                'active_id': sale_order.id,
+                'default_journal_id': self.company_data['default_journal_sale'].id,
+            }
+
+            downpayment = self.env['sale.advance.payment.inv'].with_context(so_context).create({
+                'advance_payment_method': 'percentage',
+                'amount': 50,
+                'deposit_account_id': self.company_data['default_account_revenue'].id
+            })
+            downpayment_invoice_id = downpayment.create_invoices().get('res_id')
+            downpayment_invoice = self.env['account.move'].browse(downpayment_invoice_id)
+            downpayment_invoice.action_post()
+
+            regular = self.env['sale.advance.payment.inv'].with_context(so_context).create({
+                'advance_payment_method': 'delivered',
+                'deposit_account_id': self.company_data['default_account_revenue'].id
+            })
+            regular_invoice_id = regular.create_invoices().get('res_id')
+            regular_invoice = self.env['account.move'].browse(regular_invoice_id)
+            regular_invoice.action_post()
+
+            discount_product = self.company_data['company'].sale_discount_product_id
+            discount_results = discount_product._compute_product_margin_fields_values()
+            self.assertEqual(discount_results[discount_product.id]['turnover'], -500)
+            self.assertEqual(discount_results[discount_product.id]['total_margin'], -500)
+
+            downpayment_product = self.company_data['company'].sale_down_payment_product_id
+            downpayment_results = downpayment_product._compute_product_margin_fields_values()
+            self.assertEqual(downpayment_results[downpayment_product.id]['turnover'], 0)
+            self.assertEqual(downpayment_results[downpayment_product.id]['total_margin'], 0)

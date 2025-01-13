@@ -95,6 +95,15 @@ class ProductProduct(models.Model):
         linked_product_ids = [product.id for [product] in lines]
         return super(ProductProduct, self - self.browse(linked_product_ids))._filter_to_unlink()
 
+    def _get_debited_products_ids_from_product_margin_report(self, company_id):
+        company = self.env['res.company'].browse(company_id)
+        debited_products_ids = super()._get_debited_products_ids_from_product_margin_report(company_id)
+        if company.sale_discount_product_id:
+            debited_products_ids.append(company.sale_discount_product_id.id)
+        if company.sale_down_payment_product_id:
+            debited_products_ids.append(company.sale_down_payment_product_id.id)
+        return debited_products_ids
+
 
 class ProductAttributeCustomValue(models.Model):
     _inherit = "product.attribute.custom.value"

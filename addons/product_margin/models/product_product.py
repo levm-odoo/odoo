@@ -104,6 +104,7 @@ class ProductProduct(models.Model):
             company_id = self.env.context['force_company']
         else:
             company_id = self.env.company.id
+        debited_products_ids = self._get_debited_products_ids_from_product_margin_report(company_id)
         self.env['account.move.line'].flush_model(['price_unit', 'quantity', 'balance', 'product_id', 'display_type'])
         self.env['account.move'].flush_model(['state', 'payment_state', 'move_type', 'invoice_date', 'company_id'])
         self.env['product.template'].flush_model(['list_price'])
@@ -116,7 +117,8 @@ class ProductProduct(models.Model):
                         l.quantity * (CASE WHEN i.move_type IN ('out_invoice', 'in_invoice') THEN 1 ELSE -1 END) * ((100 - l.discount) * 0.01)
                     ) / NULLIF(SUM(l.quantity * (CASE WHEN i.move_type IN ('out_invoice', 'in_invoice') THEN 1 ELSE -1 END)), 0) AS avg_unit_price,
                     SUM(l.quantity * (CASE WHEN i.move_type IN ('out_invoice', 'in_invoice') THEN 1 ELSE -1 END)) AS num_qty,
-                    SUM(ABS(l.balance) * (CASE WHEN i.move_type IN ('out_invoice', 'in_invoice') THEN 1 ELSE -1 END)) AS total,
+                    SUM(CASE WHEN l.product_id = ANY(%s) THEN -l.balance
+                        ELSE ABS(l.balance) * (CASE WHEN i.move_type IN ('out_invoice', 'in_invoice') THEN 1 ELSE -1 END)END) AS total,
                     SUM(l.quantity * pt.list_price * (CASE WHEN i.move_type IN ('out_invoice', 'in_invoice') THEN 1 ELSE -1 END)) AS sale_expected
                 FROM account_move_line l
                 LEFT JOIN account_move i ON (l.move_id = i.id)
@@ -137,7 +139,7 @@ class ProductProduct(models.Model):
                 GROUP BY l.product_id
                 """.format(self.env['res.currency']._select_companies_rates())
         invoice_types = ('out_invoice', 'out_refund')
-        self.env.cr.execute(sqlstr, (tuple(self.ids), states, payment_states, invoice_types, date_from, date_to, company_id))
+        self.env.cr.execute(sqlstr, (debited_products_ids, tuple(self.ids), states, payment_states, invoice_types, date_from, date_to, company_id))
         for product_id, avg, qty, total, sale in self.env.cr.fetchall():
             res[product_id]['sale_avg_price'] = avg and avg or 0.0
             res[product_id]['sale_num_invoiced'] = qty and qty or 0.0
@@ -152,7 +154,7 @@ class ProductProduct(models.Model):
         ctx = self.env.context.copy()
         ctx['force_company'] = company_id
         invoice_types = ('in_invoice', 'in_refund')
-        self.env.cr.execute(sqlstr, (tuple(self.ids), states, payment_states, invoice_types, date_from, date_to, company_id))
+        self.env.cr.execute(sqlstr, (debited_products_ids, tuple(self.ids), states, payment_states, invoice_types, date_from, date_to, company_id))
         for product_id, avg, qty, total, dummy in self.env.cr.fetchall():
             res[product_id]['purchase_avg_price'] = avg and avg or 0.0
             res[product_id]['purchase_num_invoiced'] = qty and qty or 0.0
@@ -166,3 +168,6 @@ class ProductProduct(models.Model):
             res[product.id]['expected_margin_rate'] = res[product.id].get('sale_expected', 0.0) and res[product.id]['expected_margin'] * 100 / res[product.id].get('sale_expected', 0.0) or 0.0
             product.update(res[product.id])
         return res
+
+    def _get_debited_products_ids_from_product_margin_report(self, company_id):
+        return []
