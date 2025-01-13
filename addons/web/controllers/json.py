@@ -2,6 +2,7 @@
 
 import ast
 import logging
+import re
 from collections import defaultdict
 from datetime import date
 from http import HTTPStatus
@@ -10,10 +11,14 @@ from urllib.parse import urlencode
 import psycopg2.errors
 from dateutil.relativedelta import relativedelta
 from lxml import etree
-from werkzeug.exceptions import BadRequest, NotFound
+from werkzeug.exceptions import (
+    HTTPException,
+    BadRequest,
+    NotFound,
+)
 
 from odoo import http
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, AccessDenied, ValidationError, UserError
 from odoo.http import request
 from odoo.models import check_object_name
 from odoo.osv import expression
@@ -23,6 +28,86 @@ from .utils import get_action_triples
 
 _logger = logging.getLogger(__name__)
 
+JSONAPI_QUERY_ITEM_RE = re.compile(r'^(\w+)\[(\w+)\]$')
+JSONAPI_MIMETYPE = 'application/vnd.api+json'
+JSONAPI_CTYPE = ('Content-Type', f'{JSONAPI_MIMETYPE}; charset=utf-8')
+
+
+class JsonAPIDispatcher(http.Dispatcher):
+    routing_type = 'jsonapi'
+
+    @classmethod
+    def is_compatible_with(cls, request):
+        return request.httprequest.mimetype in (JSONAPI_MIMETYPE, 'application/json')
+
+    def dispatch(self, endpoint, args):
+        self.request.params = multidict = args.copy()
+        for key in args.keys():
+            if match := JSONAPI_QUERY_ITEM_RE.search(key):
+                mainkey, subkey = match.groups()
+                multidict.setdefault(mainkey, {})[subkey] = multidict.pop(key)
+
+        if self.request.db:
+            result = self.request.registry['ir.http']._dispatch(endpoint)
+        else:
+            result = endpoint(**self.request.params)
+
+        return self.request.make_json_response(result, headers=[
+            ('Content-Type', 'application/vnd.api+json; charset=utf-8'),
+        ])
+
+    def _response(self, result=None, error=None):
+        ctype = ('Content-Type', 'application/vnd.api+json; charset=utf-8')
+        if error:
+            return self.request.make_json_response(
+                {'errors': [error]},
+                headers=[ctype],
+                status=int(error['status']),
+            )
+
+
+        self.request.make_json_response(result, headers=[ctype], status=200)
+
+    def handle_error(self, exc):
+        if isinstance(exc, HTTPException):
+            error = {
+                'status': str(exc.code),
+                'title': HTTPStatus(exc.code).phrase,
+                'detail': exc.description,
+            }
+        elif isinstance(exc, (AccessDenied, AccessError)):
+            error = {
+                'status': '403',
+                'title': "Access Error",
+                'detail': exc.args[0],
+            }
+        elif isinstance(exc, ValidationError):
+            error = {
+                'status': '422',
+                'title': "Validation Error",
+                'detail': exc.args[0],
+            }
+        elif isinstance(exc, UserError):
+            error = {
+                'status': '422',
+                'title': "User Error",
+                'detail': exc.args[0],
+            }
+        else:
+            meta = http.serialize_exception(exc)
+            error = {
+                'status': '500',
+                'title': HTTPStatus(500).phrase,
+                'detail': f"{meta['name']}: {meta['message']}",
+                'meta': meta,
+            }
+        return self.request.make_json_response(
+            {'errors': [error]},
+            headers=[JSONAPI_CTYPE],
+            status=int(error['status']),
+        )
+
+
 
 class WebJsonController(http.Controller):
 
@@ -31,9 +116,47 @@ class WebJsonController(http.Controller):
     def web_json(self, subpath, **kwargs):
         self._check_json_route_active()
         return request.redirect(
-            f'/json/1/{subpath}?{urlencode(kwargs)}',
+            f'/json/2/{subpath}?{urlencode(kwargs)}',
             HTTPStatus.TEMPORARY_REDIRECT
         )
+
+
+    # =====================================================
+    # /json/2: REST-like API, RPC and dynamic documentation
+    # =====================================================
+
+    @http.route('/json/2/<model>', methods=('GET',), auth='bearer', type='http', readonly=True)
+    def web_json_2_search(self, model, domain, fields, include):
+        ...
+
+    @http.route('/json/2/<model>', methods=('POST',), auth='bearer', type='http')
+    def web_json_2_create(self, model):
+        ...
+
+    @http.route('/json/2/<model>/<id:int>', methods=('GET',), auth='bearer', type='http', readonly=True)
+    def web_json_2_read(self, model, id, fields, include):
+        ...
+
+    @http.route('/json/2/<model>/<id:int>', methods=('PATCH',), auth='bearer', type='http')
+    def web_json_2_write(self, model, id):
+        ...
+
+    @http.route('/json/2/<model>/<id:int>', methods=('DELETE',), auth='bearer', type='http')
+    def web_json_2_unlink(self, model, id):
+        ...
+
+    @http.route('/json/2/<model>/rpc/<method>', methods=('POST',), auth='bearer', type='http')
+    def web_json_2_rpc(self, model, method):
+        ...
+
+    @http.route('/json/2/<model>/doc', methods=('GET',), auth='bearer', type='http', readonly=True)
+    def web_json_2_doc(self, model):
+        ...
+
+
+    # =====================================================
+    # /json/1: download the data of webclient views as json
+    # =====================================================
 
     @http.route('/json/1/<path:subpath>', auth='bearer', type='http', readonly=True)
     def web_json_1(self, subpath, **kwargs):
