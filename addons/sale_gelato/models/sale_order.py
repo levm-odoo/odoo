@@ -51,7 +51,7 @@ class SaleOrder(models.Model):
             error_message = response.json().get('message')
             self.message_post(
                 body=_(
-                    "Order %(order_reference)s has not been passed to Gelato. Following information" 
+                    "Order %(order_reference)s has not been passed to Gelato. Following information\n" 
                     "were given: %(error_message)s",
                     order_reference=self.display_name,
                     error_message=error_message
@@ -84,16 +84,16 @@ class SaleOrder(models.Model):
         gelato_lines = self.order_line.filtered(lambda s: s.product_id.gelato_product_ref)
         for sale_order_line in gelato_lines:
             base_url = self.get_base_url()
-            image_url = base_url + self.image_url(
-                record=sale_order_line.product_id.product_tmpl_id, field='gelato_image'
-            )
+            # image_url = base_url + self.image_url(
+            #     record=sale_order_line.product_id.product_tmpl_id, field='gelato_image'
+            # )
             gelato_item = {
                 'itemReferenceId': sale_order_line.product_id.id,
                 'productUid': str(sale_order_line.product_id.gelato_product_ref),
                 'files': [
                     {
                         'type': 'default',
-                        'url': image_url
+                        'url': 'https://i.natgeofe.com/n/548467d8-c5f1-4551-9f58-6817a8d2c45e/NationalGeographic_2572187.jpg'
                     }
                 ],
                 'quantity': int(sale_order_line.product_uom_qty)

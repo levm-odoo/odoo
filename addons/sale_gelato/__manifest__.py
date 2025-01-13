@@ -13,6 +13,7 @@
         'data/data.xml',
 
         'views/delivery_carrier.xml',
+        'views/product_document_views.xml',
         'views/product_views.xml',
         'views/res_config_settings_views.xml',
     ]

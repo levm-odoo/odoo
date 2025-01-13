@@ -3,9 +3,10 @@ import json
 import re
 
 from odoo import models, fields, api, Command, _
+from odoo.exceptions import ValidationError
+from odoo.osv import expression
 
 from odoo.addons.sale_gelato.utils import make_gelato_request
-from odoo.exceptions import ValidationError
 
 
 class ProductTemplate(models.Model):
@@ -17,17 +18,9 @@ class ProductTemplate(models.Model):
         inverse='_set_gelato_product_ref',
     )
     gelato_template_ref = fields.Char(string="Gelato Template Reference")
-
-    gelato_image = fields.Image()
-    gelato_image_label = fields.Char()
-
-    @api.constrains('gelato_product_ref', 'gelato_template_ref', 'gelato_image')
-    def _check_gelato_image(self):
-        for record in self:
-            if record.gelato_template_ref or record.gelato_product_ref:
-                if not record.gelato_image:
-                    raise ValidationError(_("You must provide an image template design for the"
-                                            " Gelato product."))
+    gelato_image_ids = fields.One2many(
+        string="Gelato Images", comodel_name='product.document', readonly=True
+    )
 
     @api.depends('product_variant_ids.gelato_product_ref')
     def _compute_gelato_product_ref(self):
@@ -57,7 +50,7 @@ class ProductTemplate(models.Model):
             ))
         if response.status_code == 404:
             raise ValidationError("Gelato Template Reference is incorrect")
-        data = json.loads(response.text)
+        data = response.json()
 
         self.description_sale = re.sub('<[^<]+?>', '', data['description'])
 
@@ -65,58 +58,55 @@ class ProductTemplate(models.Model):
             self.gelato_product_ref = data['variants'][0]['productUid']
 
         else:
-            for variant in data['variants']:
-                variant_options_values_ids = []
-                for attribute in variant['variantOptions']:
-
-                    attribute_odoo = self.env['product.attribute'].search(
-                        [('name', '=', attribute['name'])],
-                        limit=1
+            for variant_data in data['variants']:
+                attribute_value_ids = []
+                for attribute_data in variant_data['variantOptions']:
+                    # Search if there is an existing attribute with proper variant creation, if not
+                    # new attribute is created.
+                    attribute = self.env['product.attribute'].search(
+                        [('name', '=', attribute_data['name']), ('create_variant','=','always')]
                     )
-                    if not attribute_odoo:
-                        attribute_odoo = self.env['product.attribute'].create(
-                            {'name': attribute['name']}
-                        )
+                    if not attribute:
+                        attribute = self.env['product.attribute'].create({
+                            'name': attribute_data['name']
+                        })
 
-                    attribute_value = self.env['product.attribute.value'].search(
-                        [
-                            ('name', '=', attribute['value']),
-                            ('attribute_id', '=', attribute_odoo.id)
-                        ],
-                        limit=1
-                    )
-
+                    #Search if attribute value exists in attribute, if not, new attribute value is
+                    # added to the corresponding attribute.
+                    attribute_value = self.env['product.attribute.value'].search([
+                        ('name', '=', attribute_data['value']),
+                        ('attribute_id', '=', attribute.id)
+                    ], limit=1)
                     if not attribute_value:
                         attribute_value = self.env['product.attribute.value'].create({
-                            'name': attribute['value'],
-                            'attribute_id': attribute_odoo.id
+                            'name': attribute_data['value'],
+                            'attribute_id': attribute.id
                         })
-                    variant_options_values_ids.append(attribute_value.id)
+                    attribute_value_ids.append(attribute_value.id)
 
+                    # Check if product template has the attribute, if not then add attribute, which
+                    # will result in creating new variant(s).
                     product_template_attribute_line = self.env['product.template.attribute.line'].search([
-                            ('product_tmpl_id', '=', self.id),
-                            ('attribute_id', '=', attribute_odoo.id)
-                        ],
-                        limit=1
-                    )
-
+                        ('product_tmpl_id', '=', self.id),
+                        ('attribute_id', '=', attribute.id)
+                    ], limit=1)
                     if not product_template_attribute_line:
                         self.env['product.template.attribute.line'].create({
                             'product_tmpl_id': self.id,
-                            'attribute_id': attribute_odoo.id,
+                            'attribute_id': attribute.id,
                             'value_ids': [Command.link(attribute_value.id)]
                         })
                     else:
                         product_template_attribute_line.value_ids = [Command.link(attribute_value.id)]
 
-                current_product = self.env['product.product'].search(
+                matching_variant = self.env['product.product'].search(
                     [('product_tmpl_id', '=', self.id)]
                 )
-                current_product = current_product.filtered(
-                    lambda s: set(s.product_template_attribute_value_ids.product_attribute_value_id.ids) == set(variant_options_values_ids)
-                )
+                current_product = matching_variant.filtered(
+                    lambda v: set(v.product_template_attribute_value_ids.product_attribute_value_id.ids) == set(attribute_value_ids)
+                ) # this doen't find the corresponding variant attribute ids
 
-                gelato_ref = variant['productUid']
+                gelato_ref = variant_data['productUid']
                 current_product[0].gelato_product_ref = gelato_ref
 
             variants_without_gelato = self.env['product.product'].search([
@@ -124,3 +114,12 @@ class ProductTemplate(models.Model):
                 ('gelato_product_ref', '=', False)
             ])
             variants_without_gelato.unlink()
+
+    # def create_image_placement(self, data):
+
+
+
+    def get_product_document_domain(self):
+        domain = super().get_product_document_domain()
+        return expression.AND([domain, [('is_gelato', '=', False)]])
+

@@ -17,13 +17,25 @@
                             groups="base.group_no_one"
                             invisible="(product_variant_count &gt; 1) and not is_product_variant"
                         />
-                        <field name="gelato_image_label" invisible="1"/>
-                        <!--In order to properly show image name, it is needed to load gelato_image_label-->
-                        <field
-                            name="gelato_image"
-                            filename="gelato_image_label"
+                        <label for="gelato_image_ids" class="opacity-100"/>
+                        <div
+                            class="o_row"
                             invisible="not (gelato_template_ref or gelato_product_ref)"
-                        />
+                        >
+                            <field
+                                name="gelato_image_ids"
+                                widget="many2many_tags"
+                                options="{
+                                    'no_create': True,
+                                    'no_quick_create': True,
+                                    'no_open': True,
+                                    'edit_tags': True,
+                                }"
+                                context="{
+                                    'form_view_ref': 'sale_gelato.product_document_form',
+                                }"
+                            />
+                        </div>
                         <button
                             string="Generate variants"
                             type="object"
