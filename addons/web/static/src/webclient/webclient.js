@@ -55,46 +55,25 @@ export class WebClient extends Component {
     }
 
     async loadRouterState() {
-        // ** url-retrocompatibility **
-        // the menu_id in the url is only possible if we came from an old url
-        let menuId = Number(router.current.menu_id || 0);
-        const firstAction = router.current.actionStack?.[0]?.action;
-        if (!menuId && firstAction) {
-            menuId = this.menuService
-                .getAll()
-                .find((m) => m.actionID === firstAction || m.actionPath === firstAction)?.appID;
-        }
-        if (menuId) {
-            this.menuService.setCurrentMenu(menuId);
-        }
-        let stateLoaded = await this.actionService.loadState();
+        const stateLoaded = await this.actionService.loadState();
 
-        // ** url-retrocompatibility **
-        // when there is only menu_id in url
-        if (!stateLoaded && menuId) {
-            // Determines the current actionId based on the current menu
-            const menu = this.menuService.getAll().find((m) => menuId === m.id);
-            const actionId = menu && menu.actionID;
-            if (actionId) {
-                await this.actionService.doAction(actionId, { clearBreadcrumbs: true });
-                stateLoaded = true;
-            }
-        }
-
-        // Setting the menu based on the action after it was loaded (eg when the action in url is an xmlid)
-        if (stateLoaded && !menuId) {
-            // Determines the current menu based on the current action
+        if (stateLoaded) {
+            // Set the menu based on the action after it was loaded (eg when the action in url is an
+            // xmlid)
+            await this.menuService.menusReady;
             const currentController = this.actionService.currentController;
             const actionId = currentController && currentController.action.id;
-            menuId = this.menuService.getAll().find((m) => m.actionID === actionId)?.appID;
+            const allMenus = this.menuService.getAll();
+            let menuId = allMenus.find((m) => m.actionID === actionId)?.appID;
+            if (!menuId) {
+                const firstAction = router.current.actionStack?.[0]?.action;
+                menuId = allMenus.find((m) => m.actionID === firstAction || m.actionPath === firstAction)?.appID;
+            }
             if (menuId) {
-                // Sets the menu according to the current action
                 this.menuService.setCurrentMenu(menuId);
             }
-        }
 
-        // Scroll to anchor after the state is loaded
-        if (stateLoaded) {
+            // Scroll to anchor after the state is loaded
             if (browser.location.hash !== "") {
                 try {
                     const el = document.querySelector(browser.location.hash);
@@ -105,10 +84,8 @@ export class WebClient extends Component {
                     // do nothing if the hash is not a correct selector.
                 }
             }
-        }
-
-        if (!stateLoaded) {
-            // If no action => falls back to the default app
+        } else {
+            // If no action => fallback to the default app
             await this._loadDefaultApp();
         }
     }

@@ -355,7 +355,7 @@ export class MockServer {
         this.onRoute(["/web/image/<string:model>/<int:id>/<string:field>"], this.mockImage, {
             pure: true,
         });
-        this.onRoute(["/web/webclient/load_menus/<string:unique>"], this.mockLoadMenus, {
+        this.onRoute(["/web/webclient/load_menus"], this.mockLoadMenus, {
             pure: true,
         });
         this.onRoute(["/web/webclient/translations/<string:unique>"], this.mockLoadTranslations, {

@@ -8,7 +8,7 @@
  */
 function traverseMenuTree(tree, cb, parents = []) {
     cb(tree, parents);
-    tree.childrenTree.forEach((c) => traverseMenuTree(c, cb, parents.concat([tree])));
+    tree.childrenTree?.forEach((c) => traverseMenuTree(c, cb, parents.concat([tree])));
 }
 
 /**
