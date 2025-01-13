@@ -341,7 +341,7 @@ class CustomerPortal(Controller):
                 if hasattr(partner, "_run_vat_checks") and data.get("country_id"):
                     country = request.env['res.country'].browse(data['country_id'])
                     try:
-                        data['vat'] = request.env['res.partner']._run_vat_checks(country, data['vat'], partner_name=partner.name)
+                        data['vat'], _country_code = request.env['res.partner']._run_vat_checks(country, data['vat'], partner_name=partner.name)
                     except ValidationError as e:
                         error["vat"] = 'error'
                         error_message.append(e.args[0])

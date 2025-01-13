@@ -105,9 +105,9 @@ class ResPartner(models.Model):
          partner_name is just for the error message
           """
         if not country:
-            return vat
+            return vat, False
         if not vat or len(vat) == 1:
-            return vat
+            return vat, False
         vat_country, vat_number = self._split_vat(vat)
 
         if len(vat) > 2 and vat_country == 'eu' and country not in self.env.ref('base.europe').country_ids:
@@ -147,12 +147,13 @@ class ResPartner(models.Model):
                 raise ValidationError(msg)
             else:
                 return ''
-        return vat_to_return
+        return vat_to_return, code_to_check
 
     def _check_vat(self, validation="error"):
         for partner in self:
-            partner.vat = self._run_vat_checks(partner.commercial_partner_id.country_id, partner.vat,
+            vat, _country_code = self._run_vat_checks(partner.commercial_partner_id.country_id, partner.vat,
                                                partner_name=partner.name, validation=validation)
+            partner.vat = vat
 
     def _inverse_vat(self):
         validation = self._context.get('empty_bad_vat') and 'setnull' or 'error'
