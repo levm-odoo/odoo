@@ -40,7 +40,7 @@ class TestVNEDI(AccountTestInvoicingCommon):
             'state_id': cls.env.ref('base.state_vn_VN-HN').id,
             'city': 'Hoan Kiem District',
             'country_id': cls.env.ref('base.vn').id,
-            'vat': '0100109106-505',
+            'vat': '0100109106505',
             'phone': '3825 7670',
             'email': 'partner_a@gmail.com',
         })
@@ -49,7 +49,7 @@ class TestVNEDI(AccountTestInvoicingCommon):
             'street': '3 Alley 45 Phan Dinh Phung, Quan Thanh Ward',
             'state_id': cls.env.ref('base.state_vn_VN-HN').id,
             'country_id': cls.env.ref('base.vn').id,
-            'vat': '0100109106-506',
+            'vat': '0100109106506', # TODO: check in base_vat, ...
             'phone': '6266 1275',
             'email': 'test_company@gmail.com',
             'website': 'test_company.com',
@@ -112,7 +112,7 @@ class TestVNEDI(AccountTestInvoicingCommon):
                 'buyerInfo': {
                     'buyerName': 'partner_a',
                     'buyerLegalName': 'partner_a',
-                    'buyerTaxCode': '0100109106-505',
+                    'buyerTaxCode': '0100109106505',
                     'buyerAddressLine': '121 Hang Bac Street',
                     'buyerPhoneNumber': '38257670',
                     'buyerEmail': 'partner_a@gmail.com',
@@ -123,7 +123,7 @@ class TestVNEDI(AccountTestInvoicingCommon):
                 },
                 'sellerInfo': {
                     'sellerLegalName': 'company_1_data',
-                    'sellerTaxCode': '0100109106-506',
+                    'sellerTaxCode': '0100109106506',
                     'sellerAddressLine': '3 Alley 45 Phan Dinh Phung, Quan Thanh Ward',
                     'sellerPhoneNumber': '62661275',
                     'sellerEmail': 'test_company@gmail.com',
