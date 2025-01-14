@@ -716,6 +716,8 @@ will update the cost of every lot/serial number in stock."),
                     qty_to_remove = min(qty, quantity_svl)
                     quantity_svl -= qty_to_remove
                     svl_vals = product._prepare_in_svl_vals(qty_to_remove, price_unit, lot=lot)
+                    if lot:
+                        lot.with_context(disable_auto_svl=True).write({"standard_price": price_unit})
 
                 else:
                     svl_vals = product._prepare_out_svl_vals(abs(quantity_svl), self.env.company, lot=lot)
