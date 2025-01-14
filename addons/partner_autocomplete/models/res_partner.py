@@ -60,8 +60,21 @@ class ResPartner(models.Model):
         return iap_data
 
     @api.model
+    def _iap_replace_language_codes(self, iap_data):
+        if lang := iap_data.get('preferred_language'):
+            if installed_lang := (
+                self.env['res.lang'].search([('iso_code', '=', lang)])  # specific lang (e.g.: fr_BE)
+                or
+                self.env['res.lang'].search([('iso_code', 'ilike', lang[:2])], limit=1)  # fallback to generic lang (e.g. fr)
+            ):
+                iap_data['lang'] = installed_lang.code
+            del iap_data['preferred_language']
+        return iap_data
+
+    @api.model
     def _format_data_company(self, iap_data):
         self._iap_replace_location_codes(iap_data)
+        self._iap_replace_language_codes(iap_data)
         return iap_data
 
     @api.model
