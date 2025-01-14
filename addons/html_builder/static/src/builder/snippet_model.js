@@ -3,16 +3,19 @@ import { _t } from "@web/core/l10n/translation";
 import { uniqueId } from "@web/core/utils/functions";
 import { Reactive } from "@web/core/utils/reactive";
 import { escape } from "@web/core/utils/strings";
+import { rpc } from "@web/core/network/rpc";
 import { AddSnippetDialog } from "@html_builder/builder/builder_sidebar/tabs/block_tab/add_snippet_dialog/add_snippet_dialog";
+import { getContentEditableAreas } from "@html_builder/builder/utils/utils";
 
 export class SnippetModel extends Reactive {
-    constructor(services, { snippetsName, installSnippetModule }) {
+    constructor(services, { snippetsName, installSnippetModule, context }) {
         super();
         this.orm = services.orm;
         this.dialog = services.dialog;
         this.snippetsName = snippetsName;
         this.websiteService = services.website;
         this.installSnippetModule = installSnippetModule;
+        this.context = context;
 
         this.snippetsByCategory = {
             snippet_groups: [],
@@ -158,11 +161,32 @@ export class SnippetModel extends Reactive {
         }
     }
 
+    /**
+     * Returns the original snippet based on the given `data-snippet` attribute.
+     *
+     * @param {String} dataSnippet the `data-snippet` attribute of the snippet.
+     * @returns
+     */
+    getOriginalSnippet(dataSnippet) {
+        return [...this.snippetStructures, ...this.snippetInnerContents].find(
+            (snippet) => snippet.name === dataSnippet
+        );
+    }
+
+    /**
+     * Returns the snippet thumbnail URL.
+     *
+     * @param {String} dataSnippet the `data-snippet` attribute of the snippet.
+     * @returns
+     */
+    getSnippetThumbnailURL(dataSnippet) {
+        const originalSnippet = this.getOriginalSnippet(dataSnippet);
+        return originalSnippet.thumbnailSrc;
+    }
+
     async replaceSnippet(snippetToReplace) {
         // Find the original snippet to open the dialog on the same group.
-        const originalSnippet = this.snippetStructures.find(
-            (snippet) => snippet.name === snippetToReplace.dataset.snippet
-        );
+        const originalSnippet = this.getOriginalSnippet(snippetToReplace.dataset.snippet);
         let newSnippet;
         await new Promise((resolve) => {
             this.dialog.add(
@@ -180,5 +204,70 @@ export class SnippetModel extends Reactive {
             );
         });
         return newSnippet;
+    }
+
+    saveSnippet(snippetEl, editable) {
+        return new Promise((resolve) => {
+            this.dialog.add(ConfirmationDialog, {
+                body: _t(
+                    "To save a snippet, we need to save all your previous modifications and reload the page."
+                ),
+                cancel: () => resolve(),
+                confirmLabel: _t("Save and Reload"),
+                confirm: async () => {
+                    let snippetCopyEl = null;
+                    const isButton = snippetEl.matches("a.btn");
+                    const snippetKey = isButton ? "s_button" : snippetEl.dataset.snippet;
+                    const thumbnailURL = this.getSnippetThumbnailURL(snippetKey);
+
+                    if (snippetEl.matches(".s_popup")) {
+                        // Do not "cleanForSave" the popup before copying the
+                        // HTML, otherwise the popup will be saved invisible and
+                        // therefore not visible in the "add snippet" dialog.
+                        snippetCopyEl = snippetEl.cloneNode(true);
+                    }
+
+                    // TODO request_save + reload editor
+
+                    const defaultSnippetName = isButton
+                        ? _t("Custom Button")
+                        : _t("Custom %s", snippetEl.dataset.name);
+                    snippetCopyEl = snippetCopyEl || snippetEl.cloneNode(true);
+                    snippetCopyEl.classList.add("s_custom_snippet");
+                    delete snippetCopyEl.dataset.name;
+                    if (isButton) {
+                        snippetCopyEl.classList.remove("mb-2");
+                        snippetCopyEl.classList.add("o_snippet_drop_in_only", "s_custom_button");
+                    }
+
+                    // Get editable parent TODO find proper method to get it directly
+                    let editableParentEl;
+                    for (const editableEl of getContentEditableAreas(editable)) {
+                        if (editableEl.contains(snippetEl)) {
+                            editableParentEl = editableEl;
+                            break;
+                        }
+                    }
+
+                    this.context["model"] = editableParentEl.dataset.oeModel;
+                    this.context["field"] = editableParentEl.dataset.oeField;
+                    this.context["resId"] = editableParentEl.dataset.oeId;
+                    await rpc("/web/dataset/call_kw/ir.ui.view/save_snippet", {
+                        model: "ir.ui.view",
+                        method: "save_snippet",
+                        args: [],
+                        kwargs: {
+                            name: defaultSnippetName,
+                            arch: snippetCopyEl.outerHTML,
+                            template_key: this.snippetsName,
+                            snippet_key: snippetKey,
+                            thumbnail_url: thumbnailURL,
+                            context: this.context,
+                        },
+                    });
+                    resolve();
+                },
+            });
+        });
     }
 }

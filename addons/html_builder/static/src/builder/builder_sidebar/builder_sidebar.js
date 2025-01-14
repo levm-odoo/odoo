@@ -21,6 +21,7 @@ import { useService } from "@web/core/utils/hooks";
 import { addLoadingEffect as addButtonLoadingEffect } from "@web/core/utils/ui";
 import { RPCError } from "@web/core/network/rpc";
 import { escape } from "@web/core/utils/strings";
+import { user } from "@web/core/user";
 import { useSetupAction } from "@web/search/action_hook";
 import { BuilderActionsPlugin } from "../plugins/builder_actions_plugin";
 import { BuilderOptionsPlugin } from "../plugins/builder_options_plugin";
@@ -150,10 +151,17 @@ export class BuilderSidebar extends Component {
             this.env.services
         );
 
+        this.context = Object.assign({}, user.context, {
+            website_id: this.websiteService.currentWebsite.id,
+            lang: this.websiteService.currentWebsite.metadata.lang,
+            user_lang: user.context.lang,
+        });
+
         this.snippetModel = useState(
             new SnippetModel(this.env.services, {
                 snippetsName: this.props.snippetsName,
                 installSnippetModule: this.installSnippetModule.bind(this),
+                context: this.context,
             })
         );
 
@@ -201,7 +209,7 @@ export class BuilderSidebar extends Component {
                     "If you discard the current edits, all unsaved changes will be lost. You can cancel to return to edit mode."
                 ),
                 confirm: () => this.props.closeEditor(),
-                cancel: () => { },
+                cancel: () => {},
             });
         } else {
             this.props.closeEditor();
@@ -209,8 +217,9 @@ export class BuilderSidebar extends Component {
     }
 
     getInvisibleSelector(isMobile = this.props.isMobile) {
-        return `.o_snippet_invisible, ${isMobile ? ".o_snippet_mobile_invisible" : ".o_snippet_desktop_invisible"
-            }`;
+        return `.o_snippet_invisible, ${
+            isMobile ? ".o_snippet_mobile_invisible" : ".o_snippet_desktop_invisible"
+        }`;
     }
 
     async save() {
@@ -369,7 +378,7 @@ export class BuilderSidebar extends Component {
                 }
             },
             confirmLabel: _t("Save and Install"),
-            cancel: () => { },
+            cancel: () => {},
         });
     }
 }
