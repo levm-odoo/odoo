@@ -275,7 +275,7 @@ class TestAccountJournalAlias(AccountTestInvoicingCommon, MailCommon):
         # assert base test data
         company_name = 'company_1_data'
         journal_code = 'BILL'
-        journal_name = 'Vendor Bills'
+        journal_name = 'Purchases'
         journal_alias = journal.alias_id
         self.assertEqual(journal.code, journal_code)
         self.assertEqual(journal.company_id.name, company_name)
