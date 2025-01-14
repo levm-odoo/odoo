@@ -499,7 +499,7 @@ class ChatbotCase(chatbot_common.ChatbotCase):
             .chatbot_script_id,
             chatbot_no_operator,
         )
-        self.env["bus.presence"]._update_presence(
+        self.env["mail.presence"]._update_presence(
             inactivity_period=0, identity_field="user_id", identity_value=bob_user.id
         )
         # Force the recomputation of `available_operator_ids` after bob becomes online
