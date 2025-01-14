@@ -4901,6 +4901,7 @@ class TestMrpOrder(TestMrpCommon):
         self.assertEqual(mo.state, 'done')
         self.assertEqual(mo.workorder_ids[0].duration_expected, 1440.0)
 
+<<<<<<< master
     def test_additional_transfer_creation_in_progress_state(self):
         """
         Test the creation of additional component transfers for MOs in 'progress' and 'to_close'
@@ -4985,6 +4986,15 @@ class TestMrpOrder(TestMrpCommon):
         not_done_picking = mo.picking_ids.filtered(lambda picking: picking.state != "done")
         self.assertEqual(not_done_picking.move_ids.product_uom_qty, 3.0)
 
+||||||| 19076c99bf075253492eb24117849fd1a8483bc5
+=======
+    def test_workcenter_with_resource_calendar_from_another_company(self):
+        """Test that only the resource calendars from the same
+        company as the work center can be set."""
+        resource_calendar = self.env['resource.calendar'].search([('company_id', 'not in', [self.workcenter_1.company_id.id, False])], limit=1)
+        with self.assertRaises(UserError):
+            self.workcenter_1.resource_calendar_id, = resource_calendar
+>>>>>>> e944526129ff577ac9c39270baf0412818e7537e
 
 @tagged('-at_install', 'post_install')
 class TestTourMrpOrder(HttpCase):
