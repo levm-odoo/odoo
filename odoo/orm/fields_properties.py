@@ -123,7 +123,7 @@ class Properties(Field):
         if isinstance(value, str):
             value = json.loads(value)
             if not isinstance(value, dict):
-                raise ValueError(f"Wrong property value {value!r}")
+                raise TypeError(f"Wrong property value {value!r}")
             return value
 
         if isinstance(value, list):
@@ -132,7 +132,7 @@ class Properties(Field):
             self._remove_display_name(value)
             return self._list_to_dict(value)
 
-        raise ValueError(f"Wrong property type {type(value)!r}")
+        raise TypeError(f"Wrong property type {type(value)!r}")
 
     # Record format: the value is either False, or a dict mapping property
     # names to their corresponding value, like
@@ -314,7 +314,7 @@ class Properties(Field):
 
         container_id = values[self.definition_record]
         if not isinstance(container_id, (int, BaseModel)):
-            raise ValueError(f"Wrong container value {container_id!r}")
+            raise TypeError(f"Wrong container value {container_id!r}")
 
         if isinstance(container_id, int):
             # retrieve the container record
@@ -728,7 +728,7 @@ class PropertiesDefinition(Field):
             value = json.loads(value)
 
         if not isinstance(value, list):
-            raise ValueError(f'Wrong properties definition type {type(value)!r}')
+            raise TypeError(f'Wrong properties definition type {type(value)!r}')
 
         Properties._remove_display_name(value, value_key='default')
 
@@ -750,7 +750,7 @@ class PropertiesDefinition(Field):
             value = json.loads(value)
 
         if not isinstance(value, list):
-            raise ValueError(f'Wrong properties definition type {type(value)!r}')
+            raise TypeError(f'Wrong properties definition type {type(value)!r}')
 
         Properties._remove_display_name(value, value_key='default')
 

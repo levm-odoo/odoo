@@ -80,7 +80,7 @@ class MetaField(type):
     by_type = {}
 
     def __init__(cls, name, bases, attrs):
-        super(MetaField, cls).__init__(name, bases, attrs)
+        super().__init__(name, bases, attrs)
         if not hasattr(cls, 'type'):
             return
 
@@ -240,7 +240,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
     write_sequence = 0  # field ordering for write()
     # Database column type (ident, spec) for non-company-dependent fields.
     # Company-dependent fields are stored as jsonb (see column_type).
-    _column_type: typing.Tuple[str, str] | None = None
+    _column_type: tuple[str, str] | None = None
 
     args = None                         # the parameters given to __init__()
     _module = None                      # the field's module name
@@ -465,8 +465,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
         if not self.string and not self.related:
             # related fields get their string from their parent field
             self.string = (
-                name[:-4] if name.endswith('_ids') else
-                name[:-3] if name.endswith('_id') else name
+                name.removesuffix('_ids').removesuffix('_id')
             ).replace('_', ' ').title()
 
         # self.default must be either None or a callable
@@ -894,7 +893,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
             return False
 
     def _description_aggregator(self, env):
-        if not self.aggregator or self.column_type and self.store:  # shortcut
+        if not self.aggregator or (self.column_type and self.store):  # shortcut
             return self.aggregator
 
         model = env[self.model_name]
@@ -920,7 +919,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
         return self.help
 
     def _description_falsy_value_label(self, env):
-        return env._(self.falsy_value_label) if self.falsy_value_label else None # pylint: disable=gettext-variable
+        return env._(self.falsy_value_label) if self.falsy_value_label else None  # pylint: disable=gettext-variable
 
     def is_editable(self):
         """ Return whether the field can be editable in a view. """
@@ -1417,7 +1416,7 @@ class Field(MetaField('DummyField', (object,), {}), typing.Generic[T]):
             value = self.convert_to_cache(record._origin[self.name], record, validate=False)
             value = env.cache.patch_and_set(record, self, value)
 
-        elif self.compute: #pylint: disable=using-constant-test
+        elif self.compute:
             # non-stored field or new record without origin: compute
             if env.is_protected(self, record):
                 value = self.convert_to_cache(False, record, validate=False)

@@ -237,7 +237,7 @@ class Datetime(BaseDate[datetime]):
             return datetime.combine(value, time.min)
 
         # TODO: fix data files
-        return datetime.strptime(value, DATETIME_FORMAT[:len(value)-2])
+        return datetime.strptime(value, DATETIME_FORMAT[:len(value) - 2])
 
     # kept for backwards compatibility, but consider `from_string` as deprecated, will probably
     # be removed after V12

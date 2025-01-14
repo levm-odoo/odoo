@@ -302,7 +302,7 @@ READ_GROUP_DISPLAY_FORMAT = {
     # such as 2006-01-01 being formatted as "January 2005" in some locales.
     # Cfr: http://babel.pocoo.org/en/latest/dates.html#date-fields
     'hour': 'hh:00 dd MMM',
-    'day': 'dd MMM yyyy', # yyyy = normal year
+    'day': 'dd MMM yyyy',  # yyyy = normal year
     'week': "'W'w YYYY",  # w YYYY = ISO week-year
     'month': 'MMMM yyyy',
     'quarter': 'QQQ yyyy',
@@ -697,9 +697,10 @@ class BaseModel(metaclass=MetaModel):
 
         # Transience
         if ModelClass._transient:
-            assert ModelClass._log_access, \
-                "TransientModels must have log_access turned on, " \
+            assert ModelClass._log_access, (
+                "TransientModels must have log_access turned on, "
                 "in order to implement their vacuum policy"
+            )
 
         # link the class to the registry, and update the registry
         ModelClass.pool = pool
@@ -916,6 +917,7 @@ class BaseModel(metaclass=MetaModel):
             res_id: (module, name)
             for res_id, module, name in cr.fetchall()
         }
+
         def to_xid(record_id):
             (module, name) = xids[record_id]
             return ('%s.%s' % (module, name)) if module else name
@@ -944,8 +946,8 @@ class BaseModel(metaclass=MetaModel):
         psycopg2.extensions.set_wait_callback(None)
         try:
             cr.copy_from(io.StringIO(
-                u'\n'.join(
-                    u"%s\t%s\t%s\t%d" % (
+                '\n'.join(
+                    "%s\t%s\t%s\t%d" % (
                         modname,
                         record._name,
                         xids[record.id][1],
@@ -982,9 +984,8 @@ class BaseModel(metaclass=MetaModel):
             from the cache after it's been iterated in full
             """
             for idx in range(0, len(rs), 1000):
-                sub = rs[idx:idx+1000]
-                for rec in sub:
-                    yield rec
+                sub = rs[idx:idx + 1000]
+                yield from sub
                 sub.invalidate_recordset()
         if not _is_toplevel_call:
             splittor = lambda rs: rs
@@ -1235,7 +1236,7 @@ class BaseModel(metaclass=MetaModel):
                 # broken transaction, exit and hope the source error was already logged
                 if not any(message['type'] == 'error' for message in messages):
                     info = data_list[0]['info']
-                    messages.append(dict(info, type='error', message=_(u"Unknown database error: '%s'", e)))
+                    messages.append(dict(info, type='error', message=_("Unknown database error: '%s'", e)))
                 return
             except UserError as e:
                 global_error_message = dict(data_list[0]['info'], type='error', message=str(e))
@@ -1279,7 +1280,7 @@ class BaseModel(metaclass=MetaModel):
                 if errors >= 10 and (errors >= i / 10):
                     messages.append({
                         'type': 'warning',
-                        'message': _(u"Found more than 10 errors and more than one error per 10 records, interrupted to avoid showing too many errors.")
+                        'message': _("Found more than 10 errors and more than one error per 10 records, interrupted to avoid showing too many errors.")
                     })
                     break
             if errors > 0 and global_error_message and global_error_message not in messages:
@@ -1301,7 +1302,7 @@ class BaseModel(metaclass=MetaModel):
         info = {'rows': {'to': -1}}
         for id, xid, record, info in converted:
             if self.env.context.get('import_file') and self.env.context.get('import_skip_records'):
-                if any([record.get(field) is None for field in self.env.context['import_skip_records']]):
+                if any(record.get(field) is None for field in self.env.context['import_skip_records']):
                     continue
             if xid:
                 xid = xid if '.' in xid else "%s.%s" % (current_module, xid)
@@ -1354,8 +1355,9 @@ class BaseModel(metaclass=MetaModel):
             for index, fnames in enumerate(field_paths)
             if fnames[0] not in fields or fields[fnames[0]].type != 'one2many'
         ])
-        # Checks if the provided row has any non-empty one2many fields
+
         def only_o2m_values(row):
+            # Checks if the provided row has any non-empty one2many fields
             return any(get_o2m_values(row)) and not any(get_nono2m_values(row))
 
         property_definitions = {}
@@ -1496,7 +1498,7 @@ class BaseModel(metaclass=MetaModel):
                         type='error',
                         record=stream_index,
                         field='.id',
-                        message=_(u"Unknown database identifier '%s'", dbid)))
+                        message=_("Unknown database identifier '%s'", dbid)))
                     dbid = False
 
             converted = convert(record, functools.partial(_log, extras, stream_index))
@@ -2745,7 +2747,7 @@ class BaseModel(metaclass=MetaModel):
         ]
 
         fill_temporal = self.env.context.get('fill_temporal')
-        if lazy_groupby and (rows_dict and fill_temporal) or isinstance(fill_temporal, dict):
+        if (lazy_groupby and (rows_dict and fill_temporal)) or isinstance(fill_temporal, dict):
             # fill_temporal = {} is equivalent to fill_temporal = True
             # if fill_temporal is a dictionary and there is no data, there is a chance that we
             # want to display empty columns anyway, so we should apply the fill_temporal logic
@@ -3294,7 +3296,7 @@ class BaseModel(metaclass=MetaModel):
             field = self._fields.get(field_name)
             if not field:
                 _logger.info('Missing many2one field definition for _inherits reference "%s" in "%s", using default one.', field_name, self._name)
-                from .fields import Many2one
+                from .fields import Many2one  # noqa: PLC0415
                 field = Many2one(table, string="Automatically created field to link to parent %s" % table, required=True, ondelete="cascade")
                 self._add_field(field_name, field)
             elif not (field.required and (field.ondelete or "").lower() in ("cascade", "restrict")):
@@ -3647,7 +3649,7 @@ class BaseModel(metaclass=MetaModel):
         field = self._fields[field_name]
         self._check_field_access(field, 'write')
 
-        valid_langs = set(code for code, _ in self.env['res.lang'].get_installed()) | {'en_US'}
+        valid_langs = {code for code, _ in self.env['res.lang'].get_installed()} | {'en_US'}
         source_lang = source_lang or 'en_US'
         missing_langs = (set(translations) | {source_lang}) - valid_langs
         if missing_langs:
@@ -4045,7 +4047,6 @@ class BaseModel(metaclass=MetaModel):
         else:
             res = [{'id': x} for x in self.ids]
 
-
         xml_data = defaultdict(list)
         imds = IrModelData.search_read(
             [('model', '=', self._name), ('res_id', 'in', self.ids)],
@@ -4297,7 +4298,7 @@ class BaseModel(metaclass=MetaModel):
 
         self.check_access('unlink')
 
-        from odoo.addons.base.models.ir_model import MODULE_UNINSTALL_FLAG
+        from odoo.addons.base.models.ir_model import MODULE_UNINSTALL_FLAG  # noqa: PLC0415
         for func in self._ondelete_methods:
             # func._ondelete is True if it should be called during uninstallation
             if func._ondelete or not self._context.get(MODULE_UNINSTALL_FLAG):
@@ -4483,7 +4484,7 @@ class BaseModel(metaclass=MetaModel):
         bad_names = {'id', 'parent_path'}
         if self._log_access:
             # the superuser can set log_access fields while loading registry
-            if not(self.env.uid == SUPERUSER_ID and not self.pool.ready):
+            if not (self.env.uid == SUPERUSER_ID and not self.pool.ready):
                 bad_names.update(LOG_ACCESS_COLUMNS)
 
         # set magic fields
@@ -4831,7 +4832,7 @@ class BaseModel(metaclass=MetaModel):
             records._check_company()
 
         import_module = self.env.context.get('_import_current_module')
-        if not import_module: # not an import -> bail
+        if not import_module:  # not an import -> bail
             return records
 
         # It is to support setting xids directly in create by
@@ -4868,7 +4869,7 @@ class BaseModel(metaclass=MetaModel):
         bad_names = ['id', 'parent_path']
         if self._log_access:
             # the superuser can set log_access fields while loading registry
-            if not(self.env.uid == SUPERUSER_ID and not self.pool.ready):
+            if not (self.env.uid == SUPERUSER_ID and not self.pool.ready):
                 bad_names.extend(LOG_ACCESS_COLUMNS)
 
         # also discard precomputed readonly fields (to force their computation)
@@ -5530,7 +5531,7 @@ class BaseModel(metaclass=MetaModel):
 
         # build a black list of fields that should not be copied
         blacklist = set(MAGIC_COLUMNS + ['parent_path'])
-        whitelist = set(name for name, field in self._fields.items() if not field.inherited)
+        whitelist = {name for name, field in self._fields.items() if not field.inherited}
 
         def blacklist_given_fields(model):
             # blacklist the fields that are given by inheritance
@@ -5588,7 +5589,7 @@ class BaseModel(metaclass=MetaModel):
         if old.id in seen_map[old._name]:
             return
         seen_map[old._name].add(old.id)
-        valid_langs = set(code for code, _ in self.env['res.lang'].get_installed()) | {'en_US'}
+        valid_langs = {code for code, _ in self.env['res.lang'].get_installed()} | {'en_US'}
 
         for name, field in old._fields.items():
             if not field.copy:
@@ -6406,7 +6407,7 @@ class BaseModel(metaclass=MetaModel):
                                 # failed to access the record, return empty string for comparison
                                 data = ['']
                         else:
-                            data = data and data.ids or [False]
+                            data = data.ids if data else [False]
                     elif field.type in ('date', 'datetime'):
                         data = [Datetime.to_datetime(d) for d in data]
 
@@ -6608,7 +6609,7 @@ class BaseModel(metaclass=MetaModel):
 
     def __bool__(self):
         """ Test whether ``self`` is nonempty. """
-        return True if self._ids else False  # fast version of bool(self._ids)
+        return True if self._ids else False  # fast version of bool(self._ids)  # noqa: SIM210
 
     def __len__(self):
         """ Return the size of ``self``. """

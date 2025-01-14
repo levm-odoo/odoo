@@ -170,7 +170,7 @@ class Many2one(_Relational[M]):
     delegate = False                    # whether self implements delegation
 
     def __init__(self, comodel_name: str | Sentinel = SENTINEL, string: str | Sentinel = SENTINEL, **kwargs):
-        super(Many2one, self).__init__(comodel_name=comodel_name, string=string, **kwargs)
+        super().__init__(comodel_name=comodel_name, string=string, **kwargs)
 
     def _setup_attrs(self, model_class, name):
         super()._setup_attrs(model_class, name)
@@ -214,10 +214,10 @@ class Many2one(_Relational[M]):
         comodel = model.env[self.comodel_name]
         if not model.is_transient() and comodel.is_transient():
             raise ValueError('Many2one %s from Model to TransientModel is forbidden' % self)
-        return super(Many2one, self).update_db(model, columns)
+        return super().update_db(model, columns)
 
     def update_db_column(self, model, column):
-        super(Many2one, self).update_db_column(model, column)
+        super().update_db_column(model, column)
         model.pool.post_init(self.update_db_foreign_key, model, column)
 
     def update_db_foreign_key(self, model, column):
@@ -604,7 +604,7 @@ class _RelationalMulti(_Relational[M], typing.Generic[M]):
             elif isinstance(value, list) and value and not isinstance(value[0], (tuple, list)):
                 value = [Command.set(tuple(value))]
             if not isinstance(value, list):
-                raise ValueError("Wrong value for %s: %s" % (self, value))
+                raise TypeError("Wrong value for %s: %s" % (self, value))
             records_commands_list[idx] = (recs, value)
 
         record_ids = {rid for recs, cs in records_commands_list for rid in recs._ids}
@@ -712,7 +712,7 @@ class One2many(_RelationalMulti[M]):
 
     def __init__(self, comodel_name: str | Sentinel = SENTINEL, inverse_name: str | Sentinel = SENTINEL,
                  string: str | Sentinel = SENTINEL, **kwargs):
-        super(One2many, self).__init__(
+        super().__init__(
             comodel_name=comodel_name,
             inverse_name=inverse_name,
             string=string,
@@ -720,7 +720,7 @@ class One2many(_RelationalMulti[M]):
         )
 
     def setup_nonrelated(self, model):
-        super(One2many, self).setup_nonrelated(model)
+        super().setup_nonrelated(model)
         if self.inverse_name:
             # link self to its inverse field and vice-versa
             comodel = model.env[self.comodel_name]
@@ -749,7 +749,7 @@ class One2many(_RelationalMulti[M]):
     def get_domain_list(self, records):
         comodel = records.env.registry[self.comodel_name]
         inverse_field = comodel._fields[self.inverse_name]
-        domain = super(One2many, self).get_domain_list(records)
+        domain = super().get_domain_list(records)
         if inverse_field.type == 'many2one_reference':
             domain = domain + [(inverse_field.model_field, '=', records._name)]
         return domain
@@ -834,8 +834,7 @@ class One2many(_RelationalMulti[M]):
             for recs, commands in records_commands_list:
                 for command in (commands or ()):
                     if command[0] == Command.CREATE:
-                        for record in recs:
-                            to_create.append(dict(command[2], **{inverse: record.id}))
+                        to_create.extend(dict(command[2], **{inverse: record.id}) for record in recs)
                         allow_full_delete = False
                     elif command[0] == Command.UPDATE:
                         prefetch_ids = recs[self.name]._prefetch_ids
@@ -1078,7 +1077,7 @@ class Many2many(_RelationalMulti[M]):
                  string: str | Sentinel = SENTINEL, **kwargs):
         if 'auto_join' in kwargs:
             raise NotImplementedError("auto_join is not supported on Many2many fields")
-        super(Many2many, self).__init__(
+        super().__init__(
             comodel_name=comodel_name,
             relation=relation,
             column1=column1,
@@ -1107,10 +1106,11 @@ class Many2many(_RelationalMulti[M]):
                 comodel = model.env[self.comodel_name]
                 if not self.relation:
                     tables = sorted([model._table, comodel._table])
-                    assert tables[0] != tables[1], \
-                        "%s: Implicit/canonical naming of many2many relationship " \
-                        "table is not possible when source and destination models " \
+                    assert tables[0] != tables[1], (
+                        "%s: Implicit/canonical naming of many2many relationship "
+                        "table is not possible when source and destination models "
                         "are the same" % self
+                    )
                     self.relation = '%s_%s_rel' % tuple(tables)
                 if not self.column1:
                     self.column1 = '%s_id' % model._table

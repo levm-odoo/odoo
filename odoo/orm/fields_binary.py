@@ -4,7 +4,6 @@ import base64
 import binascii
 import contextlib
 import itertools
-import reprlib
 import typing
 import warnings
 from operator import attrgetter
@@ -15,7 +14,7 @@ from odoo.exceptions import CacheMiss, UserError
 from odoo.tools import SQL, human_size, image_process, lazy_property
 from odoo.tools.mimetypes import guess_mimetype
 
-from .fields import Field, _logger
+from .fields import Field
 from .utils import SQL_OPERATORS
 
 if typing.TYPE_CHECKING:
@@ -272,7 +271,7 @@ class Image(Binary):
             # will be resized once the inverse has been applied
             cache_value = self.convert_to_cache(value if self.related else new_value, record)
             record.env.cache.update(record, self, itertools.repeat(cache_value))
-        super(Image, self).create(new_record_values)
+        super().create(new_record_values)
 
     def write(self, records, value):
         try:
@@ -287,7 +286,7 @@ class Image(Binary):
                 return
             raise
 
-        super(Image, self).write(records, new_value)
+        super().write(records, new_value)
         cache_value = self.convert_to_cache(value if self.related else new_value, records)
         dirty = self.column_type and self.store and any(records._ids)
         records.env.cache.update(records, self, itertools.repeat(cache_value), dirty=dirty)

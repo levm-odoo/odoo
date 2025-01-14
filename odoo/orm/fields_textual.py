@@ -271,7 +271,7 @@ class BaseString(Field[str | typing.Literal[False]]):
             # pylint: disable=not-callable
             new_translations = {
                 l: self.translate(lambda term: translation_dictionary.get(term, {l: None})[l], cache_value)
-                for l in old_translations.keys()
+                for l in old_translations
             }
             if delay_translations:
                 new_store_translations = stored_translations
@@ -568,13 +568,13 @@ class Html(BaseString):
         r = super().convert_to_record(value, record)
         if isinstance(r, bytes):
             r = r.decode()
-        return r and Markup(r)
+        return r and Markup(r)  # noqa: RUF035
 
     def convert_to_read(self, value, record, use_display_name=True):
         r = super().convert_to_read(value, record, use_display_name)
         if isinstance(r, bytes):
             r = r.decode()
-        return r and Markup(r)
+        return r and Markup(r)  # noqa: RUF035
 
     def get_trans_terms(self, value):
         # ensure the translation terms are stringified, otherwise we can break the PO file

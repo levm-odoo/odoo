@@ -58,7 +58,7 @@ class Selection(Field[str | typing.Literal[False]]):
     ondelete = None             # {value: policy} (what to do when value is deleted)
 
     def __init__(self, selection=SENTINEL, string: str | Sentinel = SENTINEL, **kwargs):
-        super(Selection, self).__init__(selection=selection, string=string, **kwargs)
+        super().__init__(selection=selection, string=string, **kwargs)
         self._selection = dict(selection) if isinstance(selection, list) else None
 
     def setup_nonrelated(self, model):
