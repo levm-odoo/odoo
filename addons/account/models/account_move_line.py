@@ -1220,16 +1220,18 @@ class AccountMoveLine(models.Model):
 
     @api.constrains('account_id', 'display_type')
     def _check_payable_receivable(self):
-        for line in self:
+        # Make it possible to bypass the constraint to allow importing already existing documents.
+        constraint_start_date = fields.Date.to_date(self.env['ir.config_parameter'].sudo().get_param(
+            'account.move.line.constraint_start_date',
+            '1970-01-01',
+        ))
+
+        for line in self.filtered(lambda l: l.date > constraint_start_date):
             account_type = line.account_id.account_type
             if line.move_id.is_sale_document(include_receipts=True):
-                if account_type == 'liability_payable':
-                    raise UserError(_("Account %s is of payable type, but is used in a sale operation.", line.account_id.code))
                 if (line.display_type == 'payment_term') ^ (account_type == 'asset_receivable'):
                     raise UserError(_("Any journal item on a receivable account must have a due date and vice versa."))
             if line.move_id.is_purchase_document(include_receipts=True):
-                if account_type == 'asset_receivable':
-                    raise UserError(_("Account %s is of receivable type, but is used in a purchase operation.", line.account_id.code))
                 if (line.display_type == 'payment_term') ^ (account_type == 'liability_payable'):
                     raise UserError(_("Any journal item on a payable account must have a due date and vice versa."))
 
