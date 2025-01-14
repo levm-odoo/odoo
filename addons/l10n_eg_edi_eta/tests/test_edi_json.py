@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from freezegun import freeze_time
 
+from odoo import Command
 from odoo.tests import tagged
 
 from .common import TestEGEdiCommon
@@ -552,6 +553,86 @@ class TestEdiJson(TestEGEdiCommon):
                         'totalSalesAmount': 5118.73602,
                         'netAmount': 4456.93,
                         'totalAmount': 4456.93,
+                    },
+                    'response': ETA_TEST_RESPONSE,
+                },
+            )
+
+    def test_invoice_with_fixed_tax_amount(self):
+        """Test that the rate in taxableItems is 0 if the tax is a fixed amount."""
+        with freeze_time(self.frozen_today), patch(
+            'odoo.addons.l10n_eg_edi_eta.models.account_move.AccountMove.action_post_sign_invoices',
+            new=mocked_action_post_sign_invoices,
+        ), patch(
+            'odoo.addons.l10n_eg_edi_eta.models.account_edi_format.AccountEdiFormat._l10n_eg_edi_post_invoice_web_service',
+            new=mocked_l10n_eg_edi_post_invoice_web_service,
+        ):
+            invoice = self.create_invoice(
+                partner_id=self.partner_b.id,
+                invoice_line_ids=[
+                    {
+                        'product_id': self.product_a.id,
+                        'price_unit': 100,
+                        'quantity': 1.0,
+                        'product_uom_id': self.env.ref('uom.product_uom_unit').id,
+                        'discount': 10.0,
+                        'tax_ids': [Command.create({
+                            "amount_type": "fixed",
+                            "amount": 10.0,
+                            "name": "Fixed Tax",
+                            "l10n_eg_eta_code": "t3_tbl02",
+                        })],
+                    },
+                ],
+            )
+            invoice.action_post()
+            invoice.action_post_sign_invoices()
+
+            generated_files = self._process_documents_web_services(invoice, {'eg_eta'})
+            self.assertTrue(generated_files)
+            json_file = json.loads(generated_files[0])
+            self.assertEqual(
+                json_file,
+                {
+                    'request': {**COMMON_REQUEST_DICT,
+                        'receiver': {
+                            'address': {
+                                'country': 'US',
+                                'governate': 'New York',
+                                'regionCity': 'New York City',
+                                'street': '5th avenue street',
+                                'buildingNumber': '12',
+                                'postalCode': '',
+                            },
+                            'name': 'partner_b',
+                            'type': 'F',
+                            'id': 'ESF35999705',
+                        },
+                        'documentType': 'i',
+                        'invoiceLines': [
+                            {
+                                'description': 'product_a',
+                                'itemType': 'GS1',
+                                'itemCode': '1KGS1TEST',
+                                'unitType': 'C62',
+                                'quantity': 1.0,
+                                'internalCode': '',
+                                'valueDifference': 0.0,
+                                'totalTaxableFees': 0.0,
+                                'itemsDiscount': 0.0,
+                                'unitValue': {'currencySold': 'EGP', 'amountEGP': 100.0},
+                                'discount': {'rate': 10.0, 'amount': 10.0},
+                                'taxableItems': [{'taxType': 'T3', 'amount': 10.0, 'subType': 'TBL02', 'rate': 0.0}],
+                                'salesTotal': 100.0,
+                                'netTotal': 90.0,
+                                'total': 100.0,
+                            },
+                        ],
+                        'taxTotals': [{'taxType': 'T3', 'amount': 10.0}],
+                        'totalDiscountAmount': 10.0,
+                        'totalSalesAmount': 100.0,
+                        'netAmount': 90.0,
+                        'totalAmount': 100.0,
                     },
                     'response': ETA_TEST_RESPONSE,
                 },
