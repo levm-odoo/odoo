@@ -962,6 +962,14 @@ export function createRelatedModels(modelDefs, modelClasses = {}, opts = {}) {
                                 missingFields[key].push([oldRecord, params]);
                             }
                         }
+                        if (params.type === "many2one" && !exists(params.relation, value)) {
+                            const key = `${params.relation}_${value}`;
+                            if (!missingFields[key]) {
+                                missingFields[key] = [[oldRecord, params]];
+                            } else {
+                                missingFields[key].push([oldRecord, params]);
+                            }
+                        }
                     }
 
                     oldRecord.update(record, { silent: true });
