@@ -375,13 +375,17 @@ export class ProductScreen extends Component {
     }
 
     getProductsBySearchWord(searchWord) {
-        const exactMatches = this.products.filter((product) => product.exactMatch(searchWord));
+        const products = this.pos.selectedCategory?.id
+            ? this.getProductsByCategory(this.pos.selectedCategory)
+            : this.products;
+
+        const exactMatches = products.filter((product) => product.exactMatch(searchWord));
 
         if (exactMatches.length > 0 && searchWord.length > 2) {
             return exactMatches;
         }
 
-        const fuzzyMatches = fuzzyLookup(unaccent(searchWord, false), this.products, (product) =>
+        const fuzzyMatches = fuzzyLookup(unaccent(searchWord, false), products, (product) =>
             unaccent(product.searchString, false)
         );
 
