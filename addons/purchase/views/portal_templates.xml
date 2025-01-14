@@ -368,8 +368,16 @@
                                             class="text-end"
                                         />
                                     </td>
+<<<<<<< 18.0
                                     <td t-if="display_price_and_taxes" t-attf-class="text-end {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
                                         <span t-esc="', '.join(map(lambda x: (x.description or x.name), line.taxes_id))"/>
+||||||| 27321a873809696825977ee4395c6f8d88434a1d
+                                    <td t-if="not update_dates and order.state in ['purchase', 'done']" t-attf-class="text-end {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                                        <span t-esc="', '.join(map(lambda x: (x.description or x.name), line.taxes_id))"/>
+=======
+                                    <td t-if="not update_dates and order.state in ['purchase', 'done']" t-attf-class="text-end {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                                        <span t-out="', '.join(map(lambda x: (x.name), line.taxes_id))"/>
+>>>>>>> 27c7c69ba7a1d15c13e5b26b4c2ac78912e9cdbb
                                     </td>
                                     <td t-if="display_price_and_taxes" t-attf-class="text-end {{ 'd-none d-sm-table-cell' if report_type == 'html' else '' }}">
                                         <div t-field="line.discount" class="text-end"/>
