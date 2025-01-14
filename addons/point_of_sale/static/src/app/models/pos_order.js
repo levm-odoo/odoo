@@ -96,6 +96,10 @@ export class PosOrder extends Base {
         return this.finalized && typeof this.id === "string";
     }
 
+    get originalSplittedOrder() {
+        return this.models["pos.order"].getBy("uuid", this.uiState.splittedOrderUuid);
+    }
+
     get presetTime() {
         const dateTime = DateTime.fromSQL(this.preset_time);
         return dateTime.isValid ? dateTime.toFormat("HH:mm") : false;
@@ -116,15 +120,18 @@ export class PosOrder extends Base {
      * @returns See '_get_tax_totals_summary' in account_tax.py for the full details.
      */
     get taxTotals() {
+        return this.getTaxTotalsOfLines(this.lines);
+    }
+
+    getTaxTotalsOfLines(lines) {
         const currency = this.currency;
         const company = this.company;
         const extraValues = { currency_id: currency };
-        const orderLines = this.lines;
         const isRefund = this._isRefundOrder();
         const documentSign = isRefund ? -1 : 1;
 
         const baseLines = [];
-        for (const line of orderLines) {
+        for (const line of lines) {
             let taxes = line.tax_ids;
             if (this.fiscal_position_id) {
                 taxes = getTaxesAfterFiscalPosition(taxes, this.fiscal_position_id, this.models);
@@ -304,6 +311,7 @@ export class PosOrder extends Base {
                     };
                 }
                 line.setHasChange(false);
+                line.saved_quantity = line.getQuantity();
             }
         });
         // Checks whether an orderline has been deleted from the order since it
@@ -627,8 +635,18 @@ export class PosOrder extends Base {
         return this.taxTotals.order_sign * this.taxTotals.total_amount_currency;
     }
 
+    getTotalWithTaxOfLines(lines) {
+        const taxTotals = this.getTaxTotalsOfLines(lines);
+        return taxTotals.order_sign * taxTotals.total_amount_currency;
+    }
+
     getTotalWithoutTax() {
         return this.taxTotals.order_sign * this.taxTotals.base_amount_currency;
+    }
+
+    getTotalWithoutTaxOfLines(lines) {
+        const taxTotals = this.getTaxTotalsOfLines(lines);
+        return taxTotals.order_sign * taxTotals.base_amount_currency;
     }
 
     _getIgnoredProductIdsTotalDiscount() {
@@ -652,13 +670,9 @@ export class PosOrder extends Base {
             this.lines.reduce((sum, orderLine) => {
                 if (!ignored_product_ids.includes(orderLine.product_id.id)) {
                     sum +=
-                        orderLine.getUnitDisplayPriceBeforeDiscount() *
-                        (orderLine.getDiscount() / 100) *
-                        orderLine.getQuantity();
-                    if (
-                        orderLine.displayDiscountPolicy() === "without_discount" &&
-                        !(orderLine.price_type === "manual")
-                    ) {
+                        orderLine.getAllPrices().priceWithTaxBeforeDiscount -
+                        orderLine.getAllPrices().priceWithTax;
+                    if (orderLine.displayDiscountPolicy() === "without_discount") {
                         sum +=
                             (orderLine.getTaxedlstUnitPrice() -
                                 orderLine.getUnitDisplayPriceBeforeDiscount()) *
@@ -673,6 +687,11 @@ export class PosOrder extends Base {
 
     getTotalTax() {
         return this.taxTotals.order_sign * this.taxTotals.tax_amount_currency;
+    }
+
+    getTotalTaxOfLines(lines) {
+        const taxTotals = this.getTaxTotalsOfLines(lines);
+        return taxTotals.order_sign * taxTotals.tax_amount_currency;
     }
 
     getTotalPaid() {
@@ -692,8 +711,12 @@ export class PosOrder extends Base {
     }
 
     getTaxDetails() {
+        return this.getTaxDetailsOfLines(this.lines);
+    }
+
+    getTaxDetailsOfLines(lines) {
         const taxDetails = {};
-        for (const line of this.lines) {
+        for (const line of lines) {
             for (const taxData of line.allPrices.taxesData) {
                 const taxId = taxData.id;
                 if (!taxDetails[taxId]) {
