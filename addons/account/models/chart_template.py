@@ -519,7 +519,7 @@ class AccountChartTemplate(models.AbstractModel):
                     values[fname] = False
                 elif isinstance(value, str) and (
                     field.type == 'many2one'
-                    or (field.type in ('integer', 'many2one_reference') and not value.isdigit())
+                    or (field.type in ('id', 'many2one_reference') and not value.isdigit())
                 ):
                     try:
                         values[fname] = self.ref(value).id if value not in ('', 'False', 'None') else False

@@ -370,7 +370,7 @@ test("rendering with given searchViewId", async function () {
                     store: true,
                     groupable: true,
                     aggregator: "sum",
-                    type: "integer",
+                    type: "id",
                     name: "id",
                 },
                 display_name: {

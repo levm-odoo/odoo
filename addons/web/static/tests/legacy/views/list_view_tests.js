@@ -171,7 +171,7 @@ QUnit.module("Views", (hooks) => {
                 },
                 event: {
                     fields: {
-                        id: { string: "ID", type: "integer" },
+                        id: { string: "ID", type: "id" },
                         name: { string: "name", type: "char" },
                     },
                     records: [{ id: "2-20170808020000", name: "virtual" }],

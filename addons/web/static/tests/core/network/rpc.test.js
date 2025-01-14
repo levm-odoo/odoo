@@ -20,7 +20,7 @@ test("can perform a simple rpc", async () => {
         const bodyObject = JSON.parse(body);
         expect(bodyObject.jsonrpc).toBe("2.0");
         expect(bodyObject.method).toBe("call");
-        expect(bodyObject.id).toBeOfType("integer");
+        expect(bodyObject.id).toBeOfType("id");
         return { result: { action_id: 123 } };
     });
 

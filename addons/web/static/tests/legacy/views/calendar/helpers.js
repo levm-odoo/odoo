@@ -180,7 +180,7 @@ export const FAKE_FILTER_SECTIONS = [
 ];
 
 export const FAKE_FIELDS = {
-    id: { string: "Id", type: "integer" },
+    id: { string: "Id", type: "id" },
     user_id: { string: "User", type: "many2one", relation: "user", default: -1 },
     partner_id: {
         string: "Partner",

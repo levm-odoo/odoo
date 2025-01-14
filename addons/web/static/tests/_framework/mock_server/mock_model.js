@@ -561,6 +561,7 @@ const isValidFieldValue = (record, fieldDef) => {
         case "monetary": {
             return typeof value === "number";
         }
+        case "id":
         case "integer": {
             return Number.isInteger(value);
         }

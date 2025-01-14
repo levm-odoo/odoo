@@ -383,7 +383,7 @@ export function getActionManagerServerData() {
     const models = {
         partner: {
             fields: {
-                id: { string: "Id", type: "integer" },
+                id: { string: "Id", type: "id" },
                 foo: { string: "Foo", type: "char" },
                 bar: { string: "Bar", type: "many2one", relation: "partner" },
                 o2m: {
@@ -411,7 +411,7 @@ export function getActionManagerServerData() {
         },
         pony: {
             fields: {
-                id: { string: "Id", type: "integer" },
+                id: { string: "Id", type: "id" },
                 name: { string: "Name", type: "char" },
             },
             records: [

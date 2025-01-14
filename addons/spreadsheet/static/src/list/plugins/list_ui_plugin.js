@@ -228,6 +228,8 @@ export class ListUIPlugin extends OdooUIPlugin {
     _getListFormat(listId, position, field) {
         const locale = this.getters.getLocale();
         switch (field?.type) {
+            case "id":
+                return "0";
             case "integer":
                 return "0";
             case "float":

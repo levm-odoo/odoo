@@ -9,6 +9,7 @@ declare module "fields" {
         "datetime" |
         "float" |
         "html" |
+        "id" |
         "image" |
         "integer" |
         "json" |
@@ -77,6 +78,8 @@ declare module "fields" {
         sanitize_tags: boolean;
     };
 
+    export type IdFieldDefinition = IFieldDefinition<"id">;
+
     export type ImageFieldDefinition = IFieldDefinition<"image">;
 
     export type IntegerFieldDefinition = IFieldDefinition<"integer"> & INumerical;
@@ -124,6 +127,7 @@ declare module "fields" {
         DateTimeFieldDefinition |
         FloatFieldDefinition |
         HtmlFieldDefinition |
+        IdFieldDefinition |
         ImageFieldDefinition |
         IntegerFieldDefinition |
         JsonFieldDefinition |

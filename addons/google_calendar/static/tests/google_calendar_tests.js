@@ -14,7 +14,7 @@ QUnit.module('Google Calendar', {
             models: {
                 'calendar.event': {
                     fields: {
-                        id: {string: "ID", type: "integer"},
+                        id: {string: "ID", type: "id"},
                         user_id: {string: "user", type: "many2one", relation: 'user'},
                         partner_id: {string: "user", type: "many2one", relation: 'partner', related: 'user_id.partner_id'},
                         name: {string: "name", type: "char"},
@@ -40,7 +40,7 @@ QUnit.module('Google Calendar', {
                 },
                 user: {
                     fields: {
-                        id: {string: "ID", type: "integer"},
+                        id: {string: "ID", type: "id"},
                         display_name: {string: "Displayed name", type: "char"},
                         partner_id: {string: "partner", type: "many2one", relation: 'partner'},
                         image_1920: {string: "image", type: "integer"},
@@ -51,7 +51,7 @@ QUnit.module('Google Calendar', {
                 },
                 partner: {
                     fields: {
-                        id: {string: "ID", type: "integer"},
+                        id: {string: "ID", type: "id"},
                         display_name: {string: "Displayed name", type: "char"},
                         image_1920: {string: "image", type: "integer"},
                     },
@@ -62,7 +62,7 @@ QUnit.module('Google Calendar', {
                 },
                 filter_partner: {
                     fields: {
-                        id: {string: "ID", type: "integer"},
+                        id: {string: "ID", type: "id"},
                         user_id: {string: "user", type: "many2one", relation: 'user'},
                         partner_id: {string: "partner", type: "many2one", relation: 'partner'},
                         partner_checked: {string: "checked", type: "boolean"},

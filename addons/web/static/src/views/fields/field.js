@@ -18,6 +18,7 @@ const validFieldTypes = [
     "binary",
     "boolean",
     "json",
+    "id",
     "integer",
     "float",
     "monetary",

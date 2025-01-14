@@ -456,6 +456,7 @@ registry
     .add("float_factor", formatFloatFactor)
     .add("float_time", formatFloatTime)
     .add("html", formatHtml)
+    .add("id", formatText)
     .add("integer", formatInteger)
     .add("json", formatJson)
     .add("many2one", formatMany2one)

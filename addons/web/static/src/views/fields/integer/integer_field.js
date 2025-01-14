@@ -105,7 +105,7 @@ export const integerField = {
             help: _t("Use it with the 'User-friendly format' option to customize the formatting."),
         },
     ],
-    supportedTypes: ["integer"],
+    supportedTypes: ["integer", "id"],
     isEmpty: (record, fieldName) => record.data[fieldName] === false,
     extractProps: ({ attrs, options }) => ({
         formatNumber:
@@ -119,3 +119,4 @@ export const integerField = {
 };
 
 registry.category("fields").add("integer", integerField);
+registry.category("fields").add("id", integerField);

@@ -169,7 +169,7 @@ export class MockServer {
         this.debug = options.debug || false;
         Object.entries(this.models).forEach(([modelName, model]) => {
             model.fields = {
-                id: { string: "ID", type: "integer" },
+                id: { string: "ID", type: "id" },
                 display_name: { string: "Display Name", type: "char" },
                 name: { string: "Name", type: "char", default: "name" },
                 write_date: { string: "Last Modified on", type: "datetime" },

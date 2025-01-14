@@ -996,7 +996,7 @@ def _cleanup_from_default(type_, value):
             return O2MValue()
         elif type_ == 'many2many':
             return M2MValue()
-        elif type_ in ('integer', 'float'):
+        elif type_ in ('id', 'integer', 'float'):
             return 0
         return value
 

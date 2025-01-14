@@ -57,7 +57,7 @@ test(`the ID field should not be proposed in "Add Custom Group" menu`, async () 
         searchViewId: false,
         searchViewFields: {
             foo: { string: "Foo", type: "char", store: true, sortable: true, groupable: true },
-            id: { string: "ID", type: "integer", sortable: true, groupable: true },
+            id: { string: "ID", type: "id", sortable: true, groupable: true },
         },
     });
 
@@ -108,7 +108,7 @@ test(`add a date field in "Add Custom Group" activate a groupby with global defa
                 sortable: true,
                 groupable: true,
             },
-            id: { sortable: true, string: "ID", type: "integer", groupable: true },
+            id: { sortable: true, string: "ID", type: "id", groupable: true },
         },
     });
 

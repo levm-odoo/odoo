@@ -458,6 +458,7 @@ class IrActionsAct_Url(models.Model):
         }
 
 WEBHOOK_SAMPLE_VALUES = {
+    "id": 41,
     "integer": 42,
     "float": 42.42,
     "monetary": 42.42,
@@ -1061,7 +1062,7 @@ class IrActionsServer(models.Model):
                     expr = [Command.clear()]
             elif action.update_field_id.ttype == 'boolean':
                 expr = action.update_boolean_value == 'true'
-            elif action.update_field_id.ttype in ['many2one', 'integer']:
+            elif action.update_field_id.ttype in ['many2one', 'id']:
                 try:
                     expr = int(action.value)
                     if expr == 0 and action.update_field_id.ttype == 'many2one':

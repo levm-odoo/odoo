@@ -115,7 +115,7 @@ export function createPropertyActiveField(property) {
     if (type === "one2many" || type === "many2many") {
         activeField.related = {
             fields: {
-                id: { name: "id", type: "integer" },
+                id: { name: "id", type: "id" },
                 display_name: { name: "display_name", type: "char" },
             },
             activeFields: {

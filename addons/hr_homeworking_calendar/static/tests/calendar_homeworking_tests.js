@@ -126,7 +126,7 @@ QUnit.module("Homeworking Calendar", ({ beforeEach }) => {
             models: {
                 event: {
                     fields: {
-                        id: { string: "ID", type: "integer" },
+                        id: { string: "ID", type: "id" },
                         user_id: {
                             string: "user",
                             type: "many2one",
@@ -203,7 +203,7 @@ QUnit.module("Homeworking Calendar", ({ beforeEach }) => {
                 },
                 user: {
                     fields: {
-                        id: { string: "ID", type: "integer" },
+                        id: { string: "ID", type: "id" },
                         display_name: { string: "Displayed name", type: "char" },
                         partner_id: {
                             string: "partner",
@@ -219,7 +219,7 @@ QUnit.module("Homeworking Calendar", ({ beforeEach }) => {
                 },
                 partner: {
                     fields: {
-                        id: { string: "ID", type: "integer" },
+                        id: { string: "ID", type: "id" },
                         display_name: { string: "Displayed name", type: "char" },
                         image: { string: "image", type: "integer" },
                     },
@@ -230,7 +230,7 @@ QUnit.module("Homeworking Calendar", ({ beforeEach }) => {
                 },
                 filter_partner: {
                     fields: {
-                        id: { string: "ID", type: "integer" },
+                        id: { string: "ID", type: "id" },
                         user_id: { string: "user", type: "many2one", relation: "user" },
                         partner_id: {
                             string: "partner",
@@ -246,7 +246,7 @@ QUnit.module("Homeworking Calendar", ({ beforeEach }) => {
                 },
                 "hr.work.location": {
                     fields: {
-                        id: { string: "ID", type: "integer"},
+                        id: { string: "ID", type: "id"},
                         name: { string: "Name", type: "string"},
                         location_type: {
                             string: 'Location',
@@ -269,7 +269,7 @@ QUnit.module("Homeworking Calendar", ({ beforeEach }) => {
                 },
                 "hr.employee": {
                     fields: {
-                        id: { type: "integer"},
+                        id: { type: "id"},
                         name: { string: "Name", type: "string" },
                         partner_id: { type: "many2one", relation: 'partner'}
                     },

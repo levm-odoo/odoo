@@ -40,7 +40,7 @@ export const accountFileUploader = {
         linkText: attrs.title || _t("Upload"),
     }),
     fieldDependencies: [
-        { name: "id", type: "integer" },
+        { name: "id", type: "id" },
         { name: "type", type: "selection" },
     ],
 };

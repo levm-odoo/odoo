@@ -40,10 +40,13 @@ export class ExpressionEditorDialog extends Component {
         const record = {};
         for (const [name, { type }] of Object.entries(this.props.fields)) {
             switch (type) {
+                case "id":
+                    record[name] = false;
+                    break;
                 case "integer":
                 case "float":
                 case "monetary":
-                    record[name] = name === "id" ? false : 0;
+                    record[name] = 0;
                     break;
                 case "one2many":
                 case "many2many":

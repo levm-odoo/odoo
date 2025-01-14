@@ -408,7 +408,7 @@ describe("RPC calls", () => {
     });
 
     test("'read_group': partial support of array_agg", async () => {
-        fields["res.users"].id = { type: "integer", name: "ID" };
+        fields["res.users"].id = { name: "ID", type: "id" };
         const server = new DeterministicSampleServer("res.users", fields["res.users"]);
         const result = await server.mockRpc({
             method: "read_group",

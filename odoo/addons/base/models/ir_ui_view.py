@@ -2763,7 +2763,7 @@ class Base(models.AbstractModel):
         elif view_type == 'search':
             models[self._name] = list(self._fields.keys())
         elif view_type == 'graph':
-            models[self._name].union(fname for fname, field in self._fields.items() if field.type in ('integer', 'float'))
+            models[self._name].union(fname for fname, field in self._fields.items() if field.type in ('id', 'integer', 'float'))
         elif view_type == 'pivot':
             models[self._name].union(fname for fname, field in self._fields.items() if field._description_groupable(self.env))
         return models

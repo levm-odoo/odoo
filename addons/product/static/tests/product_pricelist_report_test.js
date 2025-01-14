@@ -18,7 +18,7 @@ QUnit.module('Product Pricelist Report', {
             this.data = {
                 'product.product': {
                     fields: {
-                        id: {type: 'integer'}
+                        id: {type: 'id'}
                     },
                     records: [{
                         id: 42,
@@ -27,7 +27,7 @@ QUnit.module('Product Pricelist Report', {
                 },
                 'product.pricelist': {
                     fields: {
-                        id: {type: 'integer'}
+                        id: {type: 'id'}
                     },
                     records: [{
                         id: 1,

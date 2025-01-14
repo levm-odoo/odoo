@@ -368,6 +368,7 @@ export class Record extends DataPoint {
                 continue;
             }
             switch (fieldType) {
+                case "id":
                 case "boolean":
                 case "float":
                 case "integer":

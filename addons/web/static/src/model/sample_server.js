@@ -87,7 +87,7 @@ export class SampleServer {
                 this.data[field.relation] = this.data[field.relation] || {
                     fields: {
                         display_name: { type: "char" },
-                        id: { type: "integer" },
+                        id: { type: "id" },
                         color: { type: "integer" },
                     },
                     records: [],
