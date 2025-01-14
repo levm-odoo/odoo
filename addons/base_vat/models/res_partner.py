@@ -117,7 +117,6 @@ class ResPartner(models.Model):
 
         prefixed_country = ''
         if country in self._get_eu_prefixed_countries():
-            prefixed_country = country.code.lower()
             if vat_country.isalpha():
                 country_code = _eu_country_vat_inverse.get(vat_country.upper(), vat_country)
                 if country_code.upper() in self._get_eu_prefixed_countries().mapped('code'):
@@ -127,7 +126,7 @@ class ResPartner(models.Model):
         code_to_check = prefixed_country or country.code.lower()
         vat = self._fix_vat_number(vat, code_to_check)
 
-        if prefixed_country == 'de' and len(vat) != 9: # Old Steuernummer can not be used for intra-community
+        if prefixed_country == 'de' and len(vat) != 9: # Old Steuernummer can not be used for intra-community, but maybe this case is not that important
             prefixed_country = ''
 
         if prefixed_country == 'gr':
@@ -138,7 +137,7 @@ class ResPartner(models.Model):
         # The context key 'no_vat_validation' allows you to store/set a VAT number without doing validations.
         # This is for API pushes from external platforms where you have no control over VAT numbers.
         if validation == 'none':
-            return vat_to_return, country_code
+            return vat_to_return, code_to_check
 
         if not self._run_vat_test(vat, code_to_check):
             partner_label = _("partner [%s]", partner_name)
@@ -146,7 +145,7 @@ class ResPartner(models.Model):
             if validation == 'error':
                 raise ValidationError(msg)
             else:
-                return '', country_code
+                return '', code_to_check
         return vat_to_return, code_to_check
 
     def _check_vat(self, validation="error"):

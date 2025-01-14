@@ -810,18 +810,10 @@ class AccountMove(models.Model):
         eu_country_codes = set(self.env.ref('base.europe').country_ids.mapped('code'))
 
         def get_vat_data(partner, force_vat=None):
-            group_vat = partner.l10n_hu_group_vat
-            partner_vat = partner.vat
-            if group_vat and group_vat.startswith("HU"):
-                group_vat = group_vat[2:]
-            if partner_vat and partner_vat.startswith("HU"):
-                partner_vat = partner_vat[2:]
             if partner.country_code == 'HU' or force_vat:
-                tax_number = group_vat or (force_vat or partner_vat)
-
                 return {
-                    'tax_number': tax_number,
-                    'group_member_tax_number': group_vat and (force_vat or partner_vat),
+                    'tax_number': partner.l10n_hu_group_vat or (force_vat or partner.vat),
+                    'group_member_tax_number': partner.l10n_hu_group_vat and (force_vat or partner.vat),
                 }
             elif partner.country_code in eu_country_codes:
                 return {'community_vat_number': partner.vat}
