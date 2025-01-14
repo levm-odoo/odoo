@@ -322,7 +322,7 @@ class AccountMove(models.Model):
     # === EDI: Flow === #
 
     def _l10n_hu_edi_check_invoices(self):
-        hu_vat_regex = re.compile(r'\d{8}-[1-5]-\d{2}')
+        hu_vat_regex = re.compile(r'(HU)?\d{8}-[1-5]-\d{2}')
         hu_bank_account_regex = re.compile(r'\d{8}-\d{8}-\d{8}|\d{8}-\d{8}|[A-Z]{2}\d{2}[0-9A-Za-z]{11,30}')
 
         # This contains all the advance invoices that correspond to final invoices in `self`.
@@ -458,7 +458,6 @@ class AccountMove(models.Model):
                 'action_text': _('Open Accounting Settings'),
                 'action': self.env.ref('account.action_account_config').with_company(companies_missing_credentials[0])._get_action_dict(),
             }
-
         return errors
 
     def _l10n_hu_edi_upload(self, connection):
@@ -811,10 +810,18 @@ class AccountMove(models.Model):
         eu_country_codes = set(self.env.ref('base.europe').country_ids.mapped('code'))
 
         def get_vat_data(partner, force_vat=None):
+            group_vat = partner.l10n_hu_group_vat
+            partner_vat = partner.vat
+            if group_vat and group_vat.startswith("HU"):
+                group_vat = group_vat[2:]
+            if partner_vat and partner_vat.startswith("HU"):
+                partner_vat = partner_vat[2:]
             if partner.country_code == 'HU' or force_vat:
+                tax_number = group_vat or (force_vat or partner_vat)
+
                 return {
-                    'tax_number': partner.l10n_hu_group_vat or (force_vat or partner.vat),
-                    'group_member_tax_number': partner.l10n_hu_group_vat and (force_vat or partner.vat),
+                    'tax_number': tax_number,
+                    'group_member_tax_number': group_vat and (force_vat or partner_vat),
                 }
             elif partner.country_code in eu_country_codes:
                 return {'community_vat_number': partner.vat}
