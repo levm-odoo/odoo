@@ -20,7 +20,8 @@ class InitChecker(ast.NodeVisitor):
 
         if node.module:
             assert '.' not in node.module, "only supports one level of relative import"
-            assert node.names == [ast.alias(name='*')], \
+            [alias] = node.names
+            assert (alias.name, alias.asname) == ('*', None), \
                 f"only star-imports can be used to import test sub-modules, got {ast.dump(node)}"
             with unittest.mock.patch.object(self, 'prefix', f'{self.prefix}{node.module}/'):
                 init = self.path / self.prefix / '__init__.py'
