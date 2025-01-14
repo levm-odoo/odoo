@@ -363,7 +363,6 @@ test("group year/quarter/month filters to a single filter type", () => {
             operator: "in",
             label: "a relational filter",
             defaultValue: [2],
-            defaultValueDisplayNames: ["Mitchell Admin"],
             modelName: "res.users",
         },
         {

@@ -74402,6 +74402,7 @@ class Model extends EventBus {
      * 2. This allows us to define its type by using the interface CommandDispatcher
      */
     dispatch = (type, payload) => {
+        console.log(payload);
         const command = createCommand(type, payload);
         let status = this.status;
         if (this.getters.isReadonly() && !canExecuteInReadonly(command)) {

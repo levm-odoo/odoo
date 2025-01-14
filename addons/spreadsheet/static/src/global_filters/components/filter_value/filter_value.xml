@@ -3,27 +3,33 @@
     <t t-name="spreadsheet_edition.FilterValue"
        >
         <div class="o-filter-value d-flex align-items-start w-100">
-            <div t-if="filter.type === 'text'" class="w-100">
+            <div t-if="!filter.target" class="w-100">
+                <TextFilterValue
+                    value="filterValue"
+                    label="filter.label"
+                    onValueChanged.bind="setFilterValue"
+                />
+            </div>
+            <span t-elif="filter.relation and filter.operator !== 'ilike'" class="w-100">
+                <MultiRecordSelector
+                    t-if="isValid"
+                    placeholder="' ' + translate(filter.label)"
+                    resModel="filter.relation"
+                    resIds="filterValue || []"
+                    domain="relationalAllowedDomain"
+                    update.bind="setFilterValue" />
+                <ValidationMessages t-else="1"
+                                    messages="[invalidModel]"
+                                    msgType="'error'"/>
+            </span>
+            <div t-elif="filter.operator === 'ilike'" class="w-100">
                 <TextFilterValue
                     value="filterValue"
                     label="filter.label"
                     options="textAllowedValues"
-                    onValueChanged="(value) => this.onTextInput(filter.id, value)"
+                    onValueChanged.bind="setFilterValue"
                 />
             </div>
-            <span t-if="filter.type === 'relation'" class="w-100">
-                <MultiRecordSelector
-                    t-if="isValid"
-                    placeholder="' ' + translate(filter.label)"
-                    resModel="filter.modelName"
-                    resIds="filterValue || []"
-                    domain="relationalAllowedDomain"
-                    update="(resIds) => this.onTagSelected(filter.id, resIds)" />
-                <ValidationMessages t-else="1"
-                                    messages="[invalidModel]"
-                                    msgType="'error'"/>
-
-            </span>
             <div t-if="filter.type === 'date'" class="w-100">
                 <select t-if="filter.rangeType === 'relative'"
                     t-on-change="(e) => this.onDateInput(filter.id, e.target.value || undefined)"
@@ -42,18 +48,18 @@
                 <DateFromToValue t-elif="filter.rangeType === 'from_to'"
                     from="filterValue?.from"
                     to="filterValue?.to"
-                    onFromToChanged="(value) => this.onDateInput(filter.id, value)"/>
+                    onFromToChanged.bind="setFilterValue"/>
 
                 <DateFilterValue t-else=""
                     period="filterValue?.period"
                     yearOffset="filterValue?.yearOffset"
                     disabledPeriods="filter.disabledPeriods"
-                    onTimeRangeChanged="(value) => this.onDateInput(filter.id, value)"/>
+                    onTimeRangeChanged.bind="setFilterValue"/>
             </div>
-            <i t-if="getters.isGlobalFilterActive(filter.id)"
+            <i t-if="props.model.getters.isGlobalFilterActive(filter.id)"
                 class="fa fa-times btn btn-link text-muted o_side_panel_filter_icon ms-1"
                 title="Clear"
-                t-on-click="() => this.clear(filter.id)"/>
+                t-on-click="() => this.setFilterValue()"/>
         </div>
     </t>
 </templates>

@@ -419,6 +419,7 @@ function migrate13to14(data) {
         if (globalFilter.type === "relation") {
             globalFilter.operator = globalFilter.includeChildren ? "child_of" : "in";
             delete globalFilter.includeChildren;
+            delete globalFilter.defaultValueDisplayNames;
             const fieldMatching = getAllFieldMatching(data, globalFilter.id);
             const match = fieldMatching.find((fm) => fm?.chain?.split(".").length === 1);
             globalFilter.target = match

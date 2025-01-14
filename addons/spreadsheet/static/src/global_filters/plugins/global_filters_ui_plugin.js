@@ -98,9 +98,6 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
      */
     handle(cmd) {
         switch (cmd.type) {
-            case "ADD_GLOBAL_FILTER":
-                this.recordsDisplayName[cmd.filter.id] = cmd.filter.defaultValueDisplayNames;
-                break;
             case "EDIT_GLOBAL_FILTER": {
                 const filter = cmd.filter;
                 const id = filter.id;
@@ -113,14 +110,12 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
                 } else if (!checkFilterValueIsValid(filter, this.values[id]?.value)) {
                     delete this.values[id];
                 }
-                this.recordsDisplayName[id] = filter.defaultValueDisplayNames;
                 break;
             }
             case "SET_GLOBAL_FILTER_VALUE":
                 if (!cmd.value) {
                     this._clearGlobalFilterValue(cmd.id);
                 } else {
-                    this.recordsDisplayName[cmd.id] = cmd.displayNames;
                     this._setGlobalFilterValue(cmd.id, cmd.value);
                 }
                 break;
@@ -133,7 +128,6 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
                 }
                 break;
             case "REMOVE_GLOBAL_FILTER":
-                delete this.recordsDisplayName[cmd.id];
                 delete this.values[cmd.id];
                 break;
         }
@@ -275,6 +269,7 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
             }
             default:
                 switch (filter.operator) {
+                    case undefined:
                     case "ilike":
                         return [[{ value: value || "" }]];
                     case "in":
@@ -297,14 +292,14 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
     }
 
     /**
-     * Returns the possible values a text global filter can take
+     * Returns the possible values a global filter can take
      * if the values are restricted by a range of allowed values
      * @param {string} filterId
      * @returns {{value: string, formattedValue: string}[]}
      */
     getTextFilterOptions(filterId) {
         const filter = this.getters.getGlobalFilter(filterId);
-        if (filter.operator !== "ilike" || !filter.rangeOfAllowedValues) {
+        if (!filter.rangeOfAllowedValues) {
             return [];
         }
         const additionOptions = [
@@ -321,7 +316,7 @@ export class GlobalFiltersUIPlugin extends OdooUIPlugin {
     }
 
     /**
-     * Returns the possible values a text global filter can take from a range
+     * Returns the possible values a global filter can take from a range
      * or any addition raw string value. Removes duplicates and empty string values.
      * @param {object} range
      * @param {string[]} additionalOptionValues

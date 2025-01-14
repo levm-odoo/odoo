@@ -31,10 +31,8 @@ export class FilterValue extends Component {
     };
 
     setup() {
-        this.getters = this.props.model.getters;
-        this.relativeDateRangesTypes = RELATIVE_DATE_RANGE_TYPES;
-        this.nameService = useService("name");
         this.fieldService = useService("field");
+        this.relativeDateRangesTypes = RELATIVE_DATE_RANGE_TYPES;
         this.isValid = false;
         onWillStart(async () => {
             if (this.filter.type !== "relation") {
@@ -59,11 +57,11 @@ export class FilterValue extends Component {
     }
 
     get filterValue() {
-        return this.getters.getGlobalFilterValue(this.filter.id);
+        return this.props.model.getters.getGlobalFilterValue(this.filter.id);
     }
 
     get textAllowedValues() {
-        return this.getters.getTextFilterOptions(this.filter.id);
+        return this.props.model.getters.getTextFilterOptions(this.filter.id);
     }
 
     get relationalAllowedDomain() {
@@ -84,36 +82,14 @@ export class FilterValue extends Component {
         );
     }
 
-    onDateInput(id, value) {
-        this.props.model.dispatch("SET_GLOBAL_FILTER_VALUE", { id, value });
-    }
-
-    onTextInput(id, value) {
-        this.props.model.dispatch("SET_GLOBAL_FILTER_VALUE", { id, value });
-    }
-
-    async onTagSelected(id, resIds) {
-        if (!resIds.length) {
-            // force clear, even automatic default values
-            this.clear(id);
-        } else {
-            const displayNames = await this.nameService.loadDisplayNames(
-                this.filter.modelName,
-                resIds
-            );
-            this.props.model.dispatch("SET_GLOBAL_FILTER_VALUE", {
-                id,
-                value: resIds,
-                displayNames: Object.values(displayNames),
-            });
-        }
+    setFilterValue(value) {
+        this.props.model.dispatch("SET_GLOBAL_FILTER_VALUE", {
+            id: this.filter.id,
+            value,
+        });
     }
 
     translate(text) {
         return _t(text);
-    }
-
-    clear(id) {
-        this.props.model.dispatch("SET_GLOBAL_FILTER_VALUE", { id });
     }
 }

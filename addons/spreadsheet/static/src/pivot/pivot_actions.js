@@ -1,43 +1,43 @@
 // @ts-check
 
-import { globalFiltersFieldMatchers } from "@spreadsheet/global_filters/plugins/global_filters_core_plugin";
+// import { globalFiltersFieldMatchers } from "@spreadsheet/global_filters/plugins/global_filters_core_plugin";
 import { navigateTo } from "../actions/helpers";
 import { helpers } from "@odoo/o-spreadsheet";
 const { getNumberOfPivotFunctions } = helpers;
-const uuidGenerator = new helpers.UuidGenerator();
+// const uuidGenerator = new helpers.UuidGenerator();
 
-function getUniqueLabel(label, condition) {
-    let newLabel = label;
-    let counter = 1;
-    while (condition(newLabel)) {
-        newLabel = `${label} (${counter})`;
-        counter++;
-    }
-    return newLabel;
-}
+// function getUniqueLabel(label, condition) {
+//     let newLabel = label;
+//     let counter = 1;
+//     while (condition(newLabel)) {
+//         newLabel = `${label} (${counter})`;
+//         counter++;
+//     }
+//     return newLabel;
+// }
 
-function getLabel(model, field, env, type) {
-    let label = `${model} / ${field}`;
-    if (getType(type) === "relation") {
-        label = field;
-    }
-    return getUniqueLabel(label, (label) => env.model.getters.getGlobalFilterLabel(label));
-}
+// function getLabel(model, field, env, type) {
+//     let label = `${model} / ${field}`;
+//     if (getType(type) === "relation") {
+//         label = field;
+//     }
+//     return getUniqueLabel(label, (label) => env.model.getters.getGlobalFilterLabel(label));
+// }
 
-function getType(type) {
-    switch (type) {
-        case "integer": //ID
-        case "many2one":
-        case "many2many":
-        case "one2many":
-            return "relation";
-        case "datetime":
-        case "date":
-            return "date";
-        default:
-            return "text";
-    }
-}
+// function getType(type) {
+//     switch (type) {
+//         case "integer": //ID
+//         case "many2one":
+//         case "many2many":
+//         case "one2many":
+//             return "relation";
+//         case "datetime":
+//         case "date":
+//             return "date";
+//         default:
+//             return "text";
+//     }
+// }
 
 /**
  * @param {import("@odoo/o-spreadsheet").CellPosition} position
@@ -125,12 +125,6 @@ export function SET_FILTER_MATCHING(position, env) {
     env.model.dispatch("SET_MANY_GLOBAL_FILTER_VALUE", { filters });
 }
 
-export function ADD_PIVOT_FILTER(position, env) {
-    const pivotId = env.model.getters.getPivotIdFromPosition(position);
-    const domain = env.model.getters.getPivotCellFromPosition(position).domain;
-    debugger;
-}
-
 export function ADD_PIVOT_FILTER_CHILDREN(env) {
     const position = env.model.getters.getActivePosition();
     const pivotId = env.model.getters.getPivotIdFromPosition(position);
@@ -141,45 +135,51 @@ export function ADD_PIVOT_FILTER_CHILDREN(env) {
         name: pivot.getFields()[node.field].string,
         sequence: index,
         execute: async (env) => {
-            const field = node.field;
-            const model = pivot.coreDefinition.model;
-            const type = getType(pivot.getFields()[field].type);
-            const operator = type === "relation" ? "in" : "ilike";
-            const id = uuidGenerator.uuidv4();
-            const additionalPayload = {};
-            for (const [type, el] of Object.entries(globalFiltersFieldMatchers)) {
-                additionalPayload[type] = {};
-                for (const objectId of el.getIds()) {
-                    if (el.getModel(objectId) !== model) {
-                        continue;
-                    }
-                    additionalPayload[type][objectId] = {
-                        chain: field,
-                        type: pivot.getFields()[field].type,
-                    };
-                }
-            }
-            env.model.dispatch("ADD_GLOBAL_FILTER", {
-                filter: {
-                    id,
-                    label: getLabel(model, pivot.getFields()[field].string, env, pivot.getFields()[field].type),
-                    type,
-                    operator,
-                    target: { model, field },
-                },
-                ...additionalPayload,
-            });
-            switch (type) {
-                case "text":
-                    env.openSidePanel("TEXT_FILTER_SIDE_PANEL", { id });
-                    break;
-                case "date":
-                    env.openSidePanel("DATE_FILTER_SIDE_PANEL", { id });
-                    break;
-                case "relation":
-                    env.openSidePanel("RELATION_FILTER_SIDE_PANEL", { id });
-                    break;
-            }
+            // const field = node.field;
+            // const model = pivot.coreDefinition.model;
+            // const type = getType(pivot.getFields()[field].type);
+            // const operator = type === "relation" ? "in" : "ilike";
+            // const id = uuidGenerator.uuidv4();
+            // const additionalPayload = {};
+            // for (const [type, el] of Object.entries(globalFiltersFieldMatchers)) {
+            //     additionalPayload[type] = {};
+            //     for (const objectId of el.getIds()) {
+            //         if (el.getModel(objectId) !== model) {
+            //             continue;
+            //         }
+            //         additionalPayload[type][objectId] = {
+            //             chain: field,
+            //             type: pivot.getFields()[field].type,
+            //         };
+            //     }
+            // }
+            // env.model.dispatch("ADD_GLOBAL_FILTER", {
+            //     //TODOPRO
+            //     filter: {
+            //         id,
+            //         label: getLabel(
+            //             model,
+            //             pivot.getFields()[field].string,
+            //             env,
+            //             pivot.getFields()[field].type
+            //         ),
+            //         type,
+            //         operator,
+            //         target: { model, field },
+            //     },
+            //     ...additionalPayload,
+            // });
+            // switch (type) {
+            //     case "text":
+            //         env.openSidePanel("TEXT_FILTER_SIDE_PANEL", { id });
+            //         break;
+            //     case "date":
+            //         env.openSidePanel("DATE_FILTER_SIDE_PANEL", { id });
+            //         break;
+            //     case "relation":
+            //         env.openSidePanel("RELATION_FILTER_SIDE_PANEL", { id });
+            //         break;
+            // }
         },
         isVisible: (env) => env.model.getters.getPivot(pivotId).isValid(),
     }));

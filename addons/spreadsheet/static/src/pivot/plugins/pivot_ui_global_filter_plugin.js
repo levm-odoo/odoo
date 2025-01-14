@@ -235,22 +235,26 @@ export class PivotUIGlobalFilterPlugin extends OdooUIPlugin {
                             continue;
                         }
                         break;
-                    case "relation":
-                        if (typeof value == "string") {
-                            value = Number(value);
-                            if (Number.isNaN(value)) {
+                    default:
+                        switch (filter.operator) {
+                            case "ilike":
+                                if (currentValue !== value) {
+                                    transformedValue = value;
+                                }
                                 break;
-                            }
+                            case "in":
+                            case "child_of":
+                                if (typeof value == "string") {
+                                    value = Number(value);
+                                    if (Number.isNaN(value)) {
+                                        break;
+                                    }
+                                }
+                                if (JSON.stringify(currentValue) !== `[${value}]`) {
+                                    transformedValue = [value];
+                                }
+                                break;
                         }
-                        if (JSON.stringify(currentValue) !== `[${value}]`) {
-                            transformedValue = [value];
-                        }
-                        break;
-                    case "text":
-                        if (currentValue !== value) {
-                            transformedValue = value;
-                        }
-                        break;
                 }
                 matchingFilters.push({ filterId: filter.id, value: transformedValue });
             }

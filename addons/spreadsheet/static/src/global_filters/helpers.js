@@ -22,7 +22,7 @@ const quarterOptionsIds = Object.values(QUARTER_OPTIONS).map((option) => option.
  * @returns {boolean}
  */
 export function checkFilterValueIsValid(filter, value) {
-    const { type } = filter;
+    const { type, operator } = filter;
     if (value !== undefined) {
         switch (type) {
             case "text":
@@ -33,11 +33,20 @@ export function checkFilterValueIsValid(filter, value) {
             case "date": {
                 return checkDateFilterValueIsValid(filter, value);
             }
-            case "relation":
-                if (!Array.isArray(value)) {
-                    return false;
+            default:
+                switch (operator) {
+                    case "ilike":
+                        if (typeof value !== "string") {
+                            return false;
+                        }
+                        break;
+                    case "in":
+                    case "child_of":
+                        if (!Array.isArray(value)) {
+                            return false;
+                        }
+                        break;
                 }
-                break;
         }
     }
     return true;
