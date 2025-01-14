@@ -60,37 +60,8 @@ class ResPartner(models.Model):
         return iap_data
 
     @api.model
-    def _iap_replace_logo(self, iap_data):
-        if iap_data.get('logo'):
-            try:
-                iap_data['image_1920'] = base64.b64encode(
-                    requests.get(iap_data['logo'], timeout=PARTNER_AC_TIMEOUT).content
-                )
-            except Exception:
-                iap_data['image_1920'] = False
-            finally:
-                iap_data.pop('logo')
-            # avoid keeping falsy images (may happen that a blank page is returned that leads to an incorrect image)
-            if iap_data['image_1920']:
-                try:
-                    base64_to_image(iap_data['image_1920'])
-                except Exception:
-                    iap_data.pop('image_1920')
-        return iap_data
-
-    @api.model
     def _format_data_company(self, iap_data):
         self._iap_replace_location_codes(iap_data)
-
-        if iap_data.get('child_ids'):
-            child_ids = []
-            for child in iap_data.get('child_ids'):
-                child_ids.append(self._iap_replace_location_codes(child))
-            iap_data['child_ids'] = child_ids
-
-        if iap_data.get('additional_info'):
-            iap_data['additional_info'] = json.dumps(iap_data['additional_info'])
-
         return iap_data
 
     @api.model
@@ -129,38 +100,15 @@ class ResPartner(models.Model):
 
         return result
 
-    @api.model
-    def read_by_vat(self, vat, timeout=15):
-        vies_vat_data, _ = self.env['iap.autocomplete.api']._request_partner_autocomplete('search_vat', {
-            'vat': vat,
-        }, timeout=timeout)
-        if vies_vat_data:
-            return [self._format_data_company(vies_vat_data)]
-        else:
-            vies_result = None
-            try:
-                vies_result = check_vies(vat, timeout=timeout)
-            except Exception:
-                _logger.warning("Failed VIES VAT check.", exc_info=True)
-            if vies_result:
-                name = vies_result['name']
-                if vies_result['valid'] and name != '---':
-                    address = list(filter(bool, vies_result['address'].split('\n')))
-                    street = address[0]
-                    zip_city_record = next(filter(lambda addr: re.match(r'^\d.*', addr), address[1:]), None)
-                    zip_city = zip_city_record.split(' ', 1) if zip_city_record else [None, None]
-                    street2 = next((addr for addr in filter(lambda addr: addr != zip_city_record, address[1:])), None)
-                    return [self._iap_replace_location_codes({
-                        'name': name,
-                        'vat': vat,
-                        'street': street,
-                        'street2': street2,
-                        'city': zip_city[1],
-                        'zip': zip_city[0],
-                        'country_code': vies_result['countryCode'],
-                        'skip_enrich': True,
-                    })]
-            return []
+    def iap_partner_autocomplete_add_tags(self, tags):
+        self.ensure_one()
+        tag_ids = self.env['res.partner.category']
+        for tag in tags:
+            if existing_tag := self.env['res.partner.category'].search([('name', '=', tag)]):
+                tag_ids |= existing_tag
+            else:
+                tag_ids |= self.env['res.partner.category'].create({'name': tag})
+        self.category_id = tag_ids
 
     @api.model
     def _is_company_in_europe(self, partner_country_code, vat_country_code):
@@ -210,23 +158,12 @@ class ResPartner(models.Model):
         partners = super(ResPartner, self).create(vals_list)
         if len(vals_list) == 1:
             partners._update_autocomplete_data(vals_list[0].get('vat', False))
-            if partners.additional_info:
-                template_values = json.loads(partners.additional_info)
-                template_values['flavor_text'] = _("Partner created by Odoo Partner Autocomplete Service")
-                partners.message_post_with_source(
-                    'iap_mail.enrich_company',
-                    render_values=template_values,
-                    subtype_xmlid='mail.mt_note',
-                )
-                partners.write({'additional_info': False})
-
         return partners
 
     def write(self, values):
         res = super(ResPartner, self).write(values)
         if len(self) == 1:
             self._update_autocomplete_data(values.get('vat', False))
-
         return res
 
     @api.model

@@ -1,5 +1,5 @@
 import { AutoComplete } from "@web/core/autocomplete/autocomplete";
-import { useChildRef } from "@web/core/utils/hooks";
+import { useChildRef, useService } from "@web/core/utils/hooks";
 import { registry } from "@web/core/registry";
 import { _t } from "@web/core/l10n/translation";
 import { CharField, charField } from "@web/views/fields/char/char_field";
@@ -16,6 +16,8 @@ export class PartnerAutoCompleteCharField extends CharField {
     setup() {
         super.setup();
 
+        this.orm = useService("orm");
+        this.action = useService("action");
         this.partner_autocomplete = usePartnerAutocomplete();
 
         this.inputRef = useChildRef();
@@ -23,12 +25,7 @@ export class PartnerAutoCompleteCharField extends CharField {
     }
 
     async validateSearchTerm(request) {
-        if (this.props.name == 'vat') {
-            return this.partner_autocomplete.isTAXNumber(request);
-        }
-        else {
-            return request && request.length > 2;
-        }
+        return request && request.length > 2;
     }
 
     get sources() {
@@ -55,17 +52,20 @@ export class PartnerAutoCompleteCharField extends CharField {
     async onSelect(option) {
         const data = await this.partner_autocomplete.getCreateData(Object.getPrototypeOf(option));
 
-        if (data.logo) {
-            const logoField = this.props.record.resModel === 'res.partner' ? 'image_1920' : 'logo';
-            data.company[logoField] = data.logo;
-        }
-
         // Some fields are unnecessary in res.company
         if (this.props.record.resModel === 'res.company') {
             const fields = ['comment', 'child_ids', 'additional_info'];
             fields.forEach((field) => {
                 delete data.company[field];
             });
+        }
+
+        // Many2many fields: create tags
+        if (this.props.record.resModel === 'res.partner') {
+            await this.props.record.save();
+            await this.orm.call("res.partner", "iap_partner_autocomplete_add_tags", [this.props.record.resId, data.company.tags]);
+            delete data.company.tags;
+            await this.props.record.load();
         }
 
         // Format the many2one fields

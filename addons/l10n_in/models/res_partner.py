@@ -107,7 +107,6 @@ class ResPartner(models.Model):
             partner_gid = partner_data.get('partner_gid')
             if partner_gid:
                 partner_data = self.enrich_company(company_domain=None, partner_gid=partner_gid, vat=partner_data.get('vat'))
-                partner_data = self._iap_replace_logo(partner_data)
             return {
                 'name': partner_data.get('name'),
                 'company_type': 'company',

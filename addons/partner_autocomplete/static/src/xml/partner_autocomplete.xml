@@ -17,9 +17,7 @@
     <t t-name="partner_autocomplete.CharFieldDropdownOption">
         <div class="o_partner_autocomplete_info">
             <strong t-esc="option.name or '&#160;'"/>
-            <div>
-                <span t-esc="option.city"/>, <span t-esc="option.country_id.display_name"/>
-            </div>
+            <div t-esc="option.description"/>
         </div>
     </t>
 
@@ -27,7 +25,6 @@
         <i class="fa fa-magic text-muted pe-1"/>
         <t t-esc="option.label or '&#160;'"/>,
         <span class="text-muted" t-esc="option.description"/>
-        <img class="ms-1" t-att-src="option.logo" onerror="this.src='/base/static/img/company_image.png'" alt="Placeholder"/>
     </t>
 
     <t t-name="partner_autocomplete.InsufficientCreditNotification">

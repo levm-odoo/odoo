@@ -52,9 +52,6 @@ export class PartnerMany2XAutocomplete extends Many2XAutocomplete {
                 context['default_' + key] = val && val.id ? val.id : val;
             }
 
-            if (data.logo) {
-                context.default_image_1920 = data.logo;
-            }
             return this.openMany2X({ context });
         }
         else {

@@ -55,6 +55,7 @@ class ResCompany(models.Model):
         partner related fields of the company.
 
         :return bool: either done, either failed """
+        return
         self.ensure_one()
         _logger.info("Starting enrich of company %s (%s)", self.name, self.id)
 
@@ -65,13 +66,7 @@ class ResCompany(models.Model):
         company_data = self.env['res.partner'].enrich_company(company_domain, False, self.vat, timeout=COMPANY_AC_TIMEOUT)
         if company_data.get('error'):
             return False
-        additional_data = company_data.pop('additional_info', False)
 
-        # Keep only truthy values that are not already set on the target partner
-        # Erase image_1920 even if something is in it. Indeed as partner_autocomplete is probably installed as a
-        # core app (mail -> iap -> partner_autocomplete auto install chain) it is unlikely that people already
-        # updated their company logo.
-        self.env['res.partner']._iap_replace_logo(company_data)
         company_data = {field: value for field, value in company_data.items()
                         if field in self.partner_id._fields and value and (field == 'image_1920' or not self.partner_id[field])}
 
@@ -87,15 +82,6 @@ class ResCompany(models.Model):
         self._enrich_replace_o2m_creation(company_data)
 
         self.partner_id.write(company_data)
-
-        if additional_data:
-            template_values = json.loads(additional_data)
-            template_values['flavor_text'] = _("Company auto-completed by Odoo Partner Autocomplete Service")
-            self.partner_id.message_post_with_source(
-                'iap_mail.enrich_company',
-                render_values=template_values,
-                subtype_xmlid='mail.mt_note',
-            )
         return True
 
     def _enrich_extract_m2o_id(self, iap_data, m2o_fields):
