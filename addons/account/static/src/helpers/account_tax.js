@@ -575,8 +575,8 @@ export const accountTaxHelpers = {
                         company_currency_pd: company.currency_id.rounding,
                         base_amount_currency: 0.0,
                         base_amount: 0.0,
-                        raw_base_amount_currency: 0.0,
-                        raw_base_amount: 0.0,
+                        raw_total_amount_currency: 0.0,
+                        raw_total_amount: 0.0,
                         tax_amount_currency: 0.0,
                         tax_amount: 0.0,
                         raw_tax_amount_currency: 0.0,
@@ -591,9 +591,9 @@ export const accountTaxHelpers = {
                 amounts.tax_amount += tax_data.tax_amount;
                 amounts.raw_tax_amount += tax_data.raw_tax_amount;
                 amounts.base_amount_currency += tax_data.base_amount_currency;
-                amounts.raw_base_amount_currency += tax_data.raw_base_amount_currency;
                 amounts.base_amount += tax_data.base_amount;
-                amounts.raw_base_amount += tax_data.raw_base_amount;
+                amounts.raw_total_amount_currency += tax_data.raw_base_amount_currency + tax_data.raw_tax_amount_currency;
+                amounts.raw_total_amount += tax_data.raw_base_amount + tax_data.raw_tax_amount;
                 if (!base_line.special_type) {
                     amounts.base_lines.push(base_line);
                 }
@@ -610,8 +610,8 @@ export const accountTaxHelpers = {
                         company_currency_pd: company.currency_id.rounding,
                         base_amount_currency: 0.0,
                         base_amount: 0.0,
-                        raw_base_amount_currency: 0.0,
-                        raw_base_amount: 0.0,
+                        raw_total_amount_currency: 0.0,
+                        raw_total_amount: 0.0,
                         tax_amount_currency: 0.0,
                         tax_amount: 0.0,
                         raw_tax_amount_currency: 0.0,
@@ -621,9 +621,9 @@ export const accountTaxHelpers = {
                 }
                 const amounts = total_per_tax[key];
                 amounts.base_amount_currency += tax_details.total_excluded_currency;
-                amounts.raw_base_amount_currency += tax_details.raw_total_excluded_currency;
                 amounts.base_amount += tax_details.total_excluded;
-                amounts.raw_base_amount += tax_details.raw_total_excluded;
+                amounts.raw_total_amount_currency += tax_details.raw_total_excluded_currency;
+                amounts.raw_total_amount += tax_details.raw_total_excluded;
                 if(!base_line.special_type){
                     amounts.base_lines.push(base_line);
                 }
@@ -640,12 +640,12 @@ export const accountTaxHelpers = {
                 amounts.raw_tax_amount,
                 amounts.company_currency_pd
             );
-            amounts.raw_base_amount_currency = roundPrecision(
-                amounts.raw_base_amount_currency,
+            amounts.raw_total_amount_currency = roundPrecision(
+                amounts.raw_total_amount_currency,
                 amounts.currency_pd
             );
-            amounts.raw_base_amount = roundPrecision(
-                amounts.raw_base_amount,
+            amounts.raw_total_amount = roundPrecision(
+                amounts.raw_total_amount,
                 amounts.company_currency_pd
             );
         }
@@ -684,7 +684,7 @@ export const accountTaxHelpers = {
             amounts.tax_amount += delta_tax_amount;
         }
 
-        // Dispatch the delta of base amounts accross the base lines.
+        // Dispatch the delta of base amounts across the base lines.
         // Suppose 2 lines:
         // - quantity=12.12, price_unit=12.12, tax=23%
         // - quantity=12.12, price_unit=12.12, tax=23%
@@ -697,8 +697,8 @@ export const accountTaxHelpers = {
                 continue;
             }
 
-            const delta_base_amount_currency = amounts.raw_base_amount_currency - amounts.base_amount_currency;
-            const delta_base_amount = amounts.raw_base_amount - amounts.base_amount;
+            const delta_base_amount_currency = amounts.raw_total_amount_currency - amounts.base_amount_currency - amounts.tax_amount_currency;
+            const delta_base_amount = amounts.raw_total_amount - amounts.base_amount - amounts.tax_amount;
             if (floatIsZero(delta_base_amount_currency, amounts.currency.decimal_places) && floatIsZero(delta_base_amount, company.currency_id.decimal_places)) {
                 continue;
             }

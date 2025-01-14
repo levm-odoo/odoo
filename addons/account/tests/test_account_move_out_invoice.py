@@ -3787,8 +3787,8 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
         # Suggest the new amount such that the total is equal to the quick amount
         with Form(invoice) as move_form:
             with move_form.invoice_line_ids.new() as line_form:
-                self.assertEqual(line_form.price_unit, 30)
-        self.assertRecordValues(invoice, [{'amount_total': 120.58, 'amount_untaxed': 100, 'amount_tax': 20.58}])
+                self.assertEqual(line_form.price_unit, 30.0)
+        self.assertRecordValues(invoice, [{'amount_total': 120.58, 'amount_untaxed': 100.0, 'amount_tax': 20.58}])
         self.assertEqual(len(invoice.invoice_line_ids), 2)
 
     def test_quick_edit_total_amount_with_reverse_charge(self):
