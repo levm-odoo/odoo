@@ -63,8 +63,8 @@ export class PartnerAutoCompleteCharField extends CharField {
         // Many2many fields: create tags
         if (this.props.record.resModel === 'res.partner') {
             await this.props.record.save();
-            await this.orm.call("res.partner", "iap_partner_autocomplete_add_tags", [this.props.record.resId, data.company.tags]);
-            delete data.company.tags;
+            await this.orm.call("res.partner", "iap_partner_autocomplete_add_tags", [this.props.record.resId, data.company.unspsc_codes]);
+            delete data.company.unspsc_codes;
             await this.props.record.load();
         }
 

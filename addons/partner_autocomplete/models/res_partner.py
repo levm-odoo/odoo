@@ -112,14 +112,25 @@ class ResPartner(models.Model):
 
         return result
 
-    def iap_partner_autocomplete_add_tags(self, tags):
+    def iap_partner_autocomplete_add_tags(self, unspsc_codes):
         self.ensure_one()
+
+        # If the UNSPSC module is installed, we might have a translation, so let's use it
+        if self.env['ir.module.module']._get('product_unspsc').state == 'installed':
+            tag_names = self.env['product.unspsc.code']\
+                            .with_context(active_test=False)\
+                            .search([('code', 'in', [unspsc_code for unspsc_code, __ in unspsc_codes])])\
+                            .mapped('name')
+        # If it's not, then we use the default English name provided by DnB
+        else:
+            tag_names = [unspsc_name for __, unspsc_name in unspsc_codes]
+
         tag_ids = self.env['res.partner.category']
-        for tag in tags:
-            if existing_tag := self.env['res.partner.category'].search([('name', '=', tag)]):
+        for tag_name in tag_names:
+            if existing_tag := self.env['res.partner.category'].search([('name', '=', tag_name)]):
                 tag_ids |= existing_tag
             else:
-                tag_ids |= self.env['res.partner.category'].create({'name': tag})
+                tag_ids |= self.env['res.partner.category'].create({'name': tag_name})
         self.category_id = tag_ids
 
     @api.model
