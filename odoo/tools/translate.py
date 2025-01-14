@@ -1371,7 +1371,7 @@ class TranslationModuleReader(TranslationReader):
             translations = code_translations.get_python_translations(module, self._lang)
         else:
             translations = code_translations.get_web_translations(module, self._lang)
-            translations = {tran['id']: tran['string'] for tran in translations['messages']}
+            translations = dict(translations['messages'])
         try:
             for extracted in extract.extract(extract_method, src_file, keywords=extract_keywords, options=options):
                 # Babel 0.9.6 yields lineno, message, comments
@@ -1705,7 +1705,7 @@ class CodeTranslations:
     def __init__(self):
         # {(module_name, lang): {src: value}}
         self.python_translations = {}
-        # {(module_name, lang): {'message': [{'id': src, 'string': value}]}
+        # {(module_name, lang): {'message': [(src, value)]}
         self.web_translations = {}
 
     @staticmethod
@@ -1751,7 +1751,7 @@ class CodeTranslations:
         translations = CodeTranslations._get_code_translations(module_name, lang, filter_func)
         self.web_translations[(module_name, lang)] = ReadonlyDict({
             "messages": tuple(
-                ReadonlyDict({"id": src, "string": value})
+                (src, value)
                 for src, value in translations.items())
         })
 

@@ -923,8 +923,8 @@ export class MockServer {
         if (Array.isArray(translations)) {
             this.modules.web.messages.push(...translations);
         } else {
-            for (const [id, string] of Object.entries(translations)) {
-                this.modules.web.messages.push({ id, string });
+            for (const translation of Object.entries(translations)) {
+                this.modules.web.messages.push(translation);
             }
         }
     }

@@ -277,7 +277,7 @@ class TestTranslationFlow(common.TransactionCase):
                 return row.get('value') and JAVASCRIPT_TRANSLATION_COMMENT in row['comments']
             new_code_translations.web_translations[('test_translation_import', 'fr_FR')] = {
                 "messages": tuple(
-                    {"id": src, "string": value}
+                    (src, value)
                     for src, value in CodeTranslations._read_code_translations_file(
                         po_file, filter_func_for_javascript).items()
                 )
@@ -294,7 +294,7 @@ class TestTranslationFlow(common.TransactionCase):
         self.assertNotIn('text node', new_python, 'web client only translations should not be stored as python translations')
         self.assertFalse(
             any(
-                tran['id'] == 'Code Lazy, English'
+                tran[0] == 'Code Lazy, English'
                 for tran in new_web['messages']
             ), 'Python only translations should not be stored as webclient translations'
         )

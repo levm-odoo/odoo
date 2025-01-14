@@ -49,7 +49,7 @@ export const localizationService = {
         const terms = {};
         for (const addon of Object.keys(modules)) {
             for (const message of modules[addon].messages) {
-                terms[message.id] = message.string;
+                terms[message[0]] = message[1];
             }
         }
 
