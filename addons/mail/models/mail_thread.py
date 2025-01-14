@@ -4432,8 +4432,11 @@ class MailThread(models.AbstractModel):
         payload_length = len(str(payload).encode())
         body = payload['options']['body']
         body_length = len(body)
-        if payload_length > 4096:
-            body_max_length = 4096 - payload_length - body_length
+        # This lenght has been chosen based on the extra bytes added by the encryption
+        # using AES128GCM. Taking into account what are the extra bytes added at the header:
+        # salt(16) + record_size(4) + key_len(1) + public_key (sender_public_key.len)
+        if payload_length > 3990:
+            body_max_length = 3990 - payload_length + body_length
             payload['options']['body'] = body.encode()[:body_max_length].decode(errors="ignore")
         return payload
 
