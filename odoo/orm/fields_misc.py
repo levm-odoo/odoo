@@ -15,9 +15,6 @@ if typing.TYPE_CHECKING:
     from .models import BaseModel
     from odoo.tools import Query
 
-# integer needs to be imported before Id because of `type` attribute clash
-from . import fields_numeric  # noqa: F401
-
 
 class Boolean(Field[bool]):
     """ Encapsulates a :class:`bool`. """
@@ -93,7 +90,7 @@ class Json(Field):
 
 class Id(Field[IdType | typing.Literal[False]]):
     """ Special case for field 'id'. """
-    type = 'integer'  # note this conflicts with Integer
+    type = 'id'
     column_type = ('int4', 'int4')
 
     string = 'ID'
