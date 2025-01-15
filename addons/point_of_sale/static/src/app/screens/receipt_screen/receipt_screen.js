@@ -30,9 +30,11 @@ export class ReceiptScreen extends Component {
         this.doFullPrint = useTrackedAsync(() => this.pos.printReceipt());
         this.doBasicPrint = useTrackedAsync(() => this.pos.printReceipt({ basic: true }));
         onMounted(() => {
-            const order = this.pos.get_order();
             this.currentOrder.uiState.locked = true;
-            this.pos.sendOrderInPreparation(order);
+            const order = this.pos.get_order();
+            if (!order.uiState.isSplitted && !order.uiState.splittedOrderUuid) {
+                this.pos.sendOrderInPreparation(order);
+            }
         });
     }
 

@@ -105,6 +105,7 @@ export class SplitBillScreen extends Component {
         const newOrder = this.pos.createNewOrder();
         newOrder.floating_order_name = newOrderName;
         newOrder.uiState.splittedOrderUuid = curOrderUuid;
+        originalOrder.uiState.isSplitted = true;
         await this.preSplitOrder(originalOrder, newOrder);
 
         let sentQty = {};
