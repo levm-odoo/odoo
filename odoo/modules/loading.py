@@ -416,10 +416,12 @@ def load_marked_modules(
     return processed_modules
 
 
-def load_modules(registry: Registry, force_demo: bool = False, status: None = None, update_module: bool = False) -> None:
+def load_modules(registry: Registry, force_demo: bool = False, status: None = None, update_module: bool = False, init: Iterable = (), update: Iterable = (), demo: Iterable = ()) -> None:
     """ Load the modules for a registry object that has just been created.  This
         function is part of Registry.new() and should not be used anywhere else.
     """
+    update_module = update_module or bool(init) or bool(update)
+
     if status is not None:
         warnings.warn("Deprecated since 19.0, status is deprecated, do not set it")
     initialize_sys_path()
@@ -443,11 +445,9 @@ def load_modules(registry: Registry, force_demo: bool = False, status: None = No
             _logger.info("init db")
             modules_db.initialize(cr)
             update_module = True # process auto-installed modules
-            tools.config["init"]["all"] = 1
-            if not tools.config['without_demo']:
-                tools.config["demo"]['all'] = 1
+            init = itertools.chain(init, ('all',))
 
-        if 'base' in tools.config['update'] or 'all' in tools.config['update']:
+        if 'base' in update or 'all' in update:
             cr.execute("update ir_module_module set state=%s where name=%s and state=%s", ('to upgrade', 'base', 'installed'))
 
         # STEP 1: LOAD BASE (must be done before module dependencies can be computed for later steps)
@@ -489,17 +489,15 @@ def load_modules(registry: Registry, force_demo: bool = False, status: None = No
             _logger.info('updating modules list')
             Module.update_list()
 
-            _check_module_names(cr, itertools.chain(tools.config['init'], tools.config['update']))
+            _check_module_names(cr, itertools.chain(init, update))
 
-            module_names = [k for k, v in tools.config['init'].items() if v]
-            if module_names:
-                modules = Module.search([('state', '=', 'uninstalled'), ('name', 'in', module_names)])
+            if init:
+                modules = Module.search([('state', '=', 'uninstalled'), ('name', 'in', init)])
                 if modules:
                     modules.button_install()
 
-            module_names = [k for k, v in tools.config['update'].items() if v]
-            if module_names:
-                modules = Module.search([('state', 'in', ('installed', 'to upgrade')), ('name', 'in', module_names)])
+            if update:
+                modules = Module.search([('state', 'in', ('installed', 'to upgrade')), ('name', 'in', update)])
                 if modules:
                     modules.button_upgrade()
 
@@ -586,9 +584,6 @@ def load_modules(registry: Registry, force_demo: bool = False, status: None = No
             # Cleanup orphan records
             env['ir.model.data']._process_end(processed_modules)
             env.flush_all()
-
-        for kind in ('init', 'demo', 'update'):
-            tools.config[kind] = {}
 
         # STEP 5: Uninstall modules to remove
         if update_module:

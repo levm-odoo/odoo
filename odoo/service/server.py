@@ -1280,7 +1280,7 @@ def preload_registries(dbnames):
         try:
             update_module = config['init'] or config['update']
             threading.current_thread().dbname = dbname
-            registry = Registry.new(dbname, update_module=update_module)
+            registry = Registry.new(dbname, update_module=update_module, init=config['init'], update=config['update'], demo=config['demo'])
 
             # run post-install tests
             if config['test_enable']:
