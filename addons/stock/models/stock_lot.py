@@ -100,7 +100,7 @@ class StockLot(models.Model):
         if error_message_lines:
             raise ValidationError(_('The combination of serial number and product must be unique across a company.\nFollowing combination contains duplicates:\n') + '\n'.join(error_message_lines))
 
-    def _check_create(self):
+    def _check_create(self, product_ids={}):
         active_picking_id = self.env.context.get('active_picking_id', False)
         if active_picking_id:
             picking_id = self.env['stock.picking'].browse(active_picking_id)
@@ -149,7 +149,8 @@ class StockLot(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        self._check_create()
+        product_ids =  {val.get('product_id') for val in vals_list} | {self.env.context.get('default_product_id')}
+        self._check_create(product_ids)
         return super(StockLot, self.with_context(mail_create_nosubscribe=True)).create(vals_list)
 
     def write(self, vals):
