@@ -26,6 +26,8 @@ class WebclientController(http.Controller):
         """Returns data depending on request parameters.
         This is similar to /mail/action except this method should be read-only.
         """
+        if self.env.user._is_public() and not request.env["mail.guest"]._get_guest_from_context():
+            return {}
         return self._process_request(**kwargs)
 
     def _process_request(self, **kwargs):
