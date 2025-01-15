@@ -1,6 +1,6 @@
 import { ChatWindow } from "@mail/core/common/chat_window";
-import { useHover, useMovable } from "@mail/utils/common/hooks";
-import { Component, useEffect, useExternalListener, useRef, useState } from "@odoo/owl";
+import { useHover } from "@mail/utils/common/hooks";
+import { Component, useEffect, useExternalListener, useRef } from "@odoo/owl";
 
 import { browser } from "@web/core/browser/browser";
 import { Dropdown } from "@web/core/dropdown/dropdown";
@@ -30,21 +30,13 @@ export class ChatHub extends Component {
         });
         this.options = useDropdownState();
         this.more = useDropdownState();
-        this.compactRef = useRef("compact");
-        this.compactPosition = useState({ left: "auto", top: "auto" });
+        this.ref = useRef("root");
         this.onResize();
         useExternalListener(browser, "resize", this.onResize);
         useEffect(() => {
             if (this.chatHub.folded.length && this.store.channels?.status === "not_fetched") {
                 this.store.channels.fetch();
             }
-        });
-        useMovable({
-            cursor: "grabbing",
-            ref: this.compactRef,
-            elements: ".o-mail-ChatHub-compact",
-            onDrop: ({ top, left }) =>
-                Object.assign(this.compactPosition, { left: `${left}px`, top: `${top}px` }),
         });
     }
 
@@ -75,7 +67,7 @@ export class ChatHub extends Component {
 
     expand() {
         this.chatHub.compact = false;
-        Object.assign(this.compactPosition, { left: "auto", top: "auto" });
+        Object.assign(this.position, { left: "auto", top: "auto" });
         this.more.isOpen = this.chatHub.folded.length > this.chatHub.maxFolded;
     }
 }

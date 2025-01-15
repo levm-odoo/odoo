@@ -62,6 +62,10 @@
     left: 3px;
 }
 
+.o-mail-chatBubble-preview {
+    min-width: unset;
+}
+
 .o-mail-ChatBubble-counter {
     padding: 3px 6px;
     z-index: 7;
@@ -75,7 +79,7 @@
     right: $o-mail-ChatHub-bubblesWidth;
     z-index: $o-mail-ChatBubble-zindex - 1;
     border-color: var(--ChatBubble-previewBorderColor, mix($o-gray-300, $o-gray-400)) !important;
-    
+
     & + .popover-arrow {
         // puts arrow above preview border
         &::before {
@@ -102,11 +106,11 @@
     right: -2px;
 }
 
-@keyframes o-mail-ChatBubble-bouncing { 
-    from { 
-        transform: translate3d(0, 0, 0); 
-    } 
+@keyframes o-mail-ChatBubble-bouncing {
+    from {
+        transform: translate3d(0, 0, 0);
+    }
     to {
-        transform: translate3d(0, -10px, 0); 
-    } 
-} 
+        transform: translate3d(0, -10px, 0);
+    }
+}
