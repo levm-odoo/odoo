@@ -35,6 +35,13 @@ WARNING_HELP = 'Selecting the "Warning" option will notify user with the message
 
 
 ADDRESS_FIELDS = ('street', 'street2', 'zip', 'city', 'state_id', 'country_id')
+
+
+EU_COUNTRY_VAT = {
+    'GR': 'EL',
+    'GB': 'XI',
+}
+
 @api.model
 def _lang_get(self):
     return self.env['res.lang'].get_installed()
@@ -398,7 +405,7 @@ class ResPartner(models.Model):
         for partner in self - super_partner:
             partner.partner_share = not partner.user_ids or not any(not user.share for user in partner.user_ids)
 
-    @api.depends('vat', 'company_id', 'company_registry')
+    @api.depends('vat', 'company_id', 'company_registry', 'country_id')
     def _compute_same_vat_partner_id(self):
         for partner in self:
             # use _origin to deal with onchange()
@@ -406,15 +413,24 @@ class ResPartner(models.Model):
             #active_test = False because if a partner has been deactivated you still want to raise the error,
             #so that you can reactivate it instead of creating a new one, which would loose its history.
             Partner = self.with_context(active_test=False).sudo()
+            vats = [partner.vat]
+            should_check_vat = partner.vat and len(partner.vat) != 1
+            if should_check_vat and partner.country_id in partner._get_eu_prefix_countries():
+                if partner.vat[:2].isalpha():
+                    vats.append(partner.vat[2:])
+                else:
+                    vats.append(partner.country_id.code + partner.vat)
+                    if new_code := EU_COUNTRY_VAT.get(partner.country_id.code):
+                        vats.append(new_code + partner.vat)
             domain = [
-                ('vat', '=', partner.vat),
+                ('vat', 'in', vats),
             ]
             if partner.company_id:
                 domain += [('company_id', 'in', [False, partner.company_id.id])]
             if partner_id:
                 domain += [('id', '!=', partner_id), '!', ('id', 'child_of', partner_id)]
             # For VAT number being only one character, we will skip the check just like the regular check_vat
-            should_check_vat = partner.vat and len(partner.vat) != 1
+
             partner.same_vat_partner_id = should_check_vat and not partner.parent_id and Partner.search(domain, limit=1)
             # check company_registry
             domain = [
@@ -613,6 +629,16 @@ class ResPartner(models.Model):
             else:
                 values[fname] = self[fname]
         return values
+
+    @api.model
+    def _get_eu_prefixed_countries(self):
+        return (
+            self.env.ref('base.europe').country_ids
+                + self.env.ref('base.ch')
+                + self.env.ref('base.no')
+                + self.env.ref('base.uk')
+                + self.env.ref('base.sm')
+        )
 
     @api.model
     def _address_fields(self):

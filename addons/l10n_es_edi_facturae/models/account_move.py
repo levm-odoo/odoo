@@ -565,7 +565,7 @@ class AccountMove(models.Model):
             if country:
                 partner_vals['country_id'] = country.id
             partner = self.env['res.partner'].create(partner_vals)
-            partner.vat, _country_code = self.env['res.partner']._run_vat_check(country, vat, validation='empty')
+            partner.vat, _country_code = self.env['res.partner']._run_vat_checks(country, vat, validation='empty')
         return partner
 
     def _import_invoice_facturae_invoices(self, invoice, partner, tree):

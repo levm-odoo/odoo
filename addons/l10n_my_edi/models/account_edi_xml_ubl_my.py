@@ -363,7 +363,7 @@ class AccountEdiXmlUBLMyInvoisMY(models.AbstractModel):
             if country:
                 partner_vals['country_id'] = country.id
             invoice.partner_id = self.env['res.partner'].create(partner_vals)
-            invoice.partner_id.vat, _country_code = self.env['res.partner']._run_vat_check(country, vat, validation='setnull')
+            invoice.partner_id.vat, _country_code = self.env['res.partner']._run_vat_checks(country, vat, validation='setnull')
 
     def _import_fill_invoice_form(self, invoice, tree, qty_factor):
         # EXTENDS 'account_edi_ubl_cii'

@@ -202,7 +202,7 @@ class L10n_LatamCheck(models.Model):
     @api.constrains('issuer_vat')
     def _check_issuer_vat(self):
         for rec in self.filtered(lambda x: x.issuer_vat and x.company_id.country_id):
-            self.env['res.partner']._run_vat_check(rec.company_id.country_id, rec.issuer_vat, partner_name='Check Issuer VAT')
+            self.env['res.partner']._run_vat_checks(rec.company_id.country_id, rec.issuer_vat, partner_name='Check Issuer VAT')
 
     @api.ondelete(at_uninstall=False)
     def _unlink_if_payment_is_draft(self):

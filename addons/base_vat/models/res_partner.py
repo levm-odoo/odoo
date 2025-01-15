@@ -11,14 +11,11 @@ import logging
 from odoo import api, models, fields
 from odoo.tools import _, zeep, LazyTranslate
 from odoo.exceptions import ValidationError
+from odoo.addons.base.models.res_partner import EU_COUNTRY_VAT as _eu_country_vat
 
 _lt = LazyTranslate(__name__)
 _logger = logging.getLogger(__name__)
 
-_eu_country_vat = {
-    'GR': 'EL',
-    'GB': 'XI',
-}
 
 _eu_country_vat_inverse = {v: k for k, v in _eu_country_vat.items()}
 
@@ -209,15 +206,7 @@ class ResPartner(models.Model):
         vat_country, vat_number = vat[:2].lower(), vat[2:].replace(' ', '')
         return vat_country, vat_number
 
-    @api.model
-    def _get_eu_prefixed_countries(self):
-        return (
-            self.env.ref('base.europe').country_ids
-                + self.env.ref('base.ch')
-                + self.env.ref('base.no')
-                + self.env.ref('base.uk')
-                + self.env.ref('base.sm')
-        )
+
 
     @api.model
     def _simple_vat_check(self, country_code, vat_number):
