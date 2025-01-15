@@ -54,9 +54,9 @@ class AccountReport(models.Model):
         selection=[('country', "Country Matches"), ('coa', "Chart of Accounts Matches"), ('always', "Always")],
         compute='_compute_default_availability_condition', readonly=False, store=True,
     )
-    load_more_limit = fields.Integer(string="Load More Limit")
-    search_bar = fields.Boolean(string="Search Bar")
-    prefix_groups_threshold = fields.Integer(string="Prefix Groups Threshold", default=4000)
+    load_more_limit = fields.Integer(string="Load More Limit") # TODO OCO renommer le champ ? + une valeur par défaut décente ?
+    search_bar = fields.Boolean(string="Search Bar") # TODO OCO ce truc-là, s'assurer de comment il marche avec ce qu'on change pour le load_more
+    prefix_groups_threshold = fields.Integer(string="Prefix Groups Threshold", default=4000) # TODO OCO virer
     integer_rounding = fields.Selection(string="Integer Rounding", selection=[('HALF-UP', "Nearest"), ('UP', "Up"), ('DOWN', "Down")])
 
     default_opening_date_filter = fields.Selection(
