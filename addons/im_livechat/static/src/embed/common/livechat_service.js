@@ -183,6 +183,9 @@ export class LivechatService {
             cookie.set(LIVECHAT_UUID_COOKIE, this.thread.uuid, ONE_DAY_TTL);
         }
         const persisted = this.state === SESSION_STATE.PERSISTED;
+        if (!persisted) {
+            return;
+        }
         expirableStorage.setItem(
             SAVED_STATE_STORAGE_KEY,
             JSON.stringify({
