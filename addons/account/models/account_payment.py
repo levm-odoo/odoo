@@ -1011,7 +1011,7 @@ class AccountPayment(models.Model):
                 'partner_bank_id': pay.partner_bank_id.id,
                 'line_ids': line_ids or [
                     Command.create(line_vals)
-                    for line_vals in pay._prepare_move_line_default_vals(
+                    for line_vals in pay._prepare_move_line_default_vals(  #look here
                         write_off_line_vals=write_off_line_vals,
                         force_balance=force_balance,
                     )

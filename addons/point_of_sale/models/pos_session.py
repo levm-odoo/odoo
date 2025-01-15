@@ -807,7 +807,7 @@ class PosSession(models.Model):
         self.write({'move_id': account_move.id})
 
         data = {'bank_payment_method_diffs': bank_payment_method_diffs or {}}
-        data = self._accumulate_amounts(data)
+        data = self._accumulate_amounts(data) # Here pos payment
         data = self._create_non_reconciliable_move_lines(data)
         data = self._create_bank_payment_moves(data)
         data = self._create_pay_later_receivable_lines(data)
@@ -1091,10 +1091,17 @@ class PosSession(models.Model):
             'company_id': self.company_id.id,
         })
 
+        # In community the outstanding account is computed on the creation of account.payment records
+        accounting_installed = self.env['account.move']._get_invoice_in_payment_state() == 'in_payment'
+        if not account_payment.outstanding_account_id and accounting_installed:
+            account_payment.outstanding_account_id = account_payment._get_outstanding_account(account_payment.payment_type)
+
         if float_compare(amounts['amount'], 0, precision_rounding=self.currency_id.rounding) < 0:
             # revert the accounts because account.payment doesn't accept negative amount.
-            account_payment.outstanding_account_id = account_payment.destination_account_id
-            account_payment.destination_account_id = account_payment.outstanding_account_id
+            account_payment.write({
+                'outstanding_account_id': account_payment.destination_account_id,
+                'destination_account_id': account_payment.outstanding_account_id,
+            })
 
         account_payment.action_post()
 
