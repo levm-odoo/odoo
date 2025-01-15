@@ -24,7 +24,7 @@ export function useDomState(getState) {
 }
 
 export class BuilderComponent extends Component {
-    static template = xml`<t t-if="this.state.isVisible"><t t-slot="default"/></t>`;
+    static template = xml`<div t-att-class="this.state.isVisible ? 'd-contents' : 'd-none'"><t t-slot="default"/></div>`;
     static props = {
         dependencies: { type: [String, { type: Array, element: String }], optional: true },
         slots: { type: Object },
@@ -315,7 +315,7 @@ export function useClickableBuilderComponent() {
     function callApply(applySpecs) {
         comp.env.selectableContext?.cleanSelectedItem(applySpecs);
         const cleans = inheritedActionIds
-            ?.map((actionId) => comp.env.dependencyManager.get(actionId)?.cleanSelectedItem)
+            ?.map((actionId) => comp.env.dependencyManager.get(actionId).cleanSelectedItem)
             .filter(Boolean);
         for (const clean of new Set(cleans)) {
             clean(applySpecs);
@@ -506,7 +506,7 @@ export function useInputBuilderComponent() {
 export function useApplyVisibility(refName) {
     const ref = useRef(refName);
     return (hasContent) => {
-        ref.el?.classList.toggle("d-none", !hasContent);
+        ref.el?.classList.toggle("builder-hidden", !hasContent);
     };
 }
 

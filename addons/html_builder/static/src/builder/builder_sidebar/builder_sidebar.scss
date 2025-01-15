@@ -76,3 +76,9 @@
 .o-snippets-tabs > button[disabled] {
     opacity: .5;
 }
+.builder-hidden {
+    display: none !important;
+}
+.d-contents {
+    display: contents;
+}

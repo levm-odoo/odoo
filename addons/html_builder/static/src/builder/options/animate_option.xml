@@ -67,7 +67,7 @@
                 data-step="1" data-min="1" data-unit="px" data-dependencies="hover_effect_outline_opt" data-no-preview="true"/>
         </div> -->
     </BuilderRow>
-    <BuilderRow label.translate="Direction" t-if="state.hasAnimateClass and !state.isLimitedAnimation">
+    <BuilderRow label.translate="Direction" extraClassName="(state.hasAnimateClass and !state.isLimitedAnimation) ? '' : 'd-none'">
         <BuilderSelect id="'animation_direction_opt'" action="'forceAnimation'">
             <BuilderSelectItem classAction="''"
                        id="'animation_direction_in_place_opt'"
