@@ -338,9 +338,10 @@ class StockMove(models.Model):
 
     @api.onchange('quantity', 'product_uom', 'picked')
     def _onchange_quantity(self):
-        if self.raw_material_production_id and not self.manual_consumption and self.picked and self.product_uom and \
+        if self.raw_material_production_id and self.product_uom and \
            float_compare(self.product_uom_qty, self.quantity, precision_rounding=self.product_uom.rounding) != 0:
             self.manual_consumption = True
+            self.picked = True
 
     @api.constrains('quantity', 'raw_material_production_id')
     def _check_negative_quantity(self):
