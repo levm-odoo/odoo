@@ -1,8 +1,10 @@
 import { Plugin } from "@html_editor/plugin";
-import { Component } from "@odoo/owl";
+import { Component, onWillDestroy, useEnv } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { defaultBuilderComponents } from "../builder_components/default_builder_components";
 import { withSequence } from "@html_editor/utils/resource";
+import { useDomState } from "../builder_components/utils";
+import { getScrollingElement } from "@web/core/utils/scrolling";
 
 class AnimateOptionPlugin extends Plugin {
     static id = "AnimateOption";
@@ -19,15 +21,128 @@ class AnimateOptionPlugin extends Plugin {
         ],
         builder_actions: this.getActions(),
     };
+
+    setup() {
+        this.scrollingElement = getScrollingElement(this.document);
+    }
+
     getActions() {
+        const effectWithFadein = ["onAppearance", "onScroll"];
         return {
             setAnimationMode: {
+                // todo: to remove after having the commit of louis
                 isApplied: () => true,
+                clean: ({ editingElement, value: effectName, dependencyManager, nextAction }) => {
+                    this.scrollingElement.classList.remove("o_wanim_overflow_xy_hidden");
+                    editingElement.classList.remove(
+                        "o_animating",
+                        "o_animate_both_scroll",
+                        "o_visible",
+                        "o_animated",
+                        "o_animate_out"
+                    );
+                    editingElement.style.animationDelay = "";
+                    editingElement.style.animationPlayState = "";
+                    editingElement.style.animationName = "";
+                    editingElement.style.visibility = "";
+
+                    if (effectName === "onScroll") {
+                        delete editingElement.dataset.scrollZoneStart;
+                        delete editingElement.dataset.scrollZoneEnd;
+                    }
+                    if (effectName === "onHover") {
+                        // todo: to implement
+                        // this.trigger_up("option_update", {
+                        //     optionName: "ImageTools",
+                        //     name: "disable_hover_effect",
+                        // });
+                    }
+
+                    const isNextEffectFadein = effectWithFadein.includes(nextAction.value);
+                    if (!isNextEffectFadein) {
+                        this.removeEffectAndDirectionClasses(
+                            dependencyManager,
+                            editingElement.classList
+                        );
+                        editingElement.style.setProperty("--wanim-intensity", "");
+                        editingElement.style.animationDuration = "";
+                        this.setImagesLazyLoading(editingElement, true);
+                    }
+                },
+                apply: ({ editingElement, value: effectName }) => {
+                    if (effectWithFadein.includes(effectName)) {
+                        editingElement.classList.add("o_anim_fade_in");
+                        this.setImagesLazyLoading(editingElement, false);
+                    }
+                    if (effectName === "onScroll") {
+                        editingElement.dataset.scrollZoneStart = 0;
+                        editingElement.dataset.scrollZoneEnd = 100;
+                    }
+                    if (effectName === "onHover") {
+                        // todo: to implement
+                        // Pause the history until the hover effect is applied in
+                        // "setImgShapeHoverEffect". This prevents saving the intermediate
+                        // steps done (in a tricky way) up to that point.
+                        // this.options.wysiwyg.odooEditor.historyPauseSteps();
+                        // this.trigger_up("option_update", {
+                        //     optionName: "ImageTools",
+                        //     name: "enable_hover_effect",
+                        // });
+                    }
+                },
+            },
+            setAnimateIntensity: {
+                getValue: ({ editingElement }) => {
+                    const intensity = parseInt(
+                        window
+                            .getComputedStyle(editingElement)
+                            .getPropertyValue("--wanim-intensity")
+                    );
+                    return intensity;
+                },
+                apply: ({ editingElement, value }) => {},
+            },
+            forceAnimation: {
+                // todo: to remove after having the commit of louis
+                isActive: () => true,
                 apply: () => {
                     console.warn("todo");
                 },
             },
         };
+    }
+
+    removeEffectAndDirectionClasses(dependencyManager, targetClassList) {
+        const classes = getSelectableClasses(dependencyManager, "animation_effect_opt").concat(
+            getSelectableClasses(dependencyManager, "animation_direction_opt")
+        );
+        const classesToRemove = intersect(classes, [...targetClassList]);
+        for (const className of classesToRemove) {
+            targetClassList.remove(className);
+        }
+    }
+
+    /**
+     * Removes or adds the lazy loading on images because animated images can
+     * appear before or after their parents and cause bugs in the animations.
+     * To put "lazy" back on the "loading" attribute, we simply remove the
+     * attribute as it is automatically added on page load.
+     *
+     * @private
+     * @param {Boolean} isLazy
+     */
+    setImagesLazyLoading(editingElement, isLazy) {
+        const imgEls = editingElement.matches("img")
+            ? [editingElement]
+            : editingElement.querySelectorAll("img");
+        for (const imgEl of imgEls) {
+            if (isLazy) {
+                // Let the automatic system add the loading attribute
+                imgEl.removeAttribute("loading");
+            } else {
+                imgEl.loading = "eager";
+            }
+        }
     }
 }
 registry.category("website-plugins").add(AnimateOptionPlugin.id, AnimateOptionPlugin);
@@ -36,4 +151,82 @@ class AnimateOption extends Component {
     static template = "html_builder.AnimateOption";
     static components = { ...defaultBuilderComponents };
     static props = {};
+
+    setup() {
+        const env = useEnv();
+
+        // Animations for which the "On Scroll" and "Direction" options are not
+        // available.
+        this.limitedAnimations = [
+            "o_anim_flash",
+            "o_anim_pulse",
+            "o_anim_shake",
+            "o_anim_tada",
+            "o_anim_flip_in_x",
+            "o_anim_flip_in_y",
+        ];
+        const dependencyManager = env.dependencyManager;
+
+        this.state = useDomState((editingElement) => {
+            const hasAnimateClass = editingElement.classList.contains("o_animate");
+            return {
+                hasAnimateClass: hasAnimateClass,
+                canHover: editingElement.tagName === "IMG",
+                isLimitedAnimation: this.limitedAnimations.some((className) =>
+                    editingElement.classList.contains(className)
+                ),
+                showIntensity: this.shouldShowIntensity(
+                    editingElement,
+                    dependencyManager,
+                    hasAnimateClass
+                ),
+            };
+        });
+    }
+
+    shouldShowIntensity(editingElement, dependencyManager, hasAnimateClass) {
+        if (!hasAnimateClass) {
+            return false;
+        }
+        if (!editingElement.classList.contains("o_anim_fade_in")) {
+            return true;
+        }
+
+        const possibleDirections = getSelectableClasses(
+            dependencyManager,
+            "animation_direction_opt"
+        ).filter(Boolean);
+        const hasDirection = possibleDirections.some((direction) =>
+            editingElement.classList.contains(direction)
+        );
+
+        return hasDirection;
+    }
+}
+
+/**
+ * Returns the selectable classes for the given dependency.
+ *
+ * @returns {Array<string>}
+ */
+function getSelectableClasses(dependencyManager, dependency) {
+    return Array.from(
+        new Set(
+            dependencyManager
+                .get(dependency)
+                ?.getSelectableItems()
+                .map((item) =>
+                    item
+                        .getActions()
+                        .map((a) => a.actionId === "classAction" && a.actionParam.split(/\s+/))
+                        .filter(Boolean)
+                        .flat()
+                )
+                .flat() || []
+        )
+    );
+}
+
+function intersect(a, b) {
+    return a.filter((value) => b.includes(value));
 }

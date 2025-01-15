@@ -1,4 +1,4 @@
-import { Component, useRef } from "@odoo/owl";
+import { Component, onMounted, useRef } from "@odoo/owl";
 import {
     clickableBuilderComponentProps,
     defaultBuilderComponentProps,
@@ -22,9 +22,16 @@ export class BuilderSelectItem extends Component {
             throw new Error("BuilderSelectItem must be used inside a BuilderSelect component.");
         }
         const item = useRef("item");
+        let label = "";
+        const getLabel = () => {
+            label = item.el?.innerHTML || label || "";
+            return label;
+        };
+
+        onMounted(getLabel);
 
         const { state, operation } = useSelectableItemComponent(this.props.id, {
-            getLabel: () => item.el?.innerHTML || "",
+            getLabel,
         });
         this.state = state;
         this.onClick = () => {
