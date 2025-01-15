@@ -11,9 +11,16 @@ from .test_webjson import CSRF_USER_HEADERS
 
 @tagged('post_install', '-at_install')
 class TestHttpGreeting(TestHttpBase):
+<<<<<<< 18.0
+||||||| 0f3e02b10514d9b84bfcc7ba109696378936f5a8
+=======
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.jackoneill = new_test_user(cls.env, 'jackoneill', context={'lang': 'en_US'})
+>>>>>>> 91281330ec3d2d1a502bb860d296151175f2398d
 
     def test_greeting0_matrix(self):
-        new_test_user(self.env, 'jackoneill', context={'lang': 'en_US'})
         test_matrix = [
             # path, database, login, expected_code, expected_pattern
             ('/test_http/greeting', False, None, 200, r"Tek'ma'te"),
@@ -101,7 +108,6 @@ class TestHttpGreeting(TestHttpBase):
         self.assertEqual(res.text, "Tek'ma'te")
 
     def test_greeting2_headers_db(self):
-        new_test_user(self.env, 'jackoneill', context={'lang': 'en_US'})
         self.authenticate('jackoneill', 'jackoneill')
         res = self.db_url_open('/test_http/greeting')
         self.assertEqual(res.status_code, 200)
