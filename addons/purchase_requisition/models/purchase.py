@@ -76,37 +76,39 @@ class PurchaseOrder(models.Model):
             self.date_order = fields.Datetime.now()
 
         # Create PO lines if necessary
-        order_lines = []
-        for line in requisition.line_ids:
-            # Compute name
-            product_lang = line.product_id.with_context(
-                lang=partner.lang or self.env.user.lang,
-                partner_id=partner.id
-            )
-            name = product_lang.display_name
-            if product_lang.description_purchase:
-                name += '\n' + product_lang.description_purchase
+        # Do not clobber existing lines if the PO is already confirmed
+        if self.state == 'draft':
+            order_lines = []
+            for line in requisition.line_ids:
+                # Compute name
+                product_lang = line.product_id.with_context(
+                    lang=partner.lang or self.env.user.lang,
+                    partner_id=partner.id
+                )
+                name = product_lang.display_name
+                if product_lang.description_purchase:
+                    name += '\n' + product_lang.description_purchase
 
-            # Compute taxes
-            taxes_ids = fpos.map_tax(line.product_id.supplier_taxes_id.filtered(lambda tax: tax.company_id == requisition.company_id)).ids
+                # Compute taxes
+                taxes_ids = fpos.map_tax(line.product_id.supplier_taxes_id.filtered(lambda tax: tax.company_id == requisition.company_id)).ids
 
-            # Compute quantity and price_unit
-            if line.product_uom_id != line.product_id.uom_id:
-                product_qty = line.product_uom_id._compute_quantity(line.product_qty, line.product_id.uom_id)
-                price_unit = line.product_uom_id._compute_price(line.price_unit, line.product_id.uom_id)
-            else:
-                product_qty = line.product_qty
-                price_unit = line.price_unit
+                # Compute quantity and price_unit
+                if line.product_uom_id != line.product_id.uom_id:
+                    product_qty = line.product_uom_id._compute_quantity(line.product_qty, line.product_id.uom_id)
+                    price_unit = line.product_uom_id._compute_price(line.price_unit, line.product_id.uom_id)
+                else:
+                    product_qty = line.product_qty
+                    price_unit = line.price_unit
 
-            if requisition.requisition_type != 'purchase_template':
-                product_qty = 0
+                if requisition.requisition_type != 'purchase_template':
+                    product_qty = 0
 
-            # Create PO line
-            order_line_values = line._prepare_purchase_order_line(
-                name=name, product_qty=product_qty, price_unit=price_unit,
-                taxes_ids=taxes_ids)
-            order_lines.append((0, 0, order_line_values))
-        self.order_line = order_lines
+                # Create PO line
+                order_line_values = line._prepare_purchase_order_line(
+                    name=name, product_qty=product_qty, price_unit=price_unit,
+                    taxes_ids=taxes_ids)
+                order_lines.append((0, 0, order_line_values))
+            self.order_line = order_lines
 
     def button_confirm(self):
         if self.alternative_po_ids and not self.env.context.get('skip_alternative_check', False):
