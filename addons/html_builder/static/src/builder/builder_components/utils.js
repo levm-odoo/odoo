@@ -230,6 +230,7 @@ export function useClickableBuilderComponent() {
     const getAction = comp.env.editor.shared.builderActions.getAction;
     const applyOperation = comp.env.editor.shared.history.makePreviewableOperation(callApply);
     const shouldToggle = !comp.env.actionBus;
+    const inheritedActionIds = [comp.props.inheritedActions || comp.env.inheritedActions].flat();
 
     const operation = {
         commit: () => {
@@ -322,7 +323,7 @@ export function useClickableBuilderComponent() {
     }
     function callApply(applySpecs) {
         comp.env.selectableContext?.cleanSelectedItem(applySpecs);
-        const cleans = comp.props.inheritedActions
+        const cleans = inheritedActionIds
             .map((actionId) => comp.env.dependencyManager.get(actionId).cleanSelectedItem)
             .filter(Boolean);
         for (const clean of new Set(cleans)) {
@@ -383,7 +384,7 @@ export function useClickableBuilderComponent() {
         if (actionId) {
             actions.push({ actionId, actionParam, actionValue });
         }
-        const inheritedActions = comp.props.inheritedActions
+        const inheritedActions = inheritedActionIds
             .map(
                 (actionId) =>
                     comp.env.dependencyManager
