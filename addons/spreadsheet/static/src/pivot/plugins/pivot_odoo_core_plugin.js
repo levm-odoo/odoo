@@ -20,6 +20,24 @@ export class PivotOdooCorePlugin extends OdooCorePlugin {
         }
     }
 
+    import(data) {
+        if (data.pivots) {
+            for (const id in data.pivots) {
+                // Ensure that the sorted column is a measure
+                // and if not, drop it.
+                // This situation can happen because of a bug in a previous version
+                const definition = data.pivots[id];
+                const measures = definition.measures.map((field) => field.fieldName);
+                if (
+                    definition.sortedColumn &&
+                    !measures.includes(definition.sortedColumn.measure)
+                ) {
+                    definition.sortedColumn = undefined;
+                }
+            }
+        }
+    }
+
     /**
      * Transform the domain of a pivot definition to a more readable format
      *

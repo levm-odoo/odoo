@@ -846,6 +846,33 @@ test("can import/export sorted pivot", async () => {
     expect(model.exportData().pivots).toEqual(spreadsheetData.pivots);
 });
 
+test("drop sorted column if not part of measures", async () => {
+    const spreadsheetData = {
+        pivots: {
+            1: {
+                type: "ODOO",
+                columns: [],
+                domain: [],
+                measures: [{ id: "probability:sum", fieldName: "probability", aggregator: "sum" }],
+                model: "partner",
+                rows: [{ fieldName: "bar" }],
+                sortedColumn: {
+                    measure: "foo",
+                    order: "asc",
+                    groupId: [[], [1]],
+                },
+                name: "A pivot",
+                context: {},
+                fieldMatching: {},
+                formulaId: "1",
+            },
+        },
+    };
+    const model = await createModelWithDataSource({ spreadsheetData });
+    expect(model.getters.getPivotCoreDefinition(1).sortedColumn).toBe(undefined);
+    expect(model.exportData().pivots[1].sortedColumn).toEqual(undefined);
+});
+
 test("can import (export) contextual domain", async () => {
     const uid = user.userId;
     const spreadsheetData = {
