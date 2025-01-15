@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="account_move_efaktur_form_view" model="ir.ui.view">
+        <field name="name">account.move.form</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="l10n_id_efaktur.account_move_efaktur_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='l10n_id_kode_transaksi']" position="attributes">
+                <attribute name="attrs">{'invisible': [('l10n_id_efaktur_available', '=', False)], 'required': [('l10n_id_efaktur_available', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_id_replace_invoice_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_id_replace_invoice_id']" position="after">
+                <field name="l10n_id_efaktur_available" invisible="1"/>
+                <field name="l10n_id_add_info_07" attrs="{'invisible': [('l10n_id_kode_transaksi', '!=', '07')]}" string="Additional Information"/>
+                <field name="l10n_id_facility_info_07" attrs="{'invisible': [('l10n_id_kode_transaksi', '!=', '07')]}" string="Facility Stamp"/>
+                <field name="l10n_id_add_info_08" attrs="{'invisible': [('l10n_id_kode_transaksi', '!=', '08')]}" string="Additional Information"/>
+                <field name="l10n_id_facility_info_08" attrs="{'invisible': [('l10n_id_kode_transaksi', '!=', '08')]}" string="Facility Stamp"/>
+            </xpath>
+            <xpath expr="//field[@name='to_check']" position="after">
+                <field name="l10n_id_stlg_rate" attrs="{'invisible': [('l10n_id_efaktur_available', '=', False)]}" />
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
