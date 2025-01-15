@@ -103,9 +103,11 @@ export function usePartnerAutocomplete() {
      * @private
      */
     async function getOdooSuggestions(value, isVAT) {
+        const method = isVAT ? 'read_by_vat' : 'autocomplete';
+
         const prom = orm.silent.call(
             'res.partner',
-            'autocomplete',
+            method,
             [value],
         );
 

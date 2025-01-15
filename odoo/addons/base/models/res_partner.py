@@ -291,6 +291,7 @@ class ResPartner(models.Model):
         selection=[('person', 'Individual'), ('company', 'Company')],
         compute='_compute_company_type', inverse='_write_company_type')
     company_id: ResCompany = fields.Many2one('res.company', 'Company', index=True)
+    duns = fields.Char('DUNS', help="DUNS (Data Universal Numbering System) by Dun and Bradtsreet")
     color = fields.Integer(string='Color Index', default=0)
     user_ids: ResUsers = fields.One2many('res.users', 'partner_id', string='Users', auto_join=True)
     partner_share = fields.Boolean(
