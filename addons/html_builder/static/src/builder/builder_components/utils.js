@@ -324,7 +324,7 @@ export function useClickableBuilderComponent() {
     function callApply(applySpecs) {
         comp.env.selectableContext?.cleanSelectedItem(applySpecs);
         const cleans = inheritedActionIds
-            .map((actionId) => comp.env.dependencyManager.get(actionId).cleanSelectedItem)
+            .map((actionId) => comp.env.dependencyManager.get(actionId)?.cleanSelectedItem)
             .filter(Boolean);
         for (const clean of new Set(cleans)) {
             clean(applySpecs);
