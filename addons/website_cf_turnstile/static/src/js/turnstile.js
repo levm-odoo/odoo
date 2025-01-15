@@ -13,27 +13,30 @@ publicWidget.registry.s_website_form.include({
             const res = this._super(...arguments);
             this.cleanTurnstile();
             if (!this.isEditable && !this.$('.s_turnstile').length && session.turnstile_site_key) {
+                // global callback for the turnstile script to call
+                // Rethrow the error, or we only will catch a "Script error" without any info 
+                // because of the script api.js originating from a different domain.
+                function throwTurnstileError(code) {
+                    const error = new Error("Turnstile Error");
+                    error.code = code;
+                    throw error;
+                }
+                const turnstileErrorGlobalScript = document.createElement("script");
+                turnstileErrorGlobalScript.classList.add("s_turnstile");
+                turnstileErrorGlobalScript.textContent = throwTurnstileError.toString();
+
                 const mode = new URLSearchParams(window.location.search).get('cf') == 'show' ? 'always' : 'interaction-only';
                 const turnstileContainer = renderToElement("website_cf_turnstile.turnstile_container", {
                     action: "website_form",
                     appearance: mode,
                     additionalClasses: "float-end",
-                    errorGlobalCallback: "throwTurnstileErrorCode",
+                    errorGlobalCallback: throwTurnstileError.name,
                     sitekey: session.turnstile_site_key,
                 });
                 const turnstileScript = renderToElement("website_cf_turnstile.turnstile_remote_script");
-                const turnstileErrorGlobalScript = $(`<script class="s_turnstile">
-                        // Rethrow the error, or we only will catch a "Script error" without any info 
-                        // because of the script api.js originating from a different domain.
-                        function throwTurnstileError(code) {
-                            const error = new Error("Turnstile Error");
-                            error.code = code;
-                            throw error;
-                        }
-                    </script>
-                `);
-                $(turnstileContainer).add(turnstileErrorGlobalScript).add($(turnstileScript))
-                .insertAfter('.s_website_form_send, .o_website_form_send');
+
+                const sendButton = document.querySelector(".s_website_form_send, .o_website_form_send");
+                sendButton.after(turnstileContainer, turnstileErrorGlobalScript, turnstileScript);
             }
             return res;
         },
