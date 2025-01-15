@@ -75,16 +75,7 @@ export function useBuilderComponent() {
         newEnv.getEditingElement = () => editingElements[0];
     }
     const weContext = {};
-    const contextKeys = [
-        "preview",
-        "action",
-        "actionParam",
-        "classAction",
-        "attributeAction",
-        "dataAttributeAction",
-        "styleAction",
-    ];
-    for (const key of contextKeys) {
+    for (const key of basicContainerBuilderComponentPropsNames) {
         if (key in comp.props) {
             weContext[key] = comp.props[key];
         }
@@ -229,8 +220,8 @@ export function useClickableBuilderComponent() {
     const comp = useComponent();
     const getAction = comp.env.editor.shared.builderActions.getAction;
     const applyOperation = comp.env.editor.shared.history.makePreviewableOperation(callApply);
-    const shouldToggle = !comp.env.actionBus;
-    const inheritedActionIds = [comp.props.inheritedActions || comp.env.inheritedActions].flat();
+    const shouldToggle = !comp.env.selectableContext;
+    const inheritedActionIds = comp.props.inheritedActions || comp.env.weContext.inheritedActions;
 
     const operation = {
         commit: () => {
@@ -324,12 +315,12 @@ export function useClickableBuilderComponent() {
     function callApply(applySpecs) {
         comp.env.selectableContext?.cleanSelectedItem(applySpecs);
         const cleans = inheritedActionIds
-            .map((actionId) => comp.env.dependencyManager.get(actionId)?.cleanSelectedItem)
+            ?.map((actionId) => comp.env.dependencyManager.get(actionId)?.cleanSelectedItem)
             .filter(Boolean);
         for (const clean of new Set(cleans)) {
             clean(applySpecs);
         }
-        let shouldClean = !comp.env.selectableContext && shouldToggle && isApplied();
+        let shouldClean = shouldToggle && isApplied();
         shouldClean = comp.props.inverseAction ? !shouldClean : shouldClean;
         for (const applySpec of applySpecs) {
             if (shouldClean) {
@@ -384,15 +375,16 @@ export function useClickableBuilderComponent() {
         if (actionId) {
             actions.push({ actionId, actionParam, actionValue });
         }
-        const inheritedActions = inheritedActionIds
-            .map(
-                (actionId) =>
-                    comp.env.dependencyManager
-                        // The dependency might not be loaded yet.
-                        .get(actionId)
-                        ?.getActions?.() || []
-            )
-            .flat();
+        const inheritedActions =
+            inheritedActionIds
+                ?.map(
+                    (actionId) =>
+                        comp.env.dependencyManager
+                            // The dependency might not be loaded yet.
+                            .get(actionId)
+                            ?.getActions?.() || []
+                )
+                .flat() || [];
 
         return actions.concat(inheritedActions);
     }
@@ -553,6 +545,7 @@ export const basicContainerBuilderComponentProps = {
     applyTo: { type: String, optional: true },
     preview: { type: Boolean, optional: true },
     dependencies: { type: [String, Array], optional: true },
+    inheritedActions: { type: Array, element: String, optional: true },
     // preview: { type: Boolean, optional: true },
     // reloadPage: { type: Boolean, optional: true },
 
@@ -565,6 +558,7 @@ export const basicContainerBuilderComponentProps = {
     dataAttributeAction: { type: String, optional: true },
     styleAction: { type: String, optional: true },
 };
+const basicContainerBuilderComponentPropsNames = Object.keys(basicContainerBuilderComponentProps);
 const validateIsNull = { validate: (value) => value === null };
 export const clickableBuilderComponentProps = {
     ...basicContainerBuilderComponentProps,
@@ -582,7 +576,4 @@ export const clickableBuilderComponentProps = {
     styleActionValue: { type: [String, Array, validateIsNull], optional: true },
 
     inheritedActions: { type: Array, element: String, optional: true },
-};
-export const defaultBuilderComponentProps = {
-    inheritedActions: [],
 };

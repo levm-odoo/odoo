@@ -26,11 +26,11 @@
             <!-- Default value -->
             <!-- <div class="d-none"><BuilderSelectItem classAction="''">None</BuilderSelectItem></div> -->
             <BuilderSelectItem classAction="'o_anim_fade_in'"
-                       inheritedActions="'animation_direction_in_place_opt'">Fade</BuilderSelectItem>
+                       inheritedActions="['animation_direction_in_place_opt']">Fade</BuilderSelectItem>
             <BuilderSelectItem classAction="'o_anim_slide_in'"
                        id="'o_anim_slide_in_opt'"
-                       inheritedActions="'animation_direction_from_right_opt'">Slide</BuilderSelectItem>
-            <BuilderContext inheritedActions="'animation_direction_in_place_opt'">
+                       inheritedActions="['animation_direction_from_right_opt']">Slide</BuilderSelectItem>
+            <BuilderContext inheritedActions="['animation_direction_in_place_opt']">
                 <BuilderSelectItem classAction="'o_anim_bounce_in'">Bounce</BuilderSelectItem>
                 <BuilderSelectItem id="'o_anim_rotate_opt'"
                                    classAction="'o_anim_rotate_in'">Rotate</BuilderSelectItem>

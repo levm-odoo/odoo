@@ -184,16 +184,6 @@ class AnimateOption extends Component {
     setup() {
         const env = useEnv();
 
-        // Animations for which the "On Scroll" and "Direction" options are not
-        // available.
-        this.limitedAnimations = [
-            "o_anim_flash",
-            "o_anim_pulse",
-            "o_anim_shake",
-            "o_anim_tada",
-            "o_anim_flip_in_x",
-            "o_anim_flip_in_y",
-        ];
         const dependencyManager = env.dependencyManager;
 
         this.state = useDomState((editingElement) => {
@@ -211,6 +201,18 @@ class AnimateOption extends Component {
                 ),
             };
         });
+    }
+    get limitedAnimations() {
+        // Animations for which the "On Scroll" and "Direction" options are not
+        // available.
+        return [
+            "o_anim_flash",
+            "o_anim_pulse",
+            "o_anim_shake",
+            "o_anim_tada",
+            "o_anim_flip_in_x",
+            "o_anim_flip_in_y",
+        ];
     }
 
     shouldShowIntensity(editingElement, dependencyManager, hasAnimateClass) {
@@ -239,21 +241,15 @@ class AnimateOption extends Component {
  * @returns {Array<string>}
  */
 function getSelectableClasses(dependencyManager, dependency) {
-    return Array.from(
-        new Set(
-            dependencyManager
-                .get(dependency)
-                ?.getSelectableItems()
-                .map((item) =>
-                    item
-                        .getActions()
-                        .map((a) => a.actionId === "classAction" && a.actionParam.split(/\s+/))
-                        .filter(Boolean)
-                        .flat()
-                )
-                .flat() || []
-        )
-    );
+    function getClassActions(item) {
+        return item
+            .getActions()
+            .map((action) => action.actionId === "classAction" && action.actionParam.split(/\s+/))
+            .filter(Boolean)
+            .flat();
+    }
+    const items = dependencyManager.get(dependency)?.getSelectableItems() || [];
+    return [...new Set(items.map(getClassActions).flat())];
 }
 
 function intersect(a, b) {
