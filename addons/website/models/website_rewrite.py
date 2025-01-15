@@ -81,6 +81,12 @@ class WebsiteRewrite(models.Model):
     @api.constrains('url_to', 'url_from', 'redirect_type')
     def _check_url_to(self):
         for rewrite in self:
+            if rewrite.redirect_type in ['301', '302']:
+                router = self.env['ir.http'].routing_map().bind('')
+                if router.test(rewrite.url_from):
+                    raise ValidationError(_('"URL to": "%s" cannot be set to a dynamic page. If you want to rename the '
+                                            'route, please use a 308 redirect', rewrite.url_from))
+
             if rewrite.redirect_type in ['301', '302', '308']:
                 if not rewrite.url_to:
                     raise ValidationError(_('"URL to" can not be empty.'))
