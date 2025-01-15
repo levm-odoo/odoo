@@ -24,7 +24,7 @@ class StockLot(models.Model):
         Used to compute margins on sale orders."""
     )
 
-    @api.depends('stock_valuation_layer_ids', 'product_id.lot_valuated')
+    @api.depends('stock_valuation_layer_ids', 'product_id.product_tmpl_id.lot_valuated')
     @api.depends_context('to_date', 'company')
     def _compute_value_svl(self):
         """Compute totals of multiple svl related values"""
@@ -33,7 +33,7 @@ class StockLot(models.Model):
         self.avg_cost = 0
         self.total_value = 0
         self.company_currency_id = False
-        lots = self.filtered(lambda l: l.product_id.lot_valuated)
+        lots = self.filtered(lambda l: l.product_id.product_tmpl_id.lot_valuated)
         if not lots:
             return
         company_id = self.env.company

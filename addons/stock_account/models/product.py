@@ -295,7 +295,7 @@ will update the cost of every lot/serial number in stock."),
         for product in self:
             if product.cost_method not in ('standard', 'average'):
                 continue
-            if product.lot_valuated:
+            if product.product_tmpl_id.lot_valuated:
                 self.env['stock.lot'].search([('product_id', '=', product.id)]).standard_price = new_price
                 continue
             quantity_svl = product.sudo().quantity_svl
@@ -449,7 +449,7 @@ will update the cost of every lot/serial number in stock."),
                     or r.create_date == svl_to_vacuum.create_date
                     and r.id > svl_to_vacuum.id
                 )
-                if product.lot_valuated:
+                if product.product_tmpl_id.lot_valuated:
                     candidates = candidates.filtered(lambda r: r.lot_id == svl_to_vacuum.lot_id)
                 if not candidates:
                     break
@@ -521,7 +521,7 @@ will update the cost of every lot/serial number in stock."),
             if product.cost_method not in ['average', 'fifo'] or float_is_zero(product.quantity_svl,
                                                                       precision_rounding=product.uom_id.rounding):
                 continue
-            if product.lot_valuated:
+            if product.product_tmpl_id.lot_valuated:
                 for lot in lot_to_update:
                     if float_is_zero(lot.quantity_svl, precision_rounding=product.uom_id.rounding):
                         continue
@@ -659,7 +659,7 @@ will update the cost of every lot/serial number in stock."),
             if float_is_zero(product.quantity_svl, precision_rounding=product.uom_id.rounding):
                 # FIXME: create an empty layer to track the change?
                 continue
-            if product.lot_valuated:
+            if product.product_tmpl_id.lot_valuated:
                 if float_compare(product.quantity_svl, 0, precision_rounding=product.uom_id.rounding) > 0:
                     for lot in product.stock_valuation_layer_ids.filtered(lambda l: l.remaining_qty).lot_id:
                         svsl_vals = product._prepare_out_svl_vals(lot.quantity_svl, self.env.company, lot=lot)
@@ -709,7 +709,7 @@ will update the cost of every lot/serial number in stock."),
                 continue
             rounding = product.uom_id.rounding
             price_unit = product.standard_price
-            if not product.lot_valuated:
+            if not product.product_tmpl_id.lot_valuated:
                 lot_by_product[product] = {False: quantity_svl}
             for lot, qty in lot_by_product[product].items():
                 if float_compare(quantity_svl, 0, precision_rounding=rounding) > 0:
