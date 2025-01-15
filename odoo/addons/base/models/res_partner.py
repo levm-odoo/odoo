@@ -425,6 +425,8 @@ class ResPartner(models.Model):
             domain = [
                 ('vat', 'in', vats),
             ]
+            if partner.country_id:
+                domain += [('country_id', 'in', [partner.country_id.id, False])]
             if partner.company_id:
                 domain += [('company_id', 'in', [False, partner.company_id.id])]
             if partner_id:
