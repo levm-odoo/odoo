@@ -1615,7 +1615,7 @@ test("select autocompleted many2one with allowed_company_ids domain (cids: 1)", 
         searchViewId: false,
         searchViewArch: `
             <search>
-                <field name="bar" domain="[('company', 'in', allowed_company_ids)]"/>
+                <field name="bar" domain="[('company', 'in', companies.active_ids)]"/>
             </search>
         `,
     });
