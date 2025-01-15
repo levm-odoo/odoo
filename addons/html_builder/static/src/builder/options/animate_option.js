@@ -20,6 +20,8 @@ class AnimateOptionPlugin extends Plugin {
             }),
         ],
         builder_actions: this.getActions(),
+        normalize_handlers: this.normalize.bind(this),
+        clean_for_save_handlers: this.cleanForSave.bind(this),
     };
 
     setup() {
@@ -142,6 +144,33 @@ class AnimateOptionPlugin extends Plugin {
             } else {
                 imgEl.loading = "eager";
             }
+        }
+    }
+
+    normalize(root) {
+        const previewEls = [...root.querySelectorAll(".o_animate_preview")];
+        if (root.classList.contains("o_animate_preview")) {
+            previewEls.push(root);
+        }
+        for (const el of previewEls) {
+            if (el.classList.contains("o_animate")) {
+                el.classList.remove("o_animate_preview");
+            }
+        }
+
+        const animateEls = [...root.querySelectorAll(".o_animate")];
+        if (root.classList.contains("o_animate")) {
+            animateEls.push(root);
+        }
+        for (const el of animateEls) {
+            if (!el.classList.contains("o_animate_preview")) {
+                el.classList.add("o_animate_preview");
+            }
+        }
+    }
+    cleanForSave({ root }) {
+        for (const el of root.querySelectorAll(".o_animate_preview")) {
+            el.classList.remove("o_animate_preview");
         }
     }
 }
