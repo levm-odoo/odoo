@@ -257,16 +257,9 @@ export const livechatService = {
     dependencies: ["bus_service", "im_livechat.initialized", "mail.store", "notification"],
     start(env, services) {
         const livechat = reactive(new LivechatService(env, services));
-        (async () => {
-            // Live chat state should be deleted if it is linked to another user
-            // (log in/out after chat start).
-            if ((livechat.savedState?.livechatUserId || false) !== (user.userId || false)) {
-                await livechat.leave({ notifyServer: false });
-            }
-            if (livechat.available) {
-                livechat.initialize();
-            }
-        })();
+        if (livechat.available) {
+            livechat.initialize();
+        }
         return livechat;
     },
 };
