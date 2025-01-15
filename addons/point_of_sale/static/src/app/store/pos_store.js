@@ -1632,7 +1632,7 @@ export class PosStore extends Reactive {
             { webPrintFallback: true }
         );
         if (!printBillActionTriggered) {
-            const nbrPrint = order.nb_print;
+            const nbrPrint = order.nb_print || 0;
             await this.data.write("pos.order", [order.id], { nb_print: nbrPrint + 1 });
         }
         return true;
