@@ -1,15 +1,17 @@
 import { expect, test } from "@odoo/hoot";
-import { defineWebsiteModels, setupWebsiteBuilder } from "../helpers";
+import { xml } from "@odoo/owl";
+import { defineWebsiteModels, setupWebsiteBuilder, addOption, getEditable } from "../helpers";
 import { contains } from "@web/../tests/web_test_helpers";
 
 defineWebsiteModels();
 
 const dummySnippet = `
-    <section data-name="Dummy Section">
+    <section data-name="Dummy Section" data-snippet="s_dummy">
         <div class="container">
             <div class="row">
                 <div class="col-lg-7">
                     <p>TEST</p>
+                    <p><a class="btn">BUTTON</a></p>
                 </div>
                 <div class="col-lg-5">
                     <p>TEST</p>
@@ -55,6 +57,34 @@ test("Use the sidebar 'clone' buttons", async () => {
     expect(":iframe section").toHaveCount(2);
     expect(":iframe .col-lg-7").toHaveCount(4);
     expect(":iframe .col-lg-5").toHaveCount(2);
+});
+
+test("Use the sidebar 'save snippet' buttons", async () => {
+    addOption({
+        selector: "a.btn",
+        template: xml`<BuilderButton classAction="'dummy-class'"/>`,
+    });
+    const websiteContent = getEditable(dummySnippet);
+    await setupWebsiteBuilder(websiteContent);
+
+    const saveSectionSelector =
+        ".o_customize_tab .options-container > div:contains('Dummy Section') button.oe_snippet_save";
+    const saveColumnSelector =
+        ".o_customize_tab .options-container > div:contains('Column') button.oe_snippet_save";
+    const saveButtonSelector =
+        ".o_customize_tab .options-container > div:contains('Button') button.oe_snippet_save";
+
+    const customGroupSelector = "[data-category='snippet_groups'] span:contains('Custom')";
+    expect(".o-snippets-menu div:contains('Custom Inner Content')").toHaveCount(0);
+    expect(customGroupSelector).toHaveCount(0);
+
+    await contains(":iframe .btn").click();
+    expect(saveSectionSelector).toHaveCount(1);
+    expect(saveColumnSelector).toHaveCount(0);
+    expect(saveButtonSelector).toHaveCount(1);
+
+    // TODO improve when "request_save" will be done.
+    // Maybe make a tour to test the behavior ?
 });
 
 test("Clicking on the options container title selects the corresponding element", async () => {
