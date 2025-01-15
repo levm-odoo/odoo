@@ -179,11 +179,14 @@ class StockMove(models.Model):
         :rtype: dict
         """
         self.ensure_one()
+        description = '%s - %s' % (self.reference, self.product_id.name) if self.reference else self.product_id.name
+        if self.scrapped:
+            description += ' (%s)' % self.scrap_id.name
         return {
             'stock_move_id': self.id,
             'company_id': self.company_id.id,
             'product_id': self.product_id.id,
-            'description': self.reference and '%s - %s' % (self.reference, self.product_id.name) or self.product_id.name,
+            'description': description,
         }
 
     def _create_in_svl(self, forced_quantity=None):
