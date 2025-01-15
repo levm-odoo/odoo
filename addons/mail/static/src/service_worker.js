@@ -37,9 +37,27 @@ self.addEventListener("notificationclick", (event) => {
         }
     }
 });
-self.addEventListener("push", (event) => {
+self.addEventListener("push", async (event) => {
     const notification = event.data.json();
-    self.registration.showNotification(notification.title, notification.options || {});
+    event.waitUntil(
+        new Promise((resolve) => {
+            setTimeout(async () => {
+                const clients = await self.clients.matchAll({
+                    type: "window",
+                    includeUncontrolled: true,
+                });
+                const isAnyWindowFocused = clients.some((client) => client.focused);
+
+                if (!isAnyWindowFocused) {
+                    await self.registration.showNotification(
+                        notification.title,
+                        notification.options || {}
+                    );
+                }
+                resolve();
+            }, 5000);
+        })
+    );
 });
 self.addEventListener("pushsubscriptionchange", async (event) => {
     const subscription = await self.registration.pushManager.subscribe(
