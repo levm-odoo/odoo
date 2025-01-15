@@ -145,12 +145,6 @@ class ResPartner(models.Model):
                 return '', code_to_check
         return vat_to_return, code_to_check
 
-    def _check_vat(self, validation="error"):
-        for partner in self:
-            vat, _country_code = self._run_vat_checks(partner.commercial_partner_id.country_id, partner.vat,
-                                               partner_name=partner.name, validation=validation)
-            partner.vat = vat
-
     def _inverse_vat(self):
         validation = self._context.get('empty_bad_vat') and 'setnull' or 'error'
         self._check_vat(validation=validation)

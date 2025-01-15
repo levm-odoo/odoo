@@ -415,7 +415,7 @@ class ResPartner(models.Model):
             Partner = self.with_context(active_test=False).sudo()
             vats = [partner.vat]
             should_check_vat = partner.vat and len(partner.vat) != 1
-            if should_check_vat and partner.country_id in partner._get_eu_prefix_countries():
+            if should_check_vat and partner.country_id in partner._get_eu_prefixed_countries():
                 if partner.vat[:2].isalpha():
                     vats.append(partner.vat[2:])
                 else:
@@ -641,6 +641,41 @@ class ResPartner(models.Model):
                 + self.env.ref('base.uk')
                 + self.env.ref('base.sm')
         )
+
+    def _check_vat(self, validation="error"):
+        for partner in self:
+            vat, _country_code = self._run_vat_checks(partner.commercial_partner_id.country_id, partner.vat,
+                                               partner_name=partner.name, validation=validation)
+            partner.vat = vat
+
+    @api.model
+    def _run_vat_checks(self, country, vat, partner_name='', validation='error'):
+        """ Checks a VAT number syntactically to ensure its validity upon saving.
+
+        :param country: a country to check for
+        :param vat: a string with the VAT number to check.
+        :param partner_name: to put into the error message
+        :param validation
+
+        :return: The vat number
+                The country code (in lower case) of the country the VAT number
+                 was validated for, if it was validated. False if it could not be validated
+                 against the provided or guessed country. None if no country was available
+                 for the check, and no conclusion could be made with certainty.
+        """
+        return vat, country and country.code.lower() or ''
+
+    @api.model
+    def _build_vat_error_message(self, country_code, wrong_vat, record_label):
+        """ Prepare an error message for the VAT number that failed validation
+
+        :param country_code: string of lowercase country code
+        :param wrong_vat: the vat number that was validated
+        :param record_label: a string to desribe the record that failed a VAT validation check
+
+        :return: The error message string
+        """
+        return ""
 
     @api.model
     def _address_fields(self):

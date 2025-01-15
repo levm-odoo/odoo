@@ -34,11 +34,10 @@ Supported countries currently include EU countries, and a few non-EU countries
 such as Chile, Colombia, Mexico, Norway or Russia. For unsupported countries,
 only the country code will be validated.
     """,
-    'depends': ['account'],
+    'depends': ['base_setup'],
     'data': [
         'views/res_config_settings_views.xml',
         'views/res_partner_views.xml',
     ],
     'license': 'LGPL-3',
-    'auto_install': ['account'],
 }
