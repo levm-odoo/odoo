@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from itertools import repeat
+
 import odoo.tests
 from odoo.tests import Form
 from odoo.tests.common import TransactionCase
@@ -1889,3 +1891,74 @@ class TestPackagePropagation(TestPackingCommon):
         self.assertEqual(len(pack_lines), 2, 'Should have only 2 stock move line')
         self.assertFalse(pack_lines[0].result_package_id, 'Should not have the reusable package')
         self.assertEqual(pack_lines[1].result_package_id, disposable_package, 'Should have only the disposable package')
+
+    def test_conditional_package_propagation(self):
+        """If a picking completely moves the products of a package, you want to pass it as result_package_id.
+        On the other hand, if the quantity of the same pack is split between several pickings, you want to leave the result_package_id empty.
+        """
+        # Storable product : 30 qty
+        self.env['stock.quant']._update_available_quantity(self.productA, self.stock_location, 30.0)
+        # Put in pack
+        int_picking = self.env['stock.picking'].create({
+            'picking_type_id': self.warehouse.in_type_id.id,
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.stock_location.id,
+            'state': 'draft',
+        })
+        move_to_pack = self.env['stock.move'].create({
+            'name': 'move pack',
+            'product_id': self.productA.id,
+            'product_uom_qty': 30.0,
+            'product_uom': self.productA.uom_id.id,
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.stock_location.id,
+            'picking_id': int_picking.id,
+            'state': 'draft',
+        })
+        int_picking.action_confirm()
+        int_picking.action_assign()
+        move_to_pack.picked = True
+        int_picking.action_put_in_pack()
+        # 1 delivery picking, 30 product, action_assign => On move line, package_id == result_package_id
+        full_delivery = self.env['stock.picking'].create({
+            'picking_type_id': self.warehouse.out_type_id.id,
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'state': 'draft',
+        })
+        move_full = self.env['stock.move'].create({
+            'name': 'move full',
+            'product_id': self.productA.id,
+            'product_uom_qty': 30.0,
+            'product_uom': self.productA.uom_id.id,
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'picking_id': full_delivery.id,
+            'state': 'draft',
+        })
+        int_picking.action_confirm()
+        int_picking.action_assign()
+        self.assertEqual(move_full.move_line_ids.package_id, move_full.move_line_ids.result_package_id, "If all the products in a package are to be moved, we must move the entire package.")
+        int_picking.action_cancel()  # Ok, cancel/unreserve delivery
+        # Create 2 delivery picking : 10 & 20 of product each
+        partial_deliveries = self.env['stock.picking'].create(list(
+            repeat({
+                'picking_type_id': self.warehouse.out_type_id.id,
+                'location_id': self.stock_location.id,
+                'location_dest_id': self.customer_location.id,
+                'state': 'draft',
+            }, 2)))
+        moves_partial = self.env['stock.move'].create([{
+            'name': f'move {i}',
+            'product_id': self.productA.id,
+            'product_uom_qty': 10.0 * i,
+            'product_uom': self.productA.uom_id.id,
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'picking_id': partial_deliveries[i].id,
+            'state': 'draft',
+        } for i in range(2)])
+        partial_deliveries.action_confirm()
+        partial_deliveries.action_assign()
+        # action_assign => On move lines, result_package_id is not set
+        self.assertFalse(moves_partial.move_line_ids.result_package_id, "If the contents of a pack are reserved by multiple picks, the entire pack can't reproduce on each pick.")
