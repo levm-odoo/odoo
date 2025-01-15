@@ -22,6 +22,7 @@ export class SnippetModel extends Reactive {
             snippet_custom: [],
             snippet_structure: [],
             snippet_content: [],
+            snippet_custom_content: [],
         };
     }
 
@@ -46,6 +47,23 @@ export class SnippetModel extends Reactive {
 
     get snippetInnerContents() {
         return this.snippetsByCategory.snippet_content;
+    }
+
+    get hasCustomInnerContents() {
+        return !!this.snippetsByCategory.snippet_custom_content.length;
+    }
+
+    get snippetCustomInnerContents() {
+        return this.snippetsByCategory.snippet_custom_content;
+    }
+
+    isCustomInnerContent(customSnippet) {
+        const customSnippetName = customSnippet.name.startsWith("s_button_")
+            ? "s_button"
+            : customSnippet.name;
+        return !!this.snippetsByCategory.snippet_content.find(
+            (snippet) => snippet.name === customSnippetName
+        );
     }
 
     getSnippet(category, id) {
@@ -111,6 +129,18 @@ export class SnippetModel extends Reactive {
             }
             this.snippetsByCategory[snippetCategory.id] = snippets;
         }
+
+        // Extract the custom inner content from the custom snippets.
+        const customInnerContent = [];
+        const customSnippets = this.snippetsByCategory["snippet_custom"];
+        for (let i = customSnippets.length - 1; i >= 0; i--) {
+            const snippet = customSnippets[i];
+            if (this.isCustomInnerContent(snippet)) {
+                customInnerContent.unshift(snippet);
+                customSnippets.splice(i, 1);
+            }
+        }
+        this.snippetsByCategory["snippet_custom_content"] = customInnerContent;
     }
 
     async deleteCustomSnippet(snippet) {
@@ -121,7 +151,11 @@ export class SnippetModel extends Reactive {
                 {
                     body: message,
                     confirm: async () => {
-                        const snippetCustom = this.snippetsByCategory.snippet_custom;
+                        const isInnerContent =
+                            this.snippetsByCategory.snippet_custom_content.includes(snippet);
+                        const snippetCustom = isInnerContent
+                            ? this.snippetsByCategory.snippet_custom_content
+                            : this.snippetsByCategory.snippet_custom;
                         const index = snippetCustom.findIndex((s) => s.id === snippet.id);
                         if (index > -1) {
                             snippetCustom.splice(index, 1);

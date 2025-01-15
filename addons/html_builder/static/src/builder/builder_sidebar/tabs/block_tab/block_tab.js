@@ -105,4 +105,9 @@ export class BlockTab extends Component {
             }
         );
     }
+
+    renameCustomInnerContent(ev, snippet) {
+        const newName = ev.currentTarget.parentElement.querySelector("input")?.value;
+        this.props.snippetModel.renameCustomSnippet(snippet, newName);
+    }
 }
