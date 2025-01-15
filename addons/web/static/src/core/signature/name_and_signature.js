@@ -90,6 +90,8 @@ export class NameAndSignature extends Component {
                     if (this.props.signature.signatureImage) {
                         this.clear();
                         this.signaturePad.fromDataURL(this.props.signature.signatureImage);
+                        this.props.signature.isSignatureEmpty = this.isSignatureEmpty;
+                        this.props.onSignatureChange(this.state.signMode);
                     }
                 }
             },
@@ -308,7 +310,7 @@ export class NameAndSignature extends Component {
         this.state.signMode = mode;
         this.signaturePad[this.state.signMode === "draw" ? "on" : "off"]();
         this.clear();
-
+        
         if (this.state.signMode === "auto") {
             // draw based on name
             this.drawCurrentName();
