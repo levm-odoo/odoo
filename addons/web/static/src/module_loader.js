@@ -242,7 +242,193 @@
                     detail: { moduleName: name, module },
                 })
             );
+<<<<<<< 18.0
             return module;
+||||||| c3a353541641cbfa386ca148f7ff8ab3dda76c53
+        }
+
+        findErrors() {
+            // cycle detection
+            const dependencyGraph = new Map();
+            for (const job of this.jobs) {
+                dependencyGraph.set(job, this.factories.get(job).deps);
+            }
+            function visitJobs(jobs, visited = new Set()) {
+                for (const job of jobs) {
+                    const result = visitJob(job, visited);
+                    if (result) {
+                        return result;
+                    }
+                }
+                return null;
+            }
+
+            function visitJob(job, visited) {
+                if (visited.has(job)) {
+                    const jobs = Array.from(visited).concat([job]);
+                    const index = jobs.indexOf(job);
+                    return jobs
+                        .slice(index)
+                        .map((j) => `"${j}"`)
+                        .join(" => ");
+                }
+                const deps = dependencyGraph.get(job);
+                return deps ? visitJobs(deps, new Set(visited).add(job)) : null;
+            }
+
+            // missing dependencies
+            const missing = new Set();
+            for (const job of this.jobs) {
+                const factory = this.factories.get(job);
+                if (factory.ignoreMissingDeps) {
+                    continue;
+                }
+                for (const dep of factory.deps) {
+                    if (!this.factories.has(dep)) {
+                        missing.add(dep);
+                    }
+                }
+            }
+
+            return {
+                failed: [...this.failed],
+                cycle: visitJobs(this.jobs),
+                missing: [...missing],
+                unloaded: [...this.jobs].filter((j) => !this.factories.get(j).ignoreMissingDeps),
+            };
+        }
+
+        async checkAndReportErrors() {
+            const { failed, cycle, missing, unloaded } = this.findErrors();
+            if (!failed.length && !unloaded.length) {
+                return;
+            }
+
+            domReady(() => {
+                // Empty body
+                document.body.innerHTML = "";
+
+                const container = document.createElement("div");
+                container.className =
+                    "o_module_error position-fixed w-100 h-100 d-flex align-items-center flex-column bg-white overflow-auto modal";
+                container.style.zIndex = "10000";
+                const alert = document.createElement("div");
+                alert.className = "alert alert-danger o_error_detail fw-bold m-auto";
+                container.appendChild(alert);
+                alert.appendChild(
+                    list(
+                        "The following modules failed to load because of an error, you may find more information in the devtools console:",
+                        failed
+                    )
+                );
+                alert.appendChild(
+                    list(
+                        "The following modules could not be loaded because they form a dependency cycle:",
+                        cycle && [cycle]
+                    )
+                );
+                alert.appendChild(
+                    list(
+                        "The following modules are needed by other modules but have not been defined, they may not be present in the correct asset bundle:",
+                        missing
+                    )
+                );
+                alert.appendChild(
+                    list(
+                        "The following modules could not be loaded because they have unmet dependencies, this is a secondary error which is likely caused by one of the above problems:",
+                        unloaded
+                    )
+                );
+                document.body.appendChild(container);
+            });
+=======
+        }
+
+        findErrors() {
+            // cycle detection
+            const dependencyGraph = new Map();
+            for (const job of this.jobs) {
+                dependencyGraph.set(job, this.factories.get(job).deps);
+            }
+            function visitJobs(jobs, visited = new Set()) {
+                for (const job of jobs) {
+                    const result = visitJob(job, visited);
+                    if (result) {
+                        return result;
+                    }
+                }
+                return null;
+            }
+
+            function visitJob(job, visited) {
+                if (visited.has(job)) {
+                    const jobs = Array.from(visited).concat([job]);
+                    const index = jobs.indexOf(job);
+                    return jobs
+                        .slice(index)
+                        .map((j) => `"${j}"`)
+                        .join(" => ");
+                }
+                const deps = dependencyGraph.get(job);
+                return deps ? visitJobs(deps, new Set(visited).add(job)) : null;
+            }
+
+            // missing dependencies
+            const missing = new Set();
+            for (const job of this.jobs) {
+                const factory = this.factories.get(job);
+                if (factory.ignoreMissingDeps) {
+                    continue;
+                }
+                for (const dep of factory.deps) {
+                    if (!this.factories.has(dep)) {
+                        missing.add(dep);
+                    }
+                }
+            }
+
+            return {
+                failed: [...this.failed],
+                cycle: visitJobs(this.jobs),
+                missing: [...missing],
+                unloaded: [...this.jobs].filter((j) => !this.factories.get(j).ignoreMissingDeps),
+            };
+        }
+
+        async checkAndReportErrors() {
+            const { failed, cycle, missing, unloaded } = this.findErrors();
+            if (!failed.length && !unloaded.length) {
+                return;
+            }
+
+            const style = document.createElement("style");
+            style.textContent = `
+                body::before {
+                    font-weight: bold;
+                    content: "An error occurred while loading javascript modules, you may find more information in the devtools console";
+                    position: fixed;
+                    left: 0;
+                    bottom: 0;
+                    z-index: 100000000000;
+                    background-color: #C00;
+                    color: #DDD;
+                }
+            `;
+
+            document.head.appendChild(style);
+            if (failed.length) {
+                console.error("The following modules failed to load because of an error:", failed)
+            }
+            if (missing) {
+                console.error("The following modules are needed by other modules but have not been defined, they may not be present in the correct asset bundle:", missing);
+            }
+            if (cycle) {
+                console.error("The following modules could not be loaded because they form a dependency cycle:", cycle);
+            }
+            if (unloaded) {
+                console.error("The following modules could not be loaded because they have unmet dependencies, this is a secondary error which is likely caused by one of the above problems:", unloaded);
+            }
+>>>>>>> 9e6d9d7514ea728360343ca7b3e5408152006f35
         }
     }
 
