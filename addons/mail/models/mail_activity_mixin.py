@@ -311,7 +311,7 @@ class MailActivityMixin(models.AbstractModel):
         )
         return True
 
-    def activity_search(self, act_type_xmlids='', user_id=None, additional_domain=None):
+    def activity_search(self, act_type_xmlids='', user_id=None, additional_domain=None, only_automated=True):
         """ Search automated activities on current record set, given a list of activity
         types xml IDs. It is useful when dealing with specific types involved in automatic
         activities management.
@@ -319,6 +319,7 @@ class MailActivityMixin(models.AbstractModel):
         :param act_type_xmlids: list of activity types xml IDs
         :param user_id: if set, restrict to activities of that user_id;
         :param additional_domain: if set, filter on that domain;
+        :param only_automated: if unset, search for all activities, not only automated ones;
         """
         if self.env.context.get('mail_activity_automation_skip'):
             return self.env['mail.activity']
@@ -329,13 +330,13 @@ class MailActivityMixin(models.AbstractModel):
             return self.env['mail.activity']
 
         domain = [
-            '&', '&', '&',
             ('res_model', '=', self._name),
             ('res_id', 'in', self.ids),
-            ('automated', '=', True),
             ('activity_type_id', 'in', activity_types_ids)
         ]
 
+        if only_automated:
+            domain = expression.AND([domain, [('automated', '=', True)]])
         if user_id:
             domain = expression.AND([domain, [('user_id', '=', user_id)]])
         if additional_domain:
@@ -455,7 +456,7 @@ class MailActivityMixin(models.AbstractModel):
             activities.action_feedback(feedback=feedback, attachment_ids=attachment_ids)
         return True
 
-    def activity_unlink(self, act_type_xmlids, user_id=None):
+    def activity_unlink(self, act_type_xmlids, user_id=None, only_automated=True):
         """ Unlink activities, limiting to some activity types and optionally
         to a given user. """
         if self.env.context.get('mail_activity_automation_skip'):
@@ -466,5 +467,5 @@ class MailActivityMixin(models.AbstractModel):
         activity_types_ids = [act_type_id for act_type_id in activity_types_ids if act_type_id]
         if not any(activity_types_ids):
             return False
-        self.activity_search(act_type_xmlids, user_id=user_id).unlink()
+        self.activity_search(act_type_xmlids, user_id=user_id, only_automated=only_automated).unlink()
         return True
