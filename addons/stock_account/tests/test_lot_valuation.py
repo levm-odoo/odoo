@@ -592,3 +592,20 @@ class TestLotValuation(TestStockValuationCommon):
         self.product1.lot_valuated = True
         self.product1.product_tmpl_id.tracking = 'none'
         self.assertFalse(self.product1.product_tmpl_id.lot_valuated)
+
+    def test_no_lot_valuation_if_quant_without_lot(self):
+        """
+
+        """
+        self.product1.tracking = 'none'
+        self.product1.lot_valuated = False
+        quant = self.env['stock.quant'].create({
+            'product_id': self.product1.id,
+            'location_id': self.stock_location.id,
+            'inventory_quantity': 1
+        })
+        quant.action_apply_inventory()
+
+        self.product1.tracking = 'lot'
+        with self.assertRaises(UserError):
+            self.product1.lot_valuated = True
