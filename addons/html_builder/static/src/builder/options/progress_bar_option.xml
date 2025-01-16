@@ -20,7 +20,7 @@
         <BuilderCheckbox id="'striped_option'" classAction="'progress-bar-striped'" applyTo="'.progress-bar'"/>
     </BuilderRow>
     <BuilderRow label.translate="Animated" extraClassName="'o_we_sublevel'">
-        <BuilderCheckbox classAction="'progress-bar-animated'" dependencies="'striped_option'" applyTo="'.progress-bar'"/>
+        <BuilderCheckbox classAction="'progress-bar-animated'" isVisible="this.isActiveItem('striped_option')" applyTo="'.progress-bar'"/>
     </BuilderRow>
 </t>
 

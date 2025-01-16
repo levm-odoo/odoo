@@ -361,15 +361,15 @@ test("no need to define 'isApplied' method for custom action if the widget alrea
     expect(".options-container .we-bg-options-container button").toHaveText("Info");
 });
 
-describe("dependencies", () => {
+describe("isActiveItem", () => {
     test("a button should not be visible if its dependency isn't (with undo)", async () => {
         addOption({
             selector: ".test-options-target",
             template: xml`
                 <BuilderButton attributeAction="'my-attribute1'" attributeActionValue="'x'" id="'id1'">b1</BuilderButton>
                 <BuilderButton attributeAction="'my-attribute1'" attributeActionValue="'y'"  id="'id2'">b2</BuilderButton>
-                <BuilderButton attributeAction="'my-attribute2'" attributeActionValue="'1'" dependencies="'id1'">b3</BuilderButton>
-                <BuilderButton attributeAction="'my-attribute2'" attributeActionValue="'2'" dependencies="'id2'">b4</BuilderButton>
+                <BuilderButton attributeAction="'my-attribute2'" attributeActionValue="'1'" isVisible="this.isActiveItem('id1')">b3</BuilderButton>
+                <BuilderButton attributeAction="'my-attribute2'" attributeActionValue="'2'" isVisible="this.isActiveItem('id2')">b4</BuilderButton>
             `,
         });
         await setupWebsiteBuilder(`<div class="test-options-target">b</div>`);
@@ -429,8 +429,8 @@ describe("dependencies", () => {
                     <BuilderSelectItem classAction="'a'" id="'x'">x</BuilderSelectItem>
                     <BuilderSelectItem classAction="'a b'" id="'y'">y</BuilderSelectItem>
                 </BuilderSelect>
-                <BuilderButton classAction="'b1'" dependencies="'x'">b1</BuilderButton>
-                <BuilderButton classAction="'b2'" dependencies="'y'">b2</BuilderButton>
+                <BuilderButton classAction="'b1'" isVisible="this.isActiveItem('x')">b1</BuilderButton>
+                <BuilderButton classAction="'b2'" isVisible="this.isActiveItem('y')">b2</BuilderButton>
             `,
         });
         await setupWebsiteBuilder(`<div class="test-options-target a">a</div>`);
@@ -457,7 +457,7 @@ describe("dependencies", () => {
             selector: ".test-options-target",
             template: xml`
                 <BuilderButton attributeAction="'my-attribute1'" attributeActionValue="'x'" id="'id1'">b1</BuilderButton>
-                <BuilderButton attributeAction="'my-attribute2'" attributeActionValue="'1'" dependencies="'!id1'">b3</BuilderButton>
+                <BuilderButton attributeAction="'my-attribute2'" attributeActionValue="'1'" isVisible="this.isActiveItem('id1')">b3</BuilderButton>
             `,
         });
         await setupWebsiteBuilder(`<div class="test-options-target">b</div>`);
@@ -478,8 +478,8 @@ describe("dependencies", () => {
         addOption({
             selector: ".test-options-target",
             template: xml`
-                <BuilderButton attributeAction="'my-attribute2'" attributeActionValue="'1'" dependencies="'id'">b1</BuilderButton>
-                <BuilderButton attributeAction="'my-attribute2'" attributeActionValue="'2'" dependencies="'!id'">b2</BuilderButton>
+                <BuilderButton attributeAction="'my-attribute2'" attributeActionValue="'1'" isVisible="this.isActiveItem('id')">b1</BuilderButton>
+                <BuilderButton attributeAction="'my-attribute2'" attributeActionValue="'2'" isVisible="!this.isActiveItem('id')">b2</BuilderButton>
                 <BuilderRow label="'dependency'">
                     <BuilderButton attributeAction="'my-attribute1'" attributeActionValue="'x'" id="'id'">b3</BuilderButton>
                 </BuilderRow>

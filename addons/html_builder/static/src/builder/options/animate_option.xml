@@ -3,7 +3,7 @@
 
 <t t-name="html_builder.AnimateOption">
     <BuilderRow label.translate="Animation">
-        <BuilderSelect dependencies="'!transformImage'" preview="false">
+        <BuilderSelect isVisible="!this.isActiveItem('transformImage')" preview="false">
             <BuilderSelectItem action="'setAnimationMode'" actionValue="''"
                         classAction="''"
                         id="'no_animation_opt'">None</BuilderSelectItem>
@@ -18,11 +18,11 @@
             <BuilderSelectItem action="'setAnimationMode'" actionValue="'onHover'"
                         classAction="'o_animate_on_hover'"
                         id="'animation_on_hover_opt'"
-                        t-if="state.canHover">On Hover</BuilderSelectItem>
+                        isVisible="state.canHover">On Hover</BuilderSelectItem>
         </BuilderSelect>
     </BuilderRow>
     <BuilderRow label.translate="Effect">
-        <BuilderSelect t-if="this.state.hasAnimateClass" dependencies="'!animation_on_hover_opt'" id="'animation_effect_opt'">
+        <BuilderSelect isVisible="state.hasAnimateClass and !this.isActiveItem('animation_on_hover_opt')" id="'animation_effect_opt'">
             <!-- Default value -->
             <!-- <div class="d-none"><BuilderSelectItem classAction="''">None</BuilderSelectItem></div> -->
             <BuilderSelectItem classAction="'o_anim_fade_in'"
@@ -36,7 +36,7 @@
                                    classAction="'o_anim_rotate_in'">Rotate</BuilderSelectItem>
                 <BuilderSelectItem classAction="'o_anim_zoom_out'">Zoom Out</BuilderSelectItem>
                 <BuilderSelectItem classAction="'o_anim_zoom_in'">Zoom In</BuilderSelectItem>
-                <BuilderContext dependencies="'animation_on_appearance_opt'">
+                <BuilderContext isVisible="this.isActiveItem('animation_on_appearance_opt')">
                     <BuilderSelectItem classAction="'o_anim_flash'">Flash</BuilderSelectItem>
                     <BuilderSelectItem classAction="'o_anim_pulse'">Pulse</BuilderSelectItem>
                     <BuilderSelectItem classAction="'o_anim_shake'">Shake</BuilderSelectItem>
@@ -67,13 +67,13 @@
                 data-step="1" data-min="1" data-unit="px" data-dependencies="hover_effect_outline_opt" data-no-preview="true"/>
         </div> -->
     </BuilderRow>
-    <BuilderRow label.translate="Direction" extraClassName="(state.hasAnimateClass and !state.isLimitedAnimation) ? '' : 'd-none'">
+    <BuilderRow label.translate="Direction" isVisible="state.hasAnimateClass and !state.isLimitedAnimation">
         <BuilderSelect id="'animation_direction_opt'" action="'forceAnimation'">
             <BuilderSelectItem classAction="''"
                        id="'animation_direction_in_place_opt'"
-                       dependencies="'!o_anim_slide_in_opt'">In Place</BuilderSelectItem>
+                       isVisible="!this.isActiveItem('o_anim_slide_in_opt')">In Place</BuilderSelectItem>
 
-            <BuilderContext dependencies="'!o_anim_rotate_opt'">
+            <BuilderContext isVisible="!this.isActiveItem('o_anim_rotate_opt')">
                 <BuilderSelectItem id="'animation_direction_from_right_opt'"
                                    classAction="'o_anim_from_right'">From Right</BuilderSelectItem>
                 <BuilderSelectItem classAction="'o_anim_from_left'">From Left</BuilderSelectItem>
@@ -81,7 +81,7 @@
                 <BuilderSelectItem classAction="'o_anim_from_top'">From Top</BuilderSelectItem>
             </BuilderContext>
 
-            <BuilderContext dependencies="'o_anim_rotate_opt'">
+            <BuilderContext isVisible="this.isActiveItem('o_anim_rotate_opt')">
                 <BuilderSelectItem classAction="'o_anim_from_top_right'">From Top Right</BuilderSelectItem>
                 <BuilderSelectItem classAction="'o_anim_from_top_left'">From Top Left</BuilderSelectItem>
                 <BuilderSelectItem classAction="'o_anim_from_bottom_right'">From Bottom Right</BuilderSelectItem>
@@ -91,14 +91,14 @@
     </BuilderRow>
     <!-- Trigger -->
     <BuilderRow label.translate="Trigger">
-        <BuilderSelect dependencies="'animation_on_appearance_opt'" id="'animation_trigger_opt'">
+        <BuilderSelect isVisible="this.isActiveItem('animation_on_appearance_opt')" id="'animation_trigger_opt'">
             <BuilderSelectItem classAction="''">First Time Only</BuilderSelectItem>
             <BuilderSelectItem classAction="'o_animate_both_scroll'">Every Time</BuilderSelectItem>
         </BuilderSelect>
     </BuilderRow>
     <!-- Intensity -->
-    <BuilderRow label.translate="Intensity" t-if="state.showIntensity">
-        <BuilderRange id="'animation_intensity_opt'"
+    <BuilderRow label.translate="Intensity" isVisible="state.showIntensity">
+        <BuilderRange
             action="'setAnimateIntensity'"
             preview="false"
             min="1"
@@ -106,7 +106,7 @@
             step="1"
             displayRangeValue="true"/>
     </BuilderRow>
-    <BuilderContext dependencies="'animation_on_appearance_opt'">
+    <BuilderContext isVisible="this.isActiveItem('animation_on_appearance_opt')">
         <!-- Start After -->
         <BuilderRow label.translate="Start After">
             <BuilderNumberInput styleAction="'animation-delay'" default="0" unit="'s'" />

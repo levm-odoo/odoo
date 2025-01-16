@@ -7,7 +7,7 @@ import {
 
 export class BuilderContext extends Component {
     static template = xml`
-        <BuilderComponent dependencies="props.dependencies">
+        <BuilderComponent isVisible="props.isVisible">
             <t t-slot="default"/>
         </BuilderComponent>
     `;
