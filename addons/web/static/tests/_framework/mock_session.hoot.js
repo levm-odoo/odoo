@@ -74,7 +74,12 @@ export function mockSessionFactory() {
         const session = makeSession(serverState);
 
         onServerStateChange(session, makeSession);
-
-        return { session };
+        return {
+            session,
+            lazyLoadConfig() {},
+            getLazyConfig() {
+                return {};
+            },
+        };
     };
 }
