@@ -3108,67 +3108,6 @@ class BaseModel(metaclass=MetaModel):
         # fallback
         return tools.exception_to_unicode(exc)
 
-    #
-    # Update objects that use this one to update their _inherits fields
-    #
-
-    @api.model
-    def _add_inherited_fields(self):
-        """ Determine inherited fields. """
-        if self._abstract or not self._inherits:
-            return
-
-        # determine which fields can be inherited
-        to_inherit = {
-            name: (parent_fname, field)
-            for parent_model_name, parent_fname in self._inherits.items()
-            for name, field in self.env[parent_model_name]._fields.items()
-        }
-
-        # add inherited fields that are not redefined locally
-        for name, (parent_fname, field) in to_inherit.items():
-            if name not in self._fields:
-                # inherited fields are implemented as related fields, with the
-                # following specific properties:
-                #  - reading inherited fields should not bypass access rights
-                #  - copy inherited fields iff their original field is copied
-                Field = type(field)
-                self._add_field(name, Field(
-                    inherited=True,
-                    inherited_field=field,
-                    related=f"{parent_fname}.{name}",
-                    related_sudo=False,
-                    copy=field.copy,
-                    readonly=field.readonly,
-                    export_string_translation=field.export_string_translation,
-                ))
-
-    @api.model
-    def _inherits_check(self):
-        for table, field_name in self._inherits.items():
-            field = self._fields.get(field_name)
-            if not field:
-                _logger.info('Missing many2one field definition for _inherits reference "%s" in "%s", using default one.', field_name, self._name)
-                from .fields import Many2one
-                field = Many2one(table, string="Automatically created field to link to parent %s" % table, required=True, ondelete="cascade")
-                self._add_field(field_name, field)
-            elif not (field.required and (field.ondelete or "").lower() in ("cascade", "restrict")):
-                _logger.warning('Field definition for _inherits reference "%s" in "%s" must be marked as "required" with ondelete="cascade" or "restrict", forcing it to required + cascade.', field_name, self._name)
-                field.required = True
-                field.ondelete = "cascade"
-            field.delegate = True
-
-        # reflect fields with delegate=True in dictionary self._inherits
-        for field in self._fields.values():
-            if field.type == 'many2one' and not field.related and field.delegate:
-                if not field.required:
-                    _logger.warning("Field %s with delegate=True must be required.", field)
-                    field.required = True
-                if field.ondelete.lower() not in ('cascade', 'restrict'):
-                    field.ondelete = 'cascade'
-                self.pool[self._name]._inherits = {**self._inherits, field.comodel_name: field.name}
-                self.pool[field.comodel_name]._inherits_children.add(self._name)
-
     @api.model
     def fields_get(self, allfields=None, attributes=None):
         """ fields_get([allfields][, attributes])
