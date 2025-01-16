@@ -359,40 +359,42 @@ test("group year/quarter/month filters to a single filter type", () => {
     expect(filters).toEqual([
         {
             id: "1",
-            type: "relation",
             operator: "in",
             label: "a relational filter",
             defaultValue: [2],
-            defaultValueDisplayNames: ["Mitchell Admin"],
-            modelName: "res.users",
+            relation: "res.users",
+            target: {
+                model: "res.users",
+                field: "id",
+            },
         },
         {
             id: "2",
-            type: "date",
             label: "a year relational filter",
-            rangeType: "fixedPeriod",
+            operator: "fixedPeriod",
             defaultValue: "this_year",
+            target: undefined,
         },
         {
             id: "3",
-            type: "date",
             label: "a quarter relational filter",
-            rangeType: "fixedPeriod",
+            operator: "fixedPeriod",
             defaultValue: "this_quarter",
+            target: undefined,
         },
         {
             id: "4",
-            type: "date",
             label: "a month relational filter",
-            rangeType: "fixedPeriod",
+            operator: "fixedPeriod",
             defaultValue: "this_month",
+            target: undefined,
         },
         {
             id: "5",
-            type: "date",
             label: "a relative date filter",
-            rangeType: "relative",
+            operator: "relative",
             defaultValue: "last_week",
+            target: undefined,
         },
     ]);
 });

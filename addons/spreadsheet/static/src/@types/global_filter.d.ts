@@ -21,7 +21,6 @@ declare module "@spreadsheet" {
     }
 
     export interface TextGlobalFilter {
-        type: "text";
         id: string;
         operator: "ilike";
         label: string;
@@ -34,23 +33,22 @@ declare module "@spreadsheet" {
     }
 
     export interface DateGlobalFilterCommon {
-        type: "date";
         id: string;
         label: string;
     }
 
     export interface FromToDateGlobalFilter extends DateGlobalFilterCommon {
-        rangeType: "from_to";
+        operator: "from_to";
         defaultValue?: number[];
     }
 
     export interface RelativeDateGlobalFilter extends DateGlobalFilterCommon {
-        rangeType: "relative";
+        operator: "relative";
         defaultValue?: DateFilterTimePeriod;
     }
 
     export interface FixedPeriodDateGlobalFilter extends DateGlobalFilterCommon {
-        rangeType: "fixedPeriod";
+        operator: "fixedPeriod";
         defaultValue?: { period?: string; yearOffset?: number };
         disabledPeriods?: FixedPeriods[];
     }
@@ -61,10 +59,9 @@ declare module "@spreadsheet" {
         | FixedPeriodDateGlobalFilter;
 
     export interface RelationalGlobalFilter {
-        type: "relation";
         id: string;
         label: string;
-        modelName: string;
+        relation: string;
         operator: "in" | "child_of";
         defaultValue?: (number | "uid")[];
         domainOfAllowedValues?: DomainListRepr | string;

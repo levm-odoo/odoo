@@ -30,6 +30,10 @@ export function selectCell(model, xc, sheetId = model.getters.getActiveSheetId()
  * @param {CmdGlobalFilter} filter
  */
 export async function addGlobalFilter(model, filter, fieldMatchings = {}) {
+    if (filter.type) {
+        //TODOPRO
+        throw new Error("filter.type is deprecated, use filter.operator instead");
+    }
     const result = model.dispatch("ADD_GLOBAL_FILTER", { filter, ...fieldMatchings });
     // Wait for the fetch of DisplayNames
     await animationFrame();
@@ -66,6 +70,10 @@ export async function editGlobalFilter(model, filter) {
  * reloaded
  */
 export async function setGlobalFilterValue(model, payload) {
+    if (payload.operator) {
+        //TODOPRO
+        throw new Error("payload.operator is deprecated, use payload.value instead");
+    }
     const result = model.dispatch("SET_GLOBAL_FILTER_VALUE", payload);
     // Wait for the fetch of DisplayNames
     await animationFrame();

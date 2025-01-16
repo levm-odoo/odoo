@@ -418,13 +418,70 @@ function migrate13to14(data) {
     for (const globalFilter of data.globalFilters || []) {
         if (globalFilter.type === "relation") {
             globalFilter.operator = globalFilter.includeChildren ? "child_of" : "in";
+            console.log(globalFilter);
+            globalFilter.relation = globalFilter.modelName;
+            delete globalFilter.modelName;
             delete globalFilter.includeChildren;
+            delete globalFilter.defaultValueDisplayNames;
+            const fieldMatching = getAllFieldMatching(data, globalFilter.id);
+            const match = fieldMatching.find((fm) => fm?.chain?.split(".").length === 1);
+            globalFilter.target = match
+                ? {
+                      model: match.model,
+                      field: match.chain,
+                  }
+                : {
+                      model: globalFilter.relation,
+                      field: "id",
+                  };
         }
         if (globalFilter.type === "text") {
             globalFilter.operator = "ilike";
+            const fieldMatching = getAllFieldMatching(data, globalFilter.id);
+            const match = fieldMatching.find((fm) => fm?.chain?.split(".").length === 1);
+            globalFilter.target = match ? { model: match.model, field: match.chain } : undefined;
         }
+        if (globalFilter.type === "date") {
+            globalFilter.operator = globalFilter.rangeType;
+            delete globalFilter.rangeType;
+            const fieldMatching = getAllFieldMatching(data, globalFilter.id);
+            const match = fieldMatching.find((fm) => fm?.chain?.split(".").length === 1);
+            globalFilter.target = match ? { model: match.model, field: match.chain } : undefined;
+        }
+        delete globalFilter.type;
     }
     return data;
+}
+
+function getAllFieldMatching(data, filterId) {
+    const fieldMatching = [];
+    // pivots
+    for (const pivot of Object.values(data.pivots || {})) {
+        if (pivot.fieldMatching && filterId in pivot.fieldMatching) {
+            fieldMatching.push({ ...pivot.fieldMatching[filterId], model: pivot.model });
+        }
+    }
+    // lists
+    for (const list of Object.values(data.lists || {})) {
+        if (list.fieldMatching && filterId in list.fieldMatching) {
+            fieldMatching.push({ ...list.fieldMatching[filterId], model: list.model });
+        }
+    }
+    // charts
+    for (const figure of Object.values(data.figures || {})) {
+        if (
+            figure.tag === "chart" &&
+            figure.data &&
+            figure.data.fieldMatching &&
+            filterId in figure.data.fieldMatching
+        ) {
+            fieldMatching.push({
+                ...figure.data.fieldMatching[filterId],
+                model: figure.data.metaData.resModel,
+            });
+        }
+    }
+    return fieldMatching;
 }
 
 export class OdooVersion extends OdooCorePlugin {

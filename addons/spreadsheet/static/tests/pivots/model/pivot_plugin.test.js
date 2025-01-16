@@ -1323,12 +1323,10 @@ test("field matching is removed when filter is deleted", async function () {
         model,
         {
             id: "42",
-            type: "relation",
             operator: "in",
             label: "test",
             defaultValue: [41],
-            modelName: undefined,
-            rangeType: undefined,
+            relation: "product",
         },
         {
             pivot: { [pivotId]: { chain: "product_id", type: "many2one" } },
