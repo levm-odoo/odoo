@@ -5,6 +5,7 @@ import base64
 import datetime
 import json
 import logging
+import pickle
 
 from dateutil.relativedelta import relativedelta
 
@@ -36,17 +37,38 @@ class IrProfile(models.Model):
     sql_count = fields.Integer('Queries Count')
     traces_async = fields.Text('Traces Async', prefetch=False)
     traces_sync = fields.Text('Traces Sync', prefetch=False)
+    memory = fields.Text('memory', prefetch=False)
     qweb = fields.Text('Qweb', prefetch=False)
     entry_count = fields.Integer('Entry count')
 
     speedscope = fields.Binary('Speedscope', compute='_compute_speedscope')
     speedscope_url = fields.Text('Open', compute='_compute_speedscope_url')
 
+    memory_graph = fields.Binary('Memory', compute='_compute_memory')  #this would be changed when the other pr gets merged
+    memory_url = fields.Text('Open Memory', compute='_compute_memory_url')
+
     @api.autovacuum
     def _gc_profile(self):
         # remove profiles older than 30 days
         domain = [('create_date', '<', fields.Datetime.now() - datetime.timedelta(days=30))]
         return self.sudo().search(domain).unlink()
+
+
+    def _compute_memory(self):
+        for execution in self:
+            result=[]
+            for entry in json.loads(execution.memory):
+                if  'memory' in entry:
+                    tracemalloc_entry_bytes = base64.b64decode(entry['memory'].encode('utf_8'))
+                    tracemalloc_entry = pickle.loads(tracemalloc_entry_bytes)
+                    entry_statistics = tracemalloc_entry.statistics('lineno')
+                    modified_entry_statistics = [{'file': list(statistic.traceback._frames[0]), 'size' : statistic.size, 'start': entry['start']} for statistic in entry_statistics]
+                    result.append(modified_entry_statistics)
+            execution.memory_graph = result
+
+    def _compute_memory_url(self):
+        for profile in self:
+            profile.memory_url = f'/web/memory_graph/{profile.id}'    
 
     def _compute_speedscope(self):
         for execution in self:

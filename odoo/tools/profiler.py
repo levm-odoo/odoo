@@ -10,6 +10,8 @@ import time
 import threading
 import re
 import functools
+import tracemalloc
+import pickle, base64
 
 from psycopg2 import OperationalError
 
@@ -189,7 +191,7 @@ class PeriodicCollector(Collector):
 
     :param interval (float): time to wait in seconds between two samples.
     """
-    name = 'traces_async'
+    name = None
 
     def __init__(self, interval=0.01):  # check duration. dynamic?
         super().__init__()
@@ -218,10 +220,6 @@ class PeriodicCollector(Collector):
         self._entries.append({'stack': [], 'start': real_time()})  # add final end frame
 
     def start(self):
-        interval = self.profiler.params.get('traces_async_interval')
-        if interval:
-            self.frame_interval = min(max(float(interval), 0.001), 1)
-
         init_thread = self.profiler.init_thread
         if not hasattr(init_thread, 'profile_hooks'):
             init_thread.profile_hooks = []
@@ -234,6 +232,19 @@ class PeriodicCollector(Collector):
         self.__thread.join()
         self.profiler.init_thread.profile_hooks.remove(self.progress)
 
+class stackCollector(PeriodicCollector):
+
+    name = 'traces_async'
+
+    def __init__(self):  # check duration. dynamic?
+        super().__init__(interval=0.001)
+
+    def start(self):
+        interval = self.profiler.params.get('traces_async_interval')
+        if interval:
+            self.frame_interval = min(max(float(interval), 0.001), 1)
+        super().start()
+
     def add(self, entry=None, frame=None):
         """ Add an entry (dict) to this collector. """
         frame = frame or get_current_frame(self.profiler.init_thread)
@@ -244,6 +255,33 @@ class PeriodicCollector(Collector):
         self.last_frame = frame
         super().add(entry=entry, frame=frame)
 
+class memoryCollector(PeriodicCollector):
+
+    name = 'memory'
+
+    def __init__(self):  # check duration. dynamic?
+        super().__init__(interval=0.1)
+
+    def start(self):
+        interval = self.profiler.params.get('memory_interval')
+        if interval:
+            self.frame_interval = min(max(float(interval), 0.01), 5)
+        tracemalloc.start()
+        super().start()
+    
+    def add(self, entry=None, frame=None):
+        """ Add an entry (dict) to this collector. """
+        entry = tracemalloc.take_snapshot()
+        entry = entry.filter_traces((
+                        tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),
+                        tracemalloc.Filter(False, "<unknown>"),
+                        tracemalloc.Filter(False, "*/.*"),
+                        tracemalloc.Filter(False, "*/profiler.py*"),
+                    ))
+        self.last_frame = entry
+        entry = pickle.dumps(entry)
+        entry = base64.b64encode(entry).decode("utf_8")
+        super().add(entry={'memory':entry}, frame=frame)
 
 class SyncCollector(Collector):
     """
