@@ -15,7 +15,10 @@ class ProductUom(models.Model):
     barcode = fields.Char(index='btree_not_null', required=True)
     company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company)
 
-    _barcode_uniq = models.Constraint('unique(barcode)', 'A barcode can only be assigned to one packaging.')
+    _barcode_uniq = models.Constraint(
+        'unique(barcode)',
+        "Oops! That's like trying to use the same key for two different locks, it's bound to cause confusion. You can't allow the same barcode for multiple product packaging.",
+    )
 
     @api.constrains('barcode')
     def _check_barcode_uniqueness(self):
