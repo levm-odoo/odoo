@@ -1,7 +1,7 @@
 import { registry } from "@web/core/registry";
 import { Base } from "./related_models";
 import { _t } from "@web/core/l10n/translation";
-import { serializeDateTime } from "@web/core/l10n/dates";
+import { serializeDateTime, deserializeDateTime } from "@web/core/l10n/dates";
 import { random5Chars, uuidv4 } from "@point_of_sale/utils";
 import { floatIsZero, roundPrecision } from "@web/core/utils/numbers";
 import { computeComboItems } from "./utils/compute_combo_items";
@@ -97,8 +97,12 @@ export class PosOrder extends Base {
     }
 
     get presetTime() {
-        const dateTime = DateTime.fromSQL(this.preset_time);
+        const dateTime = deserializeDateTime(this.preset_time);
         return dateTime.isValid ? dateTime.toFormat("HH:mm") : false;
+    }
+
+    setPresetDateTime(newTime) {
+        this.preset_time = newTime ? serializeDateTime(DateTime.fromSQL(newTime)) : false;
     }
 
     getEmailItems() {
