@@ -3657,3 +3657,30 @@ class TestAutoAssign(TestStockCommon):
 
         self.assertEqual(len(picking.move_ids), 1)
         self.assertEqual(picking.move_ids.product_uom_qty, 25)
+
+    def test_description_picking_consistent_with_product_description(self):
+        """
+        Ensure the description_picking of a move matches the product template's
+        description in a multi-step reception process.
+        """
+        warehouse = self.env['stock.warehouse'].search([], limit=1)
+        warehouse.reception_steps = 'two_steps'
+
+        self.productA.product_tmpl_id.description_picking = 'transfer'
+        receipt = self.env['stock.picking'].create({
+            'picking_type_id': self.picking_type_in,
+            'location_id': self.supplier_location,
+        })
+
+        move = self.env['stock.move.line'].create([{
+            'product_id': self.productA.id,
+            'picking_id': receipt.id,
+            'qty_done': 1,
+            'description_picking': 'receipt',
+        }])
+
+        receipt.action_confirm()
+        receipt.button_validate()
+
+        next_picking = self.env['stock.picking'].search([('origin', '=', receipt.display_name)])
+        self.assertEqual(next_picking.move_ids.description_picking, 'transfer')

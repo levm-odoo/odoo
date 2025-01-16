@@ -221,6 +221,7 @@ class StockRule(models.Model):
             'propagate_cancel': self.propagate_cancel,
             'warehouse_id': self.warehouse_id.id,
             'procure_method': 'make_to_order',
+            'description_picking': move_to_copy.product_id.with_context(lang=move_to_copy._get_lang())._get_description(self.picking_type_id),
         }
         return new_move_vals
 
