@@ -1293,7 +1293,7 @@ Attempting to double-book your time off won't magically make your vacation 2x be
             elif holiday.state in ['refuse', 'cancel']:
                 to_clean |= holiday
         if to_clean:
-            to_clean.activity_unlink(['hr_holidays.mail_act_leave_approval', 'hr_holidays.mail_act_leave_second_approval'])
+            to_clean.activity_unlink(['hr_holidays.mail_act_leave_approval', 'hr_holidays.mail_act_leave_second_approval'], only_automated=False)
         if to_do_confirm_activity:
             to_do_confirm_activity.activity_feedback(['hr_holidays.mail_act_leave_approval'])
         if to_do:
