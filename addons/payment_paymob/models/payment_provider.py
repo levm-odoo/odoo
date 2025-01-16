@@ -39,6 +39,7 @@ class PaymentProvider(models.Model):
         required_if_provider='paymob',
         groups='base.group_system',
     )
+    paymob_integration_message = fields.Char(compute="_compute_paymob_integration_message")
 
     # paymob_integration_ids = fields.Many2many(
     #     string="Integration IDs",
@@ -64,6 +65,21 @@ class PaymentProvider(models.Model):
                 [('code', '=', provider._get_country_from_currency())], limit=1)
 
     def _inverse_paymob_account_country(self):
+        for provider in self.filtered(lambda p: p.code == 'paymob'):
+            provider.available_currency_ids = self.env['res.currency'].with_context(
+                active_test=False,
+            ).search([('name', '=', provider._get_paymob_account_currency())], limit=1)
+
+    def _compute_paymob_integration_message(self):
+        for provider in self:
+            payment_method_codes = '", "'.join(provider.payment_method_ids.mapped('code'))
+            provider.paymob_integration_message = _(
+                f"""To match the payment methods insalled in odoo, you need to rename your payment
+                methods in "Payment Integrations" on the Paymob portal to "{payment_method_codes}".
+                """)
+
+    @api.onchange('provider_ids')
+    def _onchange_paymob_account_country(self):
         for provider in self.filtered(lambda p: p.code == 'paymob'):
             provider.available_currency_ids = self.env['res.currency'].with_context(
                 active_test=False,
