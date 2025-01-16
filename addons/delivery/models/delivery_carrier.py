@@ -45,7 +45,7 @@ class DeliveryCarrier(models.Model):
         default='fixed',
         required=True,
     )
-    is_collect_on_delivery = fields.Boolean(
+    is_cash_on_delivery_enabled = fields.Boolean(
         string="Cash on delivery",
         help="When activated, users will see `Cash on delivery` as payment method.",
         default=False,

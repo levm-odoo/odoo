@@ -29,7 +29,7 @@ class PaymentProvider(models.Model):
         )
 
         sale_order = self.env['sale.order'].browse(sale_order_id).exists()
-        if not sale_order.carrier_id.is_collect_on_delivery:
+        if not sale_order.carrier_id.is_cash_on_delivery_enabled:
             unfiltered_providers = compatible_providers
             compatible_providers = compatible_providers.filtered(
                 lambda p: p.custom_mode != 'cash_on_delivery'

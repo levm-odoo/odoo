@@ -22,7 +22,7 @@ class TestCODPayment(PaymentCustomCommon, DeliveryCommon):
 
     def test_cod_provider_available_when_dm_cod_enabled(self):
         order = self.sale_order
-        self.free_delivery.is_collect_on_delivery = True
+        self.free_delivery.is_cash_on_delivery_enabled = True
         order.carrier_id = self.free_delivery
         compatible_providers = self.env['payment.provider'].sudo()._get_compatible_providers(
             self.company.id, self.partner.id, self.amount, sale_order_id=order.id
@@ -33,7 +33,7 @@ class TestCODPayment(PaymentCustomCommon, DeliveryCommon):
 
     def test_cod_provider_unavailable_when_dm_cod_disabled(self):
         order = self.sale_order
-        self.free_delivery.is_collect_on_delivery = False
+        self.free_delivery.is_cash_on_delivery_enabled = False
         order.carrier_id = self.free_delivery
         compatible_providers = self.env['payment.provider'].sudo()._get_compatible_providers(
             self.company.id, self.partner.id, self.amount, sale_order_id=order.id
@@ -44,7 +44,7 @@ class TestCODPayment(PaymentCustomCommon, DeliveryCommon):
 
     def test_choosing_cod_payment_confirms_order(self):
         order = self.sale_order
-        self.free_delivery.is_collect_on_delivery = True
+        self.free_delivery.is_cash_on_delivery_enabled = True
         order.carrier_id = self.free_delivery
         tx = self._create_transaction(
             flow='direct',
