@@ -24,32 +24,32 @@ export function useDomState(getState) {
 }
 
 export class BuilderComponent extends Component {
-    static template = xml`<div t-att-class="this.state.isVisible ? 'd-contents' : 'd-none'"><t t-slot="default"/></div>`;
+    static template = xml`<div t-att-class="this.props.isVisible === false ? 'd-none' : 'd-contents'"><t t-slot="default"/></div>`;
     static props = {
-        dependencies: { type: [String, { type: Array, element: String }], optional: true },
+        isVisible: { type: Boolean, optional: true },
         slots: { type: Object },
     };
 
-    setup() {
-        const isDependenciesVisible = useDependencies(this.props.dependencies);
-        const isVisible = () =>
-            !!this.env.getEditingElement() && (!this.props.dependencies || isDependenciesVisible());
-        this.state = useDomState(() => ({
-            isVisible: isVisible(),
-        }));
-        useBus(this.env.dependencyManager, "dependency-updated", () => {
-            this.state.isVisible = isVisible();
-        });
-        if (this.props.dependencies?.length) {
-            const listener = () => {
-                this.state.isVisible = isVisible();
-            };
-            this.env.dependencyManager.addEventListener("dependency-updated", listener);
-            onWillDestroy(() => {
-                this.env.dependencyManager.removeEventListener("dependency-updated", listener);
-            });
-        }
-    }
+    // setup() {
+    //     // const isDependenciesVisible = useDependencies(this.props.dependencies);
+    //     // const isVisible = () =>
+    //     //     !!this.env.getEditingElement() && (!this.props.dependencies || isDependenciesVisible());
+    //     // this.state = useDomState(() => ({
+    //     //     isVisible: isVisible(),
+    //     // }));
+    //     // useBus(this.env.dependencyManager, "dependency-updated", () => {
+    //     //     this.state.isVisible = isVisible();
+    //     // });
+    //     // if (this.props.dependencies?.length) {
+    //     //     const listener = () => {
+    //     //         this.state.isVisible = isVisible();
+    //     //     };
+    //     //     this.env.dependencyManager.addEventListener("dependency-updated", listener);
+    //     //     onWillDestroy(() => {
+    //     //         this.env.dependencyManager.removeEventListener("dependency-updated", listener);
+    //     //     });
+    //     // }
+    // }
 }
 
 function querySelectorAll(targets, selector) {
@@ -110,6 +110,56 @@ export function useDependencies(dependencies) {
         });
     };
     return isDependenciesVisible;
+}
+
+export function useIsActiveItem({ log } = {}) {
+    const env = useEnv();
+    const tempState = {};
+    const warn = (...args) => {
+        if (log) {
+            console.warn(...args);
+        }
+    };
+    window.d = env.dependencyManager;
+
+    function isActive(itemId) {
+        const isActiveFn = env.dependencyManager.get(itemId)?.isActive;
+
+        // warn(`env.dependencyManager.get(itemId):`, env.dependencyManager.get(itemId));
+        // warn(`isActiveFn:`, isActiveFn);
+        if (!isActiveFn) {
+            warn(`itemId`, itemId, env.dependencyManager.get(itemId));
+            return false;
+        }
+        warn(`itemId:`, itemId, isActiveFn());
+        return isActiveFn();
+    }
+
+    const getState = () => {
+        for (const itemId of Object.keys(tempState)) {
+            tempState[itemId] = isActive(itemId);
+        }
+        return tempState;
+    };
+    const state = useDomState(getState);
+    // const debouncedGetState = useDebounced(getState, 0);
+    const listener = () => {
+        const newState = getState();
+        console.warn("updated!!", newState);
+        Object.assign(state, newState);
+    };
+    env.dependencyManager.addEventListener("dependency-updated", listener);
+    onWillDestroy(() => {
+        env.dependencyManager.removeEventListener("dependency-updated", listener);
+    });
+    return function isActiveItem(itemId) {
+        if (state[itemId] === undefined) {
+            // Use a temporary state to avoid re-rendering the component.
+            tempState[itemId] = isActive(itemId);
+            return tempState[itemId];
+        }
+        return state[itemId];
+    };
 }
 
 export function useSelectableComponent(id, { onItemChange } = {}) {
@@ -544,7 +594,7 @@ export function useVisibilityObserver(contentName, callback) {
 export const basicContainerBuilderComponentProps = {
     applyTo: { type: String, optional: true },
     preview: { type: Boolean, optional: true },
-    dependencies: { type: [String, Array], optional: true },
+    isVisible: { type: [String, Array], optional: true },
     inheritedActions: { type: Array, element: String, optional: true },
     // preview: { type: Boolean, optional: true },
     // reloadPage: { type: Boolean, optional: true },

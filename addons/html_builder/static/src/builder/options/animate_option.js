@@ -3,7 +3,7 @@ import { Component, onWillDestroy, useEnv } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { defaultBuilderComponents } from "../builder_components/default_builder_components";
 import { withSequence } from "@html_editor/utils/resource";
-import { useDomState } from "../builder_components/utils";
+import { useDomState, useIsActiveItem } from "../builder_components/utils";
 import { getScrollingElement } from "@web/core/utils/scrolling";
 
 class AnimateOptionPlugin extends Plugin {
@@ -183,6 +183,7 @@ class AnimateOption extends Component {
 
     setup() {
         const env = useEnv();
+        this.isActiveItem = useIsActiveItem({ log: true });
 
         const dependencyManager = env.dependencyManager;
 

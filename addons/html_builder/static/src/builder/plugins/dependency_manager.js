@@ -9,6 +9,7 @@ export class DependencyManager extends EventBus {
         this.count = 0;
         this.dirty = false;
         this.triggerDependencyUpdated = batched(() => {
+            console.warn("dependency updated");
             this.trigger("dependency-updated");
         });
     }
@@ -21,6 +22,7 @@ export class DependencyManager extends EventBus {
     }
 
     add(id, value) {
+        console.log(`add ${id}`);
         // In case the dependency is added after a dependent try to get it
         // an event is scheduled to notify the dependent about it.
         this.triggerDependencyUpdated();
@@ -36,6 +38,7 @@ export class DependencyManager extends EventBus {
     }
 
     removeByValue(value) {
+        console.log(`remove ${this.dependencies.find(([, v]) => v === value).id}`);
         this.dependencies = this.dependencies.filter(([, v]) => v !== value);
         this.dirty = true;
     }
