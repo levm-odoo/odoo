@@ -552,7 +552,7 @@ class EventTrackController(http.Controller):
             'lang': request.cookies.get('frontend_lang') if request.env.user._is_public() else request.context.get('lang', request.env.user.lang)
         }
         template = self.env.ref("website_event_track.email_reminder").sudo().with_context(context)
-        template.send_mail(track.id, email_values={"email_to": email_to})
+        template.send_mail(track.id, email_values={"email_to": tools.email_normalize(email_to)})
 
     @http.route(['''/event/<model("event.event"):event>/track/<model("event.track"):track>/ics'''], type='http', auth="public")
     def event_track_ics_file(self, event, track, **kwargs):
