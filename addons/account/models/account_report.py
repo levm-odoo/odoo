@@ -577,10 +577,6 @@ class AccountReportExpression(models.Model):
              "(on a _carryover_*-labeled expression), in case it is different from the parent line."
     )
 
-    _domain_engine_subformula_required = models.Constraint(
-        "CHECK(engine != 'domain' OR subformula IS NOT NULL)",
-        "Expressions using 'domain' engine should all have a subformula.",
-    )
     _line_label_uniq = models.Constraint(
         'UNIQUE(report_line_id,label)',
         'The expression label must be unique per report line.',
