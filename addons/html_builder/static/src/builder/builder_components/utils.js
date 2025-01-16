@@ -487,6 +487,10 @@ export function useInputBuilderComponent() {
     let lastCommitedValue;
     function onChange(e) {
         const value = e.target.value;
+        if (value === null || typeof value === "undefined") {
+            e.target.value = defaultValue;
+            return;
+        }
         if (value === lastCommitedValue) {
             return;
         }
