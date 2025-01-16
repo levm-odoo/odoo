@@ -7,6 +7,7 @@ import { rpc } from "@web/core/network/rpc";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { isIosApp } from "@web/core/browser/feature_detection";
+import { getLazyConfig } from "@web/session";
 const { DateTime } = luxon;
 
 export class ActivityMenu extends Component {
@@ -25,12 +26,21 @@ export class ActivityMenu extends Component {
         this.dropdown = useDropdownState();
         // load data but do not wait for it to render to prevent from delaying
         // the whole webclient
-        this.searchReadEmployee();
+        getLazyConfig().then((config) => {
+            this.employee = config["attendance_user_data"];
+            if (this.employee) {
+                this._searchReadEmployeeFill();
+            }
+        });
+
     }
 
     async searchReadEmployee(){
-        const result = await rpc("/hr_attendance/attendance_user_data");
-        this.employee = result;
+        this.employee = await rpc("/hr_attendance/attendance_user_data");
+        this._searchReadEmployeeFill();
+    }
+
+    _searchReadEmployeeFill() {
         if (this.employee.id) {
             this.hoursToday = this.date_formatter(
                 this.employee.hours_today
