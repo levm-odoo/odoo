@@ -172,14 +172,6 @@ rm -rf "${CLONE_DIR}"
 rm -rf "${OVERWRITE_FILES_BEFORE_INIT_DIR}/usr"
 cp -a "${OVERWRITE_FILES_AFTER_INIT_DIR}"/* "${MOUNT_POINT}"
 
-find "${MOUNT_POINT}"/ -type f -name "*.iotpatch"|while read iotpatch; do
-    DIR=$(dirname "${iotpatch}")
-    BASE=$(basename "${iotpatch%.iotpatch}")
-    find "${DIR}" -type f -name "${BASE}" ! -name "*.iotpatch"|while read file; do
-        patch -f --verbose "${file}" < "${iotpatch}"
-    done
-done
-
 echo "Running zerofree..."
 zerofree -v "${LOOP_IOT_ROOT}" || true
 
