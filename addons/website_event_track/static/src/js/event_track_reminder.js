@@ -104,6 +104,7 @@ publicWidget.registry.websiteEventTrackReminder = publicWidget.Widget.extend({
             track_id: trackId,
             set_reminder_on: false,
         }).then((result) => {
+            console.log(result);
             self.reminderOn = false;
             self._updateDisplay();
             self.notification.add(_t('Talk removed from your Favorites'), {
@@ -113,9 +114,19 @@ publicWidget.registry.websiteEventTrackReminder = publicWidget.Widget.extend({
     },
 
     _sendEmailReminder: async function (trackId, emailTo) {
-        await rpc('/event/send_email_reminder',  {
+         rpc('/event/send_email_reminder',  {
+//        await rpc('/event/send_email_reminder',  {
             track_id: trackId,
             email_to: emailTo
+        }).then((result) => {
+            console.log(result);
+            if (result.error){
+                this.notification.add(result.error,
+                {
+                    type: 'danger',
+                    title: _t('Error')
+                });
+            }
         });
         await this._addReminder(trackId);
         this.notification.add(_t('Track successfully added to your favorites. Check your email to add them to your agenda.'),
@@ -154,7 +165,8 @@ publicWidget.registry.websiteEventTrackReminder = publicWidget.Widget.extend({
         var emailReminder = sessionStorage.getItem('website_event_track.email_reminder');
 
         if (!mustUpdateEmailReminder && emailReminder){
-            this._sendEmailReminder(trackId, emailReminder);
+//            this._sendEmailReminder(trackId, emailReminder);
+            this._sendEmailReminder(trackId,'haha');
         }
         else {
             this.opacityManagerElement.style.opacity = 1;
