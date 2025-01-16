@@ -175,7 +175,8 @@
 </template>
 
 <template id="agenda_main_track" name="Track Agenda: Track">
-    <div class="o_we_agenda_card d-flex flex-column h-100" t-att-data-publish="track.website_published and 'on' or 'off'">
+    <div t-att-data-publish="track.website_published and 'on' or 'off'">
+        <div class="o_we_agenda_card d-flex flex-column h-100">
         <div class="o_we_agenda_card_content position-relative d-flex flex-column justify-content-center my-1">
             <div class="o_we_agenda_card_title mb-1">
                 <t t-if="(track.description or track.partner_biography) and (track.website_published or is_event_user)">
@@ -223,6 +224,7 @@
                 </span>
             </div>
         </div>
+    </div>
     </div>
 </template>
 
