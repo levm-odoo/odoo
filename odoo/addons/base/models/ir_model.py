@@ -484,46 +484,6 @@ class IrModel(models.Model):
         if not self._is_manual_name(name):
             raise ValidationError(_("The model name must start with 'x_'."))
 
-    def _add_manual_models(self):
-        """ Add extra models to the registry. """
-        # clean up registry first
-        for name, Model in list(self.pool.items()):
-            if Model._custom:
-                del self.pool.models[name]
-                # remove the model's name from its parents' _inherit_children
-                for Parent in Model.__bases__:
-                    if hasattr(Parent, 'pool'):
-                        Parent._inherit_children.discard(name)
-        # add manual models
-        cr = self.env.cr
-        # we cannot use self._fields to determine translated fields, as it has not been set up yet
-        cr.execute("SELECT *, name->>'en_US' AS name FROM ir_model WHERE state = 'manual'")
-        for model_data in cr.dictfetchall():
-            models.check_pg_name(model_data["model"].replace(".", "_"))
-            attrs = self._instanciate_attrs(model_data)
-            model_def = type('CustomDefinitionModel', (models.Model,), attrs)
-            Model = model_def._build_model(self.pool, cr)
-            kind = sql.table_kind(cr, Model._table)
-            if kind not in (sql.TableKind.Regular, None):
-                _logger.info(
-                    "Model %r is backed by table %r which is not a regular table (%r), disabling automatic schema management",
-                    Model._name, Model._table, kind,
-                )
-                Model._auto = False
-                cr.execute(
-                    '''
-                    SELECT a.attname
-                      FROM pg_attribute a
-                      JOIN pg_class t
-                        ON a.attrelid = t.oid
-                       AND t.relname = %s
-                     WHERE a.attnum > 0 -- skip system columns
-                    ''',
-                    [Model._table]
-                )
-                columns = {colinfo[0] for colinfo in cr.fetchall()}
-                Model._log_access = set(models.LOG_ACCESS_COLUMNS) <= columns
-
 
 # retrieve field types defined by the framework only (not extensions)
 FIELD_TYPES = [(key, key) for key in sorted(fields.Field.by_type)]

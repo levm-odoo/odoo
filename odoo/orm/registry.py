@@ -20,6 +20,7 @@ from operator import attrgetter
 
 import psycopg2.sql
 
+from .utils import check_pg_name
 import odoo
 from odoo import SUPERUSER_ID
 from odoo.modules.db import FunctionStatus
@@ -36,6 +37,8 @@ from odoo.tools import (
 from odoo.tools.func import locked
 from odoo.tools.lru import LRU
 from odoo.tools.misc import Collector, format_frame
+
+from . import models
 
 if typing.TYPE_CHECKING:
     from collections.abc import Callable, Collection, Iterable, Iterator, MutableMapping
@@ -344,7 +347,7 @@ class Registry(Mapping[str, type["BaseModel"]]):
 
         # add manual models
         if self._init_modules:
-            env['ir.model']._add_manual_models()
+            add_manual_models(env)
 
         # prepare the setup on all models
         models = list(env.values())
@@ -1026,6 +1029,47 @@ class Registry(Mapping[str, type["BaseModel"]]):
                 self._db_readonly = None
                 _logger.warning('Failed to open a readonly cursor, falling back to read-write cursor')
         return self._db.cursor()
+
+
+def add_manual_models(env):
+    """ Add extra models to the registry. """
+    # clean up registry first
+    for name, Model in list(env.registry.items()):
+        if Model._custom:
+            del env.registry.models[name]
+            # remove the model's name from its parents' _inherit_children
+            for Parent in Model.__bases__:
+                if hasattr(Parent, 'pool'):
+                    Parent._inherit_children.discard(name)
+    # add manual models
+    cr = env.cr
+    # we cannot use self._fields to determine translated fields, as it has not been set up yet
+    cr.execute("SELECT *, name->>'en_US' AS name FROM ir_model WHERE state = 'manual'")
+    for model_data in cr.dictfetchall():
+        check_pg_name(model_data["model"].replace(".", "_"))
+        attrs = env['ir.model']._instanciate_attrs(model_data)
+        model_def = type('CustomDefinitionModel', (models.Model,), attrs)
+        Model = model_def._build_model(env.registry, cr)
+        kind = sql.table_kind(cr, Model._table)
+        if kind not in (sql.TableKind.Regular, None):
+            _logger.info(
+                "Model %r is backed by table %r which is not a regular table (%r), disabling automatic schema management",
+                Model._name, Model._table, kind,
+            )
+            Model._auto = False
+            cr.execute(
+                '''
+                SELECT a.attname
+                    FROM pg_attribute a
+                    JOIN pg_class t
+                    ON a.attrelid = t.oid
+                    AND t.relname = %s
+                    WHERE a.attnum > 0 -- skip system columns
+                ''',
+                [Model._table]
+            )
+            columns = {colinfo[0] for colinfo in cr.fetchall()}
+            Model._log_access = set(models.LOG_ACCESS_COLUMNS) <= columns
 
 
 class DummyRLock(object):
