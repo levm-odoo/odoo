@@ -57,7 +57,7 @@ _ref_vat = {
     'lv': 'LV41234567891',
     'mc': 'FR53000004605',
     'mt': 'MT12345634',
-    'mx': _lt('MXGODE561231GR8 or GODE561231GR8'),
+    'mx': _lt('GODE561231GR8'),
     'nl': 'NL123456782B90',
     'no': 'NO123456785',
     'nz': _lt('49-098-576 or 49098576'),
@@ -265,13 +265,13 @@ class ResPartner(models.Model):
                 expected_note=expected_note,
             )
 
-    __check_vat_al_re = re.compile(r'^[JKLM][0-9]{8}[A-Z]$')
+    _check_vat_al_re = re.compile(r'^[JKLM][0-9]{8}[A-Z]$')
 
     def check_vat_al(self, vat):
         """Check Albania VAT number"""
         number = stdnum.util.get_cc_module('al', 'vat').compact(vat)
 
-        if len(number) == 10 and self.__check_vat_al_re.match(number):
+        if len(number) == 10 and self._check_vat_al_re.match(number):
             return True
         return False
 
@@ -280,8 +280,8 @@ class ResPartner(models.Model):
             vat = vat[1:]
         return stdnum.util.get_cc_module('jp', 'vat').is_valid(vat)
 
-    __check_tin1_ro_natural_persons = re.compile(r'[1-9]\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{6}')
-    __check_tin2_ro_natural_persons = re.compile(r'9000\d{9}')
+    _check_tin1_ro_natural_persons = re.compile(r'[1-9]\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{6}')
+    _check_tin2_ro_natural_persons = re.compile(r'9000\d{9}')
 
     def check_vat_ro(self, vat):
         """
@@ -294,18 +294,18 @@ class ResPartner(models.Model):
 
             Also stdum also checks the CUI or CIF (Romanian company identifier). So a number like '123456897' will pass.
         """
-        tin1 = self.__check_tin1_ro_natural_persons.match(vat)
+        tin1 = self._check_tin1_ro_natural_persons.match(vat)
         if tin1:
             return True
-        tin2 = self.__check_tin1_ro_natural_persons.match(vat)
+        tin2 = self._check_tin1_ro_natural_persons.match(vat)
         if tin2:
             return True
         # Check the vat number
         return stdnum.util.get_cc_module('ro', 'vat').is_valid(vat)
 
-    __check_tin_hu_individual_re = re.compile(r'^8\d{9}$')
-    __check_tin_hu_companies_re = re.compile(r'^\d{8}-?[1-5]-?\d{2}$')
-    __check_tin_hu_european_re = re.compile(r'^\d{8}$')
+    _check_tin_hu_individual_re = re.compile(r'^8\d{9}$')
+    _check_tin_hu_companies_re = re.compile(r'^\d{8}-?[1-5]-?\d{2}$')
+    _check_tin_hu_european_re = re.compile(r'^\d{8}$')
 
     def check_vat_hu(self, vat):
         """
@@ -315,19 +315,19 @@ class ResPartner(models.Model):
             - 8xxxxxxxxy, Tin number for individual, it has to start with an 8 and finish with the check digit
             - In case of EU format it will be the first 8 digits of the full VAT
         """
-        companies = self.__check_tin_hu_companies_re.match(vat)
+        companies = self._check_tin_hu_companies_re.match(vat)
         if companies:
             return True
-        individual = self.__check_tin_hu_individual_re.match(vat)
+        individual = self._check_tin_hu_individual_re.match(vat)
         if individual:
             return True
-        european = self.__check_tin_hu_european_re.match(vat)
+        european = self._check_tin_hu_european_re.match(vat)
         if european:
             return True
         # Check the vat number
         return stdnum.util.get_cc_module('hu', 'vat').is_valid(vat)
 
-    __check_vat_ch_re = re.compile(r'E([0-9]{9}|-[0-9]{3}\.[0-9]{3}\.[0-9]{3})(MWST|TVA|IVA)$')
+    _check_vat_ch_re = re.compile(r'E([0-9]{9}|-[0-9]{3}\.[0-9]{3}\.[0-9]{3})( )?(MWST|TVA|IVA)$')
 
     def check_vat_ch(self, vat):
         '''
@@ -346,8 +346,7 @@ class ResPartner(models.Model):
         #
         # /!\ The english abbreviation VAT is not valid /!\
 
-        match = self.__check_vat_ch_re.match(vat)
-
+        match = self._check_vat_ch_re.match(vat)
         if match:
             # For new TVA numbers, the last digit is a MOD11 checksum digit build with weighting pattern: 5,4,3,2,7,6,5,4
             num = [s for s in match.group(1) if s.isdigit()]        # get the digits only
@@ -385,7 +384,7 @@ class ResPartner(models.Model):
 
     # Mexican VAT verification, contributed by Vauxoo
     # and Panos Christeas <p_christ@hol.gr>
-    __check_vat_mx_re = re.compile(r"(?P<primeras>[A-Za-z\xd1\xf1&]{3,4})"
+    _check_vat_mx_re = re.compile(r"(?P<primeras>[A-Za-z\xd1\xf1&]{3,4})"
                                    r"[ \-_]?"
                                    r"(?P<ano>[0-9]{2})(?P<mes>[01][0-9])(?P<dia>[0-3][0-9])"
                                    r"[ \-_]?"
@@ -396,7 +395,7 @@ class ResPartner(models.Model):
 
         Verificar RFC México
         '''
-        m = self.__check_vat_mx_re.fullmatch(vat)
+        m = self._check_vat_mx_re.fullmatch(vat)
         if not m:
             #No valid format
             return False
@@ -454,10 +453,10 @@ class ResPartner(models.Model):
         return int(vat[10]) == dig_check
 
     # Philippines TIN (+ branch code) validation
-    __check_vat_ph_re = re.compile(r"\d{3}-\d{3}-\d{3}(-\d{3,5})?$")
+    _check_vat_ph_re = re.compile(r"\d{3}-\d{3}-\d{3}(-\d{3,5})?$")
 
     def check_vat_ph(self, vat):
-        return len(vat) >= 11 and len(vat) <= 17 and self.__check_vat_ph_re.match(vat)
+        return len(vat) >= 11 and len(vat) <= 17 and self._check_vat_ph_re.match(vat)
 
     def check_vat_ru(self, vat):
         '''
@@ -500,7 +499,7 @@ class ResPartner(models.Model):
     def check_vat_tr(self, vat):
         return stdnum.util.get_cc_module('tr', 'tckimlik').is_valid(vat) or stdnum.util.get_cc_module('tr', 'vkn').is_valid(vat)
 
-    __check_vat_sa_re = re.compile(r"^3[0-9]{13}3$")
+    _check_vat_sa_re = re.compile(r"^3[0-9]{13}3$")
 
     # Saudi Arabia TIN validation
     def check_vat_sa(self, vat):
@@ -508,7 +507,7 @@ class ResPartner(models.Model):
             Check company VAT TIN according to ZATCA specifications: The VAT number should start and begin with a '3'
             and be 15 digits long
         """
-        return self.__check_vat_sa_re.match(vat) or False
+        return self._check_vat_sa_re.match(vat) or False
 
     def check_vat_ua(self, vat):
         res = []
@@ -628,7 +627,7 @@ class ResPartner(models.Model):
         is_cnpj_valid = stdnum.get_cc_module('br', 'cnpj').is_valid
         return is_cpf_valid(vat) or is_cnpj_valid(vat)
 
-    __check_vat_cr_re = re.compile(r'^(?:[1-9]\d{8}|\d{10}|[1-9]\d{10,11})$')
+    _check_vat_cr_re = re.compile(r'^(?:[1-9]\d{8}|\d{10}|[1-9]\d{10,11})$')
 
     def check_vat_cr(self, vat):
         # CÉDULA FÍSICA: 9 digits
@@ -636,7 +635,7 @@ class ResPartner(models.Model):
         # CÉDULA DIMEX: 11 or 12 digits
         # CÉDULA NITE: 10 digits
 
-        return self.__check_vat_cr_re.match(vat) or False
+        return self._check_vat_cr_re.match(vat) or False
 
     def format_vat_eu(self, vat):
         # Foreign companies that trade with non-enterprises in the EU
@@ -706,7 +705,7 @@ class ResPartner(models.Model):
 
     @api.model
     def _convert_hu_local_to_eu_vat(self, local_vat):
-        if self.__check_tin_hu_companies_re.match(local_vat):
+        if self._check_tin_hu_companies_re.match(local_vat):
             return f'HU{local_vat[:8]}'
         return False
 
