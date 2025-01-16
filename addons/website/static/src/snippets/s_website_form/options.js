@@ -158,7 +158,10 @@ const FormEditor = options.Class.extend({
             field.id = generateHTMLId();
         }
         const template = document.createElement('template');
-        template.innerHTML = qweb.render("website.form_field_" + field.type, {field: field}).trim();
+        template.innerHTML = qweb.render(
+            "website.form_field_" + field.type,
+            {field: field, defaultName: _t("Field")}
+        ).trim();
         if (field.description && field.description !== true) {
             $(template.content.querySelector('.s_website_form_field_description')).replaceWith(field.description);
         }
@@ -459,7 +462,7 @@ options.registry.WebsiteFormEditor = FormEditor.extend({
         if (name === 'field_mark') {
             this._setLabelsMark();
         } else if (name === 'add_field') {
-            const field = this._getCustomField('char', 'Custom Text');
+            const field = this._getCustomField('char', _t("Custom Text"));
             field.formatInfo = data.formatInfo;
             field.formatInfo.requiredMark = this._isRequiredMark();
             field.formatInfo.optionalMark = this._isOptionalMark();
@@ -1421,7 +1424,7 @@ options.registry.WebsiteFieldEditor = FieldEditor.extend({
         const availableFields = this.existingFields.filter(el => !fieldsInForm.includes(el.dataset.existingField));
         if (availableFields.length) {
             const title = document.createElement('we-title');
-            title.textContent = 'Existing fields';
+            title.textContent = _t("Existing fields");
             availableFields.unshift(title);
             availableFields.forEach(option => selectEl.append(option.cloneNode(true)));
         }
@@ -1436,8 +1439,8 @@ options.registry.WebsiteFieldEditor = FieldEditor.extend({
         const type = this._getFieldType();
 
         const list = document.createElement('we-list');
-        const optionText = select ? 'Option' : type === 'selection' ? 'Radio' : 'Checkbox';
-        list.setAttribute('string', `${optionText} List`);
+        const optionText = select ? _t("Option") : type === 'selection' ? _t("Radio") : _t("Checkbox");
+        list.setAttribute('string', _.str.sprintf(_t("%s List"), optionText));
         list.dataset.addItemTitle = _.str.sprintf(_t("Add new %s"), optionText);
         list.dataset.renderListItems = '';
 
@@ -1572,7 +1575,7 @@ options.registry.AddFieldForm = FormEditor.extend({
      * New field is set as active
      */
     addField: async function (previewMode, value, params) {
-        const field = this._getCustomField('char', 'Custom Text');
+        const field = this._getCustomField('char', _t('Custom Text'));
         field.formatInfo = this._getDefaultFormat();
         const fieldEl = this._renderField(field);
         this.$target.find('.s_website_form_submit, .s_website_form_recaptcha').first().before(fieldEl);
