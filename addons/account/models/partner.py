@@ -153,6 +153,7 @@ class AccountFiscalPosition(models.Model):
                 continue
 
             if record.country_id:
+                vat = record.foreign_vat
                 vat, country_code = self.env['res.partner']._run_vat_checks(record.country_id, vat) # TODO :improve error message
                 if country_code != record.country_id.code.lower():
                     record.raise_vat_error_message()
