@@ -41,7 +41,6 @@ publicWidget.registry.websiteEventTrackReminder = publicWidget.Widget.extend({
         var trackLink = ev.target;
 
         this.opacityManagerElement = this.el.closest('.o_we_agenda_card') ?? this.el;
-        console.log(this.opacityManagerElement);
         this.initialOpacity = this._getInitialOpacity();
 
         if (this.reminderOn === undefined) {
@@ -158,8 +157,6 @@ publicWidget.registry.websiteEventTrackReminder = publicWidget.Widget.extend({
             this._sendEmailReminder(trackId, emailReminder);
         }
         else {
-            console.log("pass inside _checkEmailReminder");
-            console.log(this.opacityManagerElement);
             this.opacityManagerElement.style.opacity = 1;
             this.el.append(renderToElement('website_event_track.email_reminder_modal', {'track_id': trackId}));
         }

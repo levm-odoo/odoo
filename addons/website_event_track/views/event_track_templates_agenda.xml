@@ -175,7 +175,7 @@
 </template>
 
 <template id="agenda_main_track" name="Track Agenda: Track">
-    <div t-att-data-publish="track.website_published and 'on' or 'off'">
+    <div t-att-data-publish="track.website_published and 'on' or 'off'" class="h-100">
         <div class="o_we_agenda_card d-flex flex-column h-100">
         <div class="o_we_agenda_card_content position-relative d-flex flex-column justify-content-center my-1">
             <div class="o_we_agenda_card_title mb-1">
