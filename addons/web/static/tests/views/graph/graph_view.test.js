@@ -49,6 +49,7 @@ import { DEFAULT_BG, getBorderWhite, getColors, lightenColor } from "@web/core/c
 import { Domain } from "@web/core/domain";
 import { SampleServer } from "@web/model/sample_server";
 import { GraphArchParser } from "@web/views/graph/graph_arch_parser";
+import { GraphModel } from "@web/views/graph/graph_model";
 import { GraphRenderer } from "@web/views/graph/graph_renderer";
 import { WebClient } from "@web/webclient/webclient";
 
@@ -2800,6 +2801,7 @@ test("missing deleted property field definition is created", async function () {
     );
 });
 
+<<<<<<< saas-18.1
 test("display '0' for false group, when grouped by int field", async () => {
     Foo._records[0].foo = false;
 
@@ -2825,4 +2827,67 @@ test("display the field's falsy_value_label for false group, if defined", async 
     });
 
     checkLabels(view, ["xphone", "xpad", "I'm the false group"]);
+||||||| caa07fa78e817d670100845782e912759a5b316a
+=======
+test("limit dataset amount", async () => {
+    class Project extends models.Model {
+        id = fields.Integer();
+        name = fields.Char();
+    }
+    class Stage extends models.Model {
+        id = fields.Integer();
+        name = fields.Char();
+    }
+    class Task extends models.Model {
+        id = fields.Integer();
+        name = fields.Char();
+        project_id = fields.Many2one({ relation: "project" });
+        stage_id = fields.Many2one({ relation: "stage" });
+    }
+    defineModels([Project, Stage, Task]);
+
+    for (let i = 1; i <= 600; i++) {
+        Project._records.push({
+            id: i,
+            name: `Project ${i}`,
+        });
+        Stage._records.push({
+            id: i,
+            name: `Stage ${i}`,
+        });
+        Task._records.push({
+            id: i,
+            project_id: i,
+            stage_id: i,
+            name: `Task ${i}`,
+        });
+    }
+
+    const view = await mountView({
+        type: "graph",
+        resModel: "task",
+        arch: `
+            <graph>
+                <field name="project_id"/>
+                <field name="stage_id"/>
+            </graph>
+        `,
+    });
+    const model = getGraphModel(view);
+    expect(model.data.exceeds).toBe(true);
+    expect(model.data.datasets).toHaveLength(80);
+    expect(model.data.labels).toHaveLength(80);
+    expect(`.o_graph_alert`).toHaveCount(1);
+
+    patchWithCleanup(GraphModel.prototype, {
+        notify() {
+            expect.step("rerender");
+        },
+    });
+    await contains(`.o_graph_load_all_btn`).click();
+    expect.verifySteps(["rerender"]);
+    expect(model.data.exceeds).toBe(false);
+    expect(model.data.datasets).toHaveLength(600);
+    expect(model.data.labels).toHaveLength(600);
+>>>>>>> 710528deda6814c613852415a9653510f4999a30
 });
