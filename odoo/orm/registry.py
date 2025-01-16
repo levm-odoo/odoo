@@ -23,6 +23,7 @@ import psycopg2.sql
 from .utils import check_pg_name
 import odoo
 from odoo import SUPERUSER_ID
+from odoo.exceptions import ValidationError
 from odoo.modules.db import FunctionStatus
 from odoo.sql_db import TestCursor
 from odoo.tools import (
@@ -1230,7 +1231,7 @@ def model_setup_base(self):
             cls._fields[name] = fields_[0]
         else:
             Field = type(fields_[-1])
-            self._add_field(name, Field(_base_fields=fields_))
+            add_field(self, name, Field(_base_fields=fields_))
 
     # 2. add manual fields
     if self.pool._init_modules:
@@ -1286,7 +1287,7 @@ def model_check_inherits(self):
         if not field:
             _logger.info('Missing many2one field definition for _inherits reference "%s" in "%s", using default one.', field_name, self._name)
             field = fields.Many2one(table, string="Automatically created field to link to parent %s" % table, required=True, ondelete="cascade")
-            self._add_field(field_name, field)
+            add_field(self, field_name, field)
         elif not (field.required and (field.ondelete or "").lower() in ("cascade", "restrict")):
             _logger.warning('Field definition for _inherits reference "%s" in "%s" must be marked as "required" with ondelete="cascade" or "restrict", forcing it to required + cascade.', field_name, self._name)
             field.required = True
@@ -1325,7 +1326,7 @@ def add_inherited_fields(self):
             #  - reading inherited fields should not bypass access rights
             #  - copy inherited fields iff their original field is copied
             Field = type(field)
-            self._add_field(name, Field(
+            add_field(self, name, Field(
                 inherited=True,
                 inherited_field=field,
                 related=f"{parent_fname}.{name}",
@@ -1359,7 +1360,7 @@ def model_setup_fields(self):
             many2one_company_dependents.add(field.comodel_name, field)
 
     for name in bad_fields:
-        self._pop_field(name)
+        pop_field(self, name)
 
 
 def model_setup_complete(self):
@@ -1425,9 +1426,54 @@ def add_manual_fields(model):
                 attrs = IrModelFields._instanciate_attrs(field_data)
                 if attrs:
                     field = fields.Field.by_type[field_data['ttype']](**attrs)
-                    model._add_field(name, field)
+                    add_field(model, name, field)
             except Exception:
                 _logger.exception("Failed to load field %s.%s: skipped", model._name, field_data['name'])
+
+
+def add_field(self, name, field):
+    """ Add the given ``field`` under the given ``name`` in the class """
+    cls = self.env.registry[self._name]
+
+    # Assert the name is an existing field in the model, or any model in the _inherits
+    # or a custom field (starting by `x_`)
+    is_class_field = any(
+        isinstance(getattr(model, name, None), fields.Field)
+        for model in [cls] + [self.env.registry[inherit] for inherit in cls._inherits]
+    )
+    if not (is_class_field or self.env['ir.model.fields']._is_manual_name(name)):
+        raise ValidationError(  # pylint: disable=missing-gettext
+            f"The field `{name}` is not defined in the `{cls._name}` Python class and does not start with 'x_'"
+        )
+
+    # Assert the attribute to assign is a Field
+    if not isinstance(field, fields.Field):
+        raise ValidationError("You can only add `fields.Field` objects to a model fields")  # pylint: disable=missing-gettext
+
+    if not isinstance(getattr(cls, name, field), fields.Field):
+        _logger.warning("In model %r, field %r overriding existing value", cls._name, name)
+    setattr(cls, name, field)
+    field._toplevel = True
+    field.__set_name__(cls, name)
+    # add field as an attribute and in cls._fields (for reflection)
+    cls._fields[name] = field
+
+
+def pop_field(self, name):
+    """ Remove the field with the given ``name`` from the model.
+        This method should only be used for manual fields.
+    """
+    cls = self.env.registry[self._name]
+    field = cls._fields.pop(name, None)
+    discardattr(cls, name)
+    if cls._rec_name == name:
+        # fixup _rec_name and display_name's dependencies
+        cls._rec_name = None
+        if cls.display_name in cls.pool.field_depends:
+            cls.pool.field_depends[cls.display_name] = tuple(
+                dep for dep in cls.pool.field_depends[cls.display_name] if dep != name
+            )
+    return field
 
 
 class DummyRLock(object):

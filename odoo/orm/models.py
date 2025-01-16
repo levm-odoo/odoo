@@ -51,7 +51,7 @@ import odoo
 from odoo import SUPERUSER_ID, tools
 from odoo.exceptions import AccessError, MissingError, ValidationError, UserError
 from odoo.tools import (
-    clean_context, config, date_utils, discardattr,
+    clean_context, config, date_utils,
     DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, format_list,
     frozendict, get_lang, lazy_classproperty, OrderedSet,
     ormcache, partition, Query, split_every, unique,
@@ -584,51 +584,6 @@ class BaseModel(metaclass=MetaModel):
     def _post_model_setup__(self):
         """ Method called after the model has been setup. """
         pass
-
-    @api.model
-    def _add_field(self, name, field):
-        """ Add the given ``field`` under the given ``name`` in the class """
-        cls = self.env.registry[self._name]
-
-        # Assert the name is an existing field in the model, or any model in the _inherits
-        # or a custom field (starting by `x_`)
-        is_class_field = any(
-            isinstance(getattr(model, name, None), Field)
-            for model in [cls] + [self.env.registry[inherit] for inherit in cls._inherits]
-        )
-        if not (is_class_field or self.env['ir.model.fields']._is_manual_name(name)):
-            raise ValidationError(  # pylint: disable=missing-gettext
-                f"The field `{name}` is not defined in the `{cls._name}` Python class and does not start with 'x_'"
-            )
-
-        # Assert the attribute to assign is a Field
-        if not isinstance(field, Field):
-            raise ValidationError("You can only add `fields.Field` objects to a model fields")  # pylint: disable=missing-gettext
-
-        if not isinstance(getattr(cls, name, field), Field):
-            _logger.warning("In model %r, field %r overriding existing value", cls._name, name)
-        setattr(cls, name, field)
-        field._toplevel = True
-        field.__set_name__(cls, name)
-        # add field as an attribute and in cls._fields (for reflection)
-        cls._fields[name] = field
-
-    @api.model
-    def _pop_field(self, name):
-        """ Remove the field with the given ``name`` from the model.
-            This method should only be used for manual fields.
-        """
-        cls = self.env.registry[self._name]
-        field = cls._fields.pop(name, None)
-        discardattr(cls, name)
-        if cls._rec_name == name:
-            # fixup _rec_name and display_name's dependencies
-            cls._rec_name = None
-            if cls.display_name in cls.pool.field_depends:
-                cls.pool.field_depends[cls.display_name] = tuple(
-                    dep for dep in cls.pool.field_depends[cls.display_name] if dep != name
-                )
-        return field
 
     @property
     def _table_sql(self) -> SQL:

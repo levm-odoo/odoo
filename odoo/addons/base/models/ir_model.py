@@ -19,6 +19,8 @@ from odoo.tools import format_list, lazy_property, split_every, sql, unique, Ord
 from odoo.tools.safe_eval import safe_eval, datetime, dateutil, time
 from odoo.tools.translate import _, LazyTranslate
 
+from odoo.orm.registry import add_field, pop_field
+
 _lt = LazyTranslate(__name__)
 _logger = logging.getLogger(__name__)
 
@@ -835,7 +837,7 @@ class IrModelFields(models.Model):
                     rel_name = field.relation_table or (is_model and model._fields[field.name].relation)
                     tables_to_drop.add(rel_name)
             if field.state == 'manual' and is_model:
-                model._pop_field(field.name)
+                pop_field(model, field.name)
 
         if tables_to_drop:
             # drop the relation tables that are not used by other fields
@@ -909,7 +911,7 @@ class IrModelFields(models.Model):
             if field:
                 self.env.cache.clear_dirty_field(field)
         # remove fields from registry, and check that views are not broken
-        fields = [self.env[record.model]._pop_field(record.name) for record in records]
+        fields = [pop_field(self.env[record.model], record.name) for record in records]
         domain = expression.OR([('arch_db', 'like', record.name)] for record in records)
         views = self.env['ir.ui.view'].search(domain)
         try:
@@ -2391,7 +2393,7 @@ class IrModelData(models.Model):
                         # the field is shared across registries; don't modify it
                         Field = type(field)
                         field_ = Field(_base_fields=[field, Field(prefetch=False)])
-                        self.env[ir_field.model]._add_field(ir_field.name, field_)
+                        add_field(self.env[ir_field.model], ir_field.name, field_)
                         field_.setup(model)
                         has_shared_field = True
         if has_shared_field:
