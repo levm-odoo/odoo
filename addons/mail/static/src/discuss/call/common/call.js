@@ -2,6 +2,7 @@ import { CallActionList } from "@mail/discuss/call/common/call_action_list";
 import { CallParticipantCard } from "@mail/discuss/call/common/call_participant_card";
 import { PttAdBanner } from "@mail/discuss/call/common/ptt_ad_banner";
 import { isEventHandled, markEventHandled } from "@web/core/utils/misc";
+import { memoize } from "@web/core/utils/functions";
 
 import {
     Component,
@@ -53,6 +54,7 @@ export class Call extends Component {
             /** @type {CardData|undefined} */
             insetCard: undefined,
         });
+        this.setInsetMemo = memoize(this.setInset.bind(this));
         this.store = useService("mail.store");
         onMounted(() => {
             this.resizeObserver = new ResizeObserver(() => this.arrangeTiles());
@@ -136,13 +138,18 @@ export class Call extends Component {
     /** @returns {CardData[]} */
     get visibleMainCards() {
         const activeSession = this.props.thread.activeRtcSession;
-        this.state.insetCard = undefined;
         if (!activeSession) {
             return this.visibleCards;
         }
         const type = activeSession.mainVideoStreamType;
         if (type === "screen" || activeSession.is_screen_sharing_on) {
-            this.setInset(activeSession, type === "camera" ? "screen" : "camera");
+            // get the complementary stream type
+            const videoType = type === "camera" ? "screen" : "camera";
+            const stream = activeSession.getStream(videoType);
+            const memoizationKey = "session_" + activeSession.id + stream?.id + videoType;
+            this.setInsetMemo(memoizationKey, activeSession, videoType, stream);
+        } else {
+            this.state.insetCard = undefined;
         }
         return [
             {
@@ -158,12 +165,12 @@ export class Call extends Component {
      * @param {import("models").RtcSession} session
      * @param {String} [videoType]
      */
-    setInset(session, videoType) {
+    setInset(key, session, videoType, stream) {
         this.state.insetCard = {
-            key: "session_" + session.id,
+            key,
             session,
             type: videoType,
-            videoStream: session.getStream(videoType),
+            videoStream: stream,
         };
     }
 

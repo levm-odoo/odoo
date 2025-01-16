@@ -57,8 +57,9 @@ export class CallParticipantCard extends Component {
         if (!this.rtcSession) {
             return false;
         }
+        console.log(this.rtcSession);
         return (
-            !this.rtcSession.eq(this.rtc.selfSession) ||
+            !this.rtcSession.eq?.(this.rtc.selfSession) ||
             (this.env.debug && this.rtc.state.connectionType === CONNECTION_TYPES.SERVER)
         );
     }
