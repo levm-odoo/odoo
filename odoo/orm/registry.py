@@ -28,7 +28,9 @@ from odoo.sql_db import TestCursor
 from odoo.tools import (
     SQL,
     OrderedSet,
+    LastOrderedSet,
     config,
+    frozendict,
     lazy_classproperty,
     lazy_property,
     remove_accents,
@@ -313,7 +315,7 @@ class Registry(Mapping[str, type["BaseModel"]]):
         model_names = []
         for cls in models.MetaModel.module_to_models.get(module.name, []):
             # models register themselves in self.models
-            model = cls._build_model(self, cr)
+            model = build_model(cls, self, cr)
             model_names.append(model._name)
 
         return self.descendants(model_names, '_inherit', '_inherits')
@@ -1032,6 +1034,84 @@ class Registry(Mapping[str, type["BaseModel"]]):
         return self._db.cursor()
 
 
+def build_model(cls, pool, cr):
+    """ Instantiate a given model in the registry.
+
+    This method creates or extends a "registry" class for the given model.
+    This "registry" class carries inferred model metadata, and inherits (in
+    the Python sense) from all classes that define the model, and possibly
+    other registry classes.
+    """
+    if hasattr(cls, '_constraints'):
+        _logger.warning("Model attribute '_constraints' is no longer supported, "
+                        "please use @api.constrains on methods instead.")
+    if hasattr(cls, '_sql_constraints'):
+        _logger.warning("Model attribute '_sql_constraints' is no longer supported, "
+                        "please define model.Constraint on the model.")
+
+    # all models except 'base' implicitly inherit from 'base'
+    name = cls._name
+    parents = list(cls._inherit)
+    if name != 'base':
+        parents.append('base')
+
+    # create or retrieve the model's class
+    if name in parents:
+        if name not in pool:
+            raise TypeError("Model %r does not exist in registry." % name)
+        ModelClass = pool[name]
+        ModelClass._build_model_check_base(cls)
+        check_parent = ModelClass._build_model_check_parent
+    else:
+        ModelClass = type(name, (cls,), {
+            '_name': name,
+            '_register': False,
+            '_original_module': cls._module,
+            '_inherit_module': {},                  # map parent to introducing module
+            '_inherit_children': OrderedSet(),      # names of children models
+            '_inherits_children': set(),            # names of children models
+            '_fields': {},                          # populated in _setup_base()
+            '_table_objects': frozendict(),         # populated in _setup_base()
+        })
+        check_parent = cls._build_model_check_parent
+
+    # determine all the classes the model should inherit from
+    bases = LastOrderedSet([cls])
+    for parent in parents:
+        if parent not in pool:
+            raise TypeError("Model %r inherits from non-existing model %r." % (name, parent))
+        parent_class = pool[parent]
+        if parent == name:
+            for base in parent_class.__base_classes__:
+                bases.add(base)
+        else:
+            check_parent(cls, parent_class)
+            bases.add(parent_class)
+            ModelClass._inherit_module[parent] = cls._module
+            parent_class._inherit_children.add(name)
+
+    # ModelClass.__bases__ must be assigned those classes; however, this
+    # operation is quite slow, so we do it once in method _prepare_setup()
+    ModelClass.__base_classes__ = tuple(bases)
+
+    # determine the attributes of the model's class
+    ModelClass._build_model_attributes(pool)
+
+    check_pg_name(ModelClass._table)
+
+    # Transience
+    if ModelClass._transient:
+        assert ModelClass._log_access, \
+            "TransientModels must have log_access turned on, " \
+            "in order to implement their vacuum policy"
+
+    # link the class to the registry, and update the registry
+    ModelClass.pool = pool
+    pool[name] = ModelClass
+
+    return ModelClass
+
+
 def add_manual_models(env):
     """ Add extra models to the registry. """
     # clean up registry first
@@ -1050,7 +1130,7 @@ def add_manual_models(env):
         check_pg_name(model_data["model"].replace(".", "_"))
         attrs = env['ir.model']._instanciate_attrs(model_data)
         model_def = type('CustomDefinitionModel', (models.Model,), attrs)
-        Model = model_def._build_model(env.registry, cr)
+        Model = build_model(model_def, env.registry, cr)
         kind = sql.table_kind(cr, Model._table)
         if kind not in (sql.TableKind.Regular, None):
             _logger.info(

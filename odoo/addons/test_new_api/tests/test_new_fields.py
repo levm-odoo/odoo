@@ -21,6 +21,7 @@ from odoo.tests import TransactionCase, tagged, Form, users
 from odoo.tools import mute_logger, float_repr
 from odoo.tools.date_utils import add, subtract, start_of, end_of
 from odoo.tools.image import image_data_uri
+from odoo.orm.registry import build_model
 
 
 class TestFields(TransactionCaseWithUserDemo, TransactionExpressionCase):
@@ -4372,7 +4373,7 @@ class TestSelectionOndeleteAdvanced(TransactionCase):
         # necessary cleanup for resetting changes in the registry
         for model_name in (self.MODEL_BASE, self.MODEL_REQUIRED):
             Model = self.registry[model_name]
-            self.addCleanup(setattr, Model, '_BaseModel__base_classes', Model._BaseModel__base_classes)
+            self.addCleanup(setattr, Model, '__base_classes__', Model.__base_classes__)
 
     def test_ondelete_unexisting_policy(self):
         class Foo(models.Model):
@@ -4384,7 +4385,7 @@ class TestSelectionOndeleteAdvanced(TransactionCase):
                 ('random', "Random stuff"),
             ], ondelete={'random': 'poop'})
 
-        Foo._build_model(self.registry, self.env.cr)
+        build_model(Foo, self.registry, self.env.cr)
 
         with self.assertRaises(ValueError):
             self.registry.setup_models(self.env.cr)
@@ -4399,7 +4400,7 @@ class TestSelectionOndeleteAdvanced(TransactionCase):
                 ('corona', "Corona beers suck"),
             ], ondelete={'corona': 'set default'})
 
-        Foo._build_model(self.registry, self.env.cr)
+        build_model(Foo, self.registry, self.env.cr)
 
         with self.assertRaises(AssertionError):
             self.registry.setup_models(self.env.cr)
@@ -4414,7 +4415,7 @@ class TestSelectionOndeleteAdvanced(TransactionCase):
                 ('westvleteren', "Westvleteren beers is overrated"),
             ], ondelete={'westvleteren': 'set foooo'})
 
-        Foo._build_model(self.registry, self.env.cr)
+        build_model(Foo, self.registry, self.env.cr)
 
         with self.assertRaises(AssertionError):
             self.registry.setup_models(self.env.cr)
@@ -4429,7 +4430,7 @@ class TestSelectionOndeleteAdvanced(TransactionCase):
                 ('brap', "Brap"),
             ], ondelete={'brap': 'set null'})
 
-        Foo._build_model(self.registry, self.env.cr)
+        build_model(Foo, self.registry, self.env.cr)
 
         with self.assertRaises(ValueError):
             self.registry.setup_models(self.env.cr)
@@ -4444,7 +4445,7 @@ class TestSelectionOndeleteAdvanced(TransactionCase):
                 ('boing', "Boyoyoyoing"),
             ])
 
-        Foo._build_model(self.registry, self.env.cr)
+        build_model(Foo, self.registry, self.env.cr)
 
         with self.assertRaises(ValueError):
             self.registry.setup_models(self.env.cr)
@@ -4459,7 +4460,7 @@ class TestFieldParametersValidation(TransactionCase):
 
             name = fields.Char(invalid_parameter=42)
 
-        Foo._build_model(self.registry, self.env.cr)
+        build_model(Foo, self.registry, self.env.cr)
         self.addCleanup(self.registry.__delitem__, Foo._name)
 
         with self.assertLogs('odoo.fields', level='WARNING') as cm:
@@ -4731,7 +4732,7 @@ class TestWrongRelatedError(TransactionCase):
 
             foo_id = fields.Many2one('test_new_api.foo')
             foo_non_existing = fields.Char(related='foo_id.non_existing_field')
-        Foo._build_model(self.registry, self.env.cr)
+        build_model(Foo, self.registry, self.env.cr)
         self.addCleanup(self.registry.__delitem__, Foo._name)
 
         errMsg = (
