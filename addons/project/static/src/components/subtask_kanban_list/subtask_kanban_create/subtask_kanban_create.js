@@ -12,7 +12,7 @@ export class SubtaskCreate extends Component {
         onBlur: { type: Function },
     };
     setup() {
-        this.placeholder = _t("Add Sub-tasks");
+        this.placeholder = _t("Write a task name");
         this.state = useState({
             inputSize: 1,
             name: this.props.name,
@@ -52,9 +52,20 @@ export class SubtaskCreate extends Component {
      * @param {InputEvent} ev
      */
     _onNameChanged(ev) {
+        if (this.state.isEscPressed) {
+            this.state.isEscPressed = false;
+            return;
+        }
         const value = ev.target.value.trim();
         this.props.onSubtaskCreateNameChanged(value);
         ev.target.blur();
+    }
+
+    _onKeydown(ev) {
+        if(ev.key == 'Escape') {
+            this.state.isEscPressed = true;
+            this.input.el.blur();
+        }
     }
 
     _onSaveClick() {
