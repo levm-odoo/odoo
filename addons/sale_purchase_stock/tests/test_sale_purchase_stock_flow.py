@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from datetime import date, timedelta
+
 from odoo import Command
 from odoo.tests import Form, TransactionCase
 
@@ -277,3 +279,44 @@ class TestSalePurchaseStockFlow(TransactionCase):
         self.assertRecordValues(new_delivery.move_ids, [
             {'product_id': self.mto_product.id, 'product_uom_qty': 1.0},
         ])
+
+    def test_multi_step_mto_and_buy_forecast(self):
+        """
+        """
+        wh = self.env.user._get_default_warehouse_id()
+        wh.delivery_steps = 'pick_ship'
+        product = self.mto_product
+        in_move = self.env['stock.move'].create({
+            'name': 'in move',
+            'product_id': product.id,
+            'product_uom_qty': 2,
+            'product_uom': product.uom_id.id,
+            'location_id': self.env.ref('stock.stock_location_suppliers').id,
+            'location_dest_id': wh.lot_stock_id.id,
+            'picking_type_id': self.env.ref('stock.picking_type_in').id,
+        })
+        in_move._action_confirm()
+        in_move._action_assign()
+        in_move.move_line_ids.quantity = 2
+        in_move.picked = True
+        in_move._action_done()
+
+        sale_order = self.env['sale.order'].create({
+            'partner_id': self.customer.id,
+            'order_line': [Command.create({'product_id': product.id,'product_uom_qty': 2})],
+        })
+        sale_order.action_confirm()
+        pick_picking = sale_order.picking_ids[0]
+        pick_picking.button_validate()
+
+        forecasted_qty = self.env['report.stock.quantity'].with_context(fill_temporal=False).read_group(
+            domain=[
+                ('state', '=', 'forecast'),
+                ('warehouse_id', '=', wh.id),
+                ('product_tmpl_id', '=', product.product_tmpl_id.id),
+                ('date', '=', date.today() - timedelta(days=20)),
+            ],
+            fields=['__count', 'product_qty:sum'],
+            groupby=['date:day', 'product_id'],
+        )
+        self.assertEqual(forecasted_qty[0]['product_qty'], 0)
