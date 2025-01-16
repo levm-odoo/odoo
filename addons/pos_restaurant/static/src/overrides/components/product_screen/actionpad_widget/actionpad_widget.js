@@ -1,6 +1,7 @@
 /** @odoo-module */
 import { patch } from "@web/core/utils/patch";
 import { ActionpadWidget } from "@point_of_sale/app/screens/product_screen/action_pad/action_pad";
+import { roundQuantity } from "@point_of_sale/utils";
 /**
  * @props partner
  */
@@ -54,12 +55,12 @@ patch(ActionpadWidget.prototype, {
             if (category) {
                 if (!acc[category.id]) {
                     acc[category.id] = {
-                        count: curr.quantity,
+                        count: roundQuantity(curr.quantity),
                         name: category.name,
                         id: category.id,
                     };
                 } else {
-                    acc[category.id].count += curr.quantity;
+                    acc[category.id].count = roundQuantity(acc[category.id].count + curr.quantity);
                 }
             }
             return acc;

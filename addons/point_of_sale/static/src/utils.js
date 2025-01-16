@@ -52,6 +52,17 @@ export function constructFullProductName(line, attribute_value_by_id, display_na
     return attributeString !== "" ? `${display_name} ${attributeString}` : display_name;
 }
 /**
+ * Rounds a quantity to 2 decimal places.
+ * If the result is an integer (e.g., 2.00), it returns an integer (2).
+ *
+ * @param {number} quantity - The quantity to round
+ * @returns {number} - Rounded quantity
+ */
+export function roundQuantity(quantity) {
+    const rounded = quantity.toFixed(2);
+    return rounded % 1 === 0 ? parseInt(rounded) : parseFloat(rounded);
+}
+/**
  * Returns a random 5 digits alphanumeric code
  * @returns {string}
  */

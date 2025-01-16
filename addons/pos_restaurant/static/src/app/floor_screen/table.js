@@ -2,6 +2,7 @@
 
 import { Component, useState } from "@odoo/owl";
 import { usePos } from "@point_of_sale/app/store/pos_hook";
+import { roundQuantity } from "@point_of_sale/utils";
 
 export class Table extends Component {
     static template = "pos_restaurant.Table";
@@ -151,7 +152,7 @@ export class Table extends Component {
         } else {
             result = table.order_count + unsynced_orders.length;
         }
-        return !Number.isNaN(result) ? result : 0;
+        return !Number.isNaN(result) ? roundQuantity(result) : 0;
     }
     get orderCountClass() {
         const notifications = this._getNotifications();
