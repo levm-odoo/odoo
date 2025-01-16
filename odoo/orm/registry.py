@@ -1093,7 +1093,7 @@ def build_model(cls, pool, cr):
     ModelClass.__base_classes__ = tuple(bases)
 
     # determine the attributes of the model's class
-    ModelClass._build_model_attributes(pool)
+    build_model_attributes(ModelClass, pool)
 
     check_pg_name(ModelClass._table)
 
@@ -1131,6 +1131,44 @@ def build_model_check_parent(model_class, cls, parent_class):
     if model_class._abstract and not parent_class._abstract:
         msg = ("In %s, the abstract model %r cannot inherit from the non-abstract model %r.")
         raise TypeError(msg % (cls, model_class._name, parent_class._name))
+
+
+def build_model_attributes(cls, pool):
+    """ Initialize base model attributes. """
+    cls._description = cls._name
+    cls._table = cls._name.replace('.', '_')
+    cls._log_access = cls._auto
+    inherits = {}
+    depends = {}
+
+    for base in reversed(cls.__base_classes__):
+        if models.is_definition_class(base):
+            # the following attributes are not taken from registry classes
+            if cls._name not in base._inherit and not base._description:
+                _logger.warning("The model %s has no _description", cls._name)
+            cls._description = base._description or cls._description
+            cls._table = base._table or cls._table
+            cls._log_access = getattr(base, '_log_access', cls._log_access)
+
+        inherits.update(base._inherits)
+
+        for mname, fnames in base._depends.items():
+            depends.setdefault(mname, []).extend(fnames)
+
+    # avoid assigning an empty dict to save memory
+    if inherits:
+        cls._inherits = inherits
+    if depends:
+        cls._depends = depends
+
+    # update _inherits_children of parent models
+    for parent_name in cls._inherits:
+        pool[parent_name]._inherits_children.add(cls._name)
+
+    # recompute attributes of _inherit_children models
+    for child_name in cls._inherit_children:
+        child_class = pool[child_name]
+        build_model_attributes(child_class, pool)
 
 
 def add_manual_models(env):
