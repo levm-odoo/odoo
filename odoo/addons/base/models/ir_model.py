@@ -460,21 +460,20 @@ class IrModel(models.Model):
         self.env['ir.model.data']._update_xmlids(data_list)
 
     @api.model
-    def _instanciate(self, model_data):
-        """ Return a class for the custom model given by parameters ``model_data``. """
-        models.check_pg_name(model_data["model"].replace(".", "_"))
-
-        class CustomModel(models.Model):
-            _name = model_data['model']
-            _description = model_data['name']
-            _module = False
-            _custom = True
-            _abstract = bool(model_data['abstract'])
-            _transient = bool(model_data['transient'])
-            _order = model_data['order']
-            __doc__ = model_data['info']
-
-        return CustomModel
+    def _instanciate_attrs(self, model_data):
+        """ Return the attributes to instanciate a custom model definition class
+            corresponding to ``model_data``.
+        """
+        return {
+            '_name': model_data['model'],
+            '_description': model_data['name'],
+            '_module': False,
+            '_custom': True,
+            '_abstract': bool(model_data['abstract']),
+            '_transient': bool(model_data['transient']),
+            '_order': model_data['order'],
+            '__doc__': model_data['info'],
+        }
 
     @api.model
     def _is_manual_name(self, name):
@@ -500,8 +499,10 @@ class IrModel(models.Model):
         # we cannot use self._fields to determine translated fields, as it has not been set up yet
         cr.execute("SELECT *, name->>'en_US' AS name FROM ir_model WHERE state = 'manual'")
         for model_data in cr.dictfetchall():
-            model_class = self._instanciate(model_data)
-            Model = model_class._build_model(self.pool, cr)
+            models.check_pg_name(model_data["model"].replace(".", "_"))
+            attrs = self._instanciate_attrs(model_data)
+            model_def = type('CustomDefinitionModel', (models.Model,), attrs)
+            Model = model_def._build_model(self.pool, cr)
             kind = sql.table_kind(cr, Model._table)
             if kind not in (sql.TableKind.Regular, None):
                 _logger.info(
@@ -1328,12 +1329,6 @@ class IrModelFields(models.Model):
             attrs['compute'] = make_compute(field_data['compute'], field_data['depends'])
         return attrs
 
-    def _instanciate(self, field_data):
-        """ Return a field instance corresponding to parameters ``field_data``. """
-        attrs = self._instanciate_attrs(field_data)
-        if attrs:
-            return fields.Field.by_type[field_data['ttype']](**attrs)
-
     @api.model
     def _is_manual_name(self, name):
         return name.startswith('x_')
@@ -1344,8 +1339,9 @@ class IrModelFields(models.Model):
         for name, field_data in fields_data.items():
             if name not in model._fields and field_data['state'] == 'manual':
                 try:
-                    field = self._instanciate(field_data)
-                    if field:
+                    attrs = self._instanciate_attrs(field_data)
+                    if attrs:
+                        field = fields.Field.by_type[field_data['ttype']](**attrs)
                         model._add_field(name, field)
                 except Exception:
                     _logger.exception("Failed to load field %s.%s: skipped", model._name, field_data['name'])
