@@ -39,6 +39,7 @@ from odoo.tools.lru import LRU
 from odoo.tools.misc import Collector, format_frame
 
 from . import models
+from . import fields
 
 if typing.TYPE_CHECKING:
     from collections.abc import Callable, Collection, Iterable, Iterator, MutableMapping
@@ -1070,6 +1071,21 @@ def add_manual_models(env):
             )
             columns = {colinfo[0] for colinfo in cr.fetchall()}
             Model._log_access = set(models.LOG_ACCESS_COLUMNS) <= columns
+
+
+def add_manual_fields(model):
+    """ Add extra fields on model. """
+    IrModelFields = model.env['ir.model.fields']
+    fields_data = IrModelFields._get_manual_field_data(model._name)
+    for name, field_data in fields_data.items():
+        if name not in model._fields and field_data['state'] == 'manual':
+            try:
+                attrs = IrModelFields._instanciate_attrs(field_data)
+                if attrs:
+                    field = fields.Field.by_type[field_data['ttype']](**attrs)
+                    model._add_field(name, field)
+            except Exception:
+                _logger.exception("Failed to load field %s.%s: skipped", model._name, field_data['name'])
 
 
 class DummyRLock(object):

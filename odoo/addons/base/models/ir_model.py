@@ -1293,19 +1293,6 @@ class IrModelFields(models.Model):
     def _is_manual_name(self, name):
         return name.startswith('x_')
 
-    def _add_manual_fields(self, model):
-        """ Add extra fields on model. """
-        fields_data = self._get_manual_field_data(model._name)
-        for name, field_data in fields_data.items():
-            if name not in model._fields and field_data['state'] == 'manual':
-                try:
-                    attrs = self._instanciate_attrs(field_data)
-                    if attrs:
-                        field = fields.Field.by_type[field_data['ttype']](**attrs)
-                        model._add_field(name, field)
-                except Exception:
-                    _logger.exception("Failed to load field %s.%s: skipped", model._name, field_data['name'])
-
     @api.model
     @tools.ormcache_context('model_name', keys=('lang',))
     def get_field_string(self, model_name):

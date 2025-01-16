@@ -3330,6 +3330,7 @@ class BaseModel(metaclass=MetaModel):
 
     @api.model
     def _setup_base(self):
+        from .registry import add_manual_fields
         """ Determine the inherited and custom fields of the model. """
         cls = self.env.registry[self._name]
         if cls._setup_done:
@@ -3377,7 +3378,7 @@ class BaseModel(metaclass=MetaModel):
 
         # 2. add manual fields
         if self.pool._init_modules:
-            self.env['ir.model.fields']._add_manual_fields(self)
+            add_manual_fields(self)
 
         # 3. make sure that parent models determine their own fields, then add
         # inherited fields to cls
