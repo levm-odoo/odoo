@@ -36,7 +36,7 @@ class ResCompany(models.Model):
         arch, view = super()._get_view(view_id, view_type, **options)
 
         if view_type == 'form':
-            for node in arch.xpath("//field[@name='name' or @name='vat']"):
+            for node in arch.xpath("//field[@name='name' or @name='vat' or @name='duns']"):
                 node.set('widget', 'field_partner_autocomplete')
 
         return arch, view
