@@ -117,6 +117,7 @@ class ResDeviceLog(models.Model):
                 revoked=False,
             ))
         _logger.info("User %d inserts device log (%s)", user_id, session_identifier)
+        return True
 
     @api.autovacuum
     def _gc_device_log(self):
