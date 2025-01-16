@@ -30,6 +30,7 @@ from odoo.tools import (
     OrderedSet,
     LastOrderedSet,
     config,
+    discardattr,
     frozendict,
     lazy_classproperty,
     lazy_property,
@@ -346,7 +347,7 @@ class Registry(Mapping[str, type["BaseModel"]]):
         # we must setup ir.model before adding manual fields because _add_manual_models may
         # depend on behavior that is implemented through overrides, such as is_mail_thread which
         # is implemented through an override to env['ir.model']._instanciate
-        env['ir.model']._prepare_setup()
+        model_setup_prepare(env['ir.model'])
 
         # add manual models
         if self._init_modules:
@@ -355,7 +356,7 @@ class Registry(Mapping[str, type["BaseModel"]]):
         # prepare the setup on all models
         models = list(env.values())
         for model in models:
-            model._prepare_setup()
+            model_setup_prepare(model)
 
         self.field_depends.clear()
         self.field_depends_context.clear()
@@ -364,15 +365,15 @@ class Registry(Mapping[str, type["BaseModel"]]):
 
         # do the actual setup
         for model in models:
-            model._setup_base()
+            model_setup_base(model)
 
         self._m2m: defaultdict[tuple[str, str, str], list[Field]] = defaultdict(list)
         for model in models:
-            model._setup_fields()
+            model_setup_fields(model)
         del self._m2m
 
         for model in models:
-            model._setup_complete()
+            model_setup_complete(model)
 
         # determine field_depends and field_depends_context
         for model in models:
@@ -1069,8 +1070,8 @@ def build_model(cls, pool, cr):
             '_inherit_module': {},                  # map parent to introducing module
             '_inherit_children': OrderedSet(),      # names of children models
             '_inherits_children': set(),            # names of children models
-            '_fields': {},                          # populated in _setup_base()
-            '_table_objects': frozendict(),         # populated in _setup_base()
+            '_fields': {},                          # populated in model_setup_base()
+            '_table_objects': frozendict(),         # populated in model_setup_base()
         })
 
     # determine all the classes the model should inherit from
@@ -1089,7 +1090,7 @@ def build_model(cls, pool, cr):
             parent_class._inherit_children.add(name)
 
     # ModelClass.__bases__ must be assigned those classes; however, this
-    # operation is quite slow, so we do it once in method _prepare_setup()
+    # operation is quite slow, so we do it once in method model_setup_prepare()
     ModelClass.__base_classes__ = tuple(bases)
 
     # determine the attributes of the model's class
@@ -1169,6 +1170,152 @@ def build_model_attributes(cls, pool):
     for child_name in cls._inherit_children:
         child_class = pool[child_name]
         build_model_attributes(child_class, pool)
+
+
+def model_setup_prepare(self):
+    """ Prepare the setup of the model. """
+    cls = self.env.registry[self._name]
+    cls._setup_done = False
+
+    # changing base classes is costly, do it only when necessary
+    if cls.__bases__ != cls.__base_classes__:
+        cls.__bases__ = cls.__base_classes__
+
+    # reset those attributes on the model's class for model_setup_fields() below
+    for attr in ('_rec_name', '_active_name'):
+        discardattr(cls, attr)
+
+
+def model_setup_base(self):
+    """ Determine the inherited and custom fields of the model. """
+    cls = self.env.registry[self._name]
+    if cls._setup_done:
+        return
+
+    # the classes that define this model, i.e., the ones that are not
+    # registry classes; the purpose of this attribute is to behave as a
+    # cache of [c for c in cls.mro() if not is_registry_class(c))], which
+    # is heavily used in function fields.resolve_mro()
+    cls._model_classes = tuple(c for c in cls.mro() if getattr(c, 'pool', None) is None)
+
+    # 1. determine the proper fields of the model: the fields defined on the
+    # class and magic fields, not the inherited or custom ones
+
+    # retrieve fields from parent classes, and duplicate them on cls to
+    # avoid clashes with inheritance between different models
+    for name in cls._fields:
+        discardattr(cls, name)
+    cls._fields.clear()
+
+    # collect the definitions of each field (base definition + overrides)
+    definitions = defaultdict(list)
+    for klass in reversed(cls._model_classes):
+        # this condition is an optimization of is_definition_class(klass)
+        if isinstance(klass, models.MetaModel):
+            for field in klass._field_definitions:
+                definitions[field.name].append(field)
+    for name, fields_ in definitions.items():
+        if f'{cls._name}.{name}' in cls.pool._database_translated_fields:
+            # the field is currently translated in the database; ensure the
+            # field is translated to avoid converting its column to varchar
+            # and losing data
+            translate = next((
+                field.args['translate'] for field in reversed(fields_) if 'translate' in field.args
+            ), False)
+            if not translate:
+                # patch the field definition by adding an override
+                _logger.debug("Patching %s.%s with translate=True", cls._name, name)
+                fields_.append(type(fields_[0])(translate=True))
+        if len(fields_) == 1 and fields_[0]._direct and fields_[0].model_name == cls._name:
+            cls._fields[name] = fields_[0]
+        else:
+            Field = type(fields_[-1])
+            self._add_field(name, Field(_base_fields=fields_))
+
+    # 2. add manual fields
+    if self.pool._init_modules:
+        add_manual_fields(self)
+
+    # 3. make sure that parent models determine their own fields, then add
+    # inherited fields to cls
+    self._inherits_check()
+    for parent in self._inherits:
+        model_setup_base(self.env[parent])
+    self._add_inherited_fields()
+
+    # 4. initialize more field metadata
+    cls._setup_done = True
+
+    for field in cls._fields.values():
+        field.prepare_setup()
+
+    # 5. determine and validate rec_name
+    if cls._rec_name:
+        assert cls._rec_name in cls._fields, \
+            "Invalid _rec_name=%r for model %r" % (cls._rec_name, cls._name)
+    elif 'name' in cls._fields:
+        cls._rec_name = 'name'
+    elif cls._custom and 'x_name' in cls._fields:
+        cls._rec_name = 'x_name'
+
+    # 6. determine and validate active_name
+    if cls._active_name:
+        assert (cls._active_name in cls._fields
+                and cls._active_name in ('active', 'x_active')), \
+            ("Invalid _active_name=%r for model %r; only 'active' and "
+            "'x_active' are supported and the field must be present on "
+            "the model") % (cls._active_name, cls._name)
+    elif 'active' in cls._fields:
+        cls._active_name = 'active'
+    elif 'x_active' in cls._fields:
+        cls._active_name = 'x_active'
+
+    # 7. determine table objects
+    assert not cls._table_object_definitions, "cls is a registry model"
+    cls._table_objects = frozendict({
+        cons.full_name(self): cons
+        for klass in reversed(cls._model_classes)
+        if isinstance(klass, models.MetaModel)
+        for cons in klass._table_object_definitions
+    })
+
+
+def model_setup_fields(self):
+    """ Setup the fields, except for recomputation triggers. """
+    cls = self.env.registry[self._name]
+
+    # set up fields
+    bad_fields = []
+    many2one_company_dependents = self.env.registry.many2one_company_dependents
+    for name, field in cls._fields.items():
+        try:
+            field.setup(self)
+        except Exception:
+            if field.base_field.manual:
+                # Something goes wrong when setup a manual field.
+                # This can happen with related fields using another manual many2one field
+                # that hasn't been loaded because the comodel does not exist yet.
+                # This can also be a manual function field depending on not loaded fields yet.
+                bad_fields.append(name)
+                continue
+            raise
+        if field.type == 'many2one' and field.company_dependent:
+            many2one_company_dependents.add(field.comodel_name, field)
+
+    for name in bad_fields:
+        self._pop_field(name)
+
+
+def model_setup_complete(self):
+    """ Setup recomputation triggers, and complete the model setup. """
+    cls = self.env.registry[self._name]
+
+    # reset properties memoized on cls
+    cls._constraint_methods = models.BaseModel._constraint_methods
+    cls._ondelete_methods = models.BaseModel._ondelete_methods
+    cls._onchange_methods = models.BaseModel._onchange_methods
+
+    self._post_model_setup__()
 
 
 def add_manual_models(env):
