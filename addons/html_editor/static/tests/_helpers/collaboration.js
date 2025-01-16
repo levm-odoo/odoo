@@ -69,7 +69,9 @@ export const setupMultiEditor = async (spec) => {
             return `fake_id_${n++}`;
         };
         let selection;
-        const defaultPlugins = MAIN_PLUGINS;
+        const defaultPlugins = MAIN_PLUGINS.filter(
+            (Plugin) => Plugin.id !== "version" || spec.checkVersion
+        );
         const base = await setupEditor(spec.contentBefore, {
             props: { iframe: true },
             onMounted: (editable) => {
