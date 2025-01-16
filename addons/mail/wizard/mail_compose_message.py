@@ -180,6 +180,7 @@ class MailComposeMessage(models.TransientModel):
         compute='_compute_mail_server_id', readonly=False, store=True, compute_sudo=False)
     notify_author = fields.Boolean(compute='_compute_notify_author', readonly=False, store=True)
     notify_author_mention = fields.Boolean(compute='_compute_notify_author_mention', readonly=False, store=True)
+    notify_skip_followers = fields.Boolean(compute='_compute_notify_skip_followers', readonly=False, store=True)
     scheduled_date = fields.Char(
         'Scheduled Date',
         compute='_compute_scheduled_date', readonly=False, store=True, compute_sudo=False,
@@ -591,13 +592,21 @@ class MailComposeMessage(models.TransientModel):
 
     @api.depends('composition_mode')
     def _compute_notify_author(self):
-        """ Used only in 'comment' mode """
+        """ Used only in 'comment' mode, controls 'notify_author' notification
+        parameter """
         self.filtered(lambda c: c.composition_mode != 'comment').notify_author = False
 
     @api.depends('composition_mode')
     def _compute_notify_author_mention(self):
-        """ Used only in 'comment' mode """
+        """ Used only in 'comment' mode, controls 'notify_author_mention'
+        notification parameter. """
         self.filtered(lambda c: c.composition_mode != 'comment').notify_author_mention = False
+
+    @api.depends('composition_mode')
+    def _compute_notify_skip_followers(self):
+        """ Used only in 'comment' mode, controls 'notify_skip_followers' notification
+        parameter. """
+        self.filtered(lambda c: c.composition_mode != 'comment').notify_skip_followers = False
 
     @api.depends('composition_mode', 'model', 'res_ids', 'template_id')
     def _compute_scheduled_date(self):
@@ -986,6 +995,8 @@ class MailComposeMessage(models.TransientModel):
                 values['notify_author'] = self.notify_author
             if self.notify_author_mention:  # force only Truthy values, keeping context fallback
                 values['notify_author_mention'] = self.notify_author_mention
+            if self.notify_skip_followers:  # force only Truthy values, no need to bloat with default Falsy
+                values['notify_skip_followers'] = self.notify_skip_followers
         return values
 
     def _prepare_mail_values_dynamic(self, res_ids):

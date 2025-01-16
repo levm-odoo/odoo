@@ -167,6 +167,7 @@ class TestComposerForm(TestMailComposer):
         self.assertEqual(composer_form.model, self.test_record._name)
         self.assertFalse(composer_form.notify_author)
         self.assertFalse(composer_form.notify_author_mention)
+        self.assertFalse(composer_form.notify_skip_followers)
         self.assertFalse(composer_form.partner_ids)
         self.assertEqual(composer_form.record_alias_domain_id, self.mail_alias_domain)
         self.assertEqual(composer_form.record_company_id, self.env.company)
@@ -277,6 +278,7 @@ class TestComposerForm(TestMailComposer):
         self.assertEqual(composer_form.model, self.test_record._name)
         self.assertFalse(composer_form.notify_author)
         self.assertFalse(composer_form.notify_author_mention)
+        self.assertFalse(composer_form.notify_skip_followers)
         self.assertEqual(composer_form.partner_ids[:], self.partner_1)
         self.assertEqual(composer_form.record_alias_domain_id, self.mail_alias_domain)
         self.assertEqual(composer_form.record_company_id, self.env.company)
@@ -314,6 +316,7 @@ class TestComposerForm(TestMailComposer):
         self.assertEqual(composer_form.model, self.test_record._name)
         self.assertFalse(composer_form.notify_author)
         self.assertFalse(composer_form.notify_author_mention)
+        self.assertFalse(composer_form.notify_skip_followers)
         self.assertFalse(composer_form.record_alias_domain_id, 'MailComposer: comment in batch mode should have void alias domain')
         self.assertFalse(composer_form.record_company_id, 'MailComposer: comment in batch mode should have void company')
         self.assertFalse(composer_form.record_name, 'MailComposer: comment in batch mode should have void record name')
@@ -350,6 +353,7 @@ class TestComposerForm(TestMailComposer):
         self.assertEqual(composer_form.model, self.test_record._name)
         self.assertFalse(composer_form.notify_author)
         self.assertFalse(composer_form.notify_author_mention)
+        self.assertFalse(composer_form.notify_skip_followers)
         self.assertFalse(composer_form.record_alias_domain_id, 'MailComposer: comment in batch mode should have void alias domain')
         self.assertFalse(composer_form.record_company_id, 'MailComposer: comment in batch mode should have void company')
         self.assertFalse(composer_form.record_name, 'MailComposer: comment in batch mode should have void record name')
@@ -384,6 +388,7 @@ class TestComposerForm(TestMailComposer):
         self.assertEqual(composer_form.mail_server_id, self.mail_server_domain)
         self.assertFalse(composer_form.notify_author)
         self.assertFalse(composer_form.notify_author_mention)
+        self.assertFalse(composer_form.notify_skip_followers)
         self.assertEqual(composer_form.model, self.test_record._name)
         self.assertFalse(composer_form.partner_ids[:])
         self.assertFalse(composer_form.record_alias_domain_id)
@@ -417,6 +422,7 @@ class TestComposerForm(TestMailComposer):
         self.assertFalse(composer_form.mail_server_id)
         self.assertFalse(composer_form.notify_author)
         self.assertFalse(composer_form.notify_author_mention)
+        self.assertFalse(composer_form.notify_skip_followers)
         self.assertEqual(composer_form.model, self.test_records._name)
         self.assertFalse(composer_form.record_alias_domain_id, 'MailComposer: mass mode should have void alias domain')
         self.assertFalse(composer_form.record_company_id, 'MailComposer: mass mode should have void company')
@@ -451,6 +457,7 @@ class TestComposerForm(TestMailComposer):
         self.assertEqual(composer_form.model, self.test_records._name)
         self.assertFalse(composer_form.notify_author)
         self.assertFalse(composer_form.notify_author_mention)
+        self.assertFalse(composer_form.notify_skip_followers)
         self.assertFalse(composer_form.record_alias_domain_id, 'MailComposer: mass mode should have void alias domain')
         self.assertFalse(composer_form.record_company_id, 'MailComposer: mass mode should have void company')
         self.assertFalse(composer_form.record_name, 'MailComposer: mass mode should have void record name')
@@ -488,6 +495,7 @@ class TestComposerForm(TestMailComposer):
         self.assertEqual(composer_form.model, self.test_records._name)
         self.assertFalse(composer_form.notify_author)
         self.assertFalse(composer_form.notify_author_mention)
+        self.assertFalse(composer_form.notify_skip_followers)
         self.assertFalse(composer_form.record_alias_domain_id, 'MailComposer: mass mode should have void alias domain')
         self.assertFalse(composer_form.record_company_id, 'MailComposer: mass mode should have void company')
         self.assertFalse(composer_form.record_name, 'MailComposer: mass mode should have void record name')
@@ -525,6 +533,7 @@ class TestComposerForm(TestMailComposer):
         self.assertEqual(composer_form.model, self.test_records._name)
         self.assertFalse(composer_form.notify_author)
         self.assertFalse(composer_form.notify_author_mention)
+        self.assertFalse(composer_form.notify_skip_followers)
         self.assertFalse(composer_form.record_alias_domain_id, 'MailComposer: mass mode should have void alias domain')
         self.assertFalse(composer_form.record_company_id, 'MailComposer: mass mode should have void company')
         self.assertFalse(composer_form.record_name, 'MailComposer: mass mode should have void record name')
@@ -1386,29 +1395,45 @@ class TestComposerInternals(TestMailComposer):
             self._get_web_context(self.test_record)
             ).create({'template_id': self.template.id})
 
-        # scheduling the message
-        with self.mock_datetime_and_now(self.reference_now):
-            composer.action_schedule_message()
+        for additional_params, exp_notif_params in zip(
+            [
+                {},
+                {'notify_author': False, 'notify_author_mention': True},
+                {'notify_skip_followers': True},
+            ], [
+                {},
+                {'notify_author_mention': True},
+                {'notify_skip_followers': True},
+            ], strict=True
+        ):
+            with self.subtest(params=additional_params):
+                if additional_params:
+                    composer.write(**additional_params)
+                # scheduling the message
+                with self.mock_datetime_and_now(self.reference_now):
+                    composer.action_schedule_message()
 
-        # should have created the scheduled message with the correct parameters
-        scheduled_message = self.env['mail.scheduled.message'].search([
-            ['model', '=', self.test_record._name],
-            ['res_id', '=', self.test_record.id],
-        ])
-        self.assertEqual(scheduled_message.body, '<p>TemplateBody TestRecord</p>')
-        self.assertEqual(scheduled_message.subject, 'TemplateSubject TestRecord')
-        self.assertEqual(scheduled_message.scheduled_date, self.test_record.create_date + timedelta(days=2))
-        self.assertEqual(scheduled_message.model, self.test_record._name)
-        self.assertEqual(scheduled_message.res_id, self.test_record.id)
-        self.assertEqual(scheduled_message.author_id, self.test_record.user_id.partner_id)
-        self.assertEqual(scheduled_message.partner_ids, self.test_record.customer_id)
-        self.assertFalse(scheduled_message.is_note)
-        notification_parameters = json.loads(scheduled_message.notification_parameters)
-        self.assertEqual(notification_parameters['email_from'], self.test_record.user_id.email_formatted)
-        self.assertEqual(notification_parameters['force_email_lang'], self.test_record.customer_id.lang)
-        self.assertEqual(notification_parameters['mail_server_id'], self.mail_server_domain.id)
-        self.assertEqual(notification_parameters['mail_auto_delete'], True)
-        self.assertEqual(notification_parameters['message_type'], 'comment')
+                # should have created the scheduled message with the correct parameters
+                scheduled_message = self.env['mail.scheduled.message'].search([
+                    ['model', '=', self.test_record._name],
+                    ['res_id', '=', self.test_record.id],
+                ])
+                self.assertEqual(scheduled_message.body, '<p>TemplateBody TestRecord</p>')
+                self.assertEqual(scheduled_message.subject, 'TemplateSubject TestRecord')
+                self.assertEqual(scheduled_message.scheduled_date, self.test_record.create_date + timedelta(days=2))
+                self.assertEqual(scheduled_message.model, self.test_record._name)
+                self.assertEqual(scheduled_message.res_id, self.test_record.id)
+                self.assertEqual(scheduled_message.author_id, self.test_record.user_id.partner_id)
+                self.assertEqual(scheduled_message.partner_ids, self.test_record.customer_id)
+                self.assertFalse(scheduled_message.is_note)
+                notification_parameters = json.loads(scheduled_message.notification_parameters)
+                self.assertEqual(notification_parameters['email_from'], self.test_record.user_id.email_formatted)
+                self.assertEqual(notification_parameters['force_email_lang'], self.test_record.customer_id.lang)
+                self.assertEqual(notification_parameters['mail_server_id'], self.mail_server_domain.id)
+                self.assertEqual(notification_parameters['mail_auto_delete'], True)
+                self.assertEqual(notification_parameters['message_type'], 'comment')
+                for key, val in exp_notif_params:
+                    self.assertEqual(notification_parameters[key], val)
 
 
 @tagged('mail_composer', 'multi_lang', 'multi_company')
