@@ -2279,7 +2279,7 @@
 
     <template id="delivery_address_row">
         <div id="delivery_address_row" class="mb-4">
-            <h4 class="text-uppercase small fs-6 fw-bold">Delivery address</h4>
+            <h4 class="small fs-6 fw-bold">Delivery address</h4>
             <t groups="account.group_delivery_invoice_address">
                 <t t-call="website_sale.address_row">
                     <t t-set="is_invoice" t-value="False"/>
@@ -2292,7 +2292,7 @@
 
     <template id="billing_address_row">
         <div id="billing_address_row">
-            <h4 class="text-uppercase small fs-6 fw-bold mt-3">Billing address</h4>
+            <h4 class="small fs-6 fw-bold mt-3">Billing address</h4>
             <t t-set="has_delivery" t-value="order._has_deliverable_products()"/>
             <div t-if="has_delivery" class="form-check form-switch mt-2 mb-3">
                 <label id="use_delivery_as_billing_label">
