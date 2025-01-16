@@ -197,7 +197,7 @@ class EventTrackController(http.Controller):
 
         vals.update(self._prepare_calendar_values(event))
 
-        return request.render("website_event_track.agenda_online", vals)
+        return request.render("website_event_track.agenda_online", vals, headers={'Cache-Control': 'no-store'})
 
     def _prepare_calendar_values(self, event):
         """ This methods slit the day (max end time - min start time) into
@@ -361,7 +361,8 @@ class EventTrackController(http.Controller):
 
         return request.render(
             "website_event_track.event_track_main",
-            self._event_track_page_get_values(event, track.sudo(), **options)
+            self._event_track_page_get_values(event, track.sudo(), **options),
+            headers={'Cache-Control': 'no-store'}
         )
 
     def _event_track_page_get_values(self, event, track, **options):
