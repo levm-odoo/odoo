@@ -626,29 +626,6 @@ class BaseModel(metaclass=MetaModel):
         return field
 
     @classmethod
-    def _build_model_check_base(model_class, cls):
-        """ Check whether ``model_class`` can be extended with ``cls``. """
-        if model_class._abstract and not cls._abstract:
-            msg = ("%s transforms the abstract model %r into a non-abstract model. "
-                   "That class should either inherit from AbstractModel, or set a different '_name'.")
-            raise TypeError(msg % (cls, model_class._name))
-        if model_class._transient != cls._transient:
-            if model_class._transient:
-                msg = ("%s transforms the transient model %r into a non-transient model. "
-                       "That class should either inherit from TransientModel, or set a different '_name'.")
-            else:
-                msg = ("%s transforms the model %r into a transient model. "
-                       "That class should either inherit from Model, or set a different '_name'.")
-            raise TypeError(msg % (cls, model_class._name))
-
-    @classmethod
-    def _build_model_check_parent(model_class, cls, parent_class):
-        """ Check whether ``model_class`` can inherit from ``parent_class``. """
-        if model_class._abstract and not parent_class._abstract:
-            msg = ("In %s, the abstract model %r cannot inherit from the non-abstract model %r.")
-            raise TypeError(msg % (cls, model_class._name, parent_class._name))
-
-    @classmethod
     def _build_model_attributes(cls, pool):
         """ Initialize base model attributes. """
         cls._description = cls._name

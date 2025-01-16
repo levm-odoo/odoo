@@ -1060,8 +1060,7 @@ def build_model(cls, pool, cr):
         if name not in pool:
             raise TypeError("Model %r does not exist in registry." % name)
         ModelClass = pool[name]
-        ModelClass._build_model_check_base(cls)
-        check_parent = ModelClass._build_model_check_parent
+        build_model_check_base(ModelClass, cls)
     else:
         ModelClass = type(name, (cls,), {
             '_name': name,
@@ -1073,7 +1072,6 @@ def build_model(cls, pool, cr):
             '_fields': {},                          # populated in _setup_base()
             '_table_objects': frozendict(),         # populated in _setup_base()
         })
-        check_parent = cls._build_model_check_parent
 
     # determine all the classes the model should inherit from
     bases = LastOrderedSet([cls])
@@ -1085,7 +1083,7 @@ def build_model(cls, pool, cr):
             for base in parent_class.__base_classes__:
                 bases.add(base)
         else:
-            check_parent(cls, parent_class)
+            build_model_check_parent(ModelClass, cls, parent_class)
             bases.add(parent_class)
             ModelClass._inherit_module[parent] = cls._module
             parent_class._inherit_children.add(name)
@@ -1110,6 +1108,29 @@ def build_model(cls, pool, cr):
     pool[name] = ModelClass
 
     return ModelClass
+
+
+def build_model_check_base(model_class, cls):
+    """ Check whether ``model_class`` can be extended with ``cls``. """
+    if model_class._abstract and not cls._abstract:
+        msg = ("%s transforms the abstract model %r into a non-abstract model. "
+               "That class should either inherit from AbstractModel, or set a different '_name'.")
+        raise TypeError(msg % (cls, model_class._name))
+    if model_class._transient != cls._transient:
+        if model_class._transient:
+            msg = ("%s transforms the transient model %r into a non-transient model. "
+                   "That class should either inherit from TransientModel, or set a different '_name'.")
+        else:
+            msg = ("%s transforms the model %r into a transient model. "
+                   "That class should either inherit from Model, or set a different '_name'.")
+        raise TypeError(msg % (cls, model_class._name))
+
+
+def build_model_check_parent(model_class, cls, parent_class):
+    """ Check whether ``model_class`` can inherit from ``parent_class``. """
+    if model_class._abstract and not parent_class._abstract:
+        msg = ("In %s, the abstract model %r cannot inherit from the non-abstract model %r.")
+        raise TypeError(msg % (cls, model_class._name, parent_class._name))
 
 
 def add_manual_models(env):
