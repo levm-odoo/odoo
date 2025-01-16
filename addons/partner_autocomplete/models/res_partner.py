@@ -77,8 +77,8 @@ class ResPartner(models.Model):
         return iap_data
 
     @api.model
-    def autocomplete(self, query, timeout=15):
-        suggestions, _ = self.env['iap.autocomplete.api']._request_partner_autocomplete('search', {
+    def autocomplete_by_name(self, query, timeout=15):
+        suggestions, _ = self.env['iap.autocomplete.api']._request_partner_autocomplete('search_by_name', {
             'query': query,
         }, timeout=timeout)
         if suggestions:
@@ -90,35 +90,15 @@ class ResPartner(models.Model):
             return []
 
     @api.model
-    def enrich_company(self, duns, timeout=15):
-        response, error = self.env['iap.autocomplete.api']._request_partner_autocomplete('enrich', {
-            'duns': duns,
+    def autocomplete_by_vat(self, vat, timeout=15):
+        suggestions, _ = self.env['iap.autocomplete.api']._request_partner_autocomplete('search_by_vat', {
+            'query': vat,
         }, timeout=timeout)
-        if response and response.get('company_data'):
-            result = self._format_data_company(response.get('company_data'))
-        else:
-            result = {}
-
-        if response and response.get('credit_error'):
-            result.update({
-                'error': True,
-                'error_message': 'Insufficient Credit'
-            })
-        elif error:
-            result.update({
-                'error': True,
-                'error_message': error
-            })
-
-        return result
-
-    @api.model
-    def read_by_vat(self, vat, timeout=15):
-        vies_vat_data, _ = self.env['iap.autocomplete.api']._request_partner_autocomplete('search_vat', {
-            'vat': vat,
-        }, timeout=timeout)
-        if vies_vat_data:
-            return [self._format_data_company(vies_vat_data)]
+        if suggestions:
+            results = []
+            for suggestion in suggestions:
+                results.append(self._format_data_company(suggestion))
+            return results
         else:
             vies_result = None
             try:
@@ -141,9 +121,30 @@ class ResPartner(models.Model):
                         'city': zip_city[1],
                         'zip': zip_city[0],
                         'country_code': vies_result['countryCode'],
-                        'skip_enrich': True,
                     })]
             return []
+
+    @api.model
+    def enrich_company(self, duns, timeout=15):
+        response, error = self.env['iap.autocomplete.api']._request_partner_autocomplete('enrich', {
+            'duns': duns,
+        }, timeout=timeout)
+        if response and response.get('company_data'):
+            result = self._format_data_company(response.get('company_data'))
+        else:
+            result = {}
+
+        if response and response.get('credit_error'):
+            result.update({
+                'error': True,
+                'error_message': 'Insufficient Credit'
+            })
+        elif error:
+            result.update({
+                'error': True,
+                'error_message': error
+            })
+        return result
 
     def iap_partner_autocomplete_add_tags(self, unspsc_codes):
         """Called by JS to create the activity tags from the UNSPSC codes"""

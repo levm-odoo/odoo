@@ -60,14 +60,6 @@ export class PartnerAutoCompleteCharField extends CharField {
             });
         }
 
-        // Many2many fields: create tags
-        if (this.props.record.resModel === 'res.partner') {
-            await this.props.record.save();
-            await this.orm.call("res.partner", "iap_partner_autocomplete_add_tags", [this.props.record.resId, data.company.unspsc_codes]);
-            delete data.company.unspsc_codes;
-            await this.props.record.load();
-        }
-
         // Format the many2one fields
         const many2oneFields = ['country_id', 'state_id'];
         many2oneFields.forEach((field) => {
@@ -75,7 +67,19 @@ export class PartnerAutoCompleteCharField extends CharField {
                 data.company[field] = [data.company[field].id, data.company[field].display_name];
             }
         });
-        this.props.record.update(data.company);
+
+        const unspsc_codes = data.company.unspsc_codes
+        delete data.company.unspsc_codes;
+
+        await this.props.record.update(data.company);
+
+        // Create tags after record is filled with retrieve data
+        // (otherwise we'll get an error with for empty required fields)
+        if (this.props.record.resModel === 'res.partner') {
+            const saved = await this.props.record.save();
+            await this.orm.call("res.partner", "iap_partner_autocomplete_add_tags", [this.props.record.resId, unspsc_codes]);
+            await this.props.record.load();
+        }
         if (this.props.setDirty) {
             this.props.setDirty(false);
         }

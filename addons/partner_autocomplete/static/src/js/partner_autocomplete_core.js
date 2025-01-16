@@ -21,11 +21,48 @@ export function usePartnerAutocomplete() {
     const notification = useService("notification");
     const orm = useService("orm");
 
+    function sanitizeVAT(value) {
+        return value ? value.replace(/[^A-Za-z0-9]/g, '') : '';
+    }
+
+    async function isVATNumber(value) {
+        // Lazyload jsvat only if the component is being used.
+        await loadJS("/partner_autocomplete/static/lib/jsvat.js");
+
+        // checkVATNumber is defined in library jsvat.
+        // It validates that the input has a valid VAT number format
+        return checkVATNumber(sanitizeVAT(value));
+    }
+
+    function isGSTNumber(value) {
+        // Check if the input is a valid GST number.
+        let isGST = false;
+        if (value && value.length === 15) {
+            const allGSTinRe = [
+                /\d{2}[a-zA-Z]{5}\d{4}[a-zA-Z][1-9A-Za-z][Zz1-9A-Ja-j][0-9a-zA-Z]/, // Normal, Composite, Casual GSTIN
+                /\d{4}[A-Z]{3}\d{5}[UO]N[A-Z0-9]/, // UN/ON Body GSTIN
+                /\d{4}[a-zA-Z]{3}\d{5}NR[0-9a-zA-Z]/, // NRI GSTIN
+                /\d{2}[a-zA-Z]{4}[a-zA-Z0-9]\d{4}[a-zA-Z][1-9A-Za-z][DK][0-9a-zA-Z]/, // TDS GSTIN
+                /\d{2}[a-zA-Z]{5}\d{4}[a-zA-Z][1-9A-Za-z]C[0-9a-zA-Z]/ // TCS GSTIN
+            ];
+
+            isGST = allGSTinRe.some((re) => re.test(value));
+        }
+
+        return isGST;
+    }
+
+    async function isTAXNumber(value) {
+        const isVAT = await isVATNumber(value);
+        const isGST = isGSTNumber(value);
+        return isVAT || isGST;
+    }
+
     async function autocomplete(value) {
         value = value.trim();
-
+        const isVAT = await isTAXNumber(value);
         return new Promise((resolve, reject) => {
-            getOdooSuggestions(value).then((suggestions) => {
+            getOdooSuggestions(value, isVAT).then((suggestions) => {
                 const odooSuggestions = suggestions.filter((suggestion) => {
                     return !suggestion.ignored;
                 });
@@ -103,7 +140,7 @@ export function usePartnerAutocomplete() {
      * @private
      */
     async function getOdooSuggestions(value, isVAT) {
-        const method = isVAT ? 'read_by_vat' : 'autocomplete';
+        const method = isVAT ? 'autocomplete_by_vat' : 'autocomplete_by_name';
 
         const prom = orm.silent.call(
             'res.partner',
