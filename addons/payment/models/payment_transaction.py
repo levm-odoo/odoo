@@ -1010,3 +1010,12 @@ class PaymentTransaction(models.Model):
         :rtype: recordset of `payment.transaction`
         """
         return self.filtered(lambda t: t.state != 'draft').sorted()[:1]
+
+    def _get_tx_time_difference(self):
+        """ Return the time difference between the last transaction and the current time.
+
+        :return: The time difference.
+        :rtype: datetime.timedelta
+        """
+        self.ensure_one()
+        return fields.Datetime.now() - self.create_date

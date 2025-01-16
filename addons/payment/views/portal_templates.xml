@@ -305,13 +305,26 @@
         </t>
         <t t-elif="tx.state == 'done'">
             <t t-set="alert_style" t-value="'success'"/>
-            <t t-if="not is_processing" t-set="status_heading">
-                <p>Thank you!</p>
+            <t t-set="time_difference" t-value="tx._get_tx_time_difference().total_seconds()"/>
+            <t t-if="time_difference &gt; 3600">
+                <t t-set="status_heading" t-value=""/>
             </t>
-            <t t-if="tx.operation == 'validation'" t-set="status_message">
-                <p>Your payment method has been saved.</p>
+            <t t-elif="not is_processing">
+                <t t-set="status_heading">
+                    <p>Thank you!</p>
+                </t>
             </t>
-            <t t-else="" t-set="status_message" t-value="tx.provider_id.sudo().done_msg"/>
+            <t t-if="time_difference &gt; 3600">
+                <t t-set="status_message" t-value=""/>
+            </t>
+            <t t-elif="tx.operation == 'validation'">
+                <t t-set="status_message">
+                    <p>Your payment method has been saved.</p>
+                </t>
+            </t>
+            <t t-else="">
+                <t t-set="status_message" t-value="tx.provider_id.sudo().done_msg"/>
+            </t>
         </t>
         <t t-elif="tx.state == 'cancel'">
             <t t-set="alert_style" t-value="'danger'"/>
