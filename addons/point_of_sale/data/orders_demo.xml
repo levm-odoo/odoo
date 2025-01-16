@@ -3,6 +3,9 @@
     <data noupdate="1">
 
         <!-- Closed Session 2 -->
+        <record id="base.user_admin" model="res.users">
+            <field name="email">admin@example.com</field>
+        </record>
 
         <record id="pos_closed_session_1" model="pos.session" forcecreate="False" context="{'onboarding_creation': True}">
             <field name="config_id" ref="pos_config_main" />
