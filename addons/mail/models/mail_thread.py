@@ -4036,8 +4036,6 @@ class MailThread(models.AbstractModel):
             message_type = msg_vals['message_type'] if 'message_type' in msg_vals else msg_sudo.message_type
         subtype_id = msg_vals['subtype_id'] if 'subtype_id' in msg_vals else msg_sudo.subtype_id.id
 
-        # When 'notify_recipient_only' is true we make subtype_id false and don't fetch follower
-        # subtype_id = 0 if self._context.get('notify_recipient_only', False) else msg_vals.get('subtype_id', msg_sudo.subtype_id.id)
         # is it possible to have record but no subtype_id ?
         recipients_data = []
 

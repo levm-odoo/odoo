@@ -90,21 +90,21 @@ messageActionsRegistry
     })
     .add("reply-all", {
         condition: (component) =>
-            component.props.message.canReplyandForwardToComments(component.props.thread),
+            component.props.message.canReplyAllandForward(component.props.thread),
         icon: "fa fa-reply",
         title: _t("Reply All"),
         onClick: (component) => {
-            component.onClickReplyMessage();
+            component.onClickMessageReplyAll();
         },
         sequence: 71,
     })
     .add("forward", {
         condition: (component) =>
-            component.props.message.canReplyandForwardToComments(component.props.thread),
+            component.props.message.canReplyAllandForward(component.props.thread),
         icon: "fa fa-share",
         title: _t("Forward"),
         onClick: (component) => {
-            component.onClickFowardMessage();
+            component.onClickMessageForward();
         },
         sequence: 72,
     })

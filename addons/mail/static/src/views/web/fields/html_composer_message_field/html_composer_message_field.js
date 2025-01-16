@@ -8,7 +8,7 @@ export class HtmlComposerMessageField extends HtmlMailField {
     getConfig() {
         const config = super.getConfig(...arguments);
         config.Plugins = [...config.Plugins, MentionPlugin];
-        if (this.props.record.data.in_reply_mode) {
+        if (this.props.record.data.composition_comment_option === "reply_all") {
             config.Plugins.push(ContentExpandablePlugin);
         }
         if (!this.props.record.data.composition_batch) {

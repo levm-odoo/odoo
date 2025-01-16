@@ -116,6 +116,9 @@ class MailComposeMessage(models.TransientModel):
         string='Composition mode', default='comment')
     composition_batch = fields.Boolean(
         'Batch composition', compute='_compute_composition_batch')  # more than 1 record (raw source)
+    composition_comment_option = fields.Selection(
+        [('reply_all', 'Reply-All'), ('forward', 'Forward')],
+        string='Comment Options')  # mainly used for view in specific comment modes
     model = fields.Char('Related Document Model', compute='_compute_model', readonly=False, store=True)
     model_is_thread = fields.Boolean('Thread-Enabled', compute='_compute_model_is_thread')
     res_ids = fields.Text('Related Document IDs', compute='_compute_res_ids', readonly=False, store=True)
@@ -145,9 +148,6 @@ class MailComposeMessage(models.TransientModel):
         compute="_compute_subtype_id", readonly=False, store=True)
     subtype_is_log = fields.Boolean('Is a log', compute='_compute_subtype_is_log')
     mail_activity_type_id = fields.Many2one('mail.activity.type', 'Mail Activity Type', ondelete='set null')
-    # We use these fields in view & JS
-    in_reply_mode = fields.Boolean('Is a reply comment', default=False)
-    in_forward_mode = fields.Boolean('Is a forward comment', default=False)
     # destination
     reply_to = fields.Char(
         'Reply To', compute='_compute_reply_to', readonly=False, store=True, compute_sudo=False,
@@ -605,11 +605,14 @@ class MailComposeMessage(models.TransientModel):
         notification parameter. """
         self.filtered(lambda c: c.composition_mode != 'comment').notify_author_mention = False
 
-    @api.depends('composition_mode')
+    @api.depends('composition_mode', 'composition_comment_option')
     def _compute_notify_skip_followers(self):
         """ Used only in 'comment' mode, controls 'notify_skip_followers' notification
-        parameter. """
+        parameter. 'Reply-All' behavior triggers skipping followers. """
         self.filtered(lambda c: c.composition_mode != 'comment').notify_skip_followers = False
+        self.filtered(
+            lambda c: c.composition_mode == 'comment' and c.composition_comment_option == 'reply_all'
+        ).notify_skip_followers = True
 
     @api.depends('composition_mode', 'model', 'res_ids', 'template_id')
     def _compute_scheduled_date(self):
@@ -688,7 +691,6 @@ class MailComposeMessage(models.TransientModel):
         # some actions might be triggered on message post based on some context keys
         cleaned_ctx = clean_context(self.env.context)
         for wizard in self:
-            cleaned_ctx.update(notify_recipient_only=wizard.in_reply_mode or wizard.in_forward_mode)
             res_id = wizard._evaluate_res_ids()[0]
             post_values = self._prepare_mail_values([res_id])[res_id]
             if not post_values['scheduled_date']:
@@ -697,6 +699,7 @@ class MailComposeMessage(models.TransientModel):
                 'attachment_ids': post_values.pop('attachment_ids'),
                 'author_id': post_values.pop('author_id'),
                 'body': post_values.pop('body'),
+                'composition_comment_option': wizard.composition_comment_option,
                 'is_note': wizard.subtype_is_log,
                 'model': wizard.model,
                 'partner_ids': post_values.pop('partner_ids'),
@@ -705,8 +708,6 @@ class MailComposeMessage(models.TransientModel):
                 'send_context': cleaned_ctx,
                 'subject': post_values.pop('subject'),
                 'notification_parameters': json.dumps(post_values),  # last to not include popped post_values
-                'in_reply_mode': wizard.in_reply_mode,
-                'in_forward_mode': wizard.in_forward_mode,
             })
 
         self.env['mail.scheduled.message'].create(create_values)
@@ -759,10 +760,6 @@ class MailComposeMessage(models.TransientModel):
             # add context key to avoid subscribing the author
             ActiveModel = ActiveModel.with_context(
                 mail_post_autofollow_author_skip=True,
-            )
-        if self.in_reply_mode or self.in_forward_mode:
-            ActiveModel = ActiveModel.with_context(
-                notify_recipient_only=True,
             )
         messages = self.env['mail.message']
         for res_id, post_values in post_values_all.items():
