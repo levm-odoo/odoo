@@ -74,6 +74,8 @@ class HrEmployeeBase(models.AbstractModel):
     show_hr_icon_display = fields.Boolean(compute='_compute_presence_icon')
     im_status = fields.Char(related="user_id.im_status")
     newly_hired = fields.Boolean('Newly Hired', compute='_compute_newly_hired', search='_search_newly_hired')
+    is_work_phone_linked_to_address_id = fields.Boolean(default=True)
+
 
     @api.model
     def _get_new_hire_field(self):
@@ -203,14 +205,26 @@ class HrEmployeeBase(models.AbstractModel):
         for employee in self.filtered('job_id'):
             employee.job_title = employee.job_id.name
 
-    @api.depends('address_id')
+    @api.depends('address_id.phone')
     def _compute_phones(self):
         for employee in self:
-            if employee.address_id and employee.address_id.phone:
+            if employee._origin.address_id != employee.address_id:
                 employee.work_phone = employee.address_id.phone
             else:
-                employee.work_phone = False
+                if not employee.is_work_phone_linked_to_address_id:
+                    continue
+                employee.work_phone = employee.address_id.phone
 
+    def write(self, vals):
+        if 'address_id' in vals:
+            if 'work_phone' in vals and vals['work_phone'] != self.env['res.partner'].browse(vals['address_id']).phone:
+                vals['is_work_phone_linked_to_address_id'] = False
+            else:
+                vals['is_work_phone_linked_to_address_id'] = True
+        elif 'work_phone' in vals:
+            vals['is_work_phone_linked_to_address_id'] = False
+        return super().write(vals)
+    
     @api.depends('work_contact_id', 'work_contact_id.mobile', 'work_contact_id.email')
     def _compute_work_contact_details(self):
         for employee in self:
