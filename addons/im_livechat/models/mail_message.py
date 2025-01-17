@@ -76,7 +76,12 @@ class MailMessage(models.Model):
             messages_w_author_livechat,
             Store.One(
                 "author_id",
-                ["is_company", "user_livechat_username", "user", "write_date"],
+                [
+                    *self.env["res.partner"]._field_store_repr("avatar_128"),
+                    "is_company",
+                    "user_livechat_username",
+                    "user",
+                ],
                 rename="author",
             ),
         )

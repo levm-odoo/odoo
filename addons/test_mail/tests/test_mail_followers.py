@@ -11,6 +11,7 @@ from odoo import fields
 from odoo.addons.mail.models.mail_mail import _UNFOLLOW_REGEX
 from odoo.addons.mail.tests.common import MailCommon
 from odoo.exceptions import AccessError
+from odoo.tools.misc import limited_field_access_token
 from odoo.tests import tagged, users
 from odoo.tests.common import HttpCase
 from odoo.tools import mute_logger

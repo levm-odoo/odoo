@@ -258,18 +258,33 @@ class DiscussChannelMember(models.Model):
         members._notify_mute()
 
     def _to_store_persona(self, fields=None):
-        if fields == "avatar_card":
-            fields = ["im_status", "name", "write_date"]
         return [
             # sudo: res.partner - reading partner related to a member is considered acceptable
             Store.Attr(
                 "persona",
-                lambda m: Store.One(m.partner_id.sudo(), m._get_store_partner_fields(fields)),
+                lambda m: Store.One(
+                    m.partner_id.sudo(),
+                    m._get_store_partner_fields(
+                        [
+                            *self.env["res.partner"]._field_store_repr("avatar_128"),
+                            "im_status",
+                            "name",
+                        ]
+                        if fields == "avatar_card"
+                        else fields
+                    ),
+                ),
                 predicate=lambda m: m.partner_id,
             ),
             # sudo: mail.guest - reading guest related to a member is considered acceptable
             Store.One(
-                "guest_id", fields, predicate=lambda m: m.guest_id, rename="persona", sudo=True
+                "guest_id",
+                [*self.env["mail.guest"]._field_store_repr("avatar_128"), "im_status", "name"]
+                if fields == "avatar_card"
+                else fields,
+                predicate=lambda m: m.guest_id,
+                rename="persona",
+                sudo=True,
             ),
         ]
 
