@@ -462,8 +462,9 @@ class ThreadedServer(CommonServer):
         # same time. This is known as the thundering herd effect.
 
         from odoo.addons.base.models.ir_cron import ir_cron
-        conn = odoo.sql_db.db_connect('postgres')
-        with conn.cursor() as cr:
+        while True:
+            conn = odoo.sql_db.db_connect('postgres')
+            cr = conn.cursor()
             pg_conn = cr._cnx
             # LISTEN / NOTIFY doesn't work in recovery mode
             cr.execute("SELECT pg_is_in_recovery()")
@@ -473,8 +474,8 @@ class ThreadedServer(CommonServer):
             else:
                 _logger.warning("PG cluster in recovery mode, cron trigger not activated")
             cr.commit()
-
-            while True:
+            alive_time = time.time()
+            while config['limit_time_cron_conn'] <= 0 or (time.time() - alive_time) <= config['limit_time_cron_conn']:
                 select.select([pg_conn], [], [], SLEEP_INTERVAL + number)
                 time.sleep(number / 100)
                 pg_conn.poll()
@@ -490,6 +491,7 @@ class ThreadedServer(CommonServer):
                         except Exception:
                             _logger.warning('cron%d encountered an Exception:', number, exc_info=True)
                         thread.start_time = None
+            _logger.info('cron%d max age (%ss) reached, releasing connection.', number, config['limit_time_cron_conn'])
 
     def cron_spawn(self):
         """ Start the above runner function in a daemon thread.
@@ -1173,6 +1175,7 @@ class WorkerCron(Worker):
 
     def __init__(self, multi):
         super(WorkerCron, self).__init__(multi)
+        self.alive_time = time.time()
         # process_work() below process a single database per call.
         # The variable db_index is keeping track of the next database to
         # process.
@@ -1194,6 +1197,13 @@ class WorkerCron(Worker):
             except select.error as e:
                 if e.args[0] != errno.EINTR:
                     raise
+
+    def check_limits(self):
+        super().check_limits()
+
+        if config['limit_time_cron_conn'] > 0 and (time.time() - self.alive_time) > config['limit_time_cron_conn']:
+            _logger.info('WorkerCron (%s) max age (%ss) reached.', self.pid, config['limit_time_cron_conn'])
+            self.alive = False
 
     def _db_list(self):
         if config['db_name']:

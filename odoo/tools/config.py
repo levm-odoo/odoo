@@ -314,6 +314,11 @@ class configmanager(object):
         group.add_option("--max-cron-threads", dest="max_cron_threads", my_default=2,
                          help="Maximum number of threads processing concurrently cron jobs (default 2).",
                          type="int")
+        group.add_option("--limit-time-cron-conn", dest="limit_time_cron_conn", my_default=0,
+                         help="Maximum amount of time a cron thread's database connection is allowed to live, "
+                              "when reached the connection will be re-established or the worker will be restarted."
+                              "Set to 0 to disable.",
+                         type="int")
         group.add_option("--unaccent", dest="unaccent", my_default=False, action="store_true",
                          help="Try to enable the unaccent extension when creating new databases.")
         group.add_option("--geoip-db", dest="geoip_database", my_default='/usr/share/GeoIP/GeoLite2-City.mmdb',
