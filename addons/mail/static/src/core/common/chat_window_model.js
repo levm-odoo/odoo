@@ -45,6 +45,7 @@ export class ChatWindow extends Record {
 
     async close(options = {}) {
         const { escape = false } = options;
+        options.notifyState ??= true;
         const chatHub = this.store.chatHub;
         const indexAsOpened = chatHub.opened.findIndex((w) => w.eq(this));
         if (this.thread) {
