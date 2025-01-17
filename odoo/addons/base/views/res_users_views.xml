@@ -101,12 +101,11 @@
                             <field name="user_ids" context="{'search_default_filter_no_share':1}"/>
                         </page>
                         <page string="Inherited" name="inherit_groups">
-                            <label for="implied_ids" string="Users added to this group are automatically added in the following groups."/>
-                            <field name="implied_ids"/>
-                            <label for="implied_by_ids" string="Users added the groups are automatically added in the current groups."/>
-                            <field name="implied_by_ids"/>
-                            <label for="disjoint_ids"/>
-                            <field name="disjoint_ids" widget="many2many_tags"/>
+                            <group>
+                                <field name="implied_ids"/>
+                                <field name="implied_by_ids"/>
+                                <field name="disjoint_ids" widget="many2many_tags"/>
+                            </group>
                         </page>
                         <page string="Menus" name="menus">
                             <field name="menu_access"/>
@@ -273,14 +272,9 @@
                                                 <field name="disjoint_ids" widget="many2many_tags" optional="hide"/>
                                             </list>
                                         </field>
-                                        <div class="o_stat_info" colspan="2">
-                                            <div class="text-muted">The colored <span class="text-success">groups</span> is already added from a group implied.</div>
-                                            <div class="text-muted">The colored <span class="text-danger">groups</span> are disjoint and cannot be together on the same user.</div>
-                                            <div class="text-muted">The italic <span class="fst-italic">groups</span> is directly implied by one of the selected groups.</div>
-                                        </div>
                                     </group>
                                     <group>
-                                        <label for="view_visible_implied_group_ids"/>
+                                        <label for="view_visible_implied_group_ids" colspan="2"/>
                                         <field name="view_visible_implied_group_ids" colspan="2" nolabel="1">
                                             <list string="Implied groups" default_order="category_id,name"
                                                     decoration-it="set(implied_by_ids).difference(parent.view_visible_implied_group_ids).intersection(parent.group_ids)"
@@ -295,6 +289,13 @@
                                             </list>
                                         </field>
                                         <field name="view_show_technical_groups"/>
+                                    </group>
+                                    <group>
+                                        <div class="o_stat_info" colspan="2">
+                                            <div class="text-muted">The <span class="text-success">colored groups</span> are already implied by another group.</div>
+                                            <div class="text-muted">The <span class="text-danger">colored groups</span> are disjoint and cannot be selected at the same time.</div>
+                                            <div class="text-muted">The <span class="fst-italic">italic groups</span> are directly implied by one of the selected groups.</div>
+                                        </div>
                                     </group>
                                 </group>
                             </page>
@@ -402,7 +403,7 @@
             <field name="view_mode">list,kanban,form</field>
             <field name="view_id" ref="view_users_tree"/>
             <field name="search_view_id" ref="view_users_search"/>
-            <field name="context">{'search_default_filter_no_share': 1, 'view_user_settings': True}</field>
+            <field name="context">{'search_default_filter_no_share': 1}</field>
             <field name="help">Create and manage users that will connect to the system. Users can be deactivated should there be a period of time during which they will/should not connect to the system. You can assign them groups in order to give them specific access to the applications they need to use in the system.</field>
         </record>
         <record id="action_res_users_view1" model="ir.actions.act_window.view">

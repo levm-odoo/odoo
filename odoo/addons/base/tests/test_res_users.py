@@ -365,7 +365,7 @@ class TestUsers2(UsersCommonCase):
         group_contain_user = self.env['res.groups'].create({
             'name': 'Small user group', 'category_id': app.id, 'implied_ids': [group_user.id]})
 
-        user_form = Form(self.env['res.users'].with_context(view_user_settings=True), view='base.view_users_form')
+        user_form = Form(self.env['res.users'], view='base.view_users_form')
         user_form.name = "Test"
         user_form.login = "Test"
         self.assertFalse(user_form.share)
@@ -387,7 +387,7 @@ class TestUsers2(UsersCommonCase):
         # in debug mode, allow extra groups
 
         with self.debug_mode():
-            user_form = Form(self.env['res.users'].with_context(view_user_settings=True), view='base.view_users_form')
+            user_form = Form(self.env['res.users'], view='base.view_users_form')
             user_form.name = "Test-2"
             user_form.login = "Test-2"
 

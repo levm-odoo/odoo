@@ -138,8 +138,6 @@ class ResGroups(models.Model):
     _order = 'sequence,id'
 
     name = fields.Char(required=True, translate=True)
-    sequence = fields.Integer(string='Sequence')
-
     user_ids = fields.Many2many('res.users', 'res_groups_users_rel', 'gid', 'uid', help='Users with this group specifically')
     all_user_ids = fields.Many2many('res.users', compute='_compute_all_user_ids', compute_sudo=True, search='_search_all_user_ids', string='Users and implied users')
 
@@ -186,10 +184,11 @@ class ResGroups(models.Model):
       therefore have all the rights of these groups in addition to their own access rights.
     """
     implied_ids = fields.Many2many('res.groups', 'res_groups_implied_rel', 'gid', 'hid',
-        string='Inherits', help='Users of this group are also implicitely part of these inherited groups')
+        string='Imply', help='Users of this group are also implicitely part of these inherited groups')
     all_implied_ids = fields.Many2many('res.groups', string='Transitive and recursive closure', recursive=True,
         compute='_compute_all_implied_ids', compute_sudo=True, search='_search_all_implied_ids')
-    implied_by_ids = fields.Many2many('res.groups', 'res_groups_implied_rel', 'hid', 'gid', string='Automatically added from')
+    implied_by_ids = fields.Many2many('res.groups', 'res_groups_implied_rel', 'hid', 'gid',
+        string='Add/Implied from', help="Users added the groups are automatically added in the current groups.")
     all_implied_by_ids = fields.Many2many('res.groups', string='Reversed transitive and recursive closure', recursive=True,
         compute='_compute_all_implied_by_ids', compute_sudo=True, search='_search_all_implied_by_ids')
 

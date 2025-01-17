@@ -23,9 +23,7 @@ class ResUsers(models.Model):  # noqa: F811
     view_group_hierarchy = fields.Json(string='Technical field for user group setting', compute='_compute_view_group_hierarchy')
 
     def _compute_view_group_hierarchy(self):
-        data = self._get_view_group_hierarchy()
-        for user in self:
-            user.view_group_hierarchy = data
+        self.view_group_hierarchy = self._get_view_group_hierarchy()
 
     @api.model
     @tools.ormcache()
@@ -39,7 +37,7 @@ class ResUsers(models.Model):  # noqa: F811
                         'id': category.id,
                         'name': category.name,
                         'description': category.description,
-                        'groups': [[group.id, group.name] for group in category.group_ids.sorted(lambda g: g.sequence)]
+                        'groups': [[group.id, group.name] for group in category.group_ids]
                     } for category in section.child_ids.sorted(lambda c: c.sequence) if category.group_ids
                 ]
             } for section in self.env['ir.module.category'].search([('parent_id', '=', False), ('child_ids.group_ids', '!=', False)], order="sequence")

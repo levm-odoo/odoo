@@ -10,15 +10,15 @@ export class Many2ManyResUserGroupField extends Component {
     static template = "web.ResUserGroups";
     static props = { ...standardFieldProps };
 
-    get sections () {
+    get sections() {
         return this.props.record.data.view_group_hierarchy;
     }
 
-    getTooltipInfo (category) {
+    getTooltipInfo(category) {
         return category.description && JSON.stringify( {field: {help: category.description}} );
     }
 
-    getSelectedGroup (category) {
+    getSelectedGroup(category) {
         const ids = this.props.record.data.group_ids.currentIds;
         return category.groups.find(g => ids.includes(g[0]))?.[0] || false;
     }
