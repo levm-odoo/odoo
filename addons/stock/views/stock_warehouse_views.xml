@@ -62,7 +62,6 @@
                                         <field name="pick_type_id" readonly="1"/>
                                         <field name="pack_type_id" readonly="1"/>
                                         <field name="out_type_id" readonly="1"/>
-                                        <field name="xdock_type_id" readonly="1"/>
                                     </group>
                                 </group>
                             </page>
