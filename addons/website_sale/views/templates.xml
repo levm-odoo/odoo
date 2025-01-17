@@ -3122,15 +3122,16 @@
     <template id="website_sale.shop_product_image">
         <div
             t-if="'video_url' in product_image"
-            t-att-class="image_classes + ' o_editable ratio ratio-16x9'"
+            t-att-data-oe-model="product_image._name"
+            t-att-data-oe-id="product_image.id"
+            t-att-class="image_classes + ' ratio ratio-16x9'"
         >
             <div class="media_iframe_video">
                 <div class="css_editable_mode_display"/>
                 <div class="media_iframe_video_size" contenteditable="false"/>
                 <iframe
-                    frameborder="0"
                     t-att-src="product_image.video_url"
-                    allowfullscreen="true">
+                    allowfullscreen="allowfullscreen">
                 </iframe>
             </div>
         </div>
