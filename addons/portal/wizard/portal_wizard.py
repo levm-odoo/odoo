@@ -91,6 +91,7 @@ class PortalWizardUser(models.TransientModel):
         ('ko', 'Invalid'),
         ('exist', 'Already Registered')],
         string='Status', compute='_compute_email_state', default='ok')
+    name = fields.Char('Name', compute='_compute_name', store=True)
 
     @api.depends('email')
     def _compute_email_state(self):
@@ -113,6 +114,11 @@ class PortalWizardUser(models.TransientModel):
             user = portal_wizard_user.partner_id.with_context(active_test=False).user_ids
             portal_wizard_user.user_id = user[0] if user else False
 
+    @api.depends('partner_id')
+    def _compute_name(self):
+        for record in self:
+            record.name = record.partner_id.name if record.partner_id else False
+
     @api.depends('user_id', 'user_id.groups_id')
     def _compute_group_details(self):
         for portal_wizard_user in self:
@@ -127,7 +133,6 @@ class PortalWizardUser(models.TransientModel):
             else:
                 portal_wizard_user.is_internal = False
                 portal_wizard_user.is_portal = False
-
     def action_grant_access(self):
         """Grant the portal access to the partner.
 
