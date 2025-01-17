@@ -106,12 +106,24 @@ class SmsSms(models.Model):
           :param auto_commit: commit after each batch of SMS;
           :param raise_exception: raise if there is an issue contacting IAP;
         """
-        self = self.filtered(lambda sms: sms.state == 'outgoing' and not sms.to_delete)
-        for batch_ids in self._split_batch():
-            self.browse(batch_ids)._send(unlink_failed=unlink_failed, unlink_sent=unlink_sent, raise_exception=raise_exception)
+        def can_be_sent(sms):
+            return sms.state == 'outgoing' and not sms.to_delete
+
+        records = self
+        if auto_commit is not True:
+            records = records.filtered(can_be_sent)
+        done = 0
+        for batch_ids in tools.split_every(self._get_send_batch_size(), records.ids):
+            records = self.browse(batch_ids)
+            if auto_commit is True:
+                # after commit, we must recheck if records did not change
+                records = records.exists().filtered(can_be_sent)
+            records._send(unlink_failed=unlink_failed, unlink_sent=unlink_sent, raise_exception=raise_exception)
+            done += len(records)
             # auto-commit if asked except in testing mode
             if auto_commit is True and not getattr(threading.current_thread(), 'testing', False):
-                self._cr.commit()
+                self.env['ir.cron']._notify_progress(done=done, remaining=len(self) - done)
+                self.env.cr.commit()
 
     def resend_failed(self):
         sms_to_send = self.filtered(lambda sms: sms.state == 'error' and not sms.to_delete)
@@ -145,31 +157,30 @@ class SmsSms(models.Model):
         """ Send immediately queued messages, committing after each message is sent.
         This is not transactional and should not be called during another transaction!
 
-       :param list ids: optional list of emails ids to send. If passed no search
-         is performed, and these ids are used instead.
+       :param list ids: optional list of emails ids to send. If passed search
+         only for these records.
         """
         domain = [('state', '=', 'outgoing'), ('to_delete', '!=', True)]
-
-        filtered_ids = self.search(domain, limit=10000).ids  # TDE note: arbitrary limit we might have to update
-        if ids:
-            ids = list(set(filtered_ids) & set(ids))
+        if ids is not None:
+            domain.append(('id', 'in', ids))
+            batch_size = None
         else:
-            ids = filtered_ids
-        ids.sort()
+            batch_size = self._get_send_batch_size()
+        records = self.search(domain, limit=batch_size)
 
-        res = None
         try:
             # auto-commit except in testing mode
             auto_commit = not getattr(threading.current_thread(), 'testing', False)
-            res = self.browse(ids).send(unlink_failed=False, unlink_sent=True, auto_commit=auto_commit, raise_exception=False)
+            records.send(unlink_failed=False, unlink_sent=True, auto_commit=auto_commit, raise_exception=False)
         except Exception:
+            self.env.cr.rollback()
             _logger.exception("Failed processing SMS queue")
-        return res
+        else:
+            if batch_size and len(records) == batch_size:
+                self.env['ir.cron']._notify_progress(done=len(records), remaining=self.search_count(domain))
 
-    def _split_batch(self):
-        batch_size = int(self.env['ir.config_parameter'].sudo().get_param('sms.session.batch.size', 500))
-        for sms_batch in tools.split_every(batch_size, self.ids):
-            yield sms_batch
+    def _get_send_batch_size(self):
+        return int(self.env['ir.config_parameter'].sudo().get_param('sms.session.batch.size', 500))
 
     def _send(self, unlink_failed=False, unlink_sent=True, raise_exception=False):
         """Send SMS after checking the number (presence and formatting)."""
