@@ -20,6 +20,10 @@ export class PosOrder extends Base {
 
         if (!this.session_id && (!this.finalized || typeof this.id !== "number")) {
             this.update({ session_id: this.session });
+
+            if (this.session?.state === "opening_control" && this.state === 'draft') {
+                vals.state  = 'cancel';
+            }
         }
 
         // Data present in python model
