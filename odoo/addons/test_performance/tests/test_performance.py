@@ -263,7 +263,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
         # create N lines on rec1: O(1) queries
         with self.assertQueriesContain([
             """ INSERT INTO "test_performance_line" """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
         ]):
             self.env.invalidate_all()
@@ -272,8 +272,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
 
         with self.assertQueriesContain([
             """ INSERT INTO "test_performance_line" """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."value", """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
         ]):
             self.env.invalidate_all()
@@ -284,8 +283,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
 
         # update N lines: O(1) queries
         with self.assertQueriesContain([
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."value", """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
             """ UPDATE "test_performance_line" SET "value" """,
         ]):
@@ -294,8 +292,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
         self.assertEqual(rec1.line_ids, lines)
 
         with self.assertQueriesContain([
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."value", """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
             """ UPDATE "test_performance_line" SET "value" """,
         ]):
@@ -305,15 +302,13 @@ class TestPerformance(SavepointCaseWithUserDemo):
 
         # delete N lines: O(1) queries
         with self.assertQueriesContain([
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."value", """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
             """ DELETE FROM "test_performance_line" WHERE """,
             """ SELECT "ir_model_data"."id" FROM "ir_model_data" WHERE """,
             """ SELECT id FROM ir_attachment WHERE """,
             """ SELECT "ir_default"."id" FROM "ir_default" WHERE """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."value", """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
         ]):
             self.env.invalidate_all()
@@ -321,14 +316,13 @@ class TestPerformance(SavepointCaseWithUserDemo):
         self.assertEqual(rec1.line_ids, lines[1:])
 
         with self.assertQueriesContain([
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."value", """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
             """ DELETE FROM "test_performance_line" WHERE """,
             """ SELECT "ir_model_data"."id" FROM "ir_model_data" WHERE """,
             """ SELECT id FROM ir_attachment WHERE """,
             """ SELECT "ir_default"."id" FROM "ir_default" WHERE """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
         ]):
             self.env.invalidate_all()
@@ -341,15 +335,13 @@ class TestPerformance(SavepointCaseWithUserDemo):
 
         # unlink N lines: O(1) queries
         with self.assertQueriesContain([
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."value", """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
             """ DELETE FROM "test_performance_line" WHERE """,
             """ SELECT "ir_model_data"."id" FROM "ir_model_data" WHERE """,
             """ SELECT id FROM ir_attachment WHERE """,
             """ SELECT "ir_default"."id" FROM "ir_default" WHERE """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."value", """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
         ]):
             self.env.invalidate_all()
@@ -357,14 +349,13 @@ class TestPerformance(SavepointCaseWithUserDemo):
         self.assertEqual(rec1.line_ids, lines[1:])
 
         with self.assertQueriesContain([
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."value", """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
             """ DELETE FROM "test_performance_line" WHERE """,
             """ SELECT "ir_model_data"."id" FROM "ir_model_data" WHERE """,
             """ SELECT id FROM ir_attachment WHERE """,
             """ SELECT "ir_default"."id" FROM "ir_default" WHERE """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
         ]):
             self.env.invalidate_all()
@@ -378,11 +369,10 @@ class TestPerformance(SavepointCaseWithUserDemo):
 
         # link N lines from rec1 to rec2: O(1) queries
         with self.assertQueriesContain([
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_line" SET "base_id" """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."value", """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
         ]):
             self.env.invalidate_all()
@@ -391,11 +381,10 @@ class TestPerformance(SavepointCaseWithUserDemo):
         self.assertEqual(rec2.line_ids, lines[0])
 
         with self.assertQueriesContain([
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
             """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."value", """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_line" SET "base_id" """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
         ]):
             self.env.invalidate_all()
@@ -404,8 +393,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
         self.assertEqual(rec2.line_ids, lines)
 
         with self.assertQueriesContain([
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."value", """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
         ]):
             self.env.invalidate_all()
@@ -413,8 +401,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
         self.assertEqual(rec2.line_ids, lines)
 
         with self.assertQueriesContain([
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."value", """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
         ]):
             self.env.invalidate_all()
@@ -424,14 +411,13 @@ class TestPerformance(SavepointCaseWithUserDemo):
         # empty N lines in rec2: O(1) queries
         with self.assertQueriesContain([
             """ SELECT "test_performance_line"."id" FROM "test_performance_line" WHERE """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."value", """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
             """ DELETE FROM "test_performance_line" WHERE """,
             """ SELECT "ir_model_data"."id" FROM "ir_model_data" WHERE """,
             """ SELECT id FROM ir_attachment WHERE """,
             """ SELECT "ir_default"."id" FROM "ir_default" WHERE """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
         ]):
             self.env.invalidate_all()
@@ -440,7 +426,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
 
         with self.assertQueriesContain([
             """ SELECT "test_performance_line"."id" FROM "test_performance_line" WHERE """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
         ]):
             self.env.invalidate_all()
@@ -455,8 +441,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
             """ SELECT "test_performance_line"."id" FROM "test_performance_line" WHERE """,
             """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_line" SET "base_id" """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."value", """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
         ]):
             self.env.invalidate_all()
@@ -468,7 +453,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
             """ SELECT "test_performance_line"."id" FROM "test_performance_line" WHERE """,
             """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_line" SET "base_id" """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
         ]):
             self.env.invalidate_all()
@@ -479,7 +464,7 @@ class TestPerformance(SavepointCaseWithUserDemo):
         with self.assertQueriesContain([
             """ SELECT "test_performance_line"."id" FROM "test_performance_line" WHERE """,
             """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
-            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id" FROM """,
+            """ SELECT "test_performance_line"."id", "test_performance_line"."base_id", """,
             """ UPDATE "test_performance_base" SET "total" """,
         ]):
             self.env.invalidate_all()

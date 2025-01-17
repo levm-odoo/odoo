@@ -770,12 +770,9 @@ class One2many(_RelationalMulti[M]):
         inverse = self.inverse_name
         inverse_field = comodel._fields[inverse]
 
-        # optimization: fetch the inverse and active fields with search()
+        # optimization: prefetch fields when searching
         domain = self.get_domain_list(records) + [(inverse, 'in', records.ids)]
-        field_names = [inverse]
-        if comodel._active_name:
-            field_names.append(comodel._active_name)
-        lines = comodel.search_fetch(domain, field_names)
+        lines = comodel.search_fetch(domain)
 
         # group lines by inverse field (without prefetching other fields)
         get_id = (lambda rec: rec.id) if inverse_field.type == 'many2one' else int
