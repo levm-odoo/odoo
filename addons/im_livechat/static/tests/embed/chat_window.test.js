@@ -1,22 +1,20 @@
-import { waitNotifications } from "@bus/../tests/bus_test_helpers";
 import {
     defineLivechatModels,
     loadDefaultEmbedConfig,
 } from "@im_livechat/../tests/livechat_test_helpers";
 import { LivechatButton } from "@im_livechat/embed/common/livechat_button";
 import {
+    assertChatHub,
     click,
     contains,
     inputFiles,
     insertText,
-    onRpcBefore,
     start,
     startServer,
     triggerHotkey,
 } from "@mail/../tests/mail_test_helpers";
 import { describe, test } from "@odoo/hoot";
 import {
-    asyncStep,
     mountWithCleanup,
     patchWithCleanup,
     serverState,
@@ -26,14 +24,11 @@ import {
 describe.current.tags("desktop");
 defineLivechatModels();
 
-test("do not save fold state of temporary live chats", async () => {
+test("save fold state of temporary live chats", async () => {
     patchWithCleanup(LivechatButton, { DEBOUNCE_DELAY: 0 });
     await startServer();
     await loadDefaultEmbedConfig();
-    onRpcBefore("/discuss/channel/fold", (args) => {
-        asyncStep(`fold - ${args.state}`);
-    });
-    const env = await start({ authenticateAs: false });
+    await start({ authenticateAs: false });
     await mountWithCleanup(LivechatButton);
     await click(".o-livechat-LivechatButton");
     await contains(".o-mail-Message", { text: "Hello, how may I help you?" });
@@ -42,20 +37,19 @@ test("do not save fold state of temporary live chats", async () => {
     await triggerHotkey("Enter");
     await contains(".o-mail-Message", { text: "Hello" });
     await click(".o-mail-ChatWindow-header");
-    await waitNotifications([env, "discuss.Thread/fold_state"]);
     await contains(".o-mail-Message", { text: "Hello", count: 0 });
-    await waitForSteps(["fold - folded"]);
+    assertChatHub({ folded: [1] });
     await click(".o-mail-ChatBubble");
     await click("[title*='Close Chat Window']");
-    await waitForSteps(["fold - open"]); // clicking close shows the feedback panel
+    assertChatHub({ opened: [1] });
     await click(".o-livechat-CloseConfirmation-leave");
     await click("button", { text: "Close" });
-    await waitForSteps(["fold - closed"]);
+    assertChatHub({ folded: [] });
     await click(".o-livechat-LivechatButton");
     await contains(".o-mail-Message", { text: "Hello, how may I help you?" });
-    await waitForSteps([]);
+    assertChatHub({ opened: [-1] });
     await click(".o-mail-ChatWindow-header");
-    await waitForSteps([]);
+    assertChatHub({ folded: [-1] });
 });
 
 test("internal users can upload file to temporary thread", async () => {

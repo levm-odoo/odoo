@@ -157,6 +157,7 @@ class Store:
             )
             index = self._get_record_index(model_name, values)
             self._ensure_record_at_index(model_name, index)
+            self._add_values(values, model_name, index)
             self.data[model_name][index]["_DELETE"] = True
         return self
 
