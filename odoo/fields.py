@@ -1825,10 +1825,11 @@ class _String(Field):
                     matches = get_close_matches(old_term_text, text2terms, 1, 0.9)
                     if matches:
                         closest_term = get_close_matches(old_term, text2terms[matches[0]], 1, 0)[0]
-                        if closest_term in translation_dictionary:
-                            continue
                         old_is_text = old_term == self.get_text_content(old_term)
                         closest_is_text = closest_term == self.get_text_content(closest_term)
+                        if closest_term in translation_dictionary or (
+                            not closest_is_text and records.env.context.get("install_mode")):
+                            continue
                         if old_is_text or not closest_is_text:
                             translation_dictionary[closest_term] = translation_dictionary.pop(old_term)
             # pylint: disable=not-callable
