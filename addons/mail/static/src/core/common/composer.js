@@ -526,7 +526,7 @@ export class Composer extends Component {
         const signature = this.store.self.signature;
         const default_body =
             (await prettifyMessageContent(body, validMentions)) +
-            (this.props.composer.emailAddSignature && signature ? "<br>" + signature : "");
+            (this.props.composer.emailAddSignature && signature ? `<br><p class="m-0 mb-0 box-border">--</p>${signature}` : "");
         const context = {
             default_attachment_ids: attachmentIds,
             default_body,
