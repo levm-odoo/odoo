@@ -1996,8 +1996,8 @@ class UsersView(models.Model):
         self._add_reified_groups(group_fields, values)
         return values
 
-    def _determine_fields_to_fetch(self, field_names, ignore_when_in_cache=False):
-        valid_fields = partition(is_reified_group, field_names)[1]
+    def _determine_fields_to_fetch(self, field_names=None, ignore_when_in_cache=False):
+        valid_fields = None if field_names is None else partition(is_reified_group, field_names)[1]
         return super()._determine_fields_to_fetch(valid_fields, ignore_when_in_cache)
 
     def _read_format(self, fnames, load='_classic_read'):

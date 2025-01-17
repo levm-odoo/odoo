@@ -1010,9 +1010,14 @@ class ProjectTask(models.Model):
                 return field.name in self.SELF_WRITABLE_FIELDS
         return True
 
-    def _determine_fields_to_fetch(self, field_names, ignore_when_in_cache=False):
+    def _determine_fields_to_fetch(self, field_names=None, ignore_when_in_cache=False):
         if not self.env.su and self.env.user._is_portal():
             valid_names = self.SELF_READABLE_FIELDS
+            if field_names is None:
+                field_names = [
+                    field.name
+                    for field in super()._determine_fields_to_fetch(None, ignore_when_in_cache)
+                ]
             field_names = [fname for fname in field_names if fname in valid_names]
         return super()._determine_fields_to_fetch(field_names, ignore_when_in_cache)
 

@@ -324,13 +324,14 @@ class HrEmployee(models.Model):
         for employee_private, employee_public in zip(self, self.env['hr.employee.public'].browse(self.ids)):
             employee_private.display_name = employee_public.display_name
 
-    def search_fetch(self, domain, field_names, offset=0, limit=None, order=None):
+    def search_fetch(self, domain, field_names=None, offset=0, limit=None, order=None):
         if self.browse().has_access('read'):
             return super().search_fetch(domain, field_names, offset, limit, order)
 
         # HACK: retrieve publicly available values from hr.employee.public and
         # copy them to the cache of self; non-public data will be missing from
         # cache, and interpreted as an access error
+        field_names = [field.name for field in self._determine_fields_to_fetch(field_names)]
         self._check_private_fields(field_names)
         self.flush_model(field_names)
         public = self.env['hr.employee.public'].search_fetch(domain, field_names, offset, limit, order)
@@ -338,13 +339,14 @@ class HrEmployee(models.Model):
         employees._copy_cache_from(public, field_names)
         return employees
 
-    def fetch(self, field_names):
+    def fetch(self, field_names=None):
         if self.browse().has_access('read'):
             return super().fetch(field_names)
 
         # HACK: retrieve publicly available values from hr.employee.public and
         # copy them to the cache of self; non-public data will be missing from
         # cache, and interpreted as an access error
+        field_names = [field.name for field in self._determine_fields_to_fetch(field_names)]
         self._check_private_fields(field_names)
         self.flush_recordset(field_names)
         public = self.env['hr.employee.public'].browse(self._ids)
