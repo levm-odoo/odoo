@@ -542,6 +542,10 @@ class EventTrackController(http.Controller):
 
     @http.route('/event/send_email_reminder', type="jsonrpc", auth="public", website=True)
     def send_email_reminder(self, track_id, email_to):
+        template = self.env.ref("website_event_track.email_reminder", raise_if_not_found=False)
+        if not template:
+            return {'success': _('The mail with reminder can not be sent.')}
+
         valid_email_to = tools.email_normalize(email_to)
         if not track_id or not valid_email_to:
             return {'success': False, 'message': _('Invalid data.')}
@@ -555,8 +559,8 @@ class EventTrackController(http.Controller):
             'yahoo_url': agenda_urls.get('yahoo_url'),
             'lang': request.cookies.get('frontend_lang') if request.env.user._is_public() else request.context.get('lang', request.env.user.lang)
         }
-        template = self.env.ref("website_event_track.email_reminder").sudo().with_context(context)
-        template.send_mail(track.id, email_values={"email_to": valid_email_to})
+
+        template.sudo().with_context(context).send_mail(track.id, email_values={"email_to": valid_email_to})
 
         return {'success': True}
 
