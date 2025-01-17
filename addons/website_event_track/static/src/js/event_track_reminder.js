@@ -174,18 +174,6 @@ publicWidget.registry.websiteEventTrackReminder = publicWidget.Widget.extend({
             this.opacityManagerElement.style.opacity = 1;
             this.el.append(renderToElement('website_event_track.email_reminder_modal', {'track_id': trackId}));
         }
-
-
-        if (!emailReminder && mustUpdateEmailReminder){
-            if (session.is_public) {
-                this.opacityManagerElement.style.opacity = 1;
-                this.el.append(renderToElement('website_event_track.email_reminder_modal', {'track_id': trackId}));
-            }
-            else {
-
-            }
-        }
-
     },
 
     _updateDisplay: function () {
