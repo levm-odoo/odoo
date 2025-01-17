@@ -104,7 +104,6 @@ publicWidget.registry.websiteEventTrackReminder = publicWidget.Widget.extend({
             track_id: trackId,
             set_reminder_on: false,
         }).then((result) => {
-            console.log(result);
             self.reminderOn = false;
             self._updateDisplay();
             self.notification.add(_t('Talk removed from your Favorites'), {
@@ -114,25 +113,21 @@ publicWidget.registry.websiteEventTrackReminder = publicWidget.Widget.extend({
     },
 
     _sendEmailReminder: async function (trackId, emailTo) {
-         rpc('/event/send_email_reminder',  {
-//        await rpc('/event/send_email_reminder',  {
+         await rpc('/event/send_email_reminder',  {
             track_id: trackId,
             email_to: emailTo
-        }).then((result) => {
-            console.log(result);
-            if (result.error){
-                this.notification.add(result.error,
-                {
-                    type: 'danger',
-                    title: _t('Error')
+        }).then(async (result) => {
+            if (result.success){
+                await this._addReminder(trackId);
+                this.notification.add(_t('Track successfully added to your favorites. Check your email to add them to your agenda.'),
+                    {
+                        type: 'info',
+                        className: 'o_send_email_reminder_success'
                 });
             }
-        });
-        await this._addReminder(trackId);
-        this.notification.add(_t('Track successfully added to your favorites. Check your email to add them to your agenda.'),
-        {
-            type: 'info',
-            className: 'o_send_email_reminder_success'
+            else {
+                this.notification.add(result.message, {type: 'danger', title: _t('Error')});
+            }
         });
     },
 
@@ -141,14 +136,22 @@ publicWidget.registry.websiteEventTrackReminder = publicWidget.Widget.extend({
         this.opacityManagerElement.style.opacity = this.initialOpacity;
     },
 
+    _isEmailReminderFormValid: function (data) {
+        return data.track_id && !isNaN(data.track_id) && data.email.match(/.+@.+\..*/);
+    },
+
     _modalEmailReminderSubmit: function (ev) {
         ev.preventDefault();
         var data = Object.fromEntries(new FormData(ev.target).entries());
-        sessionStorage.setItem('website_event_track.email_reminder', data.email);
-        this._sendEmailReminder(parseInt(data.track_id), data.email);
+        if (this._isEmailReminderFormValid(data)) {
+            sessionStorage.setItem('website_event_track.email_reminder', data.email);
+            this._sendEmailReminder(parseInt(data.track_id), data.email);
+        }
+        else {
+            this.notification.add(_t('Invalid data'), {type: 'danger', title: _t('Error')});
+        }
         this._modalEmailReminderRemove();
     },
-
 
     _checkEmailReminder: async function (trackId){
         var mustUpdateEmailReminder = sessionStorage.getItem('website_event_track.user_is_public') != session.is_public.toString();
@@ -165,13 +168,24 @@ publicWidget.registry.websiteEventTrackReminder = publicWidget.Widget.extend({
         var emailReminder = sessionStorage.getItem('website_event_track.email_reminder');
 
         if (!mustUpdateEmailReminder && emailReminder){
-//            this._sendEmailReminder(trackId, emailReminder);
-            this._sendEmailReminder(trackId,'haha');
+            this._sendEmailReminder(trackId, emailReminder);
         }
         else {
             this.opacityManagerElement.style.opacity = 1;
             this.el.append(renderToElement('website_event_track.email_reminder_modal', {'track_id': trackId}));
         }
+
+
+        if (!emailReminder && mustUpdateEmailReminder){
+            if (session.is_public) {
+                this.opacityManagerElement.style.opacity = 1;
+                this.el.append(renderToElement('website_event_track.email_reminder_modal', {'track_id': trackId}));
+            }
+            else {
+
+            }
+        }
+
     },
 
     _updateDisplay: function () {

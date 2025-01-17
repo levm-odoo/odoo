@@ -543,8 +543,8 @@ class EventTrackController(http.Controller):
     @http.route('/event/send_email_reminder', type="jsonrpc", auth="public", website=True)
     def send_email_reminder(self, track_id, email_to):
         valid_email_to = tools.email_normalize(email_to)
-        if not track_id or not email_to or not email_to == valid_email_to:
-            return {'error': _('The form contains invalid data.')}
+        if not track_id or not valid_email_to:
+            return {'success': False, 'message': _('Invalid data.')}
         request.session['website_event_track.email_reminder'] = valid_email_to
         track = request.env['event.track'].sudo().browse(track_id)
 
@@ -558,9 +558,7 @@ class EventTrackController(http.Controller):
         template = self.env.ref("website_event_track.email_reminder").sudo().with_context(context)
         template.send_mail(track.id, email_values={"email_to": valid_email_to})
 
-        result = {'succes': 'test'}
-
-        return result
+        return {'success': True}
 
     @http.route(['''/event/<model("event.event"):event>/track/<model("event.track"):track>/ics'''], type='http', auth="public")
     def event_track_ics_file(self, event, track, **kwargs):
