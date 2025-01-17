@@ -67,7 +67,7 @@
         <xpath expr="//section" position="replace">
             <section class="s_website_form pt40 pb40 o_signup oe_unremovable" data-vcss="001" data-snippet="s_website_form" data-name="Form" t-ignore="True">
                 <div class="container" style="max-width: 500px;">
-                    <form class="oe_signup_form" action="/web/signup" data-model_name="res.users" enctype="multipart/form-data" data-success-mode="redirect" data-mark="*" data-success-page="/my">
+                    <form class="oe_signup_form" action="/web/signup" data-model_name="res.users" enctype="multipart/form-data" data-success-mode="redirect" data-mark="*" data-success-page="/my" hide-change-model="true">
                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                         <div class="s_website_form_rows row s_col_no_bgcolor">
 

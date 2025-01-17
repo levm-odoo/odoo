@@ -68,7 +68,6 @@ class WebsiteForm(http.Controller):
             return json.dumps({'error_fields': e.args[0]})
 
         try:
-            # breakpoint()
             id_record = self.insert_record(request, model_record, data['record'], data['custom'], data.get('meta'))
             if id_record:
                 self.insert_attachment(model_record, id_record, data['attachments'])

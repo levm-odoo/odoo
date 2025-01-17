@@ -452,18 +452,12 @@ options.registry.WebsiteFormEditor = FormEditor.extend({
             this.selectActionEl = document.createElement('we-select');
             this.selectActionEl.setAttribute('string', 'Action');
             this.selectActionEl.dataset.noPreview = 'true';
-            const isSignupForm = this.$target[0].classList.contains("oe_signup_form");
+            this.models.splice(this.models.findIndex(item => item.website_form_key === 'signup_form'), 1);
             this.models.forEach(el => {
                 const option = document.createElement('we-button');
                 option.textContent = el.website_form_label;
                 option.dataset.selectAction = el.id;
-                if (el.website_form_key !== "signup_form") {
-                    this.selectActionEl.append(option);
-                } else if (isSignupForm) {
-                    this.selectActionEl.innerHTML = '';
-                    this.selectActionEl.append(option);
-                    return this.selectActionEl;
-                }
+                this.selectActionEl.append(option);
             });
             return this.selectActionEl;
         }
