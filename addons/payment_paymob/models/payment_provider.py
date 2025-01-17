@@ -39,6 +39,7 @@ class PaymentProvider(models.Model):
         required_if_provider='paymob',
         groups='base.group_system',
     )
+    paymob_hmac_key = fields.Char(string="Paymob HMAC Key", required_if_provider='paymob')
     paymob_integration_message = fields.Char(compute="_compute_paymob_integration_message")
 
     # paymob_integration_ids = fields.Many2many(

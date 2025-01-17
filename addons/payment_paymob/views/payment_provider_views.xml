@@ -19,6 +19,12 @@
                         password="True"
                         required="code == 'paymob' and state != 'disabled'"
                     />
+                    <field
+                        name="paymob_hmac_key"
+                        string="HMAC Key"
+                        password="True"
+                        required="code == 'paymob' and state != 'disabled'"
+                    />
                     <field name="paymob_account_country_id" invisible="code != 'paymob'"/>
                     <div colspan="2" class="alert alert-warning" invisible="code != 'paymob'">
                         Currency will be updated to match the country of the paymob account.
