@@ -3969,16 +3969,29 @@ export class OdooEditor extends EventTarget {
             let previousSelection; // Is used to stop if `modify` doesn't move the selection.
             const hasSelectionChanged = (oldSelection = {}) => {
                 const newSelection = this.document.getSelection();
+                if (!newSelection.rangeCount) {
+                    return false;
+                }
+                const newRange = newSelection.getRangeAt(0);
                 return (
-                    oldSelection.anchorNode !== newSelection.anchorNode ||
-                    oldSelection.anchorOffset !== newSelection.anchorOffset ||
-                    oldSelection.focusNode !== newSelection.focusNode ||
-                    oldSelection.focusOffset !== newSelection.focusOffset
+                    oldSelection.anchorNode !== newRange.startContainer ||
+                    oldSelection.anchorOffset !== newRange.startOffset ||
+                    oldSelection.focusNode !== newRange.endContainer ||
+                    oldSelection.focusOffset !== newRange.endOffset
                 );
             };
             while (ZERO_WIDTH_CHARS.includes(adjacentCharacter) && hasSelectionChanged(previousSelection)) {
                 const selection = this.document.getSelection();
-                previousSelection = {...selection};
+                if (!selection.rangeCount) {
+                    break;
+                }
+                const range = selection.getRangeAt(0);
+                previousSelection = {
+                    anchorNode: range.startContainer,
+                    anchorOffset: range.startOffset,
+                    focusNode: range.endContainer,
+                    focusOffset: range.endOffset,
+                };
                 selection.modify(
                     ev.shiftKey ? 'extend' : 'move',
                     side === 'previous' ? 'backward' : 'forward',
