@@ -1201,6 +1201,34 @@ class TestXMLTranslation(TransactionCase):
         self.assertEqual(view.with_env(env_en).arch_db, archf % terms_en)
         self.assertEqual(view.with_env(env_fr).arch_db, archf % ('RandomRandom1', 'SomethingElse', 'AléatoireAléatoire3'))
 
+    def test_sync_xml_upgrade(self):
+        archf = '<form>%s<div>%s</div></form>'
+        terms_en = ('Draft', '<span invisible="1">Draft</span>')
+        terms_fr = ('Brouillon', '<span invisible="1">Brouillon</span>')
+        view = self.create_view(archf, terms_en, en_US=terms_en, fr_FR=terms_fr)
+
+        archf = '<form><div>%s</div></form>'
+        terms_en = ('<span invisible="0">Draft</span>')
+        terms_fr = ('<span invisible="0">Brouillon</span>')
+        view.with_context(install_mode=True).write({'arch_db': archf % terms_en})
+
+        self.assertEqual(view.arch_db, archf % terms_en)
+        self.assertEqual(view.with_context(lang='fr_FR').arch_db, archf % terms_fr)
+        
+        # change the order of terms with the same text content
+        archf = '<form>%s<div>%s</div></form>'
+        terms_en = ('<span invisible="1">Draft</span>', 'Draft')
+        terms_fr = ('<span invisible="1">Brouillon</span>', 'Brouillon')
+        view = self.create_view(archf, terms_en, en_US=terms_en, fr_FR=terms_fr)
+
+        archf = '<form><div>%s</div></form>'
+        terms_en = ('<span invisible="0">Draft</span>')
+        terms_fr = ('<span invisible="0">Brouillon</span>')
+        view.with_context(install_mode=True).write({'arch_db': archf % terms_en})
+
+        self.assertEqual(view.arch_db, archf % terms_en)
+        self.assertEqual(view.with_context(lang='fr_FR').arch_db, archf % terms_fr)
+
     def test_cache_consistency(self):
         view = self.env["ir.ui.view"].create({
             "name": "test_translate_xml_cache_invalidation",

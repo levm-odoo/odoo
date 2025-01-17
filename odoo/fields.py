@@ -1863,10 +1863,11 @@ class _String(Field):
                     matches = get_close_matches(old_term_text, text2terms, 1, 0.9)
                     if matches:
                         closest_term = get_close_matches(old_term, text2terms[matches[0]], 1, 0)[0]
-                        if closest_term in translation_dictionary:
-                            continue
                         old_is_text = is_text(old_term)
                         closest_is_text = is_text(closest_term)
+                        if closest_term in translation_dictionary or (
+                            closest_is_text != old_is_text and records.env.context.get("install_mode")):
+                            continue
                         if old_is_text or not closest_is_text:
                             if not closest_is_text and records.env.context.get("install_mode") and lang == 'en_US' and term_adapter:
                                 adapter = term_adapter(closest_term)
