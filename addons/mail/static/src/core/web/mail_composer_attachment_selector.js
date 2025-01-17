@@ -28,6 +28,7 @@ export class MailComposerAttachmentSelector extends Component {
             model: this.props.record.data.model,
             id: resIds[0],
         });
+        // debugger;
         const file = new File([dataUrlToBlob(data, type)], name, { type });
         const attachment = await this.attachmentUploadService.upload(thread, thread.composer, file);
         await this.operations.saveRecord([attachment.id]);

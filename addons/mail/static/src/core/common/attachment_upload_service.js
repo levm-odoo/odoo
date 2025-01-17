@@ -66,6 +66,7 @@ export class AttachmentUploadService {
                     return;
                 }
                 const { thread, composer } = this.targetsByTmpId.get(tmpId);
+                debugger;
                 // FIXME: this should be only response. HOOT tests returns wrong data {result, error}
                 const attachmentData = response?.result ?? response;
                 this._processLoaded(thread, composer, attachmentData, tmpId, def);
@@ -85,6 +86,7 @@ export class AttachmentUploadService {
     }
 
     _processLoaded(thread, composer, { data }, tmpId, def) {
+        debugger;
         const { "ir.attachment": attachments } = this.store.insert(data);
         /** @type {import("models").Attachment} */
         const attachment = attachments[0];
