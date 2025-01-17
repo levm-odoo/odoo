@@ -248,7 +248,7 @@ class AccountPayment(models.Model):
         """
         self.ensure_one()
 
-        def prepare_vals(invoice, partials):
+        def prepare_vals(invoice, partials=None, current_amount=0):
             number = ' - '.join([invoice.name, invoice.ref] if invoice.ref else [invoice.name])
 
             if invoice.is_outbound() or invoice.move_type == 'in_receipt':
@@ -258,51 +258,74 @@ class AccountPayment(models.Model):
                 invoice_sign = -1
                 partial_field = 'credit_amount_currency'
 
-            if invoice.currency_id.is_zero(invoice.amount_residual):
+            amount_residual = max(invoice.amount_residual - current_amount, 0) if current_amount else invoice.amount_residual
+            if invoice.currency_id.is_zero(amount_residual):
                 amount_residual_str = '-'
             else:
-                amount_residual_str = formatLang(self.env, invoice_sign * invoice.amount_residual, currency_obj=invoice.currency_id)
+                amount_residual_str = formatLang(self.env, invoice_sign * amount_residual, currency_obj=invoice.currency_id)
+            amount_paid = current_amount if current_amount else sum(partials.mapped(partial_field))
 
             return {
                 'due_date': format_date(self.env, invoice.invoice_date_due),
                 'number': number,
                 'amount_total': formatLang(self.env, invoice_sign * invoice.amount_total, currency_obj=invoice.currency_id),
                 'amount_residual': amount_residual_str,
-                'amount_paid': formatLang(self.env, invoice_sign * sum(partials.mapped(partial_field)), currency_obj=self.currency_id),
+                'amount_paid': formatLang(self.env, invoice_sign * amount_paid, currency_obj=self.currency_id),
                 'currency': invoice.currency_id,
             }
 
-        # Decode the reconciliation to keep only invoices.
-        term_lines = self.move_id.line_ids.filtered(lambda line: line.account_id.account_type in ('asset_receivable', 'liability_payable'))
-        invoices = (term_lines.matched_debit_ids.debit_move_id.move_id + term_lines.matched_credit_ids.credit_move_id.move_id)\
-            .filtered(lambda x: x.is_outbound() or x.move_type == 'in_receipt')
-        invoices = invoices.sorted(lambda x: x.invoice_date_due or x.date)
+        if self.move_id:
+            # Decode the reconciliation to keep only invoices.
+            term_lines = self.move_id.line_ids.filtered(lambda line: line.account_id.account_type in ('asset_receivable', 'liability_payable'))
+            invoices = (term_lines.matched_debit_ids.debit_move_id.move_id + term_lines.matched_credit_ids.credit_move_id.move_id)\
+                .filtered(lambda x: x.is_outbound() or x.move_type == 'in_receipt')
 
-        # Group partials by invoices.
-        invoice_map = {invoice: self.env['account.partial.reconcile'] for invoice in invoices}
-        for partial in term_lines.matched_debit_ids:
-            invoice = partial.debit_move_id.move_id
-            if invoice in invoice_map:
-                invoice_map[invoice] |= partial
-        for partial in term_lines.matched_credit_ids:
-            invoice = partial.credit_move_id.move_id
-            if invoice in invoice_map:
-                invoice_map[invoice] |= partial
+            invoices = invoices.sorted(lambda x: x.invoice_date_due or x.date)
 
-        # Prepare stub_lines.
-        if 'out_refund' in invoices.mapped('move_type'):
-            stub_lines = [{'header': True, 'name': "Bills"}]
-            stub_lines += [prepare_vals(invoice, partials)
-                           for invoice, partials in invoice_map.items()
-                           if invoice.move_type == 'in_invoice']
-            stub_lines += [{'header': True, 'name': "Refunds"}]
-            stub_lines += [prepare_vals(invoice, partials)
-                           for invoice, partials in invoice_map.items()
-                           if invoice.move_type == 'out_refund']
+            # Group partials by invoices.
+            invoice_map = {invoice: self.env['account.partial.reconcile'] for invoice in invoices}
+            for partial in term_lines.matched_debit_ids:
+                invoice = partial.debit_move_id.move_id
+                if invoice in invoice_map:
+                    invoice_map[invoice] |= partial
+            for partial in term_lines.matched_credit_ids:
+                invoice = partial.credit_move_id.move_id
+                if invoice in invoice_map:
+                    invoice_map[invoice] |= partial
+
+            # Prepare stub_lines.
+            if 'out_refund' in invoices.mapped('move_type'):
+                stub_lines = [{'header': True, 'name': "Bills"}]
+                stub_lines += [prepare_vals(invoice, partials=partials)
+                            for invoice, partials in invoice_map.items()
+                            if invoice.move_type == 'in_invoice']
+                stub_lines += [{'header': True, 'name': "Refunds"}]
+                stub_lines += [prepare_vals(invoice, partials=partials)
+                            for invoice, partials in invoice_map.items()
+                            if invoice.move_type == 'out_refund']
+            else:
+                stub_lines = [prepare_vals(invoice, partials)
+                            for invoice, partials in invoice_map.items()
+                            if invoice.move_type in ('in_invoice', 'in_receipt')]
         else:
-            stub_lines = [prepare_vals(invoice, partials)
-                          for invoice, partials in invoice_map.items()
-                          if invoice.move_type in ('in_invoice', 'in_receipt')]
+            invoices = self.invoice_ids.sorted(lambda x: x.invoice_date_due or x.date)
+            remaining = self.amount
+            stub_lines = []
+            has_out_refund = 'out_refund' in invoices.mapped('move_type')
+            move_types = ['in_invoice']
+            move_types += ['out_refund'] if has_out_refund else ['in_receipt']
+
+            for move_type in move_types:
+                if has_out_refund:
+                    stub_lines += [{'header': True, 'name': 'Bills' if move_type == 'in_invoice' else 'Refunds'}]
+                invoices_to_check = iter(invoices.filtered(lambda i: i.move_type == move_type))
+                while remaining and (inv_to_check := next(invoices_to_check, None)):
+                    current_amount = min(remaining, inv_to_check.currency_id._convert(
+                        from_amount=inv_to_check.amount_residual,
+                        to_currency=self.currency_id,
+                    ))
+                    stub_lines += [prepare_vals(inv_to_check, current_amount=current_amount)]
+                    remaining -= current_amount
 
         # Crop the stub lines or split them on multiple pages
         if not self.company_id.account_check_printing_multi_stub:
