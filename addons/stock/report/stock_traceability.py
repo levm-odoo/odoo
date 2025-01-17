@@ -118,6 +118,13 @@ class StockTraceabilityReport(models.TransientModel):
     def _make_dict_move(self, level, parent_id, move_line, unfoldable=False):
         res_model, res_id, ref = self._get_reference(move_line)
         dummy, is_used = self._get_linked_move_lines(move_line)
+        source_name = move_line.location_id.name
+        destination_name = move_line.location_dest_id.name
+        if self.env.user.has_group('stock.group_stock_multi_warehouses'):
+            if source_warehouse := move_line.location_id.warehouse_id:
+                source_name = '[%s] %s' % (source_warehouse.name, source_name)
+            if destination_warehouse := move_line.location_dest_id.warehouse_id:
+                destination_name = '[%s] %s' % (destination_warehouse.name, destination_name)
         data = [{
             'level': level,
             'unfoldable': unfoldable,
@@ -131,8 +138,8 @@ class StockTraceabilityReport(models.TransientModel):
             'product_qty_uom': "%s %s" % (self._quantity_to_str(move_line.product_uom_id, move_line.product_id.uom_id, move_line.quantity), move_line.product_id.uom_id.name),
             'lot_name': move_line.lot_id.name,
             'lot_id': move_line.lot_id.id,
-            'location_source': move_line.location_id.name,
-            'location_destination': move_line.location_dest_id.name,
+            'location_source': source_name,
+            'location_destination': destination_name,
             'reference_id': ref,
             'res_id': res_id,
             'res_model': res_model}]
