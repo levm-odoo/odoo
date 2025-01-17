@@ -255,6 +255,8 @@ def tag_quote(el):
                 element_index = siblings.index(el)
                 if quote_index < element_index:
                     el.set('data-o-mail-quote', '1')
+    if el.getprevious() is not None and el.getprevious().get('data-o-mail-quote') and not el.text_content().strip():
+        el.set('data-o-mail-quote', '1')
 
 
 def html_normalize(src, filter_callback=None, output_method="html"):
