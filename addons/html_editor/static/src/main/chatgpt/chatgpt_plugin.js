@@ -118,6 +118,7 @@ export class ChatGPTPlugin extends Plugin {
                     setTimeout(() => div.remove(), 2000);
                 }
             },
+            normalize: element => this.dispatchTo("normalize_handlers", element),
             ...params,
         };
         // collapse to end
@@ -125,6 +126,9 @@ export class ChatGPTPlugin extends Plugin {
         if (selection.isCollapsed) {
             this.dependencies.dialog.addDialog(ChatGPTPromptDialog, { ...dialogParams, sanitize });
         } else {
+            if (!params.language) {
+                dialogParams.originalBlocks = [...this.dependencies.selection.getTraversedBlocks()];
+            }
             const originalText = selection.textContent() || "";
             this.dependencies.dialog.addDialog(
                 params.language ? ChatGPTTranslateDialog : ChatGPTAlternativesDialog,

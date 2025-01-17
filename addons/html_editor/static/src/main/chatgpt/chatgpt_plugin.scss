@@ -36,3 +36,9 @@ button.o-message-insert {
     font-weight: bold;
     --bg-opacity: 0.25;
 }
+
+.o-chatgpt-alternative {
+    & > *:first-child:not(:has(~ *)) {
+        padding-left: 0 !important;
+    }
+}
