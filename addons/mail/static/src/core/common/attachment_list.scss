@@ -38,3 +38,68 @@
 .o-viewable {
     cursor: zoom-in;
 }
+
+// .shrink {
+//   animation: shrink-animation 0.2s ease-in-out forwards; /* 1-second animation */
+// }
+
+// @keyframes shrink-animation {
+//   0% {
+//     transform: scale(1); /* Start at original size */
+//   }
+//   20% {
+//     transform: scale(0.96); /* Shrink uniformly */
+//   }
+//   40% {
+//     transform: scale(0.92); /* Shrink uniformly */
+//   }
+//   60% {
+//     transform: scale(0.88); /* Shrink uniformly */
+//   }
+//   80% {
+//     transform: scale(0.86); /* Shrink uniformly */
+//   }
+//   100% {
+//     transform: scale(0.85); /* Final size */
+//   }
+// }
+
+.shrink {
+  animation: scale 0.2s ease-in-out forwards;
+}
+
+@keyframes scale {
+  0% {
+    transform: scale(1); /* Start at original size */
+  }
+  10% {
+    transform: scale(0.98); /* Shrink slightly */
+  }
+  20% {
+    transform: scale(0.96); /* Shrink uniformly */
+  }
+  30% {
+    transform: scale(0.94); /* Gradual shrink */
+  }
+  40% {
+    transform: scale(0.92); /* Gradual shrink */
+  }
+  50% {
+    transform: scale(0.90); /* Continue shrinking */
+  }
+  60% {
+    transform: scale(0.88); /* Continue shrinking */
+  }
+  70% {
+    transform: scale(0.87); /* Fine-tuning shrink */
+  }
+  80% {
+    transform: scale(0.86); /* Fine-tuning shrink */
+  }
+  90% {
+    transform: scale(0.855); /* Almost final size */
+  }
+  100% {
+    transform: scale(0.85); /* Final size */
+  }
+}

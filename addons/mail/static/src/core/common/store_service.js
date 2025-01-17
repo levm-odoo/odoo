@@ -116,6 +116,7 @@ export class Store extends BaseStore {
     fetchParams = {};
     fetchReadonly = true;
     fetchSilent = true;
+    selectAttachmentsId = [];
 
     cannedReponses = this.makeCachedFetchData({ canned_responses: true });
 

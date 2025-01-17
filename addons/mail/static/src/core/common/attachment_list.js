@@ -1,4 +1,4 @@
-import { Component } from "@odoo/owl";
+import { Component, useEffect } from "@odoo/owl";
 import { isMobileOS } from "@web/core/browser/feature_detection";
 
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
@@ -32,7 +32,13 @@ class ImageActions extends Component {
  */
 export class AttachmentList extends Component {
     static components = { ImageActions };
-    static props = ["attachments", "unlinkAttachment", "imagesHeight", "messageSearch?"];
+    static props = [
+        "attachments",
+        "unlinkAttachment",
+        "imagesHeight",
+        "messageSearch?",
+        "Foreignstate?",
+    ];
     static template = "mail.AttachmentList";
 
     setup() {
@@ -44,6 +50,13 @@ export class AttachmentList extends Component {
         this.fileViewer = useFileViewer();
         this.actionsMenuState = useDropdownState();
         this.isMobileOS = isMobileOS;
+        this.state = this.props.Foreignstate;
+        useEffect(
+            () => {
+                console.log(this.props.Foreignstate?.activateMultiSelect);
+            },
+            () => [this.props.Foreignstate?.activateMultiSelect]
+        );
     }
 
     /**
@@ -103,7 +116,17 @@ export class AttachmentList extends Component {
     }
 
     onClickAttachment(attachment) {
+        if (this.props.Foreignstate.activateMultiSelect) {
+            return;
+        }
         this.fileViewer.open(attachment, this.props.attachments);
+    }
+
+    checkBoxClicked(attachment) {
+        if (attachment.isSelected) {
+            attachment.isSelected = false;
+            this.store.selectAttachmentsId;
+        }
     }
 
     /**

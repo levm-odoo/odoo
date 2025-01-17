@@ -86,6 +86,7 @@ patch(Chatter.prototype, {
             showActivities: true,
             showAttachmentLoading: false,
             showScheduledMessages: true,
+            activateMultiSelect: false,
         });
         this.messageSearch = useMessageSearch();
         this.attachmentUploader = useAttachmentUploader(
@@ -119,7 +120,7 @@ patch(Chatter.prototype, {
                     );
                     this.state.isAttachmentBoxOpened = true;
                 }
-            }
+            },
         });
         useEffect(
             () => {
@@ -158,6 +159,12 @@ patch(Chatter.prototype, {
                 this.state.aside = this.props.isChatterAside;
             },
             () => [this.props.isChatterAside]
+        );
+        useEffect(
+            () => {
+                console.log(this.store.selectAttachmentsId);
+            },
+            () => [this.store.selectAttachmentsId.length]
         );
     },
 
@@ -223,6 +230,14 @@ patch(Chatter.prototype, {
 
     get unfollowText() {
         return _t("Unfollow");
+    },
+
+    handleBtnClick() {
+        if (this.state.activateMultiSelect) {
+            this.state.activateMultiSelect = false;
+        } else {
+            this.state.activateMultiSelect = true;
+        }
     },
 
     changeThread(threadModel, threadId) {
