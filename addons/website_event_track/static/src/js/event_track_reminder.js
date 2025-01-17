@@ -157,22 +157,23 @@ publicWidget.registry.websiteEventTrackReminder = publicWidget.Widget.extend({
         var mustUpdateEmailReminder = sessionStorage.getItem('website_event_track.user_is_public') != session.is_public.toString();
         sessionStorage.setItem('website_event_track.user_is_public', session.is_public);
 
-        if (mustUpdateEmailReminder && !session.is_public){
-             await this.orm.read('res.users', [user.userId], ['email']).then((u) => {
-                if (u.length === 1 && u[0].email) {
-                    sessionStorage.setItem('website_event_track.email_reminder', u[0].email);
-                    mustUpdateEmailReminder = false;
-                }
-            });
-        }
         var emailReminder = sessionStorage.getItem('website_event_track.email_reminder');
 
-        if (!mustUpdateEmailReminder && emailReminder){
-            this._sendEmailReminder(trackId, emailReminder);
+        if (!emailReminder || mustUpdateEmailReminder) {
+            if (session.is_public) {
+                this.opacityManagerElement.style.opacity = 1;
+                this.el.append(renderToElement('website_event_track.email_reminder_modal', {'track_id': trackId}));
+            }
+            else {
+                await this.orm.read('res.users', [user.userId], ['email']).then((u) => {
+                    if (u.length === 1 && u[0].email) {
+                        sessionStorage.setItem('website_event_track.email_reminder', u[0].email);
+                    }
+                });
+            }
         }
         else {
-            this.opacityManagerElement.style.opacity = 1;
-            this.el.append(renderToElement('website_event_track.email_reminder_modal', {'track_id': trackId}));
+            this._sendEmailReminder(trackId, emailReminder);
         }
     },
 
