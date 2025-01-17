@@ -43,13 +43,21 @@ export class PaymentMercadoPago extends PaymentInterface {
         );
     }
 
+<<<<<<< saas-18.1:addons/pos_mercado_pago/static/src/app/utils/payment/payment_mercado_pago.js
     async getPayment(payment_id) {
         const line = this.pos.getOrder().selected_paymentline;
+||||||| 0a2c395317f285bb1a8b538dda105ccf88f2e45b:addons/pos_mercado_pago/static/src/app/payment_mercado_pago.js
+    async get_payment(payment_id) {
+        const line = this.pos.get_order().selected_paymentline;
+=======
+    async get_payment(payment_id) {
+        const line = this.pos.get_order().get_selected_paymentline();
+>>>>>>> b01b37cc5a84022acdb3f668dadf837babbc5a99:addons/pos_mercado_pago/static/src/app/payment_mercado_pago.js
         // mp_get_payment_status will call the Mercado Pago api
         return await this.env.services.orm.silent.call(
             "pos.payment.method",
             "mp_get_payment_status",
-            [[line.payment_method.id], payment_id]
+            [[line.payment_method_id.id], payment_id]
         );
     }
 
