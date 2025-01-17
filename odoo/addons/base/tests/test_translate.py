@@ -1238,7 +1238,34 @@ class TestXMLTranslation(TransactionCase):
         archf = '<form><div>%s</div></form>'
         terms_en = ('<span invisible="2">Draft</span>')
         terms_fr = ('<span invisible="2">Brouillon</span>')
-        # raised below
+        view.with_context(install_mode=True).write({'arch_db': archf % terms_en})
+
+        self.assertEqual(view.arch_db, archf % terms_en)
+        self.assertEqual(view.with_context(lang='fr_FR').arch_db, archf % terms_fr)
+
+
+        archf = '<form>%s<div>%s</div></form>'
+        terms_en = ('<i>Draft</i>', '<span invisible="1">Draft</span>')
+        terms_fr = ('<i>Brouillon</i>', '<span invisible="1">Brouillon</span>')
+        view = self.create_view(archf, terms_en, en_US=terms_en, fr_FR=terms_fr)
+
+        archf = '<form><div title="%s"/></form>'
+        terms_en = ('Draft')
+        terms_fr = ('Draft')  # 'Brouillon' would be better
+        view.with_context(install_mode=True).write({'arch_db': archf % terms_en})
+
+        self.assertEqual(view.arch_db, archf % terms_en)
+        self.assertEqual(view.with_context(lang='fr_FR').arch_db, archf % terms_fr)
+
+
+        archf = '<form>%s<div>%s</div></form>'
+        terms_en = ('Draft', '<span invisible="1">Draft</span>')
+        terms_fr = ('Brouillon', '<span invisible="1">Brouillon</span>')
+        view = self.create_view(archf, terms_en, en_US=terms_en, fr_FR=terms_fr)
+
+        archf = '<form><div>%s</div></form>'
+        terms_en = ('<i>Draft</i>')
+        terms_fr = ('<i>Draft</i>')  # '<i>Brouillon</i> would be better
         view.with_context(install_mode=True).write({'arch_db': archf % terms_en})
 
         self.assertEqual(view.arch_db, archf % terms_en)
