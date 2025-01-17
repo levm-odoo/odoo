@@ -7,6 +7,7 @@ import {Markup} from 'web.utils';
 import session from 'web.session';
 import publicRootData from 'web.public.root';
 import "web.zoomodoo";
+import { isIOS } from "@web/core/browser/feature_detection";
 
 export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMixin, {
     // TODO remove KeyboardNavigationMixin in master
@@ -53,8 +54,13 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
     start: function () {
         KeyboardNavigationMixin.start.call(this);
 
-        // Enable magnify on zommable img
+        // Enable magnify on zoomable img
         this.$('.zoomable img[data-zoom]').zoomOdoo();
+
+        // Hide address bar on iOS devices with small screens by requesting fullscreen mode
+        if (isIOS()) {
+            window.addEventListener('touchstart', this._requestFullscreen);
+        }
 
         return this._super.apply(this, arguments);
     },
@@ -63,12 +69,29 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
      */
     destroy() {
         KeyboardNavigationMixin.destroy.call(this);
+        window.removeEventListener('touchstart', this._requestFullscreen);
         return this._super(...arguments);
     },
 
     //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------
+
+    /**
+     * Requests fullscreen mode to hide the address bar on iOS devices.
+     * @private
+     */
+    _requestFullscreen() {
+        debugger
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) { // Safari
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { // IE11
+            elem.msRequestFullscreen();
+        }
+    },
 
     /**
      * @override
@@ -188,7 +211,6 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
         var redirect = {
             lang: encodeURIComponent($target.data('url_code')),
             url: encodeURIComponent($target.attr('href').replace(/[&?]edit_translations[^&?]+/, '')),
-            hash: encodeURIComponent(window.location.hash)
         };
         window.location.href = _.str.sprintf("/website/lang/%(lang)s?r=%(url)s%(hash)s", redirect);
     },

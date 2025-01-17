@@ -1,7 +1,7 @@
 ///
 /// This file regroups the website design rules.
 ///
-
+// Ensure the body and HTML elements take up the full height of the viewport
 $-seen-urls: ();
 @each $alias, $key in $o-font-aliases-to-keys {
     $-url: o-get-font-info($alias, 'url');
