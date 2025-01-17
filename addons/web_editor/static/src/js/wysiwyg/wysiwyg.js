@@ -46,6 +46,7 @@ import {
 import { isCSSColor } from '@web/core/utils/colors';
 import { EmojiPicker } from '@web/core/emoji_picker/emoji_picker';
 import { Tooltip } from "@web/core/tooltip/tooltip";
+import { getTraversedNodes, isBlock } from "../editor/odoo-editor/src/utils/utils";
 
 const OdooEditor = OdooEditorLib.OdooEditor;
 const getDeepRange = OdooEditorLib.getDeepRange;
@@ -1573,6 +1574,7 @@ export class Wysiwyg extends Component {
         };
         if (mode === 'alternatives') {
             params.originalText = this.odooEditor.document.getSelection().toString() || '';
+            params.originalBlocks = [...new Set(getTraversedNodes(this.odooEditor.editable).map(closestBlock))];
         }
         this.odooEditor.document.getSelection().collapseToEnd();
         this.env.services.dialog.add(
