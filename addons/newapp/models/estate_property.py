@@ -48,6 +48,12 @@ class estateProperty(models.Model):
     total_area = fields.Float(string="Total Area", compute='_compute_total_area')
     best_price = fields.Float(string='best_price', compute='_compute_best_price')
 
+
+    _sql_constraints = [
+        ('expected_price_positive', 'CHECK(expected_price > 0)', 'Expected Price must be strictly positive!'),
+        ('selling_price_positive', 'CHECK(selling_price > 0)', 'Selling Price must be positive!'),
+    ]
+
     @api.depends('living_area','garden_area')
     def _compute_total_area(self):
         for record in self:
@@ -78,3 +84,10 @@ class estateProperty(models.Model):
             raise exceptions.UserError(_('A cancelled property cannot be sold.'))
         else:
             self.state = 'sold'
+
+    @api.constrains('selling_price')
+    def _check_lower_selling_price(self):
+        for record in self:
+            lower_price = (record.expected_price * 9)/10
+            if record.selling_price <= lower_price:
+                raise UserError("The selling price cannot be lower than 90% of the expected price")
