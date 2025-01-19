@@ -63,6 +63,7 @@ class ResCompany(models.Model):
 
     fiscalyear_last_day = fields.Integer(default=31, required=True)
     fiscalyear_last_month = fields.Selection(MONTH_SELECTION, default='12', required=True)
+    show_fiscalyear_warning = fields.Boolean(compute='_compute_show_fiscalyear_warning')
     fiscalyear_lock_date = fields.Date(
         string="Global Lock Date",
         tracking=True,
@@ -334,6 +335,22 @@ class ResCompany(models.Model):
         for record in self:
             if not record.account_fiscal_country_id:
                 record.account_fiscal_country_id = record.country_id
+
+    @api.depends('fiscalyear_last_day', 'fiscalyear_last_month')
+    def _compute_show_fiscalyear_warning(self):
+        def is_leap_year(year):
+            return (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0)
+
+        for rec in self:
+            if rec.account_opening_date:
+                year = rec.account_opening_date.year
+            else:
+                year = datetime.now().year
+
+            if rec.fiscalyear_last_day == 28 and rec.fiscalyear_last_month == '2' and is_leap_year(year):
+                rec.show_fiscalyear_warning = True
+            else:
+                rec.show_fiscalyear_warning = False
 
     @api.depends('account_fiscal_country_id')
     def _compute_account_enabled_tax_country_ids(self):
