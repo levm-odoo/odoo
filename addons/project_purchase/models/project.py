@@ -5,6 +5,7 @@ import json
 
 from odoo import api, fields, models, _, _lt
 from odoo.osv import expression
+from odoo.tools import float_round
 
 from datetime import date
 
@@ -121,6 +122,7 @@ class Project(models.Model):
 
     def _get_profitability_items(self, with_action=True):
         profitability_items = super()._get_profitability_items(with_action)
+        price_precision = self.env['decimal.precision'].precision_get('Product Price')
         if self.analytic_account_id:
             query = self.env['purchase.order.line'].sudo()._search([
                 ('state', 'in', ['purchase', 'done']),
@@ -172,7 +174,6 @@ class Project(models.Model):
             query = self.env['account.move.line'].sudo()._search([
                 ('move_id.move_type', 'in', ['in_invoice', 'in_refund']),
                 ('parent_state', 'in', ['draft', 'posted']),
-                ('price_subtotal', '>', 0),
                 ('id', 'not in', purchase_order_line_invoice_line_ids),
             ])
             query.add_where('account_move_line.analytic_distribution ? %s', [str(self.analytic_account_id.id)])
@@ -214,6 +215,6 @@ class Project(models.Model):
                         'to_bill': amount_to_invoice,
                     }
                     costs['data'].append(bills_costs)
-                    costs['total']['billed'] += amount_invoiced
-                    costs['total']['to_bill'] += amount_to_invoice
+                    costs['total']['billed'] = float_round(costs['total']['billed'] + amount_invoiced, precision_digits=price_precision)
+                    costs['total']['to_bill'] = float_round(costs['total']['to_bill'] + amount_to_invoice, precision_digits=price_precision)
         return profitability_items
