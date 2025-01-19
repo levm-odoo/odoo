@@ -218,7 +218,6 @@ class TestWebsiteBlogTranslationFlow(HttpCase, TestWebsiteBlogCommon):
         'field_name': 'content',
         'translations': {en_lang.code: {sha: 'Updated blogs'}},
         })
-        # self.url_open('/web_editor/field/translation/update', data=json.dumps(payload), headers=self.headers)
         response = self.url_open('/web_editor/field/translation/update', data=json.dumps(payload), headers=self.headers)
         self.assertEqual(response.status_code, 200, "The request did not return a successful response")
         result = response.json()
