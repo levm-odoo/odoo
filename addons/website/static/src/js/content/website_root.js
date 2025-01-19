@@ -57,9 +57,10 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
         // Enable magnify on zoomable img
         this.$('.zoomable img[data-zoom]').zoomOdoo();
 
-        // Hide address bar on iOS devices with small screens by requesting fullscreen mode
+        // Hide address bar on iOS devices with small screens by adjusting body height and scrolling
         if (isIOS()) {
-            window.addEventListener('touchstart', this._requestFullscreen);
+            window.addEventListener('load', this._hideAddressBar.bind(this));
+            window.addEventListener('orientationchange', this._hideAddressBar.bind(this));
         }
 
         return this._super.apply(this, arguments);
@@ -69,13 +70,25 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
      */
     destroy() {
         KeyboardNavigationMixin.destroy.call(this);
-        window.removeEventListener('touchstart', this._requestFullscreen);
+        window.removeEventListener('load', this._hideAddressBar.bind(this));
+        window.removeEventListener('orientationchange', this._hideAddressBar.bind(this));
         return this._super(...arguments);
     },
 
     //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------
+
+    /**
+     * Adjusts body height, scrolls to hide the address bar, and disables scrolling.
+     * @private
+     */
+    _hideAddressBar() {
+        document.body.style.height = '101vh'; // Slightly higher than the viewport
+        window.scrollTo(0, 1); // Scroll to hide the address bar
+        document.body.style.overflow = 'hidden'; // Disable scrolling   \
+        document.body.height = window.innerHeight;
+    },
 
     /**
      * Requests fullscreen mode to hide the address bar on iOS devices.
@@ -102,7 +115,6 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
         } else if (elem.msRequestFullscreen) { // IE11
             elem.msRequestFullscreen();
         }
-        window.scrollTo(0, 1);
     },
 
     /**
@@ -223,6 +235,7 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
         var redirect = {
             lang: encodeURIComponent($target.data('url_code')),
             url: encodeURIComponent($target.attr('href').replace(/[&?]edit_translations[^&?]+/, '')),
+            hash: encodeURIComponent(window.location.hash)
         };
         window.location.href = _.str.sprintf("/website/lang/%(lang)s?r=%(url)s%(hash)s", redirect);
     },
