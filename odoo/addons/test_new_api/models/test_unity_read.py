@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import models, fields
+from odoo import api, models, fields
+from odoo.osv import expression
 
 
 class Course(models.Model):
@@ -28,6 +29,12 @@ class Lesson(models.Model):
     attendee_ids = fields.Many2many('test_new_api.person', 'lesson_ids')
     teacher_id = fields.Many2one('test_new_api.person')
     date = fields.Date()
+
+    @api.model
+    def _search(self, domain, *args, **kwargs):
+        if self.env.context.get('special'):
+            domain = expression.AND([[('teacher_id', '!=', False)], domain])
+        return super()._search(domain, *args, **kwargs)
 
     def _compute_display_name(self):
         """

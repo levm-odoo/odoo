@@ -367,6 +367,36 @@ class TestUnityRead(TransactionCase):
                     ],
             }])
 
+    def test_one2many_with_order_respects_context(self):
+        self.lesson_day2.teacher_id = False
+        self.lesson_day3 = self.env['test_new_api.lesson'].create({
+            'name': 'third day',
+            'date': fields.Date.today() + relativedelta(days=2),
+            'course_id': self.course.id,
+            'teacher_id': self.teacher.id
+        })
+
+        read = self.course.web_read(
+            {
+                'display_name': {},
+                'lesson_ids':
+                    {
+                        'fields': {'display_name': {}},
+                        'order': 'name desc',
+                        'context': {'special': 'absolutely'}
+                    }
+            })
+        self.assertEqual(read, [
+            {
+                'id': self.course.id,
+                'display_name': 'introduction to OWL',
+                'lesson_ids':
+                    [
+                        {'id': self.lesson_day3.id, 'display_name': 'special third day'},
+                        {'id': self.lesson_day1.id, 'display_name': 'special first day'}
+                    ],
+            }])
+
     def test_read_many2many_gives_ids(self):
         with self.assertQueryCount(1        # 1 query for course
                                    + 1      # 1 query for the lessons
