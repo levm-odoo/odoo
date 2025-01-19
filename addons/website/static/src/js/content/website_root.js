@@ -59,8 +59,9 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
 
         // Hide address bar on iOS devices with small screens by adjusting body height and scrolling
         if (isIOS()) {
-            window.addEventListener('load', this._hideAddressBar.bind(this));
-            window.addEventListener('orientationchange', this._hideAddressBar.bind(this));
+            // window.addEventListener('load', this._hideAddressBar.bind(this));
+            // window.addEventListener('orientationchange', this._hideAddressBar.bind(this));
+            document.documentElement.webkitRequestFullScreen();
         }
 
         return this._super.apply(this, arguments);
@@ -70,8 +71,8 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
      */
     destroy() {
         KeyboardNavigationMixin.destroy.call(this);
-        window.removeEventListener('load', this._hideAddressBar.bind(this));
-        window.removeEventListener('orientationchange', this._hideAddressBar.bind(this));
+        // window.removeEventListener('load', this._hideAddressBar.bind(this));
+        // window.removeEventListener('orientationchange', this._hideAddressBar.bind(this));
         return this._super(...arguments);
     },
 
