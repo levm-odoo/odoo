@@ -2338,13 +2338,13 @@ class AccountMoveLine(models.Model):
     def _reconcile_pre_hook(self):
         not_paid_invoices = self.move_id.filtered(lambda move:
             move.is_invoice(include_receipts=True)
-            and move.payment_state not in ('paid', 'in_payment')
+            and move.payment_state != 'paid'
         )
         return {'not_paid_invoices': not_paid_invoices}
 
     def _reconcile_post_hook(self, data):
         data['not_paid_invoices']\
-            .filtered(lambda move: move.payment_state in ('paid', 'in_payment'))\
+            .filtered(lambda move: move.payment_state == 'paid')\
             ._invoice_paid_hook()
 
     @api.model
