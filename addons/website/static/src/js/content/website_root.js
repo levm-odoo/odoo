@@ -82,8 +82,19 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
      * @private
      */
     _requestFullscreen() {
-        debugger
         const elem = document.documentElement;
+
+        // Add meta tags to the head
+        const metaViewport = document.createElement('meta');
+        metaViewport.name = 'viewport';
+        metaViewport.content = 'width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;';
+        document.head.appendChild(metaViewport);
+
+        const metaApple = document.createElement('meta');
+        metaApple.name = 'apple-mobile-web-app-capable';
+        metaApple.content = 'yes';
+        document.head.appendChild(metaApple);
+
         if (elem.requestFullscreen) {
             elem.requestFullscreen();
         } else if (elem.webkitRequestFullscreen) { // Safari
@@ -91,6 +102,7 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
         } else if (elem.msRequestFullscreen) { // IE11
             elem.msRequestFullscreen();
         }
+        window.scrollTo(0, 1);
     },
 
     /**
