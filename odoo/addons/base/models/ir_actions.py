@@ -533,8 +533,7 @@ class IrActionsServer(models.Model):
         store=True,
         readonly=False,
     )
-    automated_name = fields.Char(compute='_compute_automated_name')
-    is_automated_name = fields.Boolean(default=False)
+    is_automated_name = fields.Boolean(string="Use Automated Name?", default=False)
     type = fields.Char(default='ir.actions.server')
     usage = fields.Selection([
         ('ir_actions_server', 'Server Action'),
@@ -684,6 +683,7 @@ class IrActionsServer(models.Model):
 
     def _name_depends(self):
         return [
+            "is_automated_name",
             "state",
             "update_field_id",
             "crud_model_id",
@@ -696,20 +696,9 @@ class IrActionsServer(models.Model):
         for action in self.filtered("is_automated_name"):
             action.name = action._generate_action_name()
 
-    @api.depends(lambda self: self._name_depends())
-    def _compute_automated_name(self):
-        for action in self:
-            action.automated_name = action._generate_action_name()
-
     @api.onchange("name")
     def _onchange_name(self):
         self.is_automated_name = self.name == self._generate_action_name()
-
-    def action_set_automated_name(self):
-        self.write({
-            'name': self._generate_action_name(),
-            'is_automated_name': True,
-        })
 
     @api.depends('state')
     def _compute_available_model_ids(self):

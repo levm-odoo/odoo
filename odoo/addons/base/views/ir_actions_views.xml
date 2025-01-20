@@ -329,14 +329,6 @@
                             <h1 class="oe_title w-100 me-auto">
                                 <field name="name" placeholder="e.g. Mass archive contacts"/>
                             </h1>
-                            <t invisible="is_automated_name">
-                                <field name="is_automated_name" invisible="1"/> <!-- Needed because of _name_onchange -->
-                                <button class="text-nowrap px-2 py-0 btn btn-link" name="action_set_automated_name" type="object"
-                                        title="Switch to automatic name" aria-label="Switch to automatic name">
-                                    <field name="automated_name" nolabel="1" readonly="1" class="opacity-50"/>
-                                    <i class="fa fa-magic ps-2" role="img"/>
-                                </button>
-                            </t>
                         </div>
                         <div class="d-flex flex-column">
                             <label for="state"/>
@@ -346,6 +338,7 @@
                             <group>
                                 <field name="model_id" options="{'no_create': True, 'no_open': True}" />
                                 <field name="groups_id" widget="many2many_tags" />
+                                <field name="is_automated_name"/>
                             </group>
                         </group>
                         <separator string="Action Details" groups="base.group_no_one" />
