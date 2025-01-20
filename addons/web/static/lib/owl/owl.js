@@ -5406,6 +5406,7 @@
             }
         }
         let slots = null;
+        let slotFamilies = null;
         if (node.hasChildNodes()) {
             const clone = node.cloneNode(true);
             // named slots
@@ -5431,6 +5432,13 @@
                 }
                 slotNode.removeAttribute("t-set-slot");
                 slotNode.remove();
+
+                const isSlotFamily = slotNode.hasAttribute("t-foreach");
+                if (isSlotFamily) {
+                    const slotClone = slotNode.cloneNode(true);
+                    const ast = parseTForEach(slotClone, ctx, true);
+                }
+
                 const slotAst = parseNode(slotNode, ctx);
                 let on = null;
                 let attrs = null;
