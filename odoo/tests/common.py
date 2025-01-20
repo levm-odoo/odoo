@@ -1029,7 +1029,7 @@ def save_test_file(test_name, content, prefix, extension='png', logger=_logger, 
 
 class ChromeBrowser:
     """ Helper object to control a Chrome headless process. """
-    remote_debugging_port = 0  # 9222, change it in a non-git-tracked file
+    remote_debugging_port = 9222  # 9222, change it in a non-git-tracked file
 
     def __init__(self, test_case: HttpCase, success_signal: str = DEFAULT_SUCCESS_SIGNAL, headless: bool = True, debug: bool = False):
         self._logger = test_case._logger

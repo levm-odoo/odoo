@@ -1,5 +1,4 @@
 import { markup } from "@odoo/owl";
-import { stateToUrl } from "@web/core/browser/router";
 import { loadEmoji } from "@web/core/emoji_picker/emoji_picker";
 
 import { escape, unaccent } from "@web/core/utils/strings";
@@ -32,7 +31,7 @@ const _escapeEntities = (function () {
  * @param validRecords {Object}
  * @param validRecords.partners {Partner}
  */
-export async function prettifyMessageContent(rawBody, validRecords = []) {
+export async function prettifyMessageContent(rawBody) {
     // Suggested URL Javascript regex of http://stackoverflow.com/questions/3809401/what-is-a-good-regular-expression-to-match-a-url
     // Adapted to make http(s):// not required if (and only if) www. is given. So `should.notmatch` does not match.
     // And further extended to include Latin-1 Supplement, Latin Extended-A, Latin Extended-B and Latin Extended Additional.
@@ -44,7 +43,7 @@ export async function prettifyMessageContent(rawBody, validRecords = []) {
     // linkification a bit everywhere. Ideally we want to keep the content
     // as text internally and only make html enrichment at display time but
     // the current design makes this quite hard to do.
-    body = generateMentionsLinks(body, validRecords);
+    // body = generateMentionsLinks(body, validRecords);
     body = await _generateEmojisOnHtml(body);
     body = parseAndTransform(body, addLink);
     return body;
@@ -91,11 +90,11 @@ function _parseAndTransform(nodes, transformFunction) {
         return;
     }
     return Object.values(nodes)
-        .map((node) => {
-            return transformFunction(node, function () {
+        .map((node) =>
+            transformFunction(node, function () {
                 return _parseAndTransform(node.childNodes, transformFunction);
-            });
-        })
+            })
+        )
         .join("");
 }
 
@@ -150,70 +149,13 @@ export function addLink(node, transformChildren) {
  */
 export function escapeAndCompactTextContent(content) {
     //Removing unwanted extra spaces from message
-    let value = escape(content).trim();
+    let value = content;
     value = value.replace(/(\r|\n){2,}/g, "<br/><br/>");
     value = value.replace(/(\r|\n)/g, "<br/>");
 
     // prevent html space collapsing
     value = value.replace(/ /g, "&nbsp;").replace(/([^>])&nbsp;([^<])/g, "$1 $2");
     return value;
-}
-
-/**
- * @param body {string}
- * @param validRecords {Object}
- * @param validRecords.partners {Array}
- * @return {string}
- */
-function generateMentionsLinks(body, { partners = [], threads = [], specialMentions = [] }) {
-    const mentions = [];
-    for (const partner of partners) {
-        const placeholder = `@-mention-partner-${partner.id}`;
-        const text = `@${escape(partner.name)}`;
-        mentions.push({
-            class: "o_mail_redirect",
-            id: partner.id,
-            model: "res.partner",
-            placeholder,
-            text,
-        });
-        body = body.replace(text, placeholder);
-    }
-    for (const thread of threads) {
-        const placeholder = `#-mention-channel-${thread.id}`;
-        let className, text;
-        if (thread.parent_channel_id) {
-            className = "o_channel_redirect o_channel_redirect_asThread";
-            text = escape(`#${thread.parent_channel_id.displayName} > ${thread.displayName}`);
-        } else {
-            className = "o_channel_redirect";
-            text = escape(`#${thread.displayName}`);
-        }
-        mentions.push({
-            class: className,
-            id: thread.id,
-            model: "discuss.channel",
-            placeholder,
-            text,
-        });
-        body = body.replace(text, placeholder);
-    }
-    for (const special of specialMentions) {
-        body = body.replace(
-            `@${escape(special)}`,
-            `<a href="#" class="o-discuss-mention">@${escape(special)}</a>`
-        );
-    }
-    for (const mention of mentions) {
-        const href = `href='${stateToUrl({ model: mention.model, resId: mention.id })}'`;
-        const attClass = `class='${mention.class}'`;
-        const dataOeId = `data-oe-id='${mention.id}'`;
-        const dataOeModel = `data-oe-model='${mention.model}'`;
-        const target = "target='_blank'";
-        const link = `<a ${href} ${attClass} ${dataOeId} ${dataOeModel} ${target} contenteditable="false">${mention.text}</a>`;
-        body = body.replace(mention.placeholder, link);
-    }
-    return body;
 }
 
 /**
@@ -229,7 +171,7 @@ async function _generateEmojisOnHtml(htmlString) {
                 /([.*+?=^!:${}()|[\]/\\])/g,
                 "\\$1"
             );
-            const regexp = new RegExp("(\\s|^)(" + escapedSource + ")(?=\\s|$)", "g");
+            const regexp = new RegExp("(\\s|\\>)(" + escapedSource + ")(?=\\s|\\<\\/)", "g");
             htmlString = htmlString.replace(regexp, "$1" + emoji.codepoints);
         }
     }
@@ -309,3 +251,8 @@ export function parseEmail(text) {
 }
 
 export const EMOJI_REGEX = /\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\u200d/gu;
+
+export function isEmpty(htmlString) {
+    const content = new DOMParser().parseFromString(htmlString, "text/html").body.textContent;
+    return !content.trim();
+}

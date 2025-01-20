@@ -993,7 +993,6 @@ const _fill = async (target, value, options) => {
             }
         }
     }
-
     if (options?.instantly) {
         // Simulates filling the clipboard with the value (can be from external source)
         globalThis.navigator.clipboard.writeText(value).catch();

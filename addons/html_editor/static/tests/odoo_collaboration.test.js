@@ -1,6 +1,7 @@
 import { stripHistoryIds } from "@html_editor/others/collaboration/collaboration_odoo_plugin";
 import { HISTORY_SNAPSHOT_INTERVAL } from "@html_editor/others/collaboration/collaboration_plugin";
-import { COLLABORATION_PLUGINS, MAIN_PLUGINS } from "@html_editor/plugin_sets";
+import { MAIN_PLUGINS } from "@html_editor/plugin_sets_core_main";
+import { COLLABORATION_PLUGINS } from "@html_editor/plugin_sets_others";
 import { Wysiwyg } from "@html_editor/wysiwyg";
 import { beforeEach, describe, expect, test } from "@odoo/hoot";
 import { Component, xml } from "@odoo/owl";
@@ -91,9 +92,9 @@ class PeerTest {
             if (peer === this) {
                 continue;
             }
-            peer.onlineMutex.exec(async () => {
-                return peer.plugins.collaborationOdoo.onServerLastIdUpdate(String(lastId));
-            });
+            peer.onlineMutex.exec(async () =>
+                peer.plugins.collaborationOdoo.onServerLastIdUpdate(String(lastId))
+            );
         }
     }
     async setOnline() {
@@ -140,11 +141,12 @@ class Wysiwygs extends Component {
     setup() {
         this.peerResolvers = {};
         this.peerPromises = Promise.all(
-            this.props.peerIds.map((peerId) => {
-                return new Promise((resolve) => {
-                    this.peerResolvers[peerId] = resolve;
-                });
-            })
+            this.props.peerIds.map(
+                (peerId) =>
+                    new Promise((resolve) => {
+                        this.peerResolvers[peerId] = resolve;
+                    })
+            )
         );
         this.loadedPromise = new Promise((resolve) => {
             this.loadedResolver = resolve;
@@ -216,9 +218,7 @@ class Wysiwygs extends Component {
                             super.notifyAllPeers(...args);
                         },
                         _getPtpPeers() {
-                            return peers[peerId].connections.map((peer) => {
-                                return { id: peer.peerId };
-                            });
+                            return peers[peerId].connections.map((peer) => ({ id: peer.peerId }));
                         },
                         async _channelNotify(peerId, transportPayload) {
                             if (
@@ -310,12 +310,8 @@ async function insertEditorText(editor, text) {
 }
 
 beforeEach(() => {
-    onRpc("/web/dataset/call_kw/res.users/read", () => {
-        return [{ id: 0, name: "admin" }];
-    });
-    onRpc("/html_editor/get_ice_servers", () => {
-        return [];
-    });
+    onRpc("/web/dataset/call_kw/res.users/read", () => [{ id: 0, name: "admin" }]);
+    onRpc("/html_editor/get_ice_servers", () => []);
     onRpc("/html_editor/bus_broadcast", (params) => {
         throw new Error("Should not be called.");
     });
@@ -1172,9 +1168,11 @@ describe("Selection", () => {
         peers.p1.plugins.delete.delete("backward", "character");
         await waitUntil(() => {
             const selectionInAvatarPlugin =
-                peers.p2.plugins.collaborationSelectionAvatar.selectionInfos.get("p1").selection.anchorOffset == 0;
+                peers.p2.plugins.collaborationSelectionAvatar.selectionInfos.get("p1").selection
+                    .anchorOffset == 0;
             const selectionInCollabSelectionPlugin =
-                peers.p2.plugins.collaborationSelection.selectionInfos.get("p1").selection.anchorOffset == 0;
+                peers.p2.plugins.collaborationSelection.selectionInfos.get("p1").selection
+                    .anchorOffset == 0;
             return selectionInAvatarPlugin && selectionInCollabSelectionPlugin;
         });
         expect(

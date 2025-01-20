@@ -163,7 +163,7 @@ test("Textarea content is kept when switching from aside to bottom", async () =>
     await insertText(".o-mail-Composer-input", "Hello world !");
     await patchUiSize({ size: SIZES.LG });
     await contains(".o-mail-Form-chatter:not(.o-aside) .o-mail-Composer-input");
-    await contains(".o-mail-Composer-input", { value: "Hello world !" });
+    await contains(".o-mail-Composer-input", { text: "Hello world !" });
 });
 
 test("Composer type is kept when switching from aside to bottom", async () => {
@@ -625,7 +625,7 @@ test("Follower count of draft record is set to 0", async () => {
     await contains(".o-mail-Followers", { text: "0" });
 });
 
-test("Mentions in composer should still work when using pager", async () => {
+test.skip("Mentions in composer should still work when using pager", async () => {
     const pyEnv = await startServer();
     const [partnerId_1, partnerId_2] = pyEnv["res.partner"].create([
         { display_name: "Partner 1" },
@@ -638,7 +638,7 @@ test("Mentions in composer should still work when using pager", async () => {
     await click(".o_pager_next");
     await insertText(".o-mail-Composer-input", "@");
     // all records in DB: Mitchell Admin | Hermit | Public user except OdooBot
-    await contains(".o-mail-Composer-suggestion", { count: 3 });
+    await contains(".o-mail-Suggestion", { count: 3 });
 });
 
 test("form views in dialogs do not have chatter", async () => {

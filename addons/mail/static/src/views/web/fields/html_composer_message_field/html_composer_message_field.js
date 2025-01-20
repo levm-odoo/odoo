@@ -1,13 +1,14 @@
-import { DYNAMIC_PLACEHOLDER_PLUGINS } from "@html_editor/plugin_sets";
+import { DYNAMIC_PLACEHOLDER_PLUGINS } from "@html_editor/plugin_sets_others";
 import { registry } from "@web/core/registry";
 import { HtmlMailField, htmlMailField } from "../html_mail_field/html_mail_field";
-import { MentionPlugin } from "./mention_plugin";
+import { SuggestionPlugin } from "@mail/core/common/suggestion/suggestion_plugin";
 import { ContentExpandablePlugin } from "./content_expandable_plugin";
 
 export class HtmlComposerMessageField extends HtmlMailField {
     getConfig() {
         const config = super.getConfig(...arguments);
-        config.Plugins = [...config.Plugins, MentionPlugin];
+        config.Plugins = [...config.Plugins, SuggestionPlugin];
+        config.suggestionService = this.env.services["mail.suggestion"];
         if (this.props.record.data.composition_comment_option === "reply_all") {
             config.Plugins.push(ContentExpandablePlugin);
         }

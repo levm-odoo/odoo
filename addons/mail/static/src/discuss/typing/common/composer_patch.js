@@ -29,6 +29,10 @@ patch(Composer.prototype, {
             this.stopTyping();
         });
     },
+    onInput(ev) {
+        super.onInput(ev);
+        this.detectTyping();
+    },
     /**
      * Notify the server of the current typing status
      *

@@ -95,6 +95,9 @@ export class ClipboardPlugin extends Plugin {
         "delete",
         "lineBreak",
     ];
+    // resources = {
+    //     is_clip_board_whitelisted: this.isClipBoardWhitelisted.bind(this),
+    // };
     static shared = ["pasteText"];
 
     setup() {
@@ -231,7 +234,7 @@ export class ClipboardPlugin extends Plugin {
 
         this.dependencies.history.stageSelection();
 
-        this.dispatchTo("before_paste_handlers", selection);
+        this.dispatchTo("before_paste_handlers", selection, ev);
         // refresh selection after potential changes from `before_paste` handlers
         selection = this.dependencies.selection.getEditableSelection();
 

@@ -1,7 +1,7 @@
 /** @odoo-module alias=@web/../tests/utils default=false */
 
 import { __debug__, after, afterEach, expect, getFixture } from "@odoo/hoot";
-import { queryAll, queryFirst } from "@odoo/hoot-dom";
+import { queryAll, manuallyDispatchProgrammaticEvent, queryFirst } from "@odoo/hoot-dom";
 import { Deferred, animationFrame, tick } from "@odoo/hoot-mock";
 import { isMacOS } from "@web/core/browser/feature_detection";
 import { isVisible } from "@web/core/utils/ui";
@@ -769,19 +769,58 @@ class Contains {
         if (this.options.insertText !== undefined) {
             message = `${message} and inserted text "${this.options.insertText.content}" (replace: ${this.options.insertText.replace})`;
             el.focus();
-            if (this.options.insertText.replace) {
-                el.value = "";
-                el.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Backspace" }));
-                el.dispatchEvent(new window.KeyboardEvent("keyup", { key: "Backspace" }));
-                el.dispatchEvent(new window.InputEvent("input"));
+            if (!["TEXTAREA", "INPUT"].includes(el.tagName) && el.hasAttribute("contenteditable")) {
+                const setCursorEnd = (el) => {
+                    const selection = el.ownerDocument.getSelection();
+                    selection.setBaseAndExtent(el, 1, el, 1);
+                };
+                if (this.options.insertText.replace) {
+                    el.innerHTML = "<p><br></p>";
+                    manuallyDispatchProgrammaticEvent(el, "keydown", { key: "Backspace" });
+                    // InputEvent is required to simulate the insert text.
+                    manuallyDispatchProgrammaticEvent(el, "beforeinput", {
+                        inputType: "insertText",
+                        data: "Backspace",
+                    });
+                    manuallyDispatchProgrammaticEvent(el, "input", {
+                        inputType: "insertText",
+                        data: "Backspace",
+                    });
+                    // KeyUpEvent is not required but is triggered like the browser would.
+                    manuallyDispatchProgrammaticEvent(el, "keyup", { key: "Backspace" });
+                }
+                for (const char of this.options.insertText.content) {
+                    el.textContent += char;
+                    setCursorEnd(el);
+                    manuallyDispatchProgrammaticEvent(el, "keydown", { key: char });
+                    // InputEvent is required to simulate the insert text.
+                    manuallyDispatchProgrammaticEvent(el, "beforeinput", {
+                        inputType: "insertText",
+                        data: char,
+                    });
+                    manuallyDispatchProgrammaticEvent(el, "input", {
+                        inputType: "insertText",
+                        data: char,
+                    });
+                    // KeyUpEvent is not required but is triggered like the browser would.
+                    manuallyDispatchProgrammaticEvent(el, "keyup", { key: char });
+                }
+                manuallyDispatchProgrammaticEvent(el, "change");
+            } else {
+                if (this.options.insertText.replace) {
+                    el.value = "";
+                    el.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Backspace" }));
+                    el.dispatchEvent(new window.KeyboardEvent("keyup", { key: "Backspace" }));
+                    el.dispatchEvent(new window.InputEvent("input"));
+                }
+                for (const char of this.options.insertText.content) {
+                    el.value += char;
+                    el.dispatchEvent(new window.KeyboardEvent("keydown", { key: char }));
+                    el.dispatchEvent(new window.KeyboardEvent("keyup", { key: char }));
+                    el.dispatchEvent(new window.InputEvent("input"));
+                }
+                el.dispatchEvent(new window.InputEvent("change"));
             }
-            for (const char of this.options.insertText.content) {
-                el.value += char;
-                el.dispatchEvent(new window.KeyboardEvent("keydown", { key: char }));
-                el.dispatchEvent(new window.KeyboardEvent("keyup", { key: char }));
-                el.dispatchEvent(new window.InputEvent("input"));
-            }
-            el.dispatchEvent(new window.InputEvent("change"));
         }
         if (this.options.pasteFiles) {
             message = `${message} and pasted ${this.options.pasteFiles.length} file(s)`;
@@ -789,7 +828,14 @@ class Contains {
             Object.defineProperty(ev, "clipboardData", {
                 value: createFakeDataTransfer(this.options.pasteFiles),
             });
-            el.dispatchEvent(ev);
+            if (!["TEXTAREA", "INPUT"].includes(el.tagName) && el.hasAttribute("contenteditable")) {
+                const clipboardData = new DataTransfer();
+                clipboardData.items.add(...this.options.pasteFiles);
+                const pasteEvent = new ClipboardEvent("paste", { clipboardData, bubbles: true });
+                el.dispatchEvent(pasteEvent);
+            } else {
+                el.dispatchEvent(ev);
+            }
         }
         if (this.options.setFocus) {
             message = `${message} and focused it`;

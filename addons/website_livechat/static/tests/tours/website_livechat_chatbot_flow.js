@@ -70,7 +70,7 @@ registry.category("web_tour.tours").add("website_livechat_chatbot_flow_tour", {
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input ",
-                run: "edit No, you won't get my email!",
+                run: "editor No, you won't get my email!",
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
@@ -84,7 +84,7 @@ registry.category("web_tour.tours").add("website_livechat_chatbot_flow_tour", {
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
-                run: "edit okfine@fakeemail.com",
+                run: "editor okfine@fakeemail.com",
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
@@ -100,7 +100,7 @@ registry.category("web_tour.tours").add("website_livechat_chatbot_flow_tour", {
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
-                run: "edit https://www.fakeaddress.com",
+                run: "editor https://www.fakeaddress.com",
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
@@ -114,7 +114,7 @@ registry.category("web_tour.tours").add("website_livechat_chatbot_flow_tour", {
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
-                run: "edit Yes, actually, I'm glad you asked!",
+                run: "editor Yes, actually, I'm glad you asked!",
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
@@ -122,7 +122,7 @@ registry.category("web_tour.tours").add("website_livechat_chatbot_flow_tour", {
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
-                run: "edit I think it's outrageous that you ask for all my personal information!",
+                run: "editor I think it's outrageous that you ask for all my personal information!",
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
@@ -130,7 +130,7 @@ registry.category("web_tour.tours").add("website_livechat_chatbot_flow_tour", {
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
-                run: "edit I will be sure to take this to your manager!",
+                run: "editor I will be sure to take this to your manager!",
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
@@ -138,7 +138,7 @@ registry.category("web_tour.tours").add("website_livechat_chatbot_flow_tour", {
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
-                run: "edit I want to say...",
+                run: "editor I want to say...",
             },
             {
                 // Simulate that the user is typing, so the chatbot shouldn't go to the next step
@@ -149,7 +149,7 @@ registry.category("web_tour.tours").add("website_livechat_chatbot_flow_tour", {
                     const delay =
                         odoo.__WOWL_DEBUG__.root.env.services["mail.store"].Chatbot
                             .MULTILINE_STEP_DEBOUNCE_DELAY_TOUR;
-                    target.edit("Never mind!");
+                    target.editor("Never mind!");
                     setTimeout(() => {
                         if (window.debounceAnswerCount <= counter) {
                             console.error(
@@ -158,7 +158,7 @@ registry.category("web_tour.tours").add("website_livechat_chatbot_flow_tour", {
                         }
                     }, delay);
                     setTimeout(() => {
-                        target.edit("Never mind!!!!");
+                        target.editor("Never mind!!!!");
                         const counter = window.debounceAnswerCount;
                         setTimeout(() => {
                             if (window.debounceAnswerCount <= counter) {
@@ -215,7 +215,7 @@ registry.category("web_tour.tours").add("website_livechat_chatbot_flow_tour", {
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
-                run: "edit no",
+                run: "editor no",
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
@@ -229,7 +229,7 @@ registry.category("web_tour.tours").add("website_livechat_chatbot_flow_tour", {
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
-                run: "edit no, nothing so say",
+                run: "editor no, nothing so say",
             },
             {
                 trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
@@ -252,7 +252,7 @@ registry.category("web_tour.tours").add("website_livechat_chatbot_flow_tour", {
                 trigger: messagesContain("I will transfer you to a human."),
             },
             {
-                trigger: ".o-livechat-root:shadow .o-mail-Composer-input:enabled",
+                trigger: ".o-livechat-root:shadow .o-mail-Composer-input",
             },
         ];
     },

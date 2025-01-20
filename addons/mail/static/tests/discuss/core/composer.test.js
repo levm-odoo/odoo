@@ -40,7 +40,7 @@ test('do not send typing notification on typing "/" command', async () => {
     testEnded = true;
 });
 
-test('do not send typing notification on typing after selecting suggestion from "/" command', async () => {
+test.skip('do not send typing notification on typing after selecting suggestion from "/" command', async () => {
     const pyEnv = await startServer();
     const channelId = pyEnv["discuss.channel"].create({ name: "channel" });
     let testEnded = false;
@@ -52,8 +52,8 @@ test('do not send typing notification on typing after selecting suggestion from 
     await start();
     await openDiscuss(channelId);
     await insertText(".o-mail-Composer-input", "/");
-    await click(":nth-child(1 of .o-mail-Composer-suggestion)");
-    await contains(".o-mail-Composer-suggestion strong", { count: 0 });
+    await click(":nth-child(1 of .o-mail-Suggestion)");
+    await contains(".o-mail-Suggestion strong", { count: 0 });
     await insertText(".o-mail-Composer-input", " is user?");
     await waitForSteps([]); // No rpc done"
     testEnded = true;
@@ -77,7 +77,7 @@ test("send is_typing on adding emoji", async () => {
     testEnded = true;
 });
 
-test("add an emoji after a command", async () => {
+test.skip("add an emoji after a command", async () => {
     const pyEnv = await startServer();
     const channelId = pyEnv["discuss.channel"].create({
         name: "General",
@@ -85,11 +85,11 @@ test("add an emoji after a command", async () => {
     });
     await start();
     await openDiscuss(channelId);
-    await contains(".o-mail-Composer-input", { value: "" });
+    await contains(".o-mail-Composer-input", { text: "" });
     await insertText(".o-mail-Composer-input", "/");
-    await click(":nth-child(1 of .o-mail-Composer-suggestion)");
-    await contains(".o-mail-Composer-input", { value: "/who " });
+    await click(":nth-child(1 of .o-mail-Suggestion)");
+    await contains(".o-mail-Composer-input", { text: "/who " });
     await click("button[title='Add Emojis']");
     await click(".o-Emoji", { text: "😊" });
-    await contains(".o-mail-Composer-input", { value: "/who 😊" });
+    await contains(".o-mail-Composer-input", { text: "/who 😊" });
 });

@@ -24,11 +24,11 @@ registry.category("web_tour.tours").add("mail/static/tests/tours/mail_composer_t
         {
             content: "Write something in composer",
             trigger: ".o-mail-Composer-input",
-            run: "edit blahblah @Not && click body",
+            run: "editor blahblah @Not && click body",
         },
         {
             content: "Mention a partner",
-            trigger: ".o-mail-Composer-suggestion:contains(Not A Demo User)",
+            trigger: ".o-mail-Suggestion:contains(Not A Demo User)",
             run: "click",
         },
         {
@@ -105,7 +105,7 @@ registry.category("web_tour.tours").add("mail/static/tests/tours/mail_composer_t
                 const files = [new File(["hi there"], "file2.txt", { type: "text/plain" })];
                 await dragenterFiles(".o_mail_composer_form_view .o_form_renderer", files);
                 await dropFiles(".o-Dropzone", files);
-            }
+            },
         },
         {
             content: "Check the attachment is listed",
@@ -173,7 +173,7 @@ registry.category("web_tour.tours").add("mail/static/tests/tours/mail_composer_t
                 if ((bodyContent.match(/--\nErnest/g) || []).length !== 1) {
                     console.log("Full composer should contain the user's signature once.");
                 }
-            }
+            },
         },
         {
             content: "Write something in full composer",
@@ -220,7 +220,7 @@ registry.category("web_tour.tours").add("mail/static/tests/tours/mail_composer_t
                 if ((bodyContent.match(/--\nErnest/g) || []).length !== 0) {
                     console.error("The composer should not contain the user's signature.");
                 }
-            }
+            },
         },
         {
             content: "Close full composer",
@@ -235,7 +235,7 @@ registry.category("web_tour.tours").add("mail/static/tests/tours/mail_composer_t
         {
             content: "Send message from chatter",
             trigger: ".o-mail-Composer-send",
-            run: "click"
+            run: "click",
         },
         {
             content: "Check message is shown",
@@ -251,12 +251,12 @@ registry.category("web_tour.tours").add("mail/static/tests/tours/mail_composer_t
         {
             content: "Write a message",
             trigger: ".o-mail-Composer-input",
-            run: "edit hello world",
+            run: "editor hello world",
         },
         {
             content: "Send message from chatter",
             trigger: ".o-mail-Composer-send",
-            run: "click"
+            run: "click",
         },
         {
             content: "Check message is shown",

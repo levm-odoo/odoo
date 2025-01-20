@@ -7,7 +7,6 @@ import { useService } from "@web/core/utils/hooks";
 import { discussComponentRegistry } from "./discuss_component_registry";
 import { Deferred } from "@web/core/utils/concurrency";
 import { useEmojiPicker } from "@web/core/emoji_picker/emoji_picker";
-import { convertBrToLineBreak } from "@mail/utils/common/format";
 import { QuickReactionMenu } from "@mail/core/common/quick_reaction_menu";
 
 const { DateTime } = luxon;
@@ -114,7 +113,7 @@ messageActionsRegistry
         title: _t("Edit"),
         onClick: (component) => {
             const message = toRaw(component.props.message);
-            const text = convertBrToLineBreak(message.body);
+            const text = message.body;
             message.composer = {
                 mentionedPartners: message.recipients,
                 text,

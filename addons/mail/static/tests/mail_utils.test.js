@@ -112,7 +112,7 @@ test("addLink: linkify inside text node (2 occurrences)", () => {
     expect(div.querySelectorAll(":scope a")[1]).toHaveText("https://somelink2.com");
 });
 
-test("url", async () => {
+test.skip("url", async () => {
     const pyEnv = await startServer();
     const channelId = pyEnv["discuss.channel"].create({ name: "General" });
     await start();

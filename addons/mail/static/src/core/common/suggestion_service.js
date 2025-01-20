@@ -124,10 +124,21 @@ export class SuggestionService {
             }
             return c1.id - c2.id;
         };
-        return {
-            type: "mail.canned.response",
-            suggestions: sort ? cannedResponses.sort(sortFunc) : cannedResponses,
-        };
+        return sort
+            ? [
+                  ...cannedResponses.sort(sortFunc).map((c) => ({
+                      title: c.source,
+                      description: c.substitution,
+                      cannedResponse: c,
+                  })),
+              ]
+            : [
+                  ...cannedResponses.map((c) => ({
+                      title: c.source,
+                      description: c.substitution,
+                      cannedResponse: c,
+                  })),
+              ];
     }
 
     /**
@@ -203,22 +214,33 @@ export class SuggestionService {
                 suggestions.push(partner);
             }
         }
-        suggestions.push(
-            ...this.store.specialMentions.filter(
-                (special) =>
-                    thread &&
-                    special.channel_types.includes(thread.channel_type) &&
-                    cleanedSearchTerm.length >= Math.min(4, special.label.length) &&
-                    (special.label.startsWith(cleanedSearchTerm) ||
-                        cleanTerm(special.description.toString()).includes(cleanedSearchTerm))
-            )
-        );
-        return {
-            type: "Partner",
-            suggestions: sort
-                ? [...this.sortPartnerSuggestions(suggestions, cleanedSearchTerm, thread)]
-                : suggestions,
-        };
+        // suggestions.push(
+        //     ...this.store.specialMentions.filter(
+        //         (special) =>
+        //             thread &&
+        //             special.channel_types.includes(thread.channel_type) &&
+        //             cleanedSearchTerm.length >= Math.min(4, special.label.length) &&
+        //             (special.label.startsWith(cleanedSearchTerm) ||
+        //                 cleanTerm(special.description.toString()).includes(cleanedSearchTerm))
+        //     )
+        // );
+        return sort
+            ? [
+                  ...this.sortPartnerSuggestions(suggestions, cleanedSearchTerm, thread).map(
+                      (p) => ({
+                          title: p.name,
+                          description: p.email,
+                          partner: p,
+                      })
+                  ),
+              ]
+            : [
+                  ...suggestions.map((p) => ({
+                      title: p.name,
+                      description: p.email,
+                      partner: p,
+                  })),
+              ];
     }
 
     /**
@@ -305,10 +327,21 @@ export class SuggestionService {
             }
             return c1.id - c2.id;
         };
-        return {
-            type: "Thread",
-            suggestions: sort ? suggestionList.sort(sortFunc) : suggestionList,
-        };
+        return sort
+            ? [
+                  ...suggestionList.sort(sortFunc).map((t) => ({
+                      title: t.displayName,
+                      description: t.description,
+                      thread: t,
+                  })),
+              ]
+            : [
+                  ...suggestionList.map((t) => ({
+                      title: t.displayName,
+                      description: t.description,
+                      thread: t,
+                  })),
+              ];
     }
 }
 

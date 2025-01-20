@@ -17,7 +17,7 @@ import { advanceTime, animationFrame, tick } from "@odoo/hoot-mock";
 import { contains, patchTranslations, patchWithCleanup } from "@web/../tests/web_test_helpers";
 import { fontSizeItems, fontItems } from "../src/main/font/font_plugin";
 import { Plugin } from "../src/plugin";
-import { MAIN_PLUGINS } from "../src/plugin_sets";
+import { MAIN_PLUGINS } from "../src/plugin_sets_core_main";
 import { convertNumericToUnit, getCSSVariableValue, getHtmlStyle } from "../src/utils/formatting";
 import { setupEditor } from "./_helpers/editor";
 import { unformat } from "./_helpers/format";
@@ -280,9 +280,7 @@ test("toolbar works: can select font size", async () => {
 
     await contains(".o-we-toolbar [name='font-size'] .dropdown-toggle").click();
     const sizes = new Set(
-        fontSizeItems.map((item) => {
-            return getFontSizeFromVar(item.variableName).toString();
-        })
+        fontSizeItems.map((item) => getFontSizeFromVar(item.variableName).toString())
     );
     expect(queryAllTexts(".o_font_selector_menu .dropdown-item")).toEqual([...sizes]);
     const h1Size = getFontSizeFromVar("h1-font-size").toString();
@@ -454,9 +452,7 @@ test("toolbar correctly show namespace button group and stop showing when namesp
             toolbar_namespaces: [
                 {
                     id: "aNamespace",
-                    isApplied: (nodeList) => {
-                        return !!nodeList.find((node) => node.tagName === "DIV");
-                    },
+                    isApplied: (nodeList) => !!nodeList.find((node) => node.tagName === "DIV"),
                 },
             ],
             user_commands: { id: "test_cmd", run: () => null },

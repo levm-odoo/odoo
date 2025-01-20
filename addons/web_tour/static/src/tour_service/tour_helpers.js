@@ -147,11 +147,22 @@ export class TourHelpers {
         }
         await hoot.click(element);
         this._set_range(element, "start");
-        await hoot.keyDown("_");
-        element.textContent = text;
-        await hoot.manuallyDispatchProgrammaticEvent(element, "input");
-        this._set_range(element, "stop");
-        await hoot.keyUp("_");
+        for (const char of text) {
+            element.textContent += char;
+            this._set_range(element, "stop");
+            hoot.manuallyDispatchProgrammaticEvent(element, "keydown", { key: char });
+            // InputEvent is required to simulate the insert text.
+            hoot.manuallyDispatchProgrammaticEvent(element, "beforeinput", {
+                inputType: "insertText",
+                data: char,
+            });
+            hoot.manuallyDispatchProgrammaticEvent(element, "input", {
+                inputType: "insertText",
+                data: char,
+            });
+            // KeyUpEvent is not required but is triggered like the browser would.
+            hoot.manuallyDispatchProgrammaticEvent(element, "keyup", { key: char });
+        }
         await hoot.manuallyDispatchProgrammaticEvent(element, "change");
     }
 

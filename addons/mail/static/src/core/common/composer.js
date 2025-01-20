@@ -4,19 +4,17 @@ import { useCustomDropzone } from "@web/core/dropzone/dropzone_hook";
 import { MailAttachmentDropzone } from "@mail/core/common/mail_attachment_dropzone";
 import { MessageConfirmDialog } from "@mail/core/common/message_confirm_dialog";
 import { NavigableList } from "@mail/core/common/navigable_list";
-import { useSuggestion } from "@mail/core/common/suggestion_hook";
-import { prettifyMessageContent } from "@mail/utils/common/format";
-import { useSelection } from "@mail/utils/common/hooks";
+import { prettifyMessageContent, isEmpty } from "@mail/utils/common/format";
 import { isDragSourceExternalFile } from "@mail/utils/common/misc";
 import { rpc } from "@web/core/network/rpc";
-import { isEventHandled, markEventHandled } from "@web/core/utils/misc";
 import { browser } from "@web/core/browser/browser";
 import { useDebounced } from "@web/core/utils/timing";
+import { Wysiwyg } from "@html_editor/wysiwyg";
+import { closestElement } from "@html_editor/utils/dom_traversal";
 
 import {
     Component,
     markup,
-    onMounted,
     useChildSubEnv,
     useEffect,
     useRef,
@@ -33,6 +31,21 @@ import { isDisplayStandalone, isIOS, isMobileOS } from "@web/core/browser/featur
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { useComposerActions } from "./composer_actions";
+import { CORE_PLUGINS } from "@html_editor/plugin_sets_core_main";
+import { PowerboxPlugin } from "@html_editor/main/powerbox/powerbox_plugin";
+import { ToolbarPlugin } from "@html_editor/main/toolbar/toolbar_plugin";
+import { ShortCutPlugin } from "@html_editor/core/shortcut_plugin";
+import { SearchPowerboxPlugin } from "@html_editor/main/powerbox/search_powerbox_plugin";
+import { ListPlugin } from "@html_editor/main/list/list_plugin";
+import { LinkPlugin } from "@html_editor/main/link/link_plugin";
+import { InlineCodePlugin } from "@html_editor/main/inline_code";
+import { TabulationPlugin } from "@html_editor/main/tabulation_plugin";
+import { SuggestionPlugin } from "./suggestion/suggestion_plugin";
+import { ComposerPlugin } from "./composer_plugin";
+import { HintPlugin } from "@html_editor/main/hint_plugin";
+import { fixInvalidHTML } from "@html_editor/utils/sanitize";
+import { ColorPlugin } from "@html_editor/main/font/color_plugin";
+import { EmojiPlugin } from "@html_editor/main/emoji_plugin";
 
 const EDIT_CLICK_TYPE = {
     CANCEL: "cancel",
@@ -61,6 +74,7 @@ export class Composer extends Component {
         DropdownItem,
         FileUploader,
         NavigableList,
+        Wysiwyg,
     };
     static defaultProps = {
         mode: "normal",
@@ -106,29 +120,8 @@ export class Composer extends Component {
             { composer: this.props.composer }
         );
         this.ui = useService("ui");
-        this.ref = useRef("textarea");
-        this.fakeTextarea = useRef("fakeTextarea");
-        this.inputContainerRef = useRef("input-container");
         this.pickerContainerRef = useRef("picker-container");
         this.state = useState({ active: true });
-        this.selection = useSelection({
-            refName: "textarea",
-            model: this.props.composer.selection,
-            preserveOnClickAwayPredicate: async (ev) => {
-                // Let event be handled by bubbling handlers first.
-                await new Promise(setTimeout);
-                return (
-                    !this.isEventTrusted(ev) ||
-                    isEventHandled(ev, "sidebar.openThread") ||
-                    isEventHandled(ev, "emoji.selectEmoji") ||
-                    isEventHandled(ev, "Composer.onClickAddEmoji") ||
-                    isEventHandled(ev, "composer.clickOnAddAttachment") ||
-                    isEventHandled(ev, "composer.selectSuggestion")
-                );
-            },
-        });
-        this.suggestion = useSuggestion();
-        this.markEventHandled = markEventHandled;
         this.onDropFile = this.onDropFile.bind(this);
         this.saveContentDebounced = useDebounced(this.saveContent, 5000, {
             execBeforeUnmount: true,
@@ -167,9 +160,8 @@ export class Composer extends Component {
         useChildSubEnv({ inComposer: true });
         useEffect(
             (focus) => {
-                if (focus && this.ref.el) {
-                    this.selection.restore();
-                    this.ref.el.focus();
+                if (focus && this.wysiwyg.editor) {
+                    this.wysiwyg.editor.shared.selection.focusEditable();
                 }
             },
             () => [this.props.autofocus + this.props.composer.autofocus, this.props.placeholder]
@@ -182,31 +174,62 @@ export class Composer extends Component {
             },
             () => [this.props.messageToReplyTo?.thread, this.props.composer.thread]
         );
-        useEffect(
-            () => {
-                if (this.fakeTextarea.el.scrollHeight) {
-                    this.ref.el.style.height = this.fakeTextarea.el.scrollHeight + "px";
-                }
-                this.saveContentDebounced();
+        this.wysiwyg = {
+            config: {
+                content: "<p><br></p>",
+                placeholder: this.placeholder,
+                disableVideo: true,
+                Plugins: this.plugins,
+                classList: ["o-mail-Composer-input"],
+                onChange: this.onChange.bind(this),
+                onBlur: this.onBlurWysiwyg.bind(this),
+                onEditorReady: () => {
+                    this.historySavePointRestore =
+                        this.wysiwyg.editor.shared.history.makeSavePoint();
+                    if (this.props.composer.text) {
+                        const content = fixInvalidHTML(this.props.composer.text);
+                        if (!isEmpty(content)) {
+                            this.wysiwyg.editor.editable.innerHTML = content;
+                            this.wysiwyg.editor.shared.selection.setCursorEnd(
+                                this.wysiwyg.editor.editable
+                            );
+                            this.wysiwyg.editor.shared.history.addStep();
+                        }
+                    }
+                },
+                suggestionService: useService("mail.suggestion"),
+                mailServices: {
+                    composer: this,
+                    attachmentUploader: this.attachmentUploader,
+                    onInput: this.onInput.bind(this),
+                    onKeydown: this.onKeydown.bind(this),
+                    onFocusin: this.onFocusin.bind(this),
+                    onFocusout: this.onFocusout.bind(this),
+                    store: this.store,
+                    orm: this.env.services.orm,
+                },
             },
-            () => [this.props.composer.text, this.ref.el]
-        );
-        useEffect(
-            () => {
-                if (!this.props.composer.forceCursorMove) {
-                    return;
-                }
-                this.selection.restore();
-                this.props.composer.forceCursorMove = false;
-            },
-            () => [this.props.composer.forceCursorMove]
-        );
-        onMounted(() => {
-            this.ref.el.scrollTo({ top: 0, behavior: "instant" });
-            if (!this.props.composer.text) {
-                this.restoreContent();
-            }
-        });
+            editor: undefined,
+        };
+    }
+
+    get plugins() {
+        return [
+            ...CORE_PLUGINS,
+            InlineCodePlugin,
+            LinkPlugin,
+            ColorPlugin,
+            ListPlugin,
+            HintPlugin,
+            EmojiPlugin,
+            ComposerPlugin,
+            PowerboxPlugin,
+            SearchPowerboxPlugin,
+            ShortCutPlugin,
+            TabulationPlugin,
+            ToolbarPlugin,
+            SuggestionPlugin,
+        ];
     }
 
     get areAllActionsDisabled() {
@@ -329,90 +352,28 @@ export class Composer extends Component {
         const attachments = this.props.composer.attachments;
         return (
             !this.state.active ||
-            (!this.props.composer.text && attachments.length === 0) ||
+            (isEmpty(this.props.composer.text) && attachments.length === 0) ||
             attachments.some(({ uploading }) => Boolean(uploading))
         );
     }
 
     get hasSuggestions() {
-        return Boolean(this.suggestion?.state.items);
+        return Boolean(document.querySelector(".o-overlay-item .overlay"));
     }
 
-    get navigableListProps() {
-        const props = {
-            anchorRef: this.inputContainerRef.el,
-            position: this.env.inChatter ? "bottom-fit" : "top-fit",
-            onSelect: (ev, option) => {
-                this.suggestion.insert(option);
-                markEventHandled(ev, "composer.selectSuggestion");
-            },
-            isLoading: !!this.suggestion.search.term && this.suggestion.state.isFetching,
-            options: [],
-        };
-        if (!this.hasSuggestions) {
-            return props;
-        }
-        const suggestions = this.suggestion.state.items.suggestions;
-        switch (this.suggestion.state.items.type) {
-            case "Partner":
-                return {
-                    ...props,
-                    optionTemplate: "mail.Composer.suggestionPartner",
-                    options: suggestions.map((suggestion) => {
-                        if (suggestion.isSpecial) {
-                            return {
-                                ...suggestion,
-                                group: 1,
-                                optionTemplate: "mail.Composer.suggestionSpecial",
-                                classList: "o-mail-Composer-suggestion",
-                            };
-                        } else {
-                            return {
-                                label: suggestion.name,
-                                partner: suggestion,
-                                classList: "o-mail-Composer-suggestion",
-                            };
-                        }
-                    }),
-                };
-            case "Thread":
-                return {
-                    ...props,
-                    optionTemplate: "mail.Composer.suggestionThread",
-                    options: suggestions.map((suggestion) => ({
-                        label: suggestion.parent_channel_id
-                            ? `${suggestion.parent_channel_id.displayName} > ${suggestion.displayName}`
-                            : suggestion.displayName,
-                        thread: suggestion,
-                        classList: "o-mail-Composer-suggestion",
-                    })),
-                };
-            case "ChannelCommand":
-                return {
-                    ...props,
-                    optionTemplate: "mail.Composer.suggestionChannelCommand",
-                    options: suggestions.map((suggestion) => ({
-                        label: suggestion.name,
-                        help: suggestion.help,
-                        classList: "o-mail-Composer-suggestion",
-                    })),
-                };
-            case "mail.canned.response":
-                return {
-                    ...props,
-                    autoSelectFirst: false,
-                    hint: _t("Tab to select"),
-                    optionTemplate: "mail.Composer.suggestionCannedResponse",
-                    options: suggestions.map((suggestion) => ({
-                        cannedResponse: suggestion,
-                        source: suggestion.source,
-                        label: suggestion.substitution,
-                        classList: "o-mail-Composer-suggestion",
-                    })),
-                };
-            default:
-                return props;
-        }
+    onChange() {
+        this.props.composer.text = this.wysiwyg.editor.getContent();
+    }
+
+    onBlurWysiwyg() {
+        this.props.composer.text = this.wysiwyg.editor.getContent();
+    }
+
+    /**
+     * @param {Editor} editor
+     */
+    onLoadWysiwyg(editor) {
+        this.wysiwyg.editor = editor;
     }
 
     onDropFile(ev) {
@@ -431,30 +392,13 @@ export class Composer extends Component {
         }
     }
 
-    /**
-     * This doesn't work on firefox https://bugzilla.mozilla.org/show_bug.cgi?id=1699743
-     */
-    onPaste(ev) {
-        if (!this.allowUpload) {
-            return;
-        }
-        if (!ev.clipboardData?.items) {
-            return;
-        }
-        if (ev.clipboardData.files.length === 0) {
-            return;
-        }
-        ev.preventDefault();
-        for (const file of ev.clipboardData.files) {
-            this.attachmentUploader.uploadFile(file);
-        }
-    }
+    onInput(ev) {}
 
     onKeydown(ev) {
         const composer = toRaw(this.props.composer);
         switch (ev.key) {
             case "ArrowUp":
-                if (this.props.messageEdition && composer.text === "") {
+                if (this.props.messageEdition && isEmpty(composer.text)) {
                     const messageToEdit = composer.thread.lastEditableMessageOfSelf;
                     if (messageToEdit) {
                         this.props.messageEdition.editingMessage = messageToEdit;
@@ -462,8 +406,14 @@ export class Composer extends Component {
                 }
                 break;
             case "Enter": {
-                if (isEventHandled(ev, "NavigableList.select") || !this.state.active) {
+                const isOverlayOpen = document.querySelector(".o-overlay-item .overlay");
+                if (isOverlayOpen) {
                     ev.preventDefault();
+                    return;
+                }
+                const selection = this.wysiwyg.editor.shared.selection.getEditableSelection();
+                const isInList = closestElement(selection.anchorNode, "li");
+                if (isInList) {
                     return;
                 }
                 const shouldPost = this.props.mode === "extended" ? ev.ctrlKey : !ev.shiftKey;
@@ -479,12 +429,8 @@ export class Composer extends Component {
                 break;
             }
             case "Escape":
-                if (isEventHandled(ev, "NavigableList.close")) {
-                    return;
-                }
                 if (this.props.onDiscardCallback) {
                     this.props.onDiscardCallback();
-                    markEventHandled(ev, "Composer.discard");
                 }
                 break;
         }
@@ -519,13 +465,9 @@ export class Composer extends Component {
         }
         const attachmentIds = this.props.composer.attachments.map((attachment) => attachment.id);
         const body = this.props.composer.text;
-        const validMentions = this.store.getMentionsFromText(body, {
-            mentionedChannels: this.props.composer.mentionedChannels,
-            mentionedPartners: this.props.composer.mentionedPartners,
-        });
         const signature = this.store.self.signature;
         const default_body =
-            (await prettifyMessageContent(body, validMentions)) +
+            (await prettifyMessageContent(body)) +
             (this.props.composer.emailAddSignature && signature ? "<br>" + signature : "");
         const context = {
             default_attachment_ids: attachmentIds,
@@ -582,7 +524,8 @@ export class Composer extends Component {
 
     clear() {
         this.props.composer.clear();
-        browser.localStorage.removeItem(this.props.composer.localId);
+        this.historySavePointRestore();
+        this.historySavePointRestore = this.wysiwyg.editor.shared.history.makeSavePoint();
     }
 
     notifySendFromMailbox() {
@@ -597,14 +540,13 @@ export class Composer extends Component {
     }
 
     async processMessage(cb) {
-        const el = this.ref.el;
         const attachments = this.props.composer.attachments;
         if (attachments.some(({ uploading }) => uploading)) {
             this.env.services.notification.add(_t("Please wait while the file is uploading."), {
                 type: "warning",
             });
         } else if (
-            this.props.composer.text.trim() ||
+            !isEmpty(this.props.composer.text) ||
             attachments.length > 0 ||
             (this.message && this.message.attachment_ids.length > 0)
         ) {
@@ -618,7 +560,6 @@ export class Composer extends Component {
             }
             this.clear();
             this.state.active = true;
-            el.focus();
         }
     }
 
@@ -674,15 +615,15 @@ export class Composer extends Component {
         if (thread.model === "mail.box") {
             this.notifySendFromMailbox();
         }
-        this.suggestion?.clearRawMentions();
-        this.suggestion?.clearCannedResponses();
         this.props.messageToReplyTo?.cancel();
         this.props.composer.emailAddSignature = true;
     }
 
     async editMessage() {
         const composer = toRaw(this.props.composer);
-        if (composer.text || composer.message.attachment_ids.length > 0) {
+        const textContent = new DOMParser().parseFromString(composer.text, "text/html").body
+            .textContent;
+        if (textContent || composer.message.attachment_ids.length > 0) {
             await this.processMessage(async (value) =>
                 composer.message.edit(value, composer.attachments, {
                     mentionedChannels: composer.mentionedChannels,
@@ -696,20 +637,15 @@ export class Composer extends Component {
                 prompt: _t("Are you sure you want to delete this message?"),
             });
         }
-        this.suggestion?.clearRawMentions();
     }
 
     addEmoji(str) {
-        const composer = toRaw(this.props.composer);
-        const text = composer.text;
-        const firstPart = text.slice(0, composer.selection.start);
-        const secondPart = text.slice(composer.selection.end, text.length);
-        composer.text = firstPart + str + secondPart;
-        this.selection.moveCursor((firstPart + str).length);
+        this.wysiwyg.editor.shared.dom.insert(str + "\u00A0");
+        this.wysiwyg.editor.shared.history.addStep();
         if (this.ui.isSmall && !this.env.inChatter) {
             return false;
         } else {
-            composer.autofocus++;
+            this.wysiwyg.editor.shared.selection.focusEditable();
         }
     }
 
@@ -736,7 +672,7 @@ export class Composer extends Component {
         if (editable) {
             Object.assign(config, {
                 emailAddSignature: false,
-                text: editable.innerText.replace(/(\t|\n)+/g, "\n"),
+                text: editable.innerHTML,
             });
         } else {
             Object.assign(config, {

@@ -1,11 +1,11 @@
-import { MAIN_PLUGINS } from "./plugin_sets";
+import { MAIN_PLUGINS } from "./plugin_sets_core_main";
 import { removeClass } from "./utils/dom";
 import { isEmpty } from "./utils/dom_info";
 import { resourceSequenceSymbol, withSequence } from "./utils/resource";
 import { initElementForEdition } from "./utils/sanitize";
 
 /**
- * @typedef { import("./plugin_sets").SharedMethods } SharedMethods
+ * @typedef { import("./plugin_sets_others").SharedMethods } SharedMethods
  * @typedef {typeof import("./plugin").Plugin} PluginConstructor
  **/
 

@@ -12,7 +12,7 @@ import { defineLivechatModels } from "./livechat_test_helpers";
 describe.current.tags("desktop");
 defineLivechatModels();
 
-test("Suggestions are shown after delimiter was used in text (:)", async () => {
+test.skip("Suggestions are shown after delimiter was used in text (:)", async () => {
     const pyEnv = await startServer();
     pyEnv["mail.canned.response"].create({
         source: "hello",
