@@ -875,6 +875,18 @@ msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
+<<<<<<< 18.0
+||||||| eee3f422ec0449aaef4354fa402fbe4f15e196e3
+=======
+#: code:addons/point_of_sale/static/src/app/store/pos_store.js:0
+msgid ""
+"An error occurred while closing the session. Unsynced orders will be "
+"available in the next session. The page will be reloaded."
+msgstr ""
+
+#. module: point_of_sale
+#. odoo-javascript
+>>>>>>> 620e088d9adede61f95f92ad093194d789072160
 #: code:addons/point_of_sale/static/src/app/models/data_service.js:0
 msgid "An error occurred while loading the Point of Sale: \n"
 msgstr ""
@@ -1371,6 +1383,7 @@ msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
+<<<<<<< 18.0
 #: code:addons/point_of_sale/models/report_sale_details.py:0
 msgid "Cash %(session_name)s"
 msgstr ""
@@ -1379,6 +1392,23 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/navbar/closing_popup/closing_popup.xml:0
 msgid "Cash Count"
+||||||| eee3f422ec0449aaef4354fa402fbe4f15e196e3
+=======
+#: code:addons/point_of_sale/models/pos_config.py:0
+msgid "Cash Bakery"
+msgstr ""
+
+#. module: point_of_sale
+#. odoo-python
+#: code:addons/point_of_sale/models/pos_config.py:0
+msgid "Cash Clothes Shop"
+msgstr ""
+
+#. module: point_of_sale
+#. odoo-python
+#: code:addons/point_of_sale/models/pos_config.py:0
+msgid "Cash Furn. Shop"
+>>>>>>> 620e088d9adede61f95f92ad093194d789072160
 msgstr ""
 
 #. module: point_of_sale
@@ -1677,6 +1707,12 @@ msgid "Classic leather belt, a must-have accessory for any wardrobe."
 msgstr ""
 
 #. module: point_of_sale
+#. odoo-javascript
+#: code:addons/point_of_sale/static/src/app/navbar/navbar.xml:0
+msgid "Clear Cache"
+msgstr ""
+
+#. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_config_view_form
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
 msgid "Click here to close the session"
@@ -1761,6 +1797,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/navbar/closing_popup/closing_popup.xml:0
 msgid "Closing Register"
+msgstr ""
+
+#. module: point_of_sale
+#. odoo-javascript
+#: code:addons/point_of_sale/static/src/app/store/pos_store.js:0
+msgid "Closing Session"
 msgstr ""
 
 #. module: point_of_sale
@@ -2799,6 +2841,7 @@ msgstr ""
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/payment_screen/payment_screen.js:0
+#: code:addons/point_of_sale/static/src/app/store/pos_store.js:0
 msgid "Error"
 msgstr ""
 
@@ -4175,6 +4218,13 @@ msgid ""
 msgstr ""
 
 #. module: point_of_sale
+#. odoo-python
+#: code:addons/point_of_sale/models/pos_order.py:0
+msgid ""
+"No open session available. Please open a new session to capture the order."
+msgstr ""
+
+#. module: point_of_sale
 #: model_terms:ir.actions.act_window,help:point_of_sale.action_pos_payment_form
 #: model_terms:ir.actions.act_window,help:point_of_sale.action_pos_pos_form
 msgid "No orders found"
@@ -4201,6 +4251,11 @@ msgstr ""
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_res_config_settings__barcode_nomenclature_id
 msgid "Nomenclature"
+msgstr ""
+
+#. module: point_of_sale
+#: model_terms:ir.ui.view,arch_db:point_of_sale.view_report_pos_order_search
+msgid "Not Cancelled"
 msgstr ""
 
 #. module: point_of_sale
@@ -4591,6 +4646,26 @@ msgid "Order number"
 msgstr ""
 
 #. module: point_of_sale
+<<<<<<< 18.0
+||||||| eee3f422ec0449aaef4354fa402fbe4f15e196e3
+#: model_terms:ir.ui.view,arch_db:point_of_sale.report_saledetails
+msgid "Order reference"
+msgstr ""
+
+#. module: point_of_sale
+#. odoo-javascript
+#: code:addons/point_of_sale/static/src/app/customer_display/customer_display_template.xml:0
+msgid "Order reference:"
+msgstr ""
+
+#. module: point_of_sale
+=======
+#: model_terms:ir.ui.view,arch_db:point_of_sale.report_saledetails
+msgid "Order reference"
+msgstr ""
+
+#. module: point_of_sale
+>>>>>>> 620e088d9adede61f95f92ad093194d789072160
 #: model:ir.model.fields,help:point_of_sale.field_pos_order_line__refund_orderline_ids
 msgid "Orderlines in this field are the lines that refunded this orderline."
 msgstr ""
@@ -7191,12 +7266,22 @@ msgid "Tel:"
 msgstr ""
 
 #. module: point_of_sale
+<<<<<<< 18.0
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/customer_display/customer_display.xml:0
 msgid "Thank you."
 msgstr ""
 
 #. module: point_of_sale
+||||||| eee3f422ec0449aaef4354fa402fbe4f15e196e3
+#. odoo-javascript
+#: code:addons/point_of_sale/static/src/app/customer_display/customer_display_template.xml:0
+msgid "Thank you for your purchase!"
+msgstr ""
+
+#. module: point_of_sale
+=======
+>>>>>>> 620e088d9adede61f95f92ad093194d789072160
 #. odoo-python
 #: code:addons/point_of_sale/controllers/main.py:0
 msgid "The %s must be filled in your details."
@@ -7477,6 +7562,13 @@ msgstr ""
 msgid ""
 "The session has been opened for an unusually long period. Please consider "
 "closing."
+msgstr ""
+
+#. module: point_of_sale
+#. odoo-javascript
+#: code:addons/point_of_sale/static/src/app/store/pos_store.js:0
+msgid ""
+"The session is being closed by another user. The page will be reloaded."
 msgstr ""
 
 #. module: point_of_sale
@@ -7929,6 +8021,13 @@ msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
+<<<<<<< 18.0
+||||||| eee3f422ec0449aaef4354fa402fbe4f15e196e3
+#: code:addons/point_of_sale/static/src/app/customer_display/customer_display_template.xml:0
+#: code:addons/point_of_sale/static/src/app/generic_components/order_widget/order_widget.xml:0
+=======
+#: code:addons/point_of_sale/static/src/app/generic_components/order_widget/order_widget.xml:0
+>>>>>>> 620e088d9adede61f95f92ad093194d789072160
 #: code:addons/point_of_sale/static/src/app/navbar/sale_details_button/sales_detail_report.xml:0
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_session_sales_details
 msgid "Total:"
@@ -8601,6 +8700,23 @@ msgid "You should assign a Point of Sale to your session."
 msgstr ""
 
 #. module: point_of_sale
+<<<<<<< 18.0
+||||||| eee3f422ec0449aaef4354fa402fbe4f15e196e3
+#. odoo-javascript
+#: code:addons/point_of_sale/static/src/app/customer_display/customer_display_template.xml:0
+#: code:addons/point_of_sale/static/src/customer_display/customer_display.xml:0
+msgid "Your Order"
+msgstr ""
+
+#. module: point_of_sale
+=======
+#. odoo-javascript
+#: code:addons/point_of_sale/static/src/customer_display/customer_display.xml:0
+msgid "Your Order"
+msgstr ""
+
+#. module: point_of_sale
+>>>>>>> 620e088d9adede61f95f92ad093194d789072160
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_session.py:0
 msgid ""
