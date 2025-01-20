@@ -30,19 +30,17 @@ class TestWebsiteTour(HttpCase, TransactionCase):
             'event_id': self.event.id,
             'is_published': True
         }])
-
-    def _get_email_reminder_tour_url(self):
-        return f'{self.event.website_url}/agenda'
+        self.email_reminder_tour_url = f'{self.event.website_url}/agenda'
 
     def test_visitor_email_reminder_tour(self):
-        self.start_tour(self._get_email_reminder_tour_url(), 'visitor_email_reminder_tour')
+        self.start_tour(self.email_reminder_tour_url, 'visitor_email_reminder_tour')
         session = http.root.session_store.get(self.session.sid)
         last_email = self.env['mail.mail'].search([], limit=1, order="id DESC")
         self.assertEqual(session.get('website_event_track.email_reminder'), last_email.email_to)
 
     def test_logged_user_email_reminder_tour(self):
         user = self.env['res.users'].search([('login', '=', 'admin')])
-        self.start_tour(self._get_email_reminder_tour_url(), "logged_user_email_reminder_tour",
+        self.start_tour(self.email_reminder_tour_url, "logged_user_email_reminder_tour",
                         login=user.login)
         last_email = self.env['mail.mail'].search([], limit=1, order="id DESC")
         self.assertEqual(user.email, last_email.email_to)
