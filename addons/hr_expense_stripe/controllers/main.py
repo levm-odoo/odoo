@@ -113,13 +113,13 @@ class StripeIssuingController(Controller):
     def _validate_signature(self, company_secret, signature_header, payload):
         if not signature_header:
             return False
-        _logger.debug('Validating signature: %s', signature_header)
+        _logger.debug('Validating signature: %s', signature_header)  # TODO JUAL: Remove
         signature_data = {
             key: value
             for key_value in signature_header.split(',')
             for key, *value in key_value.split('=')
         }
-        _logger.debug('Validating signature: %s', signature_data)
+        _logger.debug('Validating signature: %s', signature_data)  # TODO JUAL: Remove
 
         if (time.time() - int(signature_data['t'])) > 300:  # 5 minutes
             return False
