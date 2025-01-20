@@ -1,5 +1,6 @@
 /** @odoo-module **/
 import wTourUtils from "@website/js/tours/tour_utils";
+import { patch } from "@web/core/utils/patch";
 
 wTourUtils.registerWebsitePreviewTour("website_font_family", {
     test: true,
@@ -27,6 +28,21 @@ wTourUtils.registerWebsitePreviewTour("website_font_family", {
         run: "click",
     },
     {
+        trigger: "we-select[data-variable='headings-font']",
+        // This is a workaround to prevent the _reloadBundles method from being called.
+        // It addresses the issue where selecting a we-button with an empty string,
+        // such as o_we_add_font_btn, triggers unintended behavior and the value to
+        // its default.
+        run: function () {
+            const options = odoo.loader.modules.get('@web_editor/js/editor/snippets.options')[Symbol.for('default')]
+            patch(options.Class.prototype, {
+                async _refreshBundles() {
+                    console.error("The font family selector value get reload to its default.");
+                }
+            })
+        }
+    },
+    {
         content: "Click on the 'Add a custom font' button",
         trigger: "we-select[data-variable='headings-font'] .o_we_add_font_btn",
         run: "click",
@@ -34,11 +50,7 @@ wTourUtils.registerWebsitePreviewTour("website_font_family", {
     {
         content: "Wait for the modal to open and then refresh",
         trigger: "button.btn-secondary",
-        run: function () {
-            setTimeout(() => {
-                this.anchor.click();
-            }, 2000);
-        },
+        run: "click",
     },
     {
         content: "Check that 'Arvo' font family is still applied and not reverted",
