@@ -27,9 +27,9 @@ class StripeIssuing(models.AbstractModel):
     @api.model
     def _get_stripe_mode(self):
         """ Helper to get the mode in which the database is set, it should always be live unless a test database is created"""
-        self.ensure_one()
+        company = self.company_id or self.env.company
 
-        return self.company_id.stripe_mode
+        return company.stripe_mode
 
     @api.model
     def _get_publishable_key(self):
@@ -39,10 +39,9 @@ class StripeIssuing(models.AbstractModel):
         :return: The publishable key
         :rtype: str
         """
-        self.ensure_one()
-
+        company = self.company_id or self.env.company
         mode = self._get_stripe_mode()
-        return self.company_id[f'stripe_publishable_{mode}_key'] or get_publishable_key()
+        return company[f'stripe_publishable_{mode}_key'] or get_publishable_key()
 
     @api.model
     def _get_secret_key(self):
@@ -52,10 +51,9 @@ class StripeIssuing(models.AbstractModel):
         :return: The secret key
         :rtype: str
         """
-        self.ensure_one()
-
+        company = self.company_id or self.env.company
         mode = self._get_stripe_mode()
-        return self.company_id[f'stripe_secret_{mode}_key'] or get_secret_key()
+        return company[f'stripe_secret_{mode}_key'] or get_secret_key()
 
     @api.model
     def _stripe_get_endpoint(self, extra_url=''):
@@ -170,7 +168,7 @@ class StripeIssuing(models.AbstractModel):
         :return: {odoo_field: odoo_value} or an empty dict if the data is invalid (test data for example)
         rtype: dict[str, any]
         """
-        stripe_id = stripe_data.pop('id')
+        stripe_id = stripe_data.pop('id') if 'id' in stripe_data else ''
         return {'stripe_id': stripe_id, 'company_id': self.env.company.id}
 
     def _stripe_search_object(self, filters=None):

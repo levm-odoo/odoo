@@ -5,10 +5,10 @@ class HrEmployee(models.Model):
     _name = 'hr.employee'
     _inherit = ['hr.employee', 'stripe.issuing']
 
-    private_first_name = fields.Char(string='First Name', compute='_compute_from_name', store=True)
-    private_last_name = fields.Char(string='Last Name', compute='_compute_from_name', store=True)
-    can_use_stripe_cards = fields.Boolean(string="Can use stripe credit cards", copy=False, index='btree_not_null')
-    stripe_credit_card_ids = fields.One2many(comodel_name='hr.expense.stripe.credit.card', inverse_name='cardholder_id')
+    private_first_name = fields.Char(string='First Name', compute='_compute_from_name', store=True, groups="hr.group_hr_user")
+    private_last_name = fields.Char(string='Last Name', compute='_compute_from_name', store=True, groups="hr.group_hr_user")
+    can_use_stripe_cards = fields.Boolean(string="Can use stripe credit cards", copy=False, index='btree_not_null', groups="hr.group_hr_user")
+    stripe_credit_card_ids = fields.One2many(comodel_name='hr.expense.stripe.credit.card', inverse_name='cardholder_id', groups="hr.group_hr_user")
 
     _can_use_stripe_cards = models.Constraint(
         definition='CHECK(can_use_stripe_cards != TRUE OR (can_use_stripe_cards = TRUE AND user_id IS NOT NULL))',
