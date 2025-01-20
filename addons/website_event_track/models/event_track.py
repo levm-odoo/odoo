@@ -3,6 +3,7 @@
 
 from datetime import timedelta
 import logging
+from markupsafe import Markup
 from random import randint
 from textwrap import shorten
 
@@ -653,8 +654,10 @@ class EventTrack(models.Model):
         return track_candidates[:limit]
 
     def _get_reminder_times_warning(self):
-        return '<strong><u>Note</u></strong>: The start and end times of the talk were not specified when you asked to add them to\
-            your calendar, therefore the times indicated in this reminder correspond to those of the event.' if not self.date else ''
+        return Markup(
+            _('<strong><u>Note</u></strong>: The start and end times of the talk were not specified when you asked to add them to\
+            your calendar, therefore the times indicated in this reminder correspond to those of the event.') if not self.date else ''
+        )
 
     def _get_external_description(self):
         """ Adding the URL of the event track into the description """
