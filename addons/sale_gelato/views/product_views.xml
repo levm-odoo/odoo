@@ -37,7 +37,7 @@
                             />
                         </div>
                         <button
-                            string="Generate variants"
+                            string="Synchronize"
                             type="object"
                             name="action_create_product_variants_from_gelato_template"
                             invisible="is_product_variant or not gelato_template_ref"

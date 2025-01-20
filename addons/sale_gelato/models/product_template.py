@@ -17,10 +17,22 @@ class ProductTemplate(models.Model):
         compute='_compute_gelato_product_ref',
         inverse='_set_gelato_product_ref',
     )
-    gelato_template_ref = fields.Char(string="Gelato Template Reference")
-    gelato_image_ids = fields.One2many(
-        string="Gelato Images", comodel_name='product.document', readonly=True
+    gelato_template_ref = fields.Char(
+        string="Gelato Template Reference",
+        help="Synchronie to fetch variants from Gelato"
     )
+    gelato_image_ids = fields.One2many(
+        string="Print Images", inverse_name='res_id', comodel_name='product.document', readonly=True
+    )
+
+    @api.constrains('gelato_product_ref', 'gelato_template_ref')
+    def _check_gelato_image(self): #it checks the constraint after creating product_document
+        for record in self:
+            if record.gelato_template_ref or record.gelato_product_ref or record.product_variant_id.gelato_product_ref:
+                for image in record.gelato_image_ids:
+                    if not image.image_src:
+                        raise ValidationError(_("You must provide an image template design for the"
+                                                " Gelato product."))
 
     @api.depends('product_variant_ids.gelato_product_ref')
     def _compute_gelato_product_ref(self):
@@ -60,6 +72,7 @@ class ProductTemplate(models.Model):
         else:
             for variant_data in data['variants']:
                 attribute_value_ids = []
+                #maybe throw attribute search and creation in seprate function
                 for attribute_data in variant_data['variantOptions']:
                     # Search if there is an existing attribute with proper variant creation, if not
                     # new attribute is created.
@@ -115,9 +128,31 @@ class ProductTemplate(models.Model):
             ])
             variants_without_gelato.unlink()
 
-    # def create_image_placement(self, data):
+        self.create_image_placement(data['variants'][0]['imagePlaceholders'])
 
-
+    def create_image_placement(self, placement_list):
+        # Gelato might send image placement that is named 1 or front but won't accept is when
+        # placing order, instead, in place of those names value 'default' is required
+        for placement in placement_list:
+            if placement['printArea'].lower() in ('1', 'front'):
+                placement['printArea'] = 'default'
+            #gelato only accepts each placement one time, if during synchronization 2 placements
+            # with the same name are sent, we only use one of them
+            image = self.env['product.document'].search([
+                ('name', '=', placement['printArea'].lower()),
+                ('is_gelato', '=', True),
+                ('res_id', '=', self.id),
+                ('res_model', '=', 'product.template'),
+            ])
+            if not image:
+                image = self.env['product.document'].create({
+                    'name': placement['printArea'].lower(),
+                    'is_gelato': True,
+                    'res_id': self.id,
+                    'res_model': 'product.template',
+                })
+                self.gelato_image_ids = [Command.link(image.id)]
+        return
 
     def get_product_document_domain(self):
         domain = super().get_product_document_domain()

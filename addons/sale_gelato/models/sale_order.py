@@ -19,7 +19,7 @@ class SaleOrder(models.Model):
                 sale_order.company_id.gelato_api_key
                 and sale_order.order_line.filtered(lambda g: g.product_id.gelato_product_ref)
             ):
-                sale_order.send_gelato_order_request()
+                sale_order.send_gelato_order_request() #actually If gelato doesn't send 200 we should confirm it
 
         return res
 
@@ -49,15 +49,19 @@ class SaleOrder(models.Model):
 
         else:
             error_message = response.json().get('message')
-            self.message_post(
+            self.message_notify(
                 body=_(
                     "Order %(order_reference)s has not been passed to Gelato. Following information\n" 
                     "were given: %(error_message)s",
                     order_reference=self.display_name,
-                    error_message=error_message
+                    error_message=error_message,
                 ),
                 author_id=self.env.ref('base.partner_root').id,
+                # subtype_xmlid="mail.mt_comment",
+                partner_ids=self.user_id.partner_id.ids,
             )
+
+            #self.message_post(body="This order has not been passed to Gelato. Go to Gelato to create order ")
 
         _logger.info("Notification received from Gelato with data:\n%s",
                      pprint.pformat(response.json()))
@@ -90,26 +94,22 @@ class SaleOrder(models.Model):
             gelato_item = {
                 'itemReferenceId': sale_order_line.product_id.id,
                 'productUid': str(sale_order_line.product_id.gelato_product_ref),
-                'files': [
-                    {
-                        'type': 'default',
-                        'url': 'https://i.natgeofe.com/n/548467d8-c5f1-4551-9f58-6817a8d2c45e/NationalGeographic_2572187.jpg'
-                    }
-                ],
-                'quantity': int(sale_order_line.product_uom_qty)
+                'files': self.create_placement_list(sale_order_line.product_id.product_tmpl_id),
+                'quantity': int(sale_order_line.product_uom_qty),
             }
             gelato_items.append(gelato_item)
 
         return gelato_items
 
     @staticmethod
-    def image_url(record, field):
+    def image_url(record):
         """ Returns a local url that points to the image field of a given browse record. """
 
         domain = [
-            ('res_model', '=', record._name),
-            ('res_field', '=', field),
-            ('res_id', 'in', [record.id]),
+            ('res_model', '=', record.res_model),
+            ('res_id', '=', record.res_id),
+            ('name', '=', record.name),
+
         ]
         # Note: the 'bin_size' flag is handled by the field 'datas' itself
         attachment = record.env['ir.attachment'].sudo().search(domain)
@@ -191,3 +191,16 @@ class SaleOrder(models.Model):
             ))
 
         return super()._check_product_compatibility(product_id)
+
+    def create_placement_list(self, product_template):
+        "Create list of dicts containing placement and image url."
+        product_images = product_template.gelato_image_ids
+        image_list = []
+        base_url = self.get_base_url()
+        for image in product_images:
+            image_url = base_url + self.image_url(image)
+            image_list.append({
+                'type': image.name,
+                # 'url': image_url,
+            })
+        return image_list

@@ -11,6 +11,7 @@
     'license': 'LGPL-3',
     'data': [
         'data/data.xml',
+        'data/mail_template_data.xml',
 
         'views/delivery_carrier.xml',
         'views/product_document_views.xml',

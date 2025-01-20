@@ -7,6 +7,7 @@ from markupsafe import Markup
 from werkzeug.exceptions import Forbidden
 
 from odoo import SUPERUSER_ID, _, http
+from odoo.addons.account.models.ir_module import templ
 from odoo.http import request
 
 _logger = logging.getLogger(__name__)
@@ -49,6 +50,11 @@ class GelatoController(http.Controller):
                     source_ref=template,
                     author_id=request.env.ref('base.partner_root').id,
                 )
+
+                template = request.env.ref('sale_gelato.mail_template_data_delivery_confirmation')
+                ctx = {'shipping_codes': self.get_tracking_codes(items=event['items'])}
+
+                sale_order_sudo.with_context(ctx).message_post_with_source(source_ref=template, author_id=request.env.ref('base.partner_root').id)
 
             elif event.get('fulfillmentStatus') == 'failed':
 
