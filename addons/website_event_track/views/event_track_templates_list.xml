@@ -310,7 +310,7 @@
                             <!-- Main column: name, speaker -->
                             <div class="col-12">
                                 <span class="fw-bold mb0">
-                                    <a t-if="track.website_published or is_event_user"
+                                    <a t-if="(not is_html_empty(track.description) or track.partner_biography) and (track.website_published or is_event_user)"
                                         class="text-reset me-2"
                                         t-att-href="track.website_url">
                                         <span t-field="track.name"/>
