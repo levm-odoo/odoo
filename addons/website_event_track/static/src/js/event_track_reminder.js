@@ -117,9 +117,10 @@ publicWidget.registry.websiteEventTrackReminder = publicWidget.Widget.extend({
             track_id: trackId,
             email_to: emailTo
         }).then(async (result) => {
-            if (result.success){
+            if (result.success || result.error == 'missing_template'){
                 await this._addReminder(trackId);
-                this.notification.add(_t('Track successfully added to your favorites. Check your email to add them to your agenda.'),
+                this.notification.add(
+                    _t(`Track successfully added to your favorites. ${result.error != 'missing_template' ? 'Check your email to add them to your agenda.' : ''}`),
                     {
                         type: 'info',
                         className: 'o_send_email_reminder_success'

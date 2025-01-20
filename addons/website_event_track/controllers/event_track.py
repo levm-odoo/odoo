@@ -544,7 +544,7 @@ class EventTrackController(http.Controller):
     def send_email_reminder(self, track_id, email_to):
         template = self.env.ref("website_event_track.email_reminder", raise_if_not_found=False)
         if not template:
-            return {'success': _('The mail with reminder can not be sent.')}
+            return {'success': False, 'error': 'missing_template'}
 
         valid_email_to = tools.email_normalize(email_to)
         if not track_id or not valid_email_to:
