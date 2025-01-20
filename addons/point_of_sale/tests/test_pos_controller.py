@@ -54,7 +54,7 @@ class TestPoSController(TestPointOfSaleHttpCommon):
             'vat': self.new_partner.vat,
             'street': "Test street",
             'city': "Test City",
-            'zip': self.new_partner.zip,
+            'zipcode': self.new_partner.zip,
             'country_id': self.new_partner.country_id.id,
             'state_id': self.new_partner.state_id.id,
             'phone': "123456789",

@@ -191,7 +191,7 @@ class PosController(PortalAccount):
             invoice_values, prefixed_invoice_values = _parse_additional_values(additional_invoice_fields, 'invoice_', kwargs)
             form_values['extra_field_values'].update(prefixed_invoice_values)
             # Check the basic form fields if the user is not connected as we will need these information to create the new user.
-            partner, json_feedback = self._create_or_update_address(partner, **kwargs)
+            partner, json_feedback = self._create_or_update_address(partner, **(kwargs | partner_values))
             form_values.update(json.loads(json_feedback))
             missing_fields, error_messages = self._validate_extra_form_details(
                 partner_values | invoice_values,

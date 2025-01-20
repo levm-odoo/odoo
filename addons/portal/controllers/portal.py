@@ -535,6 +535,9 @@ class CustomerPortal(Controller):
                 address_values['vat'],
             )
 
+        if 'zipcode' in form_data and not form_data.get('zip'):
+            address_values['zip'] = form_data.pop('zipcode', '')
+
         return address_values, extra_form_data
 
     def _validate_address_values(
