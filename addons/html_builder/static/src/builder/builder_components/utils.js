@@ -24,11 +24,16 @@ export function useDomState(getState) {
 }
 
 export class BuilderComponent extends Component {
-    static template = xml`<div t-att-class="this.props.isVisible === false ? 'd-none' : 'd-contents'"><t t-slot="default"/></div>`;
+    static template = xml`<div t-att-class="this.state.isVisible === false ? 'd-none' : 'd-contents'"><t t-slot="default"/></div>`;
     static props = {
         isVisible: { type: Boolean, optional: true },
         slots: { type: Object },
     };
+    setup() {
+        this.state = useDomState((editingElement) => ({
+            isVisible: !!editingElement && this.props.isVisible,
+        }));
+    }
 }
 
 function querySelectorAll(targets, selector) {
@@ -534,9 +539,17 @@ export function useVisibilityObserver(contentName, callback) {
     const contentRef = useRef(contentName);
 
     const applyVisibility = () => {
-        const hasContent = [...contentRef.el.childNodes].some((el) =>
-            isTextNode(el) ? el.textContent !== "" : !el.classList.contains("d-none")
-        );
+        const hasContent = [...contentRef.el.childNodes].some((el) => {
+            if (el.classList?.contains("d-contents")) {
+                el = el.children[0];
+                if (!el) {
+                    return false;
+                }
+            }
+            return isTextNode(el)
+                ? el.textContent !== ""
+                : !el.classList.contains("d-none") && !el.classList.contains("builder-hidden");
+        });
         callback(hasContent);
     };
 

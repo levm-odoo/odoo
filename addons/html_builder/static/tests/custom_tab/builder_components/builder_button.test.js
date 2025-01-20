@@ -298,14 +298,14 @@ test("hide/display base on applyTo", async () => {
         `<div class="parent-target"><div class="child-target">b</div></div>`
     );
     expect("[data-class-action='my-custom-class']").not.toHaveClass("active");
-    expect("[data-class-action='test']").toHaveCount(0);
+    expect("[data-class-action='test']").not.toBeVisible();
 
     await contains("[data-class-action='my-custom-class']").click();
     expect(editor.editable).toHaveInnerHTML(
         `<div class="parent-target"><div class="child-target my-custom-class">b</div></div>`
     );
     expect("[data-class-action='my-custom-class']").toHaveClass("active");
-    expect("[data-class-action='test']").toHaveCount(1);
+    expect("[data-class-action='test']").toBeVisible();
     expect("[data-class-action='test']").not.toHaveClass("active");
 });
 describe("inherited actions", () => {

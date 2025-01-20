@@ -122,10 +122,10 @@ test("hide/display base on applyTo", async () => {
 
     await setupWebsiteBuilder(`<div class="parent-target"><div class="child-target">b</div></div>`);
     await contains(":iframe .parent-target").click();
-    expect(".options-container .btn-group").toHaveCount(0);
+    expect(".options-container .btn-group").not.toBeVisible();
 
     await contains("[data-class-action='my-custom-class']").click();
-    expect(".options-container .btn-group").toHaveCount(1);
+    expect(".options-container .btn-group").toBeVisible();
 });
 
 test("hide/display base on applyTo - 2", async () => {

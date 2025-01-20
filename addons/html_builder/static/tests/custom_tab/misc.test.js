@@ -86,12 +86,11 @@ test("basic multi options containers", async () => {
     await setupWebsiteBuilder(`<div class="main"><p class="test-options-target a">b</p></div>`);
     await contains(":iframe .test-options-target").click();
     expect(".options-container").toHaveCount(2);
-    expect(queryAllTexts(".options-container:first .we-bg-options-container > div > div")).toEqual([
-        "Row 3",
-        "C",
-    ]);
     expect(
-        queryAllTexts(".options-container:nth-child(2) .we-bg-options-container > div > div")
+        queryAllTexts(".options-container:first .we-bg-options-container > div > div > div")
+    ).toEqual(["Row 3", "C"]);
+    expect(
+        queryAllTexts(".options-container:nth-child(2) .we-bg-options-container > div > div > div")
     ).toEqual(["Row 1", "A", "Row 2", "B"]);
 });
 
@@ -140,7 +139,7 @@ test("Snippets options respect sequencing", async () => {
     await setupWebsiteBuilder(`<div class="test-options-target" data-name="Yop">b</div>`);
     await contains(":iframe .test-options-target").click();
     expect(".options-container").toBeDisplayed();
-    expect(queryAllTexts(".options-container .we-bg-options-container > div > div")).toEqual([
+    expect(queryAllTexts(".options-container .we-bg-options-container > div > div > div")).toEqual([
         "Row 1",
         "Test",
         "Row 2",
@@ -168,10 +167,10 @@ test("hide empty OptionContainer and display OptionContainer with content", asyn
     );
 
     await contains(":iframe .parent-target > div").click();
-    expect(".options-container:not(.d-none)").toHaveCount(1);
+    expect(".options-container:not(.builder-hidden)").toHaveCount(1);
 
     await contains("[data-class-action='my-custom-class']").click();
-    expect(".options-container:not(.d-none)").toHaveCount(2);
+    expect(".options-container:not(.builder-hidden)").toHaveCount(2);
 });
 
 test("hide empty OptionContainer and display OptionContainer with content (with BuilderButtonGroup)", async () => {
@@ -196,11 +195,11 @@ test("hide empty OptionContainer and display OptionContainer with content (with 
         `<div class="parent-target"><div><div class="child-target">b</div></div></div>`
     );
     await contains(":iframe .parent-target > div").click();
-    expect(".options-container:not(.d-none)").toHaveCount(1);
+    expect(".options-container:not(.builder-hidden)").toHaveCount(1);
 
     await contains("[data-class-action='my-custom-class']").click();
-    expect(".options-container:not(.d-none)").toHaveCount(2);
-    expect(".options-container:not(.d-none):nth-child(2)").toHaveText("Block\nRow 2\nTest");
+    expect(".options-container:not(.builder-hidden)").toHaveCount(2);
+    expect(".options-container:not(.builder-hidden):nth-child(2)").toHaveText("Block\nRow 2\nTest");
 });
 
 test("hide empty OptionContainer and display OptionContainer with content (with BuilderButtonGroup) - 2", async () => {
@@ -225,11 +224,11 @@ test("hide empty OptionContainer and display OptionContainer with content (with 
         `<div class="parent-target"><div><div class="child-target">b</div></div></div>`
     );
     await contains(":iframe .parent-target > div").click();
-    expect(".options-container:not(.d-none)").toHaveCount(1);
+    expect(".options-container:not(.builder-hidden)").toHaveCount(1);
 
     await contains("[data-class-action='my-custom-class']").click();
-    expect(".options-container:not(.d-none)").toHaveCount(2);
-    expect(".options-container:not(.d-none):nth-child(2)").toHaveText("Block\nRow 2\nTest");
+    expect(".options-container:not(.builder-hidden)").toHaveCount(2);
+    expect(".options-container:not(.builder-hidden):nth-child(2)").toHaveText("Block\nRow 2\nTest");
 });
 
 test("fallback on the 'Blocks' tab if no option match the selected element", async () => {

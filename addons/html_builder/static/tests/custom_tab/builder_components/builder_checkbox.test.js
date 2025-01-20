@@ -15,17 +15,17 @@ test("Click on checkbox", async () => {
 
     await contains(":iframe .test-options-target").click();
     expect(".options-container").toBeDisplayed();
-    expect(".o-checkbox .form-check-input:checked").toHaveCount(0);
+    expect(".o-checkbox .form-check-input:checked").not.toBeVisible();
     expect(editor.editable).toHaveInnerHTML(`<div class="test-options-target">b</div>`);
 
     await contains(".o-checkbox").click();
-    expect(".o-checkbox .form-check-input:checked").toHaveCount(1);
+    expect(".o-checkbox .form-check-input:checked").toBeVisible();
     expect(editor.editable).toHaveInnerHTML(
         `<div class="test-options-target checkbox-action">b</div>`
     );
 
     await contains(".o-checkbox").click();
-    expect(".o-checkbox .form-check-input:checked").toHaveCount(0);
+    expect(".o-checkbox .form-check-input:checked").not.toBeVisible();
     expect(editor.editable).toHaveInnerHTML(`<div class="test-options-target">b</div>`);
 });
 test("hide/display base on applyTo", async () => {
@@ -47,14 +47,14 @@ test("hide/display base on applyTo", async () => {
         `<div class="parent-target"><div class="child-target b">b</div></div>`
     );
     expect("[data-class-action='my-custom-class']").not.toHaveClass("active");
-    expect(".options-container .o-checkbox").toHaveCount(0);
+    expect(".options-container .o-checkbox").not.toBeVisible();
 
     await contains("[data-class-action='my-custom-class']").click();
     expect(editor.editable).toHaveInnerHTML(
         `<div class="parent-target"><div class="child-target b my-custom-class">b</div></div>`
     );
     expect("[data-class-action='my-custom-class']").toHaveClass("active");
-    expect(".options-container .o-checkbox").toHaveCount(1);
+    expect(".options-container .o-checkbox").toBeVisible();
 });
 
 test("click on BuilderCheckbox with inverseAction", async () => {
@@ -65,9 +65,9 @@ test("click on BuilderCheckbox with inverseAction", async () => {
     await setupWebsiteBuilder(`<div class="test-options-target">b</div>`);
     await contains(":iframe .test-options-target").click();
     expect(":iframe .test-options-target").not.toHaveClass("my-custom-class");
-    expect(".o-checkbox .form-check-input:checked").toHaveCount(1);
+    expect(".o-checkbox .form-check-input:checked").toBeVisible();
 
     await contains(".o-checkbox").click();
     expect(":iframe .test-options-target").toHaveClass("my-custom-class");
-    expect(".o-checkbox .form-check-input:checked").toHaveCount(0);
+    expect(".o-checkbox .form-check-input:checked").not.toBeVisible();
 });

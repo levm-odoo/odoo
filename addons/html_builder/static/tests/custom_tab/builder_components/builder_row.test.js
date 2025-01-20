@@ -52,7 +52,7 @@ test("hide empty row and display row with content", async () => {
             </BuilderRow>`,
     });
     await setupWebsiteBuilder(`<div class="parent-target"><div class="child-target">b</div></div>`);
-    const selectorRowLabel = ".options-container .hb-row:not(.d-none) > div:nth-child(1)";
+    const selectorRowLabel = ".options-container .hb-row:not(.builder-hidden) > div:nth-child(1)";
     await contains(":iframe .parent-target").click();
     expect(queryAllTexts(selectorRowLabel)).toEqual(["Row 1", "Row 2"]);
 

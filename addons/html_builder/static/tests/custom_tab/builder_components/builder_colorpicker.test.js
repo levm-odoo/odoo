@@ -50,12 +50,12 @@ test("hide/display base on applyTo", async () => {
         `<div class="parent-target"><div class="child-target b">b</div></div>`
     );
     expect("[data-class-action='my-custom-class']").not.toHaveClass("active");
-    expect(".options-container .o_we_color_preview").toHaveCount(0);
+    expect(".options-container .o_we_color_preview").not.toBeVisible();
 
     await contains("[data-class-action='my-custom-class']").click();
     expect(editor.editable).toHaveInnerHTML(
         `<div class="parent-target"><div class="child-target b my-custom-class">b</div></div>`
     );
     expect("[data-class-action='my-custom-class']").toHaveClass("active");
-    expect(".options-container .o_we_color_preview").toHaveCount(1);
+    expect(".options-container .o_we_color_preview").toBeVisible();
 });

@@ -111,14 +111,14 @@ test("hide/display BuilderSelect based on applyTo", async () => {
         `<div class="parent-target"><div class="child-target b">b</div></div>`
     );
     expect("[data-class-action='my-custom-class']").not.toHaveClass("active");
-    expect(".options-container button.dropdown-toggle").toHaveCount(0);
+    expect(".options-container button.dropdown-toggle").not.toBeVisible();
 
     await contains("[data-class-action='my-custom-class']").click();
     expect(editor.editable).toHaveInnerHTML(
         `<div class="parent-target"><div class="child-target b my-custom-class">b</div></div>`
     );
     expect("[data-class-action='my-custom-class']").toHaveClass("active");
-    expect(".options-container button.dropdown-toggle").toHaveCount(1);
+    expect(".options-container button.dropdown-toggle").toBeVisible();
     await runAllTimers();
     expect(".options-container button.dropdown-toggle").toHaveText("B");
 });
@@ -146,9 +146,9 @@ test("hide/display BuilderSelectItem base on applyTo", async () => {
         `<div class="parent-target"><div class="child-target">b</div></div>`
     );
     expect("[data-class-action='my-custom-class']").not.toHaveClass("active");
-    expect(".options-container button.dropdown-toggle").toHaveCount(1);
+    expect(".options-container button.dropdown-toggle").toBeVisible();
     await contains(".options-container button.dropdown-toggle").click();
-    expect(queryAllTexts(".o-dropdown--menu div")).toEqual(["A", "C"]);
+    expect(queryAllTexts(".o-dropdown--menu div:not(.d-none) div")).toEqual(["A", "C"]);
 
     await contains("[data-class-action='my-custom-class']").click();
     expect(editor.editable).toHaveInnerHTML(
@@ -156,7 +156,7 @@ test("hide/display BuilderSelectItem base on applyTo", async () => {
     );
     expect("[data-class-action='my-custom-class']").toHaveClass("active");
     await contains(".options-container button.dropdown-toggle").click();
-    expect(queryAllTexts(".o-dropdown--menu div")).toEqual(["A", "B", "C"]);
+    expect(queryAllTexts(".o-dropdown--menu div:not(.d-none) div")).toEqual(["A", "B", "C"]);
 });
 
 test("hide/display BuilderSelect base on applyTo in BuilderSelectItem", async () => {
@@ -197,7 +197,11 @@ test("use BuilderSelect with styleAction", async () => {
     expect(".we-bg-options-container .dropdown").toHaveText("none");
 
     await contains(".options-container button.dropdown-toggle").click();
-    expect(queryAllTexts(".o-dropdown--menu div")).toEqual(["dotted", "inset", "none"]);
+    expect(queryAllTexts(".o-dropdown--menu div:not(.d-none) div")).toEqual([
+        "dotted",
+        "inset",
+        "none",
+    ]);
 
     await contains(".o-dropdown--menu div:contains(dotted)").click();
     expect(editor.editable).toHaveInnerHTML(
