@@ -57,6 +57,7 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
         // Enable magnify on zoomable img
         this.$('.zoomable img[data-zoom]').zoomOdoo();
         // Hide address bar on iOS devices with small screens by adjusting body height and scrolling
+        this.el.addEventListener("touchstart", this._hideAddressBar.bind(this));
         if (isIOS()) {
             window.addEventListener('load', this._requestFullscreen.bind(this));
             window.addEventListener('orientationchange', this._hideAddressBar.bind(this));
@@ -83,10 +84,12 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
      * @private
      */
     _hideAddressBar() {
+        debugger
         document.body.style.height = '101vh'; // Slightly higher than the viewport
         window.scrollTo(0, 1); // Scroll to hide the address bar
         document.body.style.overflow = 'hidden'; // Disable scrolling   \
         document.body.height = window.innerHeight + "px";
+        document.body.style.minHeight = "-webkit-fill-available";
     },
 
     /**
