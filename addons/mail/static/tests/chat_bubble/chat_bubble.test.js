@@ -140,6 +140,7 @@ test("Ordering of chat bubbles is consistent and seems logical.", async () => {
     // no reorder on receiving new message
     withUser(userId, () =>
         rpc("/mail/message/post", {
+            data_id: -1,
             post_data: { body: "test", message_type: "comment" },
             thread_id: channelId,
             thread_model: "discuss.channel",
@@ -182,6 +183,7 @@ test("Hover on chat bubble shows chat name + last message preview", async () => 
     await contains(".o-mail-ChatBubble-preview", { text: "Demo" });
     await leave();
     rpc("/mail/message/post", {
+        data_id: -1,
         post_data: { body: "Hi", message_type: "comment" },
         thread_id: demoChannelId,
         thread_model: "discuss.channel",

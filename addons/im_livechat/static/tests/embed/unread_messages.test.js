@@ -75,6 +75,7 @@ test("new message from operator displays unread counter", async () => {
     // send after init_messaging because bus subscription is done after init_messaging
     withUser(userId, () =>
         rpc("/mail/message/post", {
+            data_id: -1,
             post_data: { body: "Are you there?", message_type: "comment" },
             thread_id: channelId,
             thread_model: "discuss.channel",
@@ -124,6 +125,7 @@ test("focus on unread livechat marks it as read", async () => {
     // send after init_messaging because bus subscription is done after init_messaging
     await withUser(userId, () =>
         rpc("/mail/message/post", {
+            data_id: -1,
             post_data: { body: "Are you there?", message_type: "comment" },
             thread_id: channelId,
             thread_model: "discuss.channel",

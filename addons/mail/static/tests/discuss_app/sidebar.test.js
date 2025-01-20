@@ -1109,6 +1109,7 @@ test("Do no channel_info after unpin", async () => {
     await openDiscuss(channelId);
     await click(".o-mail-DiscussSidebarChannel-commands [title='Unpin Conversation']");
     rpc("/mail/message/post", {
+        data_id: -1,
         thread_id: channelId,
         thread_model: "discuss.channel",
         post_data: {

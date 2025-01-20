@@ -50,6 +50,7 @@ test("Spaces in notifications are not encoded", async () => {
     await openDiscuss();
     await withUser(bobUserId, () =>
         rpc("/mail/message/post", {
+            data_id: -1,
             post_data: { body: "Hello world!", message_type: "comment" },
             thread_id: channelId,
             thread_model: "discuss.channel",

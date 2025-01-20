@@ -36,7 +36,10 @@ export class Thread extends Record {
         // Transform "Thread,<model> AND <id>" to "<model>_<id>""
         return localId.split(",").slice(1).join("_").replace(" AND ", "_");
     }
-    /** @returns {import("models").Thread|import("models").Thread[]} */
+    /**
+     * @template T
+     * @param {T} data
+     * @returns {T extends any[] ? import("models").Thread[] : import("models").Thread} */
     static insert(data) {
         return super.insert(...arguments);
     }
@@ -806,13 +809,15 @@ export class Thread extends Record {
             this.messages.push(tmpMsg);
             this.onNewSelfMessage(tmpMsg);
         }
+        const requestData = this.store.Data.createRequest();
+        params.data_id = requestData.id;
         const data = await this.store.doMessagePost(params, tmpMsg);
         if (!data) {
             return;
         }
-        const { "mail.message": messages = [] } = this.store.insert(data, { html: true });
-        /** @type {import("models").Message} */
-        const message = messages[0];
+        this.store.insert(data, { html: true });
+        const message = requestData.message;
+        requestData.delete();
         this.addOrReplaceMessage(message, tmpMsg);
         this.onNewSelfMessage(message);
         // Only delete the temporary message now that seen_message_id is updated

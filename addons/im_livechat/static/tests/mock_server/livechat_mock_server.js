@@ -31,6 +31,7 @@ async function get_session(request) {
 
     let {
         channel_id,
+        data_id,
         anonymous_name,
         previous_operator_id,
         persisted,
@@ -65,19 +66,22 @@ async function get_session(request) {
     if (!persisted) {
         const store = new mailDataHelpers.Store();
         ResUsers._init_store_data(store);
-        store.add("discuss.channel", {
-            channel_type: "livechat",
-            chatbot_current_step_id: channelVals.chatbot_current_step_id,
-            id: -1,
-            isLoaded: true,
-            livechat_active: true,
-            livechat_operator_id: mailDataHelpers.Store.one(
-                ResPartner.browse(channelVals.livechat_operator_id),
-                makeKwArgs({ fields: ["user_livechat_username", "write_date"] })
-            ),
-            name: channelVals["name"],
-            scrollUnread: false,
-            state: "open",
+        store.add("Data", {
+            id: data_id,
+            channel: {
+                channel_type: "livechat",
+                chatbot_current_step_id: channelVals.chatbot_current_step_id,
+                id: -1,
+                isLoaded: true,
+                livechat_active: true,
+                livechat_operator_id: mailDataHelpers.Store.one(
+                    ResPartner.browse(channelVals.livechat_operator_id),
+                    makeKwArgs({ fields: ["user_livechat_username", "write_date"] })
+                ),
+                name: channelVals["name"],
+                scrollUnread: false,
+                state: "open",
+            },
         });
         return store.get_result();
     }
@@ -93,7 +97,10 @@ async function get_session(request) {
     DiscussChannelMember.write([memberId], { fold_state: "open" });
     const store = new mailDataHelpers.Store();
     ResUsers._init_store_data(store);
-    store.add(DiscussChannel.browse(channelId));
+    store.add("Data", {
+        id: data_id,
+        channel: mailDataHelpers.Store.one(DiscussChannel.browse(channelId)),
+    });
     store.add(DiscussChannel.browse(channelId), { isLoaded: true, scrollUnread: false });
     return store.get_result();
 }

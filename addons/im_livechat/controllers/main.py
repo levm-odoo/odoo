@@ -108,7 +108,7 @@ class LivechatController(http.Controller):
 
     @http.route('/im_livechat/get_session', methods=["POST"], type="jsonrpc", auth='public')
     @add_guest_to_context
-    def get_session(self, channel_id, anonymous_name, previous_operator_id=None, chatbot_script_id=None, persisted=True):
+    def get_session(self, data_id, channel_id, anonymous_name, previous_operator_id=None, chatbot_script_id=None, persisted=True):
         store = Store()
         user_id = None
         country_id = None
@@ -163,7 +163,7 @@ class LivechatController(http.Controller):
                 "channel_type": "livechat",
                 "chatbot": chatbot_data,
             }
-            store.add_model_values("discuss.channel", channel_info)
+            store.add_data(data_id, channel=channel_info)
         else:
             channel = request.env['discuss.channel'].with_context(
                 mail_create_nosubscribe=False,
@@ -183,7 +183,12 @@ class LivechatController(http.Controller):
             channel.channel_member_ids.filtered(lambda m: m.is_self).fold_state = "open"
             if not chatbot_script or chatbot_script.operator_partner_id != channel.livechat_operator_id:
                 channel._broadcast([channel.livechat_operator_id.id])
-            store.add(channel, extra_fields={"isLoaded": not chatbot_script, "scrollUnread": False})
+            store.add_data(
+                data_id,
+                channel=Store.One(
+                    channel, extra_fields={"isLoaded": not chatbot_script, "scrollUnread": False}
+                ),
+            )
             if guest:
                 store.add_global_values(guest_token=guest._format_auth_cookie())
         request.env["res.users"]._init_store_data(store)

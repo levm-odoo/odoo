@@ -59,16 +59,16 @@ class TestImLivechatMessage(HttpCase, MailCommon):
         im_livechat_channel = self.env['im_livechat.channel'].sudo().create({'name': 'support', 'user_ids': [Command.link(self.users[0].id)]})
         self.env['bus.presence'].create({'user_id': self.users[0].id, 'status': 'online'})  # make available for livechat (ignore leave)
         self.authenticate(self.users[1].login, self.password)
-        channel_livechat_1 = self.env["discuss.channel"].browse(
-            self.make_jsonrpc_request(
-                "/im_livechat/get_session",
-                {
-                    "anonymous_name": "anon 1",
-                    "previous_operator_id": self.users[0].partner_id.id,
-                    "channel_id": im_livechat_channel.id,
-                },
-            )["discuss.channel"][0]["id"]
+        data = self.make_jsonrpc_request(
+            "/im_livechat/get_session",
+            {
+                "anonymous_name": "anon 1",
+                "channel_id": im_livechat_channel.id,
+                "data_id": -1,
+                "previous_operator_id": self.users[0].partner_id.id,
+            },
         )
+        channel_livechat_1 = self.env["discuss.channel"].browse(data["Data"][0]["channel"]["id"])
         record_rating = self.env['rating.rating'].create({
             'res_model_id': self.env['ir.model']._get('discuss.channel').id,
             'res_id': channel_livechat_1.id,
@@ -161,16 +161,16 @@ class TestImLivechatMessage(HttpCase, MailCommon):
         # make available for livechat (ignore leave)
         self.env["bus.presence"].create({"user_id": self.users[0].id, "status": "online"})
         self.authenticate(self.env.user.login, self.env.user.login)
-        channel = self.env["discuss.channel"].browse(
-            self.make_jsonrpc_request(
-                "/im_livechat/get_session",
-                {
-                    "anonymous_name": "anon 1",
-                    "previous_operator_id": self.users[0].partner_id.id,
-                    "channel_id": im_livechat_channel.id,
-                },
-            )["discuss.channel"][0]["id"]
+        data = self.make_jsonrpc_request(
+            "/im_livechat/get_session",
+            {
+                "anonymous_name": "anon 1",
+                "channel_id": im_livechat_channel.id,
+                "data_id": -1,
+                "previous_operator_id": self.users[0].partner_id.id,
+            },
         )
+        channel = self.env["discuss.channel"].browse(data["Data"][0]["channel"]["id"])
 
         def _get_feedback_bus():
             message = self.env["mail.message"].sudo().search([], order="id desc", limit=1)

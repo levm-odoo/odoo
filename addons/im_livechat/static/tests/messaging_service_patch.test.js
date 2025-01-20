@@ -49,6 +49,7 @@ test("Notify message received out of focus", async () => {
     // send after init_messaging because bus subscription is done after init_messaging
     await withGuest(guestId, () =>
         rpc("/mail/message/post", {
+            data_id: -1,
             post_data: {
                 body: "Hello",
                 message_type: "comment",

@@ -49,6 +49,8 @@ export class Store extends BaseStore {
     ChatWindow;
     /** @type {typeof import("@mail/core/common/composer_model").Composer} */
     Composer;
+    /** @type {typeof import("@mail/core/common/data_model").Data} */
+    Data;
     /** @type {typeof import("@mail/core/common/failure_model").Failure} */
     Failure;
     /** @type {typeof import("@mail/core/common/attachment_model").Attachment} */
@@ -287,8 +289,8 @@ export class Store extends BaseStore {
             silent: this.fetchSilent,
         }).then(
             (data) => {
-                const recordsByModel = this.insert(data, { html: true });
-                fetchDeferred.resolve(recordsByModel);
+                this.insert(data, { html: true });
+                fetchDeferred.resolve();
             },
             (error) => fetchDeferred.reject(error)
         );
@@ -583,12 +585,16 @@ export class Store extends BaseStore {
     }
 
     async joinChat(id, forceOpen = false) {
+        const dataRequest = this.Data.createRequest();
         const data = await rpc("/discuss/channel/get_or_create_chat", {
+            data_id: dataRequest.id,
             partners_to: [id],
             force_open: forceOpen,
         });
-        const { Thread } = this.store.insert(data);
-        return Thread[0];
+        this.store.insert(data, { html: true });
+        const channel = dataRequest.channel;
+        dataRequest.delete();
+        return channel;
     }
 
     async openChat(person) {
