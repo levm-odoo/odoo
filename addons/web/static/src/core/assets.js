@@ -241,6 +241,7 @@ export const assets = {
         const promise = new Promise((resolve, reject) =>
             onLoadAndError(scriptEl, resolve, () => {
                 cacheMap.delete(url);
+                console.trace("hmmm");
                 reject(new AssetsLoadingError(`The loading of ${url} failed`));
             })
         );
