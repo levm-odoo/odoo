@@ -137,6 +137,13 @@
             <field name="payment_type">outbound</field>
         </record>
 
+        <!-- Payment method lines
+        <record id="account_payment_method_manual_out" model="account.payment.method.line">
+            <field name="name">Manual</field>
+            <field name="code">manual</field>
+            <field name="payment_type">outbound</field>
+        </record> -->
+
         <!-- Partner Trust Property -->
         <function model="ir.default" name="set" eval="('res.partner', 'trust', 'normal')"/>
 

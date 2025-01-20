@@ -183,6 +183,7 @@
                         <field name="paired_internal_transfer_payment_id" invisible="1"/>
                         <field name="available_journal_ids" invisible="1"/>
                         <field name="currency_id" invisible="1"/>
+                        <field name="journal_id" invisible="1"/>
 
                         <div class="oe_button_box" name="button_box">
                             <!-- Invoice stat button -->
@@ -247,10 +248,6 @@
                             <group name="group1">
                                 <field name="payment_type" widget="radio" options="{'horizontal': True}"
                                        readonly="state != 'draft'"/>
-                                <field name="partner_id" context="{'default_is_company': True}" string="Customer"
-                                       options="{'no_quick_create': True}"
-                                       invisible="partner_type != 'customer'"
-                                       readonly="state != 'draft'"/>
                                 <field name="partner_id" context="{'default_is_company': True}" string="Vendor"
                                        options="{'no_quick_create': True}"
                                        invisible="partner_type != 'supplier'"
@@ -270,11 +267,7 @@
                                 <field name="memo" string="Memo"/>
                             </group>
                             <group name="group2">
-                                <field name="journal_id"
-                                       domain="[('id', 'in', available_journal_ids)]"
-                                       readonly="state != 'draft'"/>
                                 <field name="payment_method_line_id"
-                                       context="{'hide_payment_journal_id': 1}"
                                        options="{'no_create': True, 'no_open': True}"
                                        required="1"
                                        readonly="state != 'draft'"/>
