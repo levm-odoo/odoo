@@ -32,6 +32,7 @@
         'views/hr_employee_category_views.xml',
         'views/hr_employee_public_views.xml',
         'report/hr_employee_badge.xml',
+        'views/hr_log_views.xml',
         'views/hr_employee_views.xml',
         'views/hr_department_views.xml',
         'views/hr_work_location_views.xml',
@@ -44,7 +45,8 @@
         'data/hr_data.xml',
     ],
     'demo': [
-        'data/hr_demo.xml'
+        'data/hr_demo.xml',
+        'data/hr_log_demo.xml'
     ],
     'installable': True,
     'application': True,

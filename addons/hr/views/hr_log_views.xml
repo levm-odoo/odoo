@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="hr_log_view_list" model="ir.ui.view">
+            <field name="name">hr.log.view.list</field>
+            <field name="model">hr.log</field>
+            <field name="arch" type="xml">
+                <list editable="bottom">
+                    <field name="date"/>
+                    <field name="field_id"/>
+                    <field name="value_display"/>
+                    <field name="change_reason"/>
+                    <field name="user_id"/>
+                    <field name="write_date"/>
+                    <field name="model_id"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="hr_log_view_form" model="ir.ui.view">
+            <field name="name">hr.log.view.form</field>
+            <field name="model">hr.log</field>
+            <field name="arch" type="xml">
+                <form string="Post Job">
+                    <field name="date"/>
+                </form>
+            </field>
+        </record>
+
+        <record id="hr_log_view_search" model="ir.ui.view">
+            <field name="name">hr.log.view.search</field>
+            <field name="model">hr.log</field>
+            <field name="arch" type="xml">
+                <search>
+                    <filter string="Effective Date" name="filter_effective_date" context="{'group_by':'date'}"/>
+                </search>
+            </field>
+        </record>
+    </data>
+</odoo>

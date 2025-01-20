@@ -229,6 +229,9 @@
                                     <group name="application_group" string="Application Settings" invisible="1"/>
                                 </group>
                             </page>
+                            <page name="logs_history" string="History" groups="hr.group_hr_user">
+                                <field name="log_ids"/>
+                            </page>
                         </notebook>
                     </sheet>
                     <chatter reload_on_follower="True"/>
