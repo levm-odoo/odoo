@@ -387,3 +387,23 @@ class TestPosCashRounding(TestPointOfSaleHttpCommon):
                 'amount_tax': 2.05,
                 'amount_total': 15.7,
             }])
+
+    def test_cash_rounding_only_cash_method_with_change(self):
+        self.main_pos_config.write({
+            'rounding_method': self.cash_rounding_add_invoice_line.id,
+            'cash_rounding': True,
+            'only_round_cash_method': True,
+        })
+        with self.with_new_session(user=self.pos_user) as session:
+            self.start_pos_tour('test_cash_rounding_only_cash_method_with_change')
+            order = self.env['pos.order'].search([('session_id', '=', session.id)], limit=1)
+            self.assertRecordValues(order.account_move, [{
+                'amount_untaxed': 13.65,
+                'amount_tax': 2.05,
+                'amount_total': 15.7,
+            }])
+            self.assertRecordValues(order, [{
+                'amount_tax': 2.05,
+                'amount_total': 15.7,
+                'amount_paid': 15.7,
+            }])

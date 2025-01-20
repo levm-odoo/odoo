@@ -654,3 +654,31 @@ registry.category("web_tour.tours").add("test_cash_rounding_with_change", {
             ReceiptScreen.clickNextOrder(),
         ].flat(),
 });
+
+registry.category("web_tour.tours").add("test_cash_rounding_only_cash_method_with_change", {
+    steps: () =>
+        [
+            Chrome.startPoS(),
+            Dialog.confirm("Open Register"),
+
+            ProductScreen.addOrderline("random_product", "1"),
+            ProductScreen.clickPartnerButton(),
+            ProductScreen.clickCustomer("AAAAAA"),
+            ProductScreen.clickPayButton(),
+
+            PaymentScreen.totalIs("15.72"),
+            PaymentScreen.clickPaymentMethod("Cash"),
+            PaymentScreen.clickNumpad("+20"),
+            PaymentScreen.fillPaymentLineAmountMobile("Cash", "20.00"),
+            PaymentScreen.changeIs("4.30"),
+
+            PaymentScreen.clickInvoiceButton(),
+            PaymentScreen.clickValidate(),
+
+            ReceiptScreen.receiptAmountTotalIs("15.72"),
+            ReceiptScreen.receiptRoundingAmountIs("-0.02"),
+            ReceiptScreen.receiptToPayAmountIs("15.70"),
+            ReceiptScreen.receiptChangeAmountIs("4.30"),
+            ReceiptScreen.clickNextOrder(),
+        ].flat(),
+});

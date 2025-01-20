@@ -204,7 +204,23 @@ export class PosOrder extends Base {
         }
 
         if (!floatIsZero(Math.min(0, amountLeft), this.currency.decimal_places)) {
-            taxTotals.order_change = -amountLeft;
+            const total_with_tax = taxTotals.order_sign * taxTotals.total_amount_currency;
+            const lastPayment = this.payment_ids.at(-1);
+            if (lastPayment) {
+                const total = this.shouldRound(lastPayment.payment_method_id)
+                    ? roundPrecision(
+                          total_with_tax,
+                          this.config.rounding_method.rounding,
+                          this.config.rounding_method.rounding_method
+                      )
+                    : total_with_tax;
+
+                taxTotals.order_to_pay = total;
+                taxTotals.order_change = amountPaid - total;
+
+                taxTotals.payment_cash_rounding_amount_currency = total - total_with_tax;
+                taxTotals.order_rounding = total - total_with_tax;
+            }
         }
 
         if (floatIsZero(taxTotals.order_rounding, this.currency.decimal_places)) {
@@ -212,6 +228,13 @@ export class PosOrder extends Base {
         }
 
         return taxTotals;
+    }
+
+    shouldRound(paymentMethod) {
+        return (
+            this.config.cash_rounding &&
+            (!this.config.only_round_cash_method || paymentMethod.is_cash_count)
+        );
     }
 
     /**
