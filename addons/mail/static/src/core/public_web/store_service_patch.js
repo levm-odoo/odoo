@@ -25,8 +25,8 @@ patch(Store.prototype, {
 });
 
 patch(storeService, {
-    start(env, services) {
-        const store = super.start(...arguments);
+    _lazyStart(env, services, store) {
+        super._lazyStart(...arguments);
         const discussActionIds = ["mail.action_discuss", "discuss"];
         if (store.action_discuss_id) {
             discussActionIds.push(store.action_discuss_id);
@@ -38,6 +38,5 @@ patch(storeService, {
                 store.discuss.activeTab = store.discuss.thread.channel_type;
             }
         });
-        return store;
     },
 });

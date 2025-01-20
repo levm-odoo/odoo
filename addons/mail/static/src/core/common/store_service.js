@@ -10,7 +10,7 @@ import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
 import { Deferred, Mutex } from "@web/core/utils/concurrency";
 import { debounce } from "@web/core/utils/timing";
-import { session } from "@web/session";
+import { getLazyConfig } from "@web/session";
 import { browser } from "@web/core/browser/browser";
 
 /**
@@ -631,6 +631,10 @@ Store.register();
 export const storeService = {
     dependencies: ["bus_service", "ui"],
     stateful: true,
+    _lazyStart(env, services, store) {
+        store.initialize();
+        store.onStarted();
+    },
     /**
      * @param {import("@web/env").OdooEnv} env
      * @param {import("services").ServiceFactories} services
@@ -638,7 +642,10 @@ export const storeService = {
      */
     start(env, services) {
         const store = makeStore(env);
-        store.insert(session.storeData);
+        getLazyConfig().then((config) => {
+            store.insert(config.storeData);
+            this._lazyStart(env, services, store);
+        });
         /**
          * Add defaults for `self` and `settings` because in livechat there could be no user and no
          * guest yet (both undefined at init), but some parts of the code that loosely depend on
@@ -647,8 +654,6 @@ export const storeService = {
          */
         store.self ??= { id: -1, type: "guest" };
         store.settings ??= {};
-        store.initialize();
-        store.onStarted();
         return store;
     },
 };

@@ -21,24 +21,20 @@ patch(MessagingMenu.prototype, {
 
         onExternalClick("selector", () => Object.assign(this.state, { adding: false }));
         useEffect(
-            () => {
-                if (
-                    this.store.discuss.searchTerm &&
-                    this.lastSearchTerm !== this.store.discuss.searchTerm &&
-                    this.state.activeIndex
-                ) {
+            (searchTerm) => {
+                if (searchTerm && this.lastSearchTerm !== searchTerm && this.state.activeIndex) {
                     this.state.activeIndex = 0;
                 }
-                if (!this.store.discuss.searchTerm) {
+                if (!searchTerm) {
                     this.state.activeIndex = null;
                 }
-                this.lastSearchTerm = this.store.discuss.searchTerm;
+                this.lastSearchTerm = searchTerm;
             },
-            () => [this.store.discuss.searchTerm]
+            () => [this.store?.discuss?.searchTerm]
         );
         useEffect(
-            () => {
-                if (!this.dropdown.isOpen) {
+            (isOpen) => {
+                if (!isOpen) {
                     this.state.activeIndex = null;
                 }
             },
@@ -168,8 +164,8 @@ patch(MessagingMenu.prototype, {
     },
     get counter() {
         let value =
-            this.store.inbox.counter +
-            this.store.failures.reduce((acc, f) => acc + parseInt(f.notifications.length), 0);
+            this.store?.inbox?.counter +
+            this.store?.failures?.reduce((acc, f) => acc + parseInt(f.notifications.length), 0);
         if (this.canPromptToInstall) {
             value++;
         }
