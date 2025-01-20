@@ -126,7 +126,8 @@ composerActionsRegistry
             component.props.showFullComposer &&
             component.thread &&
             component.thread.model !== "discuss.channel" &&
-            !component.env.inFrontendPortalChatter,
+            !component.env.inFrontendPortalChatter &&
+            !component.env.inPortalRatingComposer,
         hotkey: "shift+c",
         icon: "fa fa-expand",
         name: _t("Open Full Composer"),
