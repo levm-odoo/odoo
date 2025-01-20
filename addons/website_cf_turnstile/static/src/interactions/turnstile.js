@@ -2,6 +2,8 @@ import { session } from "@web/session";
 
 
 export class TurnStile {
+    static turnstileURL = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+
     constructor(action, selector) {
         const cf = new URLSearchParams(window.location.search).get("cf");
         const mode = cf == "show" ? "always" : "interaction-only";
@@ -41,7 +43,7 @@ export class TurnStile {
 
         const script2El = document.createElement("script");
         script2El.className = "s_turnstile";
-        script2El.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+        script2El.src = TurnStile.turnstileURL;
 
         this.turnstileEl = turnstileEl;
         this.script1El = script1El;
