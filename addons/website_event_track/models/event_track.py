@@ -665,7 +665,9 @@ class EventTrack(models.Model):
         shorten_description = shorten(html_to_inner_content(self.description), 1900)
         event_track_url = werkzeug.urls.url_join(self.get_base_url(), self.website_url)
 
-        return f'<a href="{event_track_url}">{self.name}</a>\n{shorten_description}\n\n{self._get_reminder_times_warning()}'
+        return Markup(
+            f'<a href="{event_track_url}">{self.name}</a>\n{shorten_description}\n\n{self._get_reminder_times_warning()}'
+        )
 
     def _get_event_track_reminder_dates(self):
         if self.date:
