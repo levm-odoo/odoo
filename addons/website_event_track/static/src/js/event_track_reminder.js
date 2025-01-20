@@ -53,20 +53,21 @@ publicWidget.registry.websiteEventTrackReminder = publicWidget.Widget.extend({
 
         if (reminderOnValue){
             //test toggle reminder
-            var self = this;
             rpc('/event/track/toggle_reminder', {
                 track_id: trackId,
                 set_reminder_on: true,
                 save: false
             }).then((result) => {
                 if (result.error && result.error === 'ignored') {
-                    self.notification.add(_t('Talk already in your Favorites'), {
+                    this.notification.add(_t('Talk already in your Favorites'), {
                         type: 'info',
                         title: _t('Error'),
                     });
+                    this.reminderOn = true;
+                    this._updateDisplay();
                 }
                 else {
-                    self._checkEmailReminder(trackId);
+                    this._checkEmailReminder(trackId);
                 }
             });
         }
@@ -76,13 +77,12 @@ publicWidget.registry.websiteEventTrackReminder = publicWidget.Widget.extend({
     },
 
     _addReminder: function (trackId) {
-        var self = this;
         rpc('/event/track/toggle_reminder', {
             track_id: trackId,
             set_reminder_on: true,
         }).then((result) => {
-            self.reminderOn = true;
-            self._updateDisplay();
+            this.reminderOn = true;
+            this._updateDisplay();
             Component.env.bus.trigger('open_notification_request', [
                 'add_track_to_favorite',
                 {
@@ -99,14 +99,13 @@ publicWidget.registry.websiteEventTrackReminder = publicWidget.Widget.extend({
     },
 
     _removeReminder: function (trackId) {
-        var self = this;
         rpc('/event/track/toggle_reminder', {
             track_id: trackId,
             set_reminder_on: false,
         }).then((result) => {
-            self.reminderOn = false;
-            self._updateDisplay();
-            self.notification.add(_t('Talk removed from your Favorites'), {
+            this.reminderOn = false;
+            this._updateDisplay();
+            this.notification.add(_t('Talk removed from your Favorites'), {
                 type: 'info',
             });
         });
