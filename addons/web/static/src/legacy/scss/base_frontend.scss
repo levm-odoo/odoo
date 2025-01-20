@@ -26,15 +26,20 @@ html, body, #wrapwrap {
 //       the #wrapwrap to the body. The fact the scroll bar is on the #wrapwrap
 //       prevent browser to print more than what is above the fold. This block
 //       is moving the scroll to the body when printing the page.
-@media screen {
+@media screen and (max-width: 767px) {
+    html, body {
+        overflow: auto;
+    }
+    #wrapwrap {
+        overflow: hidden;
+    }
+}
+
+@media screen and (min-width: 768px) {
     html, body {
         overflow: hidden;
     }
     #wrapwrap {
-        // ... we delegate the scroll to that top element instead of the window/body
-        // This is at least needed for the edit mode to not have a double scrollbar
-        // due to the right editor panel (and since we want to minimize the style
-        // difference between edit mode and non-edit mode (wysiwyg)...).
         overflow: auto;
     }
 }
