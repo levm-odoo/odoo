@@ -7,7 +7,6 @@ from markupsafe import Markup
 from werkzeug.exceptions import Forbidden
 
 from odoo import SUPERUSER_ID, _, http
-from odoo.addons.account.models.ir_module import templ
 from odoo.http import request
 
 _logger = logging.getLogger(__name__)
@@ -27,8 +26,8 @@ class GelatoController(http.Controller):
             sale_order_id = int(event.get('orderReferenceId'))
         except ValueError:
             return _logger.warning(
-                "Gelato did not provide proper orderReferenceId, it's not possible to "
-                "find related Sale Order."
+                "Gelato did not provide proper orderReferenceId, it's not possible to find related"
+                " Sale Order."
             )
         gelato_webhook_signature = request.httprequest.headers.get('signature', '')
         self.verify_gelato_notification(gelato_webhook_signature, sale_order_id)
@@ -51,16 +50,13 @@ class GelatoController(http.Controller):
                     author_id=request.env.ref('base.partner_root').id,
                 )
 
-                template = request.env.ref('sale_gelato.mail_template_data_delivery_confirmation')
-                ctx = {'shipping_codes': self.get_tracking_codes(items=event['items'])}
-
-                sale_order_sudo.with_context(ctx).message_post_with_source(source_ref=template, author_id=request.env.ref('base.partner_root').id)
 
             elif event.get('fulfillmentStatus') == 'failed':
 
                 message = (Markup("{}<br/>{gelato_message}").format(_(
-                    "Order fulfillment has failed. Please refer to "
-                    "the message below provided by Gelato:"
+                    "Order %(order_reference) fulfillment has failed. Please refer to "
+                    "the message below provided by Gelato:",
+                    order_reference=sale_order_sudo.reference
                     ),
                     gelato_message=event['comment']
                 ))
@@ -68,15 +64,19 @@ class GelatoController(http.Controller):
                     body=message,
                     author_id=request.env.ref('base.partner_root').id,
                 )
+                sale_order_sudo.message_notify(
+                    body=message,
+                    author_id=request.env.ref('base.partner_root').id,
+                    partner_ids=sale_order_sudo.user_id.partner_id.ids,
+                )
 
             elif event.get('fulfillmentStatus') == 'shipped':
-                tracking_codes = self.get_tracking_codes(items=event['items'])
-                message = Markup("{}<br/>").format(_("Your order has been passed to a carrier."))
-                sale_order_sudo.message_post(
-                    body=self.tracking_code_message(message, tracking_codes),
-                    message_type='email',
-                    author_id=request.env.ref('base.partner_root').id,
-                    partner_ids=sale_order_sudo.partner_id.ids
+
+                template = request.env.ref('sale_gelato.mail_template_data_gelato_shipping_confirmation')
+                ctx = {'shipping_codes': self.get_tracking_codes(items=event['items'])}
+
+                sale_order_sudo.with_context(ctx).message_post_with_source(
+                    source_ref=template, author_id=request.env.ref('base.partner_root').id
                 )
 
             elif event.get('fulfillmentStatus') == 'in_transit':
@@ -91,10 +91,8 @@ class GelatoController(http.Controller):
                 )
             elif event.get('fulfillmentStatus') == 'delivered':
                 sale_order_sudo.message_post(
-                    body=_("Your package(s) has been delivered by carrier."),
-                    message_type='email',
+                    body=_("The package has been delivered to client."),
                     author_id=request.env.ref('base.partner_root').id,
-                    partner_ids=sale_order_sudo.partner_id.ids
                 )
 
     @staticmethod
@@ -120,7 +118,7 @@ class GelatoController(http.Controller):
         for i in items:
             for fulfilment in i['fulfillments']:
                 if fulfilment['trackingUrl'] not in (val.get('tracking_url') for val in
-                                                     tracking_codes):
+                tracking_codes):
                     tracking_codes.append({
                         'tracking_url': fulfilment['trackingUrl'],
                         'tracking_code': fulfilment['trackingCode']

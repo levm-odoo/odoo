@@ -131,6 +131,12 @@ class ProductTemplate(models.Model):
              "It will not be displayed if pricelists apply.",
     )
 
+    # === CONSTRAINT METHODS ===#
+
+    @api.constrains('is_published')
+    def can_product_be_published(self):
+        self.can_be_published()
+
     #=== COMPUTE METHODS ===#
 
     @api.depends('product_variant_ids', 'product_variant_ids.base_unit_count')

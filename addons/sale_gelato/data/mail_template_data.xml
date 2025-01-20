@@ -1,30 +1,33 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo><data noupdate="1">
-    <record id="mail_template_data_delivery_confirmation" model="mail.template">
-        <field name="name">Shipping: Send by Email</field>
+    <record id="mail_template_data_gelato_shipping_confirmation" model="mail.template">
+        <field name="name">Gelato: Shipped order</field>
         <field name="model_id" ref="model_sale_order"/>
         <field name="subject">{{ object.reference }}</field>
         <field name="partner_to">{{ object.partner_id.email and object.partner_id.id or object.partner_id.parent_id.id }}</field>
-        <field name="description">Sent to the customers when orders are delivered, if the setting is enabled</field>
+        <field name="description">Sent to the customers when gelato sends "shipped" notification</field>
         <field name="body_html" type="html">
             <div style="margin: 0px; padding: 0px;">
                 <p style="margin: 0px; padding: 0px; font-size: 13px;">
                     Hello <t t-out="object.partner_id.name or ''">Brandon Freeman</t>,<br/><br/>
                     We are glad to inform you that your order has been shipped.
-
+                    <!--TODO ANKO find the fix so it will show the stupid link to stupid shipping-->
                     <t t-if="ctx.get('shipping_codes')">
                         <t t-if="len(ctx['shipping_codes']) > 1">
                             Your tracking references are:
-                            <t t-foreach="ctx['shipping_codes']" t-as="sc">
-                                <t t-attf-href="{{sc['tracking_url']}}"><t t-out="sc['tracking_code']"/></t>
-                            </t>
+                        </t>
+                        <t t-else="">
+                            Your tracking reference is:
+                        </t>
+                        <t t-foreach="ctx['shipping_codes']" t-as="sc">
+                            <a t-attf-href="{{sc['tracking_url']}}" targer="_blank" t-out="sc['tracking_code']"/>
                         </t>
                     </t>
                     <br/><br/>
                     Thank you,
-                    <t t-if="user.signature">
+                    <t t-if="object.user_id.name">
                         <br />
-                        <t t-out="user.signature or ''">--<br/>Mitchell Admin</t>
+                        <t t-out="object.user_id.name or ''">--<br/>Mitchell Admin</t>
                     </t>
                 </p>
             </div>
@@ -33,10 +36,5 @@
         <field name="auto_delete" eval="True"/>
     </record>
 
-    <template id="order_failure_email">
-        Order <t t-esc="reference"/> has not been passed to Gelato. Following information were given:
-        <t t-out="gelato_message"/>
-
-    </template>
 </data>
 </odoo>

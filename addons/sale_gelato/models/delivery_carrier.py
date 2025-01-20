@@ -91,7 +91,7 @@ class ProviderGelato(models.Model):
 
     def _is_available_for_order(self, order):
         """Check if both order and delivery are the gelato ones. Non-gelato orders can't use
-           Gelato delivery services and Gelato Orders can only use Gelato delivery services
+           Gelato delivery services and Gelato Orders can only use Gelato delivery services.
 
            :param order: current order
            :return bool: return False if delivery type and order are not compatible

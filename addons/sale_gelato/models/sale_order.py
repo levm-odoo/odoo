@@ -19,8 +19,7 @@ class SaleOrder(models.Model):
                 sale_order.company_id.gelato_api_key
                 and sale_order.order_line.filtered(lambda g: g.product_id.gelato_product_ref)
             ):
-                sale_order.send_gelato_order_request() #actually If gelato doesn't send 200 we should confirm it
-
+                sale_order.send_gelato_order_request()
         return res
 
     def send_gelato_order_request(self):
@@ -57,11 +56,8 @@ class SaleOrder(models.Model):
                     error_message=error_message,
                 ),
                 author_id=self.env.ref('base.partner_root').id,
-                # subtype_xmlid="mail.mt_comment",
                 partner_ids=self.user_id.partner_id.ids,
             )
-
-            #self.message_post(body="This order has not been passed to Gelato. Go to Gelato to create order ")
 
         _logger.info("Notification received from Gelato with data:\n%s",
                      pprint.pformat(response.json()))
@@ -87,14 +83,10 @@ class SaleOrder(models.Model):
         gelato_items = []
         gelato_lines = self.order_line.filtered(lambda s: s.product_id.gelato_product_ref)
         for sale_order_line in gelato_lines:
-            base_url = self.get_base_url()
-            # image_url = base_url + self.image_url(
-            #     record=sale_order_line.product_id.product_tmpl_id, field='gelato_image'
-            # )
             gelato_item = {
                 'itemReferenceId': sale_order_line.product_id.id,
                 'productUid': str(sale_order_line.product_id.gelato_product_ref),
-                'files': self.create_placement_list(sale_order_line.product_id.product_tmpl_id),
+                'files': self.create_print_list(sale_order_line.product_id.product_tmpl_id),
                 'quantity': int(sale_order_line.product_uom_qty),
             }
             gelato_items.append(gelato_item)
@@ -148,9 +140,12 @@ class SaleOrder(models.Model):
             ))
 
     def action_open_delivery_wizard(self):
+        """
+        If product in sale order is gelato one then propose only the gelato delivery.
+        """
         view_id = self.env.ref('delivery.choose_delivery_carrier_view_form').id
 
-        # if product in sale order is gelato one then propose only the gelato delivery
+        # If product in sale order is gelato one then propose only the gelato delivery
         if (
             any(line.product_id.gelato_product_ref for line in self.order_line)
             and not self.env.context.get('carrier_recompute')
@@ -192,15 +187,17 @@ class SaleOrder(models.Model):
 
         return super()._check_product_compatibility(product_id)
 
-    def create_placement_list(self, product_template):
-        "Create list of dicts containing placement and image url."
+    def create_print_list(self, product_template):
+        """
+        Create list of dicts containing image placement and url.
+        """
         product_images = product_template.gelato_image_ids
         image_list = []
         base_url = self.get_base_url()
         for image in product_images:
             image_url = base_url + self.image_url(image)
             image_list.append({
-                'type': image.name,
-                # 'url': image_url,
+                'type': image.name.lower(), # Gelato always expects lowercased name.
+                'url': image_url,
             })
         return image_list

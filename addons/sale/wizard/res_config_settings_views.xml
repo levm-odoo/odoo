@@ -166,9 +166,9 @@
                         </setting>
                         <!--TO DO CHANGE TO ODOO DOCS -->
                         <setting
-                                id="gelato_connector"
-                                documentation="https://support.gelato.com/en/collections/8521279-getting-started"
-                                help="Enable Gelato print on demand service"
+                            id="gelato_connector"
+                            documentation="https://support.gelato.com/en/collections/8521279-getting-started"
+                            help="Enable Gelato print on demand service"
                         >
                             <field name="module_sale_gelato" widget="upgrade_boolean"/>
                             <div

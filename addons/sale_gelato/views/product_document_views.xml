@@ -6,25 +6,12 @@
         <field name="model">product.document</field>
         <field name="priority" eval="10"/>
         <field name="arch" type="xml">
-
             <form>
                 <sheet>
                     <h1>
                         <field name="name" readonly="True"/>
                     </h1>
-<!--                    <group>-->
-<!--                        <group>-->
-<!--                            <label for="datas"/>-->
-<!--                            <div class="o_row">-->
-<!--                                <field name="datas"-->
-<!--                                       filename="name"-->
-<!--                                       required="True"-->
-<!--                                       class="oe_inline"/>-->
-<!--                            </div>-->
-
-                            <field name="datas" widget="image" nolabel="True"/>
-<!--                        </group>-->
-<!--                    </group>-->
+                        <field name="datas" widget="image" nolabel="True"/>
                 </sheet>
             </form>
         </field>

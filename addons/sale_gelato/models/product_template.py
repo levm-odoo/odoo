@@ -3,7 +3,7 @@ import json
 import re
 
 from odoo import models, fields, api, Command, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError, UserError
 from odoo.osv import expression
 
 from odoo.addons.sale_gelato.utils import make_gelato_request
@@ -25,15 +25,6 @@ class ProductTemplate(models.Model):
         string="Print Images", inverse_name='res_id', comodel_name='product.document', readonly=True
     )
 
-    @api.constrains('gelato_product_ref', 'gelato_template_ref')
-    def _check_gelato_image(self): #it checks the constraint after creating product_document
-        for record in self:
-            if record.gelato_template_ref or record.gelato_product_ref or record.product_variant_id.gelato_product_ref:
-                for image in record.gelato_image_ids:
-                    if not image.image_src:
-                        raise ValidationError(_("You must provide an image template design for the"
-                                                " Gelato product."))
-
     @api.depends('product_variant_ids.gelato_product_ref')
     def _compute_gelato_product_ref(self):
         self._compute_template_field_from_variant_field('gelato_product_ref')
@@ -46,11 +37,15 @@ class ProductTemplate(models.Model):
         related_variants.append('gelato_product_ref')
         return related_variants
 
+    def _get_product_document_domain(self):
+        domain = super()._get_product_document_domain()
+        return expression.AND([domain, [('is_gelato', '=', False)]])
+
     def action_create_product_variants_from_gelato_template(self):
         """
             Make a request to Gelato to pass all the variants of provided template and create
             attributes corresponding to the variants, which will automatically create existing
-            variants and delete variants that are n0t available in gelato.
+            variants and delete variants that are not available in gelato.
         """
 
         url = f'https://ecommerce.gelatoapis.com/v1/templates/{self.gelato_template_ref}'
@@ -72,7 +67,6 @@ class ProductTemplate(models.Model):
         else:
             for variant_data in data['variants']:
                 attribute_value_ids = []
-                #maybe throw attribute search and creation in seprate function
                 for attribute_data in variant_data['variantOptions']:
                     # Search if there is an existing attribute with proper variant creation, if not
                     # new attribute is created.
@@ -117,7 +111,7 @@ class ProductTemplate(models.Model):
                 )
                 current_product = matching_variant.filtered(
                     lambda v: set(v.product_template_attribute_value_ids.product_attribute_value_id.ids) == set(attribute_value_ids)
-                ) # this doen't find the corresponding variant attribute ids
+                )
 
                 gelato_ref = variant_data['productUid']
                 current_product[0].gelato_product_ref = gelato_ref
@@ -131,22 +125,22 @@ class ProductTemplate(models.Model):
         self.create_image_placement(data['variants'][0]['imagePlaceholders'])
 
     def create_image_placement(self, placement_list):
-        # Gelato might send image placement that is named 1 or front but won't accept is when
-        # placing order, instead, in place of those names value 'default' is required
         for placement in placement_list:
+            # Gelato might send image placement that is named '1' or 'front' but won't accept is
+            # when placing order, instead, in place of those names, value 'default' is required.
             if placement['printArea'].lower() in ('1', 'front'):
                 placement['printArea'] = 'default'
-            #gelato only accepts each placement one time, if during synchronization 2 placements
-            # with the same name are sent, we only use one of them
+            # Gelato only accepts each placement one time, if during synchronization 2 placements
+            # with the same name are sent, we only create 1.
             image = self.env['product.document'].search([
-                ('name', '=', placement['printArea'].lower()),
+                ('name', 'in', [placement['printArea']]),
                 ('is_gelato', '=', True),
                 ('res_id', '=', self.id),
                 ('res_model', '=', 'product.template'),
             ])
             if not image:
                 image = self.env['product.document'].create({
-                    'name': placement['printArea'].lower(),
+                    'name': placement['printArea'],
                     'is_gelato': True,
                     'res_id': self.id,
                     'res_model': 'product.template',
@@ -154,7 +148,7 @@ class ProductTemplate(models.Model):
                 self.gelato_image_ids = [Command.link(image.id)]
         return
 
-    def get_product_document_domain(self):
-        domain = super().get_product_document_domain()
-        return expression.AND([domain, [('is_gelato', '=', False)]])
-
+    def can_be_published(self):
+        """ Prevent publishing Gelato template if it has unset print images."""
+        if any(image.image_src == False for image in self.gelato_image_ids):
+            raise ValidationError("Set print images on this product template to publish it.")

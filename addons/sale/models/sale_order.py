@@ -2241,9 +2241,9 @@ class SaleOrder(models.Model):
         """
         Check compatibility of products in cart and the currently added product when website_sale
         is installed.
+
         :param product_id:
         :return: ``True`` if current product can be added valid, ``False`` when not.
         """
         self.ensure_one()
-
         return True

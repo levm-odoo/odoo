@@ -327,3 +327,7 @@ class ProductTemplate(models.Model):
         :return: A dict containing additional data about the specified product.
         """
         return {}
+
+    def can_be_published(self):
+        """Return weather product can be published."""
+        self.ensure_one()
