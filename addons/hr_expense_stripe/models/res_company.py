@@ -77,6 +77,20 @@ class ResCompany(models.Model):
             message = _("You cannot create a Stripe Webhook if your Stripe Secret Key is not set.")
             notification_type = 'danger'
         else:
+            # 1. Get all existing webhooks
+            existing_webhooks = stripe_make_request(secret_key, endpoint='webhook_endpoints', method='GET')
+
+            # 2. Get the webhooks that would conflict with ours
+            webhooks_to_delete = []
+            for webhook in existing_webhooks.get('data', []):
+                if any(event  in HANDLED_WEBHOOK_EVENTS for event in webhook.get('enabled_events', [])):
+                    webhooks_to_delete.append(webhook.get('id'))
+
+            # 3. Delete unwanted webhooks
+            for webhook_id in webhooks_to_delete:
+                stripe_make_request(secret_key, endpoint=f'webhook_endpoints/{webhook_id}', method='DELETE')
+
+            # 4. Create the new webhook
             webhook = stripe_make_request(
                 secret_key,
                 endpoint='webhook_endpoints',

@@ -17,14 +17,14 @@ class StripeIssuingController(Controller):
     def stripe_issuing_webhook(self):
         event = request.get_json_data()
         _logger.debug(event)  # TODO JUAL: Remove
-        valid_company_sudo = False
+        valid_company = False
         for company_sudo in request.env['res.company'].sudo().search([('stripe_webhook_secret', '!=', False)]):
             if self._validate_signature(
                     company_sudo.stripe_webhook_secret,
                     request.httprequest.headers.get('Stripe-Signature'),
                     request.httprequest.get_data(as_text=True),
             ):
-                valid_company = company.sudo(self.env.su)
+                valid_company = company_sudo.sudo(self.env.su)
                 break
 
         if not valid_company:
@@ -113,12 +113,13 @@ class StripeIssuingController(Controller):
     def _validate_signature(self, company_secret, signature_header, payload):
         if not signature_header:
             return False
-
+        _logger.debug('Validating signature: %s', signature_header)
         signature_data = {
             key: value
             for key_value in signature_header.split(',')
-            for key, value in key_value.split('=')
+            for key, *value in key_value.split('=')
         }
+        _logger.debug('Validating signature: %s', signature_data)
 
         if (time.time() - int(signature_data['t'])) > 300:  # 5 minutes
             return False
