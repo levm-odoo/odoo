@@ -6,7 +6,31 @@ from odoo.exceptions import UserError
 class ResCompany(models.Model):
     _inherit = 'res.company'
 
-    stripe_account_id = fields.Char(string='Stripe Account ID', copy=False)
+    stripe_issuing_account_type = fields.Selection(
+        selection=[
+            ('disabled', "Disabled"),
+            ('own_account', "Own Account"),
+            ('connected_account', "Stripe Connect Account"), # Not implemented yet
+        ],
+        default='disabled',
+        required=True,
+    )
+    stripe_mode = fields.Selection(
+        selection=[
+            ('test', 'Test'),
+            ('live', 'Live'),
+        ],
+        string="Stripe mode",
+        default='test',
+        required=True,
+    )
+    stripe_issuing_activated = fields.Boolean(compute="_compute_stripe_issuing_activated")
+
+    stripe_publishable_live_key = fields.Char()
+    stripe_secret_live_key = fields.Char()
+    stripe_publishable_test_key = fields.Char()
+    stripe_secret_test_key = fields.Char()
+
     stripe_journal_id = fields.Many2one(
         comodel_name='account.journal',
         string='Stripe Issuing Journal',
@@ -23,21 +47,6 @@ class ResCompany(models.Model):
         copy=False,
     )
 
-    stripe_issuing_activated = fields.Boolean()
-
-    stripe_publishable_live_key = fields.Char()
-    stripe_secret_live_key = fields.Char()
-    stripe_publishable_test_key = fields.Char()
-    stripe_secret_test_key = fields.Char()
-    stripe_mode = fields.Selection(
-        selection=[
-            ('test', 'Test'),
-            ('live', 'Live'),
-        ],
-        string="Stripe mode",
-        default='live',
-    )
-
     @api.depends('country_id')
     def _compute_stripe_currency(self):
         for company in self:
@@ -47,6 +56,11 @@ class ResCompany(models.Model):
             else:
                 company_currency_code = STRIPE_VALID_JOURNAL_CURRENCIES.get((company_country.code or 'USD').upper())
             company.stripe_currency_id = self.env['res.currency'].search([('name', '=', company_currency_code)], limit=1).id
+
+    @api.depends('stripe_issuing_account_type')
+    def _compute_stripe_issuing_activated(self):
+        for company in self:
+            company.stripe_issuing_activated = company.stripe_issuing_account_type != 'disabled'
 
     def _connect_to_stripe(self):
         if not self.stripe_journal_id:
