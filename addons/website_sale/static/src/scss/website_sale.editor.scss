@@ -1,3 +1,19 @@
+we-customizeblock-options:has(we-customizeblock-option.snippet-option-WebsiteSaleGridLayout) {
+    > we-title {
+        display: none !important;
+    }
+
+    .o_wsale_editor_section {
+        padding-top: map-get($map: $spacers, $key: 2);
+        margin-top: 0;
+
+        > we-title {
+            font-size: $o-we-sidebar-content-main-title-font-size;
+            color: $o-we-sidebar-content-main-title-color !important;
+        }
+    }
+}
+
 .o_wsale_soptions_menu_sizes {
     we-title {
         align-self: flex-start;
