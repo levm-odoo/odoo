@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates>
+    <t t-name="base_automation.DynamicSelection" >
+        <div>
+            <select t-on-change="onSelect">
+            <t t-foreach="selectionItems" t-as="item" t-key="item">
+                <option t-att-value="item" t-esc="selectionItems[item]" t-att-selected="item === this.value" />
+            </t>
+            </select>
+        </div>
+    </t>
+</templates>

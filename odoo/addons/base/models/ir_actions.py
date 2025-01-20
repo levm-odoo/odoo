@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-
+from lxml import etree
 import odoo
 from odoo import api, fields, models, tools, _, Command
 from odoo.exceptions import MissingError, ValidationError, AccessError, UserError
@@ -539,6 +539,7 @@ class IrActionsServer(models.Model):
         ('object_write', 'Update Record'),
         ('object_create', 'Create Record'),
         ('code', 'Execute Code'),
+        ('public_method', 'Execute Button'),
         ('webhook', 'Send Webhook Notification'),
         ('multi', 'Execute Existing Actions')], string='Type',
         default='object_write', required=True, copy=True,
@@ -565,6 +566,8 @@ class IrActionsServer(models.Model):
                        default=DEFAULT_PYTHON_CODE,
                        help="Write Python code that the action will execute. Some variables are "
                             "available for use; help about python expression is given in the help tab.")
+    public_method = fields.Char(string="Public Method")
+    public_method_selection = fields.Char(compute="_compute_public_method_selection")
     # Multi
     child_ids = fields.Many2many('ir.actions.server', 'rel_server_actions', 'server_id', 'action_id',
                                  string='Child Actions', help='Child server actions that will be executed. Note that the last return returned action value will be used as global return value.')
@@ -1075,6 +1078,26 @@ class IrActionsServer(models.Model):
             default['name'] = _('%s (copy)', self.name)
         return super().copy_data(default=default)
 
+    @api.depends("model_name")
+    def _compute_public_method_selection(self):
+        for ba in self:
+            ba.public_method_selection = json.dumps(self._get_model_buttons(ba.model_name))
+
+    @api.model
+    def _get_model_buttons(self, model_name):
+        if not model_name:
+            return []
+
+        ctx = {k: v for k, v in self._context.items() if "_view_ref" not in k}
+        form = self.env[model_name].with_context(ctx).sudo().get_view(view_type="form")["arch"]
+        form = etree.fromstring(form)
+        results = {}
+        for node in form.iter(etree.Element):
+            if node.tag == "field":
+                node.getparent().remove(node)
+            if node.tag in ("a", "button") and node.get("type") == "object":
+                results[node.get("name")] = node.get("string") or node.get("title") or node.text or node.get("name")
+        return list(results.items())
 
 class IrActionsTodo(models.Model):
     """

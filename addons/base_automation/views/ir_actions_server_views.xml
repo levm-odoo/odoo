@@ -20,6 +20,10 @@
             <xpath expr="//field[@name='model_id']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
+            <xpath expr="//field[@name='model_id']" position="after">
+                <field name="public_method_selection" invisible="1"/>
+                <field name="public_method" widget="dynamic_selection" options="{'selection_field': 'public_method_selection'}" />
+            </xpath>
         </field>
     </record>
 </odoo>
