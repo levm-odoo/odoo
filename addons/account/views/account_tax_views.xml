@@ -41,7 +41,7 @@
                     <field name="factor_percent" invisible="repartition_type == 'base'"/>
                     <field name="repartition_type"/>
                     <field name="account_id" invisible="repartition_type == 'base'" options="{'no_create': True}"/>
-                    <field name="tag_ids"
+                    <field name="visible_tag_ids"
                            widget="many2many_tags"
                            options="{'no_create': True}"
                            domain="tag_ids_domain"/>
@@ -193,6 +193,15 @@
                                     <field name="hide_tax_exigibility" invisible="1"/>
                                     <field name="tax_exigibility" widget="radio" invisible="amount_type == 'group' or not hide_tax_exigibility" groups="account.group_account_readonly"/>
                                     <field name="cash_basis_transition_account_id" options="{'no_create': True}" invisible="tax_exigibility == 'on_invoice'" required="tax_exigibility == 'on_payment'" groups="account.group_account_readonly"/>
+                                </group>
+                                <group string="Historical Rates" groups="base.group_no_one">
+                                    <p class="text-muted">If the invoice label should contain the rate, use `%%` to inject it</p>
+                                    <field name="rate_ids" nolabel="1" colspan="2">
+                                        <list editable="top">
+                                            <field name="start_date"/>
+                                            <field name="amount"/>
+                                        </list>
+                                    </field>
                                 </group>
                             </group>
                         </page>

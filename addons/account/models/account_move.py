@@ -1435,6 +1435,7 @@ class AccountMove(models.Model):
             rate=rate,
             sign=sign,
             special_mode=False if is_invoice else 'total_excluded',
+            date=product_line.date,
         )
 
     def _prepare_epd_base_line_for_taxes_computation(self, epd_line):
@@ -1565,7 +1566,7 @@ class AccountMove(models.Model):
             AccountTax._round_base_lines_tax_details(base_lines, self.company_id)
         return base_lines, tax_lines
 
-    @api.depends_context('lang')
+    @api.depends_context('lang', 'date')
     @api.depends(
         'invoice_line_ids.currency_rate',
         'invoice_line_ids.tax_base_amount',
@@ -2786,7 +2787,7 @@ class AccountMove(models.Model):
                 extra_fields = ['price_unit', 'quantity', 'discount']
             else:
                 extra_fields = ['amount_currency']
-            return list(grouping_key.keys()) + extra_fields
+            return list(grouping_key.keys()) + extra_fields + ['date']
 
         def field_has_changed(values, record, field):
             return get_value(record, field) != values.get(record, {}).get(field)
@@ -3736,7 +3737,10 @@ class AccountMove(models.Model):
             price_untaxed = self.currency_id.round(
                 remaining_amount / (((1.0 - discount_percentage / 100.0) * (taxes.amount / 100.0)) + 1.0))
         else:
-            tax_results = taxes.with_context(force_price_include=True).compute_all(remaining_amount)
+            tax_results = taxes.with_context(force_price_include=True).compute_all(
+                price_unit=remaining_amount,
+                date=self.date,
+            )
             price_untaxed = tax_results['total_excluded'] - sum(
                 tax_data['amount']
                 for tax_data in tax_results['taxes']

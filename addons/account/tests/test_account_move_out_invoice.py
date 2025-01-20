@@ -4497,3 +4497,44 @@ class TestAccountMoveOutInvoiceOnchanges(AccountTestInvoicingCommon):
             })],
         })
         self.assertEqual(move.line_ids.partner_id, self.partner_a)
+
+    def test_changing_tax_rate(self):
+        base_10, tax_10, base_11, tax_11 = self.env['account.account.tag'].create([
+            {'name': 'Base 10%', 'end_date': '2019-12-31'},
+            {'name': 'Tax 10%', 'end_date': '2019-12-31'},
+            {'name': 'Base 11%', 'start_date': '2020-01-01'},
+            {'name': 'Tax 11%', 'start_date': '2020-01-01'},
+        ])
+        tax = self.env['account.tax'].create({
+            'name': '10%',
+            'rate_ids': [
+                Command.create({'start_date': '1900-01-01', 'amount': 10}),
+                Command.create({'start_date': '2020-01-01', 'amount': 11}),
+            ],
+            'repartition_line_ids': [
+                Command.create({'document_type': 'invoice', 'repartition_type': 'base', 'tag_ids': (base_10 + base_11).ids}),
+                Command.create({'document_type': 'invoice', 'repartition_type': 'tax',  'tag_ids': (tax_10 + tax_11).ids}),
+                Command.create({'document_type': 'refund',  'repartition_type': 'base', 'tag_ids': (base_10 + base_11).ids}),
+                Command.create({'document_type': 'refund',  'repartition_type': 'tax',  'tag_ids': (tax_10 + tax_11).ids}),
+            ]
+        })
+
+        def test(date, tax_amount, base_tag, tax_tag):
+            move = self.env['account.move'].create({
+                'move_type': 'out_invoice',
+                'partner_id': self.partner_a.id,
+                'date': date,
+                'invoice_line_ids': [
+                    Command.create({
+                        'name': 'invoice_line',
+                        'price_unit': 100.0,
+                        'tax_ids': [Command.set(tax.ids)],
+                    }),
+                ],
+            })
+            self.assertEqual(move.amount_tax, tax_amount)
+            self.assertEqual(move.invoice_line_ids.tax_tag_ids, base_tag)
+            self.assertEqual(move.line_ids.filtered(lambda l: l.display_type == 'tax').tax_tag_ids, tax_tag)
+
+        test('2019-01-01', 10.0, base_10, tax_10)
+        test('2021-01-01', 11.0, base_11, tax_11)

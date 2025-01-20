@@ -2,6 +2,7 @@
 from odoo import api, fields, models, _
 from odoo import osv
 from odoo.tools.sql import SQL
+from odoo.tools import format_date
 from odoo.exceptions import UserError
 
 
@@ -15,6 +16,8 @@ class AccountAccountTag(models.Model):
     active = fields.Boolean(default=True, help="Set active to false to hide the Account Tag without removing it.")
     tax_negate = fields.Boolean(string="Negate Tax Balance", help="Check this box to negate the absolute value of the balance of the lines associated with this tag in tax report computation.")
     country_id = fields.Many2one(string="Country", comodel_name='res.country', help="Country for which this tag is available, when applied on taxes.")
+    start_date = fields.Date(string="Start Date", help="Date from which this tag is applicable.")
+    end_date = fields.Date(string="End Date", help="Date until which this tag is applicable.")
 
     _name_uniq = models.Constraint(
         'unique(name, applicability, country_id)',
@@ -24,13 +27,24 @@ class AccountAccountTag(models.Model):
     @api.depends('applicability', 'country_id')
     @api.depends_context('company')
     def _compute_display_name(self):
-        if not self.env.company.multi_vat_foreign_country_ids:
-            return super()._compute_display_name()
-
+        foreign_vat = self.env.company.multi_vat_foreign_country_ids
+        debug = self.env.user.has_group('base.group_no_one')
         for tag in self:
             name = tag.name
-            if tag.applicability == "taxes" and tag.country_id and tag.country_id != self.env.company.account_fiscal_country_id:
+            if (
+                foreign_vat
+                and tag.applicability == "taxes"
+                and tag.country_id
+                and tag.country_id != self.env.company.account_fiscal_country_id
+            ):
                 name = _("%(tag)s (%(country_code)s)", tag=tag.name, country_code=tag.country_id.code)
+            if debug and (tag.start_date or tag.end_date):
+                name = _(
+                    "%(tag)s\n%(from_)s → %(to)s",
+                    tag=name,
+                    from_=format_date(self.env, tag.start_date),
+                    to=format_date(self.env, tag.end_date),
+                )
             tag.display_name = name
 
     @api.model_create_multi
@@ -61,6 +75,12 @@ class AccountAccountTag(models.Model):
             ('country_id', '=', country_id),
             ('applicability', '=', 'taxes')
         ]
+
+    def _for_date(self, date):
+        return self.filtered_domain([
+            '|', ('start_date', '=', False), ('start_date', '<=', date),
+            '|', ('end_date', '=', False), ('end_date', '>=', date),
+        ])
 
     def _get_related_tax_report_expressions(self):
         if not self:
