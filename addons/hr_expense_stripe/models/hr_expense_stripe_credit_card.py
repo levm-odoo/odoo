@@ -143,7 +143,7 @@ class HrExpenseStripeCreditCard(models.Model):
                 self.cardholder_id._stripe_send_data()
             stripe_object.update({
                 'currency': (self.currency_id.name or 'EUR').lower(),
-                'card_type': self.card_type,
+                'type': self.card_type,
                 'cardholder': self.cardholder_id.stripe_id,
             })
         stripe_object = {key: value for key, value in stripe_object.items() if value not in {False, None}}
@@ -163,7 +163,7 @@ class HrExpenseStripeCreditCard(models.Model):
 
     def _stripe_search_filters(self):
         # EXTENDS stripe.issuing
-        return {**super()._stripe_search_filters(), 'card_type': self.card_type, 'last4': self.last_4}
+        return {**super()._stripe_search_filters(), 'type': self.card_type, 'last4': self.last_4}
 
     def _create_from_stripe(self, vals):
         # OVERRIDDE stripe.issuing

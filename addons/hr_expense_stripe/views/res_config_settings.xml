@@ -8,6 +8,9 @@
             <field name="inherit_id" ref="hr_expense.res_config_settings_view_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//block[@name='expenses_stripe_issuing_container']" position="inside">
+                    <setting string="Activate stripe issuing">
+                        <field name="stripe_issuing_activated"/>
+                    </setting>
                     <setting string="Live Publishable key">
                         <field name="stripe_publishable_live_key"/>
                     </setting>
