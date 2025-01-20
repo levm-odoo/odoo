@@ -90,5 +90,5 @@ class TestLivechatRequestHttpCase(HttpCaseWithUserDemo, TestLivechatCommon):
         chat_request.message_post(body="Hello", author_id=self.operator.partner_id.id)
         guest = self.env["mail.guest"].create({"name": "Guest"})
         self.assertNotEqual(chat_request.channel_member_ids.guest_id, guest)
-        self.env.ref('website.default_website').with_context(guest=guest)._get_livechat_request_session()
+        self.env.ref('website.default_website').with_context(guest=guest)._link_visitor_to_channel()
         self.assertEqual(chat_request.channel_member_ids.guest_id, guest)

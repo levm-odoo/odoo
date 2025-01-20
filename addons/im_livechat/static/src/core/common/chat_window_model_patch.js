@@ -54,12 +54,9 @@ patch(ChatWindow.prototype, {
             }
             case CW_LIVECHAT_STEP.FEEDBACK: {
                 super.close(...args);
+                this.livechatStep = CW_LIVECHAT_STEP.NONE;
                 break;
             }
-        }
-        if (this.livechatStep !== CW_LIVECHAT_STEP.CONFIRM_CLOSE) {
-            this.store.env.services["im_livechat.livechat"]?.leave();
-            this.store.env.services["im_livechat.chatbot"]?.stop();
         }
     },
     async _onClose(param1 = {}, ...args) {

@@ -156,6 +156,7 @@ class LivechatController(http.Controller):
             channel_info = {
                 "id": -1,  # only one temporary thread at a time, id does not matter.
                 "isLoaded": True,
+                "livechat_active": True,
                 "livechat_operator_id": Store.One(operator, ["user_livechat_username", "write_date"]),
                 "name": channel_vals["name"],
                 "scrollUnread": False,
@@ -173,12 +174,18 @@ class LivechatController(http.Controller):
                 chatbot_script._post_welcome_steps(channel)
             with replace_exceptions(UserError, by=NotFound()):
                 # sudo: mail.guest - creating a guest and their member in a dedicated channel created from livechat
-                __, guest = channel.sudo()._find_or_create_persona_for_channel(
+                partner, guest = channel.sudo()._find_or_create_persona_for_channel(
                     guest_name=self._get_guest_name(),
                     country_code=request.geoip.country_code,
                     timezone=request.env['mail.guest']._get_timezone_from_request(request),
                     post_joined_message=False
                 )
+                # sudo - livechat.channel: assigning visitor partner or guest to
+                # the channel is allowed.
+                if partner:
+                    channel.sudo().livechat_visitor_partner_id = partner
+                elif guest:
+                    channel.sudo().livechat_visitor_guest_id = guest
             channel = channel.with_context(guest=guest)  # a new guest was possibly created
             channel.channel_member_ids.filtered(lambda m: m.is_self).fold_state = "open"
             if not chatbot_script or chatbot_script.operator_partner_id != channel.livechat_operator_id:

@@ -46,20 +46,18 @@ class WebclientController(http.Controller):
             else:
                 guest = request.env["mail.guest"]._get_guest_from_context()
                 if not guest:
-                    raise NotFound()
+                    return
             member_domain = [
                 ("is_self", "=", True),
                 "|",
                 ("fold_state", "in", ("open", "folded")),
                 ("rtc_inviting_session_id", "!=", False),
             ]
-            channels_domain = [("channel_member_ids", "any", member_domain)]
-            channel_types = kwargs["init_messaging"].get("channel_types")
-            if channel_types:
-                channels_domain = expression.AND(
-                    [channels_domain, [("channel_type", "in", channel_types)]]
+            store.add(
+                request.env["discuss.channel"].search(
+                    [("channel_member_ids", "any", member_domain)]
                 )
-            store.add(request.env["discuss.channel"].search(channels_domain))
+            )
 
     def _process_request_for_logged_in_user(self, store: Store, **kwargs):
         if kwargs.get("failures"):

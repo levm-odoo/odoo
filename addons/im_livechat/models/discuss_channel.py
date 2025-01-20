@@ -22,6 +22,8 @@ class DiscussChannel(models.Model):
     livechat_active = fields.Boolean('Is livechat ongoing?', help='Livechat session is active until visitor or operator leaves the conversation.')
     livechat_channel_id = fields.Many2one('im_livechat.channel', 'Channel', index='btree_not_null')
     livechat_operator_id = fields.Many2one('res.partner', string='Operator', index='btree_not_null')
+    livechat_visitor_guest_id = fields.Many2one("mail.guest", string="Guest visitor", index="btree_not_null")
+    livechat_visitor_partner_id = fields.Many2one("res.partner", string="Partner visitor", index="btree_not_null")
     chatbot_current_step_id = fields.Many2one('chatbot.script.step', string='Chatbot Current Step')
     chatbot_message_ids = fields.One2many('chatbot.message', 'discuss_channel_id', string='Chatbot Messages')
     country_id = fields.Many2one('res.country', string="Country", help="Country of the visitor of the channel")

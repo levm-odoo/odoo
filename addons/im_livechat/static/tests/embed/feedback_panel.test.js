@@ -3,7 +3,6 @@ import {
     defineLivechatModels,
     loadDefaultEmbedConfig,
 } from "@im_livechat/../tests/livechat_test_helpers";
-import { LivechatButton } from "@im_livechat/embed/common/livechat_button";
 import { RATING } from "@im_livechat/embed/common/livechat_service";
 import {
     click,
@@ -14,25 +13,21 @@ import {
     startServer,
     triggerHotkey,
 } from "@mail/../tests/mail_test_helpers";
-import { describe, expect, test } from "@odoo/hoot";
+import { expect, test } from "@odoo/hoot";
 import {
     asyncStep,
     Command,
     getService,
-    mountWithCleanup,
     serverState,
     waitForSteps,
     withUser,
 } from "@web/../tests/web_test_helpers";
-
-describe.current.tags("desktop");
 defineLivechatModels();
 
 test("Do not ask feedback if empty", async () => {
     await startServer();
     await loadDefaultEmbedConfig();
     await start({ authenticateAs: false });
-    await mountWithCleanup(LivechatButton);
     await click(".o-livechat-LivechatButton");
     await contains(".o-mail-ChatWindow");
     await click("[title*='Close Chat Window']");
@@ -47,7 +42,6 @@ test("Close without feedback", async () => {
         }
     });
     await start({ authenticateAs: false });
-    await mountWithCleanup(LivechatButton);
     await click(".o-livechat-LivechatButton");
     await contains(".o-mail-ChatWindow");
     await insertText(".o-mail-Composer-input", "Hello World!");
@@ -65,7 +59,6 @@ test("Last operator leaving ends the livechat", async () => {
     await loadDefaultEmbedConfig();
     const operatorUserId = serverState.userId;
     await start({ authenticateAs: false });
-    await mountWithCleanup(LivechatButton);
     await click(".o-livechat-LivechatButton");
     await contains(".o-mail-ChatWindow");
     await insertText(".o-mail-Composer-input", "Hello World!");
@@ -96,7 +89,6 @@ test("Feedback with rating and comment", async () => {
         }
     });
     await start({ authenticateAs: false });
-    await mountWithCleanup(LivechatButton);
     await click(".o-livechat-LivechatButton");
     await contains(".o-mail-ChatWindow");
     await insertText(".o-mail-Composer-input", "Hello World!");
@@ -116,7 +108,6 @@ test("Closing folded chat window should open it with feedback", async () => {
     await startServer();
     await loadDefaultEmbedConfig();
     const env = await start({ authenticateAs: false });
-    await mountWithCleanup(LivechatButton);
     await click(".o-livechat-LivechatButton");
     await insertText(".o-mail-Composer-input", "Hello World!");
     triggerHotkey("Enter");
@@ -134,7 +125,6 @@ test("Start new session from feedback panel", async () => {
     const pyEnv = await startServer();
     const channelId = await loadDefaultEmbedConfig();
     await start({ authenticateAs: false });
-    await mountWithCleanup(LivechatButton);
     await click(".o-livechat-LivechatButton");
     await contains(".o-mail-ChatWindow", { text: "Mitchell Admin" });
     await insertText(".o-mail-Composer-input", "Hello World!");

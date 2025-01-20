@@ -30,8 +30,14 @@ export class ChatHub extends Component {
         });
         this.options = useDropdownState();
         this.more = useDropdownState();
-        this.compactRef = useRef("compact");
-        this.compactPosition = useState({ left: "auto", top: "auto" });
+        this.ref = useRef("bubbles");
+        this.position = useState({
+            top: "auto",
+            left: "auto",
+            bottom: `${this.chatHub.BUBBLE_OUTER}px;`,
+            right: `${this.chatHub.BUBBLE_OUTER + this.chatHub.BUBBLE_START}px;`,
+        });
+        this.state = useState({ isDragging: false });
         this.onResize();
         useExternalListener(browser, "resize", this.onResize);
         useEffect(() => {
@@ -41,15 +47,31 @@ export class ChatHub extends Component {
         });
         useMovable({
             cursor: "grabbing",
-            ref: this.compactRef,
-            elements: ".o-mail-ChatHub-compact",
-            onDrop: ({ top, left }) =>
-                Object.assign(this.compactPosition, { left: `${left}px`, top: `${top}px` }),
+            ref: this.ref,
+            elements: ".o-mail-ChatHub-bubbles",
+            onDragStart: () => {
+                this.more.close();
+                this.options.close();
+                this.state.isDragging = true;
+            },
+            onDragEnd: () => (this.state.isDragging = false),
+            onDrop: this.onDrop.bind(this),
         });
+    }
+
+    onDrop({ top, left }) {
+        this.position.bottom = "unset";
+        this.position.right = "unset";
+        this.position.top = `${top}px`;
+        this.position.left = `${left}px`;
     }
 
     onResize() {
         this.chatHub.onRecompute();
+    }
+
+    get showOptionsButton() {
+        return (this.bubblesHover.isHover || this.state.isDragging) && !this.options.isOpen;
     }
 
     get compactCounter() {
@@ -75,7 +97,6 @@ export class ChatHub extends Component {
 
     expand() {
         this.chatHub.compact = false;
-        Object.assign(this.compactPosition, { left: "auto", top: "auto" });
         this.more.isOpen = this.chatHub.folded.length > this.chatHub.maxFolded;
     }
 }

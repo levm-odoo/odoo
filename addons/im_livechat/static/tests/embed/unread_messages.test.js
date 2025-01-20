@@ -17,14 +17,11 @@ import { describe, test } from "@odoo/hoot";
 import {
     asyncStep,
     Command,
-    mountWithCleanup,
     serverState,
     waitForSteps,
     withUser,
 } from "@web/../tests/web_test_helpers";
 
-import { expirableStorage } from "@im_livechat/embed/common/expirable_storage";
-import { LivechatButton } from "@im_livechat/embed/common/livechat_button";
 import { queryFirst } from "@odoo/hoot-dom";
 import { rpc } from "@web/core/network/rpc";
 
@@ -45,14 +42,6 @@ test("new message from operator displays unread counter", async () => {
         livechat_channel_id: livechatChannelId,
         livechat_operator_id: serverState.partnerId,
     });
-    expirableStorage.setItem(
-        "im_livechat.saved_state",
-        JSON.stringify({
-            store: { "discuss.channel": [{ id: channelId }] },
-            persisted: true,
-            livechatUserId: serverState.publicUserId,
-        })
-    );
     onRpcBefore("/mail/data", (args) => {
         if (args.init_messaging) {
             asyncStep(`/mail/data - ${JSON.stringify(args)}`);
@@ -64,11 +53,10 @@ test("new message from operator displays unread counter", async () => {
     });
     await waitForSteps([
         `/mail/data - ${JSON.stringify({
-            init_messaging: {
-                channel_types: ["livechat"],
-            },
+            init_messaging: {},
             failures: true, // called because mail/core/web is loaded in qunit bundle
             systray_get_activities: true, // called because mail/core/web is loaded in qunit bundle
+            init_livechat: livechatChannelId,
             context: { lang: "en", tz: "taht", uid: serverState.userId, allowed_company_ids: [1] },
         })}`,
     ]);
@@ -86,7 +74,7 @@ test("new message from operator displays unread counter", async () => {
 test.tags("focus required");
 test("focus on unread livechat marks it as read", async () => {
     const pyEnv = await startServer();
-    await loadDefaultEmbedConfig();
+    const livechatChannelId = await loadDefaultEmbedConfig();
     onRpcBefore("/mail/data", (args) => {
         if (args.init_messaging) {
             asyncStep(`/mail/data - ${JSON.stringify(args)}`);
@@ -94,7 +82,15 @@ test("focus on unread livechat marks it as read", async () => {
     });
     const userId = serverState.userId;
     await start({ authenticateAs: false });
-    await mountWithCleanup(LivechatButton);
+    await waitForSteps([
+        `/mail/data - ${JSON.stringify({
+            init_messaging: {},
+            failures: true, // called because mail/core/web is loaded in qunit bundle
+            systray_get_activities: true, // called because mail/core/web is loaded in qunit bundle
+            init_livechat: livechatChannelId,
+            context: { lang: "en", tz: "taht", uid: serverState.userId, allowed_company_ids: [1] },
+        })}`,
+    ]);
     await click(".o-livechat-LivechatButton");
     await insertText(".o-mail-Composer-input", "Hello World!");
     await triggerHotkey("Enter");
@@ -104,9 +100,7 @@ test("focus on unread livechat marks it as read", async () => {
     await contains(".o-mail-Message-content", { text: "Hello World!" });
     await waitForSteps([
         `/mail/data - ${JSON.stringify({
-            init_messaging: {
-                channel_types: ["livechat"],
-            },
+            init_messaging: {},
             failures: true, // called because mail/core/web is loaded in qunit bundle
             systray_get_activities: true, // called because mail/core/web is loaded in qunit bundle
             context: { lang: "en", tz: "taht", uid: serverState.userId, allowed_company_ids: [1] },

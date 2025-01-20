@@ -637,6 +637,7 @@ export const storeService = {
      */
     start(env, services) {
         const store = makeStore(env);
+        window.tsm = store;
         store.insert(session.storeData);
         /**
          * Add defaults for `self` and `settings` because in livechat there could be no user and no

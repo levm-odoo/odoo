@@ -17,7 +17,11 @@ export class ChatWindow extends Record {
     }
 
     actionsDisabled = false;
-    thread = Record.one("Thread");
+    thread = Record.one("Thread", {
+        onDelete() {
+            this.delete();
+        },
+    });
     autofocus = 0;
     hidden = false;
     /** Whether the chat window was created from the messaging menu */

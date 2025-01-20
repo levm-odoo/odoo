@@ -2,10 +2,10 @@ import { ImStatus } from "@mail/core/common/im_status";
 
 import { Component, useEffect, useRef, useState } from "@odoo/owl";
 
-import { useChildRef, useService } from "@web/core/utils/hooks";
-import { useHover, useMovable } from "@mail/utils/common/hooks";
-import { usePopover } from "@web/core/popover/popover_hook";
 import { CountryFlag } from "@mail/core/common/country_flag";
+import { useHover } from "@mail/utils/common/hooks";
+import { usePopover } from "@web/core/popover/popover_hook";
+import { useChildRef, useService } from "@web/core/utils/hooks";
 
 class ChatBubblePreview extends Component {
     static props = ["chatWindow", "close"];
@@ -41,7 +41,8 @@ export class ChatBubble extends Component {
         this.popover = usePopover(ChatBubblePreview, {
             animation: false,
             position: "left-middle",
-            popoverClass: "dropdown-menu bg-view border-0 p-0 overflow-visible rounded-3 mx-1",
+            popoverClass:
+                "o-mail-chatBubble-preview dropdown-menu bg-view border-0 p-0 overflow-visible rounded-3 mx-1",
             onClose: () => (this.state.showClose = false),
             ref: popoverRef,
         });
@@ -53,10 +54,8 @@ export class ChatBubble extends Component {
         });
         this.hover = useHover(["root", popoverRef], {
             onHover: () => {
-                if (!this.env.embedLivechat) {
-                    this.env.bus.trigger("ChatBubble:preview-will-open", this);
-                    this.popover.open(this.rootRef.el, { chatWindow: this.props.chatWindow });
-                }
+                this.env.bus.trigger("ChatBubble:preview-will-open", this);
+                this.popover.open(this.rootRef.el, { chatWindow: this.props.chatWindow });
             },
             onHovering: [100, () => (this.state.showClose = true)],
             onAway: () => this.popover.close(),
@@ -69,16 +68,6 @@ export class ChatBubble extends Component {
             },
             () => [this.thread.importantCounter]
         );
-        if (this.env.embedLivechat) {
-            this.position = useState({ left: "auto", top: "auto" });
-            useMovable({
-                cursor: "grabbing",
-                ref: this.rootRef,
-                elements: ".o-mail-ChatBubble",
-                onDrop: ({ top, left }) =>
-                    Object.assign(this.position, { left: `${left}px`, top: `${top}px` }),
-            });
-        }
     }
 
     /** @returns {import("models").Thread} */

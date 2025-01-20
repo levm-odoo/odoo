@@ -96,6 +96,7 @@
                     window.odoo = {};
                 }
                 odoo.__session_info__ = Object.assign(odoo.__session_info__ || {}, {
+                    ...<t t-out="json.dumps(session_info)"/>,
                     websocket_worker_version: <t t-out="json.dumps(info.get('websocket_worker_version', ''))"/>,
                     livechatData: {
                         isAvailable: <t t-out="'true' if info['available'] else 'false'"/>,

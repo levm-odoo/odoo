@@ -27,6 +27,11 @@ declare module "models" {
         requested_by_operator: boolean,
     }
 
+    export interface Store {
+        livechat_rule: LivechatChannelRule;
+        livechat_available: boolean;
+    }
+
     export interface Models {
         "ChatbotScriptStep": ChatbotScriptStep,
         "ChatbotStep": ChatbotStep,

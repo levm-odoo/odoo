@@ -19,23 +19,17 @@ class Website(models.Model):
         if self.channel_id:
             livechat_info = self.channel_id.sudo().get_livechat_info()
             if livechat_info['available']:
-                livechat_request_session = self._get_livechat_request_session()
-                if livechat_request_session:
-                    livechat_info['options']['force_thread'] = livechat_request_session
+                self._link_visitor_to_channel()
             return livechat_info
         return {}
 
-    def _get_livechat_request_session(self):
-        """
-        Check if there is an opened chat request for the website livechat channel and the current visitor (from request).
-        If so, prepare the livechat session information that will be stored in visitor's cookies
-        and used by livechat widget to directly open this session instead of allowing the visitor to
-        initiate a new livechat session.
-        :param {int} channel_id: channel
-        :return: {dict} livechat request session information
+    def _link_visitor_to_channel(self):
+        """ Check if there is an opened chat request for the website livechat
+        channel and the current visitor (from request). If so, link the visitor
+        to the chat request channel. Channel will then be returned as part of
+        the mail store initialization (/mail/data).
         """
         visitor = self.env['website.visitor']._get_visitor_from_request()
-        chat_request_session = {}
         if visitor:
             # get active chat_request linked to visitor
             chat_request_channel = self.env['discuss.channel'].sudo().search([
@@ -60,12 +54,6 @@ class Website(models.Model):
                     if not current_guest and channel_guest_member:
                         channel_guest_member.guest_id._set_auth_cookie()
                         chat_request_channel = chat_request_channel.with_context(guest=channel_guest_member.guest_id.sudo(False))
-                if chat_request_channel.is_member:
-                    chat_request_session = {
-                        "id": chat_request_channel.id,
-                        "model": "discuss.channel",
-                    }
-        return chat_request_session
 
     def get_suggested_controllers(self):
         suggested_controllers = super(Website, self).get_suggested_controllers()
