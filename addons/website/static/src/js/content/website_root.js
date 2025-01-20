@@ -56,21 +56,15 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
 
         // Enable magnify on zoomable img
         this.$('.zoomable img[data-zoom]').zoomOdoo();
-        function getPageMaxScroll() {
-            // Cross browser page height detection is ugly
-            return Math.max(
-              document.body.scrollHeight,
-              document.body.offsetHeight,
-              document.documentElement.clientHeight,
-              document.documentElement.scrollHeight,
-              document.documentElement.offsetHeight
-            ) - window.innerHeight; // Subtract viewport height
-          }
-
-        // Hide address bar on iOS devices with small screens by adjusting body height and scrolling
-        if (isIOS()) {
-            $('#wrapwrap').css('max-height', (window.innerHeight + "px"));
+        function resetHeight(){
+            debugger
+            // reset the body height to that of the inner browser
+            document.body.style.height = window.innerHeight + "px";
         }
+        // reset the height whenever the window's resized
+        window.addEventListener("resize", resetHeight);
+        // called to initially set the height.
+        resetHeight();
 
         return this._super.apply(this, arguments);
     },

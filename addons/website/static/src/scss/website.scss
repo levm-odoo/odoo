@@ -1150,6 +1150,8 @@ header {
             }
 
             > header {
+                // the header should not be fixed when the browser is Safari or devive is iPhone/ipad etc
+                
                 @if $-hamburger-right {
                     @include o-position-absolute(0, 0, 0, auto);
                 } @else {
