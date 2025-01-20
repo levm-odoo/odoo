@@ -2,12 +2,34 @@
 
 from markupsafe import Markup
 
-from odoo import models, _
+from odoo import fields, models, _
 from odoo.tools import html2plaintext
 
 
 class DiscussChannel(models.Model):
     _inherit = 'discuss.channel'
+
+    has_crm_lead = fields.Boolean(
+        compute="_compute_has_crm_lead",
+        search="_search_has_crm_lead",
+        groups="sales_team.group_sale_salesman",
+    )
+
+    def _compute_has_crm_lead(self):
+        channels_with_lead = self.env["crm.lead"]._read_group(
+            [("channel_id", "in", self.ids)], aggregates=["channel_id:recordset"]
+        )[0][0]
+        for channel in self:
+            channel.has_crm_lead = channel in channels_with_lead
+
+    def _search_has_crm_lead(self, operator, operand):
+        is_in = (operator == "=" and operand) or (operator == "!=" and not operand)
+        channel_ids = (
+            self.env["crm.lead"]
+            ._read_group([("channel_id", "!=", False)], aggregates=["channel_id:recordset"])[0][0]
+            .ids
+        )
+        return [('id', "in" if is_in else "not in", channel_ids)]
 
     def execute_command_lead(self, **kwargs):
         key = kwargs['body']

@@ -10,6 +10,8 @@
         'data/crm_livechat_chatbot_data.xml',
         'views/chatbot_script_views.xml',
         'views/chatbot_script_step_views.xml',
+        "views/crm_lead_views.xml",
+        "security/crm_livechat_security.xml",
     ],
     'depends': [
         'crm',
@@ -22,8 +24,15 @@
         'web.assets_backend': {
             'crm_livechat/static/src/core/*',
         },
+        "web.assets_tests": [
+            "crm_livechat/static/tests/tours/backend/*",
+        ],
         'web.assets_unit_tests': [
             'crm_livechat/static/tests/**/*',
+            ("remove", "crm_livechat/static/tests/tours/**/*"),
+        ],
+        "im_livechat.assets_livechat_support_tours": [
+            "crm_livechat/static/tests/tours/support/*",
         ],
     },
 }
