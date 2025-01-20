@@ -315,15 +315,13 @@ def xml_term_adapter(term_en):
     orig_node = parse_xml(f"<div>{term_en}</div>")
 
     def same_struct_iter(left, right):
-        if left.tag != right.tag:
+        if left.tag != right.tag or len(left) != len(right):
             raise ValueError("Non matching struct")
         yield left, right
         left_iter = left.iterchildren()
         right_iter = right.iterchildren()
         for lc, rc in zip(left_iter, right_iter):
             yield from same_struct_iter(lc, rc)
-        if next(left_iter, None) is not None or next(right_iter, None) is not None:
-            raise ValueError("Non matching struct")
 
     def adapter(term):
         new_node = parse_xml(f"<div>{term}</div>")
@@ -335,7 +333,7 @@ def xml_term_adapter(term_en):
                 keep_attrs = {k: v for k, v in orig_n.attrib.items() if k in MODIFIER_ATTRS}
                 new_n.attrib.update(keep_attrs)
         except ValueError:  # non-matching structure
-            return term
+            return None
 
         # remove tags <div> and </div> from result
         return serialize_xml(new_node)[5:-6]

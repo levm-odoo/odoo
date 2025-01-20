@@ -1159,6 +1159,7 @@ class TestXMLTranslation(TransactionCase):
         terms_en = ('Bread and cheese', 'Knife and Fork', 'Knife <span invisible="1">and</span> Fork')
         view.with_env(env_en).write({'arch_db': archf % terms_en})
         terms_fr = ('Pain et fromage', 'Couteau et Fourchette', 'Couteau <span style="font-weight:bold" invisible="1">et</span> Fourchette')
+        terms_nl = ('Brood and kaas', 'Mes en Vork', 'Knife <span invisible="1">and</span> Fork')
 
         # check whether translations have been kept
         self.assertEqual(view.with_env(env_nolang).arch_db, archf % terms_en)
@@ -1167,9 +1168,11 @@ class TestXMLTranslation(TransactionCase):
         self.assertEqual(view.with_env(env_nl).arch_db, archf % terms_nl)
 
         # modify attributes in source term
-        terms_en = ('Bread and cheese', 'Knife and Fork', 'Knife <span readonly="1">and</span> Fork')
+        terms_en = ('Bread and cheese', 'Knife and Fork', 'Knife <span style="text-align: center;" readonly="1">and</span> Fork')
         view.with_env(env_en).write({'arch_db': archf % terms_en})
         terms_fr = ('Pain et fromage', 'Couteau et Fourchette', 'Couteau <span style="font-weight:bold" readonly="1">et</span> Fourchette')
+        # side-effect: non MODIFIER_ATTRS in the new value may not be in the new translation after write, even if the term was not translated before write
+        terms_nl = ('Brood and kaas', 'Mes en Vork', 'Knife <span readonly="1">and</span> Fork')  # 'Knife <span style="text-align: center;" readonly="1">and</span> Fork' would be better
 
         # check whether translations have been kept
         self.assertEqual(view.with_env(env_nolang).arch_db, archf % terms_en)
@@ -1270,6 +1273,7 @@ class TestXMLTranslation(TransactionCase):
 
         self.assertEqual(view.arch_db, archf % terms_en)
         self.assertEqual(view.with_context(lang='fr_FR').arch_db, archf % terms_fr)
+
 
     def test_cache_consistency(self):
         view = self.env["ir.ui.view"].create({

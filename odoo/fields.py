@@ -1870,8 +1870,7 @@ class _String(Field):
                         if old_is_text or not closest_is_text:
                             if not closest_is_text and records.env.context.get("install_mode") and lang == 'en_US' and term_adapter:
                                 adapter = term_adapter(closest_term)
-                                if adapter(old_term) != closest_term:   # we can use get_close_matches in case we want typofix
-                                    # skip if the old_term and the closest_term don't have the same structure
+                                if adapter(old_term) is None:
                                     continue
                                 translation_dictionary[closest_term] = {k: adapter(v) for k, v in translation_dictionary.pop(old_term).items()}
                             else:
