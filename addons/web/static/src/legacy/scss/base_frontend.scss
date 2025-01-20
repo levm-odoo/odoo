@@ -29,6 +29,7 @@ html, body, #wrapwrap {
 @media screen {
     html, body {
         overflow: hidden;
+        height: 100%;
     }
     #wrapwrap {
         // ... we delegate the scroll to that top element instead of the window/body
