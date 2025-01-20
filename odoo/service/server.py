@@ -461,7 +461,8 @@ class ThreadedServer(CommonServer):
 
         from odoo.addons.base.models.ir_cron import IrCron  # noqa: PLC0415
         conn = odoo.sql_db.db_connect('postgres')
-        with conn.cursor() as cr:
+        cr = conn.cursor()
+        try:
             pg_conn = cr._cnx
             # LISTEN / NOTIFY doesn't work in recovery mode
             cr.execute("SELECT pg_is_in_recovery()")
@@ -477,7 +478,12 @@ class ThreadedServer(CommonServer):
             while True:
                 select.select([pg_conn], [], [], SLEEP_INTERVAL + number)
                 time.sleep(number / 100)
-                pg_conn.poll()
+                try:
+                    pg_conn.poll()
+                except Exception:
+                    if pg_conn.closed:
+                        break
+                    raise
                 notified_databases = OrderedSet(notif.payload for notif in pg_conn.notifies if notif.channel == 'cron_trigger')
                 pg_conn.notifies.clear()  # free resources
 
@@ -503,6 +509,8 @@ class ThreadedServer(CommonServer):
                     except Exception:
                         _logger.warning('cron%d encountered an Exception:', number, exc_info=True)
                     thread.start_time = None
+        finally:
+            cr.close()
 
     def cron_spawn(self):
         """ Start the above runner function in a daemon thread.
