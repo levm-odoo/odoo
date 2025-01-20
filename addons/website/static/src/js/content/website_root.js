@@ -56,15 +56,11 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
 
         // Enable magnify on zoomable img
         this.$('.zoomable img[data-zoom]').zoomOdoo();
-        function resetHeight(){
-            // reset the body height to that of the inner browser
-            document.body.style.height = window.innerHeight + "px";
-            this._requestFullscreen();
+        // Hide address bar on iOS devices with small screens by adjusting body height and scrolling
+        if (isIOS()) {
+            window.addEventListener('load', this._requestFullscreen.bind(this));
+            window.addEventListener('orientationchange', this._requestFullscreen.bind(this));
         }
-        // reset the height whenever the window's resized
-        window.addEventListener("resize", resetHeight);
-        // called to initially set the height.
-        resetHeight();
 
         return this._super.apply(this, arguments);
     },

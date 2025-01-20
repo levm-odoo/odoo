@@ -12,7 +12,8 @@
               t-att-web-base-url="web_base_url">
             <head>
                 <meta charset="utf-8"/>
-                <meta name="viewport" content="initial-scale=1"/>
+                <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" />
+                <meta name="apple-mobile-web-app-capable" content="yes" />
                 <title><t t-esc="title or 'Odoo Report'"/></title>
                 <t t-call-assets="web.report_assets_common" t-js="false"/>
                 <!--The following is kind of a hack-->
