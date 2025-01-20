@@ -670,13 +670,10 @@ class EventTrack(models.Model):
         )
 
     def _get_event_track_reminder_dates(self):
-        if self.date:
-            date_begin = self.date
-            date_end = self.date_end
-        else:
-            date_begin = self.event_id.date_begin
-            date_end = self.event_id.date_end
-        return {'date_begin': date_begin, 'date_end': date_end}
+        return {
+            'date_begin': self.date or self.event_id.date_begin,
+            'date_end': self.date_end or self.event_id.date_end,
+        }
 
     def _get_yahoo_resource_url(self):
         date_tz = self.event_id.date_tz
