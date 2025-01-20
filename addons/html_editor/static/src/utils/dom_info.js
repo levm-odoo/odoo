@@ -440,7 +440,9 @@ export function isUnprotecting(node) {
 
 // This is a list of "paragraph-related elements", defined as elements that
 // behave like paragraphs.
-const paragraphRelatedElements = ["P", "H1", "H2", "H3", "H4", "H5", "H6", "PRE"];
+// TODO baseContainer, this list should contain PRE, but the spec currently is to
+// paste flow content inside the PRE, so it is removed temporarily.
+const paragraphRelatedElements = ["P", "H1", "H2", "H3", "H4", "H5", "H6"];
 
 /**
  * Return true if the given node allows "paragraph-related elements".
@@ -472,7 +474,7 @@ const allowedContent = {
     OL: listItems,
     UL: listItems,
     P: phrasingContent,
-    PRE: phrasingContent,
+    PRE: flowContent, // HTML spec: phrasing content
     TD: flowContent,
     TR: new Set(["TD"]),
 };
