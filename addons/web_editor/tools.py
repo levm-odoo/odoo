@@ -39,24 +39,40 @@ def get_video_source_data(video_url):
     if not video_url:
         return None
 
+    parsed_url = urlparse(video_url)
+    query_params = parse_qs(parsed_url.query)
+    param_name_mapping = {
+        'autoplay': 'autoplay',
+        'loop': 'loop',
+        'hide_controls': 'controls',
+        'hide_fullscreen': 'fs',
+        'hide_dm_logo': 'ui-logo',
+        'hide_dm_share': 'sharing-enable',
+    }
+    params = {
+        func_param: int(query_params[url_param][0]) if func_param == 'autoplay' else 1
+        for func_param, url_param in param_name_mapping.items()
+        if url_param in query_params
+    }
+
     if re.search(valid_url_regex, video_url):
         youtube_match = re.search(player_regexes['youtube'], video_url)
         if youtube_match:
-            return ('youtube', youtube_match[2], youtube_match)
+            return ('youtube', youtube_match[2], youtube_match, params)
         vimeo_match = (
             re.search(player_regexes['vimeo'], video_url) or
             re.search(player_regexes['vimeo_player'], video_url))
         if vimeo_match:
-            return ('vimeo', vimeo_match.group('id'), vimeo_match)
+            return ('vimeo', vimeo_match.group('id'), vimeo_match, params)
         dailymotion_match = re.search(player_regexes['dailymotion'], video_url)
         if dailymotion_match:
             return ('dailymotion', dailymotion_match.group("id"), dailymotion_match)
-        instagram_match = re.search(player_regexes['instagram'], video_url)
+        instagram_match = re.search(player_regexes['instagram'], video_url, params)
         if instagram_match:
-            return ('instagram', instagram_match[2], instagram_match)
+            return ('instagram', instagram_match[2], instagram_match, params)
         youku_match = re.search(player_regexes['youku'], video_url)
         if youku_match:
-            return ('youku', youku_match.group("id"), youku_match)
+            return ('youku', youku_match.group("id"), youku_match, params)
     return None
 
 
@@ -69,14 +85,12 @@ def get_video_url_data(video_url, autoplay=False, loop=False, hide_controls=Fals
         return {'error': True, 'message': _('The provided url is invalid')}
 
     embed_url = video_url
-    platform, video_id, platform_match = source
-
-    params = {}
+    platform, video_id, platform_match, params = source
 
     if platform == 'youtube':
         params['rel'] = 0
-        params['autoplay'] = autoplay and 1 or 0
-        if autoplay:
+        params['autoplay'] = autoplay and 1 or params['autoplay']
+        if params['autoplay']:
             params['mute'] = 1
             # The youtube js api is needed for autoplay on mobile. Note: this
             # was added as a fix, old customers may have autoplay videos
@@ -84,25 +98,22 @@ def get_video_url_data(video_url, autoplay=False, loop=False, hide_controls=Fals
             # not in mobile (so no behavior change was done in stable, this
             # should not be migrated).
             params['enablejsapi'] = 1
-        if hide_controls:
+        if params['hide_controls']:
             params['controls'] = 0
-        if loop:
-            params['loop'] = 1
+        if params['loop']:
             params['playlist'] = video_id
-        if hide_fullscreen:
+        if params['hide_fullscreen']:
             params['fs'] = 0
         embed_url = f'//www.youtube-nocookie.com/embed/{video_id}'
     elif platform == 'vimeo':
-        params['autoplay'] = autoplay and 1 or 0
+        params['autoplay'] = autoplay and 1 or params['autoplay']
         # Always enable "do not track" parameter.
         params['dnt'] = 1
-        if autoplay:
+        if params['autoplay']:
             params['muted'] = 1
             params['autopause'] = 0
-        if hide_controls:
+        if params['hide_controls']:
             params['controls'] = 0
-        if loop:
-            params['loop'] = 1
         groups = platform_match.groupdict()
         if groups.get('hash'):
             params['h'] = groups['hash']
@@ -112,14 +123,14 @@ def get_video_url_data(video_url, autoplay=False, loop=False, hide_controls=Fals
                 params['h'] = url_params['h'][0]
         embed_url = f'//player.vimeo.com/video/{video_id}'
     elif platform == 'dailymotion':
-        params['autoplay'] = autoplay and 1 or 0
-        if autoplay:
+        params['autoplay'] = autoplay and 1 or params['autoplay']
+        if params['autoplay']:
             params['mute'] = 1
-        if hide_controls:
+        if params['hide_controls']:
             params['controls'] = 0
-        if hide_dm_logo:
+        if params['hide_dm_logo']:
             params['ui-logo'] = 0
-        if hide_dm_share:
+        if params['hide_dm_share']:
             params['sharing-enable'] = 0
         embed_url = f'//www.dailymotion.com/embed/video/{video_id}'
     elif platform == 'instagram':
@@ -142,22 +153,7 @@ def get_video_embed_code(video_url):
     """ Computes the valid iframe from given URL that can be embedded
         (or None in case of invalid URL).
     """
-    parsed_url = urlparse(video_url)
-    query_params = parse_qs(parsed_url.query)
-    param_name_mapping = {
-        'autoplay': 'autoplay',
-        'loop': 'loop',
-        'hide_controls': 'controls',
-        'hide_fullscreen': 'fs',
-        'hide_dm_logo': 'ui-logo',
-        'hide_dm_share': 'sharing-enable',
-    }
-    params = {
-        func_param: int(query_params[url_param][0]) if func_param == 'autoplay' else 1
-        for func_param, url_param in param_name_mapping.items()
-        if url_param in query_params
-    }
-    data = get_video_url_data(video_url, **params)
+    data = get_video_url_data(video_url)
     if 'error' in data:
         return None
     return Markup('<iframe class="embed-responsive-item" src="%s" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowFullScreen="true" frameborder="0"></iframe>') % data['embed_url']
