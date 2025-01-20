@@ -1,5 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import copy
 from . import models
 from . import wizards
 from . import demo
@@ -24,11 +25,12 @@ def _l10n_ar_withholding_post_init(env):
             ]
         }
         for company in ar_companies.filtered(lambda c: c.chart_template == template_code):
+            company_data = copy.deepcopy(data)
             _logger.info("Company %s already has the Argentinean localization installed, updating...", company.name)
             company_chart_template = env['account.chart.template'].with_company(company)
-            company_chart_template._deref_account_tags(template_code, data['account.tax'])
-            company_chart_template._pre_reload_data(company, {}, data)
-            company_chart_template._load_data(data)
+            company_chart_template._deref_account_tags(template_code, company_data['account.tax'])
+            company_chart_template._pre_reload_data(company, {}, company_data)
+            company_chart_template._load_data(company_data)
             company.l10n_ar_tax_base_account_id = env.ref('account.%i_base_tax_account' % company.id)
 
             if env.ref('base.module_l10n_ar_withholding').demo:
