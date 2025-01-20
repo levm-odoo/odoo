@@ -70,7 +70,7 @@ export class ChatHub extends Component {
     }
 
     get isShown() {
-        return !this.ui.isSmall;
+        return true;
     }
 
     expand() {

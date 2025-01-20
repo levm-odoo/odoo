@@ -42,6 +42,13 @@ export class ChatWindow extends Record {
         },
     });
 
+    get canFold() {
+        return (
+            this.thread &&
+            (this.store.env.services["im_livechat.livechat"] || !this.store.env.services.ui.isSmall)
+        );
+    }
+
     get displayName() {
         return this.thread?.displayName ?? _t("New message");
     }
@@ -93,7 +100,8 @@ export class ChatWindow extends Record {
 
     notifyState() {
         if (
-            this.store.env.services.ui.isSmall ||
+            (this.store.env.services.ui.isSmall &&
+                !this.store.env.services["im_livechat.livechat"]) ||
             this.thread?.isTransient ||
             !this.thread?.hasSelfAsMember
         ) {
