@@ -57,9 +57,9 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
         // Enable magnify on zoomable img
         this.$('.zoomable img[data-zoom]').zoomOdoo();
         function resetHeight(){
-            debugger
             // reset the body height to that of the inner browser
             document.body.style.height = window.innerHeight + "px";
+            this._requestFullscreen();
         }
         // reset the height whenever the window's resized
         window.addEventListener("resize", resetHeight);
