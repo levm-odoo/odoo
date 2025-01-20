@@ -35,6 +35,12 @@ export class ChatWindow extends Record {
         },
     });
 
+    get canFold() {
+        return (
+            this.store.env.services["im_livechat.livechat"] || !this.store.env.services.ui.isSmall
+        );
+    }
+
     get displayName() {
         return this.thread?.displayName;
     }
@@ -85,7 +91,8 @@ export class ChatWindow extends Record {
 
     notifyState() {
         if (
-            this.store.env.services.ui.isSmall ||
+            (this.store.env.services.ui.isSmall &&
+                !this.store.env.services["im_livechat.livechat"]) ||
             this.thread?.isTransient ||
             !this.thread?.hasSelfAsMember
         ) {
