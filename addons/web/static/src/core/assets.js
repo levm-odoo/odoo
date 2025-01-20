@@ -238,6 +238,12 @@ export const assets = {
         const scriptEl = targetDoc.createElement("script");
         scriptEl.type = url.includes("web/static/lib/pdfjs/") ? "module" : "text/javascript";
         scriptEl.src = url;
+        targetDoc.defaultView.addEventListener("beforeunload", () =>
+            console.log("unload,beforeunload")
+        );
+        targetDoc.defaultView.addEventListener("beforeunload", () =>
+            console.log("unload,beforeunload")
+        );
         const promise = new Promise((resolve, reject) =>
             onLoadAndError(scriptEl, resolve, () => {
                 cacheMap.delete(url);
