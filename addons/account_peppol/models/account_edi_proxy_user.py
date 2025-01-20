@@ -25,7 +25,7 @@ class AccountEdiProxyClientUser(models.Model):
         urls = super()._get_proxy_urls()
         urls['peppol'] = {
             'prod': 'https://peppol.api.odoo.com',
-            'test': 'https://peppol.test.odoo.com',
+            'test': 'https://iap-services-staging.odoo.com',
             'demo': 'demo',
         }
         return urls
