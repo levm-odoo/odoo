@@ -562,7 +562,7 @@ class ProjectTask(models.Model):
             if task.allow_billable and not task.sale_line_id:
                 task.sale_line_id = task.sudo()._get_last_sol_of_customer()
 
-    @api.depends('sale_line_id.order_partner_id', 'parent_id.sale_line_id', 'project_id.sale_line_id', 'allow_billable')
+    @api.depends('partner_id.commercial_partner_id', 'sale_line_id.order_partner_id', 'parent_id.sale_line_id', 'project_id.sale_line_id', 'allow_billable')
     def _compute_sale_line(self):
         super()._compute_sale_line()
         for task in self:
