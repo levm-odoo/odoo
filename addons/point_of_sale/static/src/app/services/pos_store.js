@@ -396,7 +396,7 @@ export class PosStore extends WithLazyGetterTrap {
         this.pickingType = this.data.models["stock.picking.type"].getFirst();
         this.models = this.data.models;
         this.screenState.partnerList.offsetBySearch = {
-            "": this.models["res.partner"].length,
+            "": 0,
         };
         this.models["pos.session"].getFirst().login_number = parseInt(odoo.login_number);
 

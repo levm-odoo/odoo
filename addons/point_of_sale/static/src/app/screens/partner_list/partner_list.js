@@ -8,6 +8,7 @@ import { Input } from "@point_of_sale/app/components/inputs/input/input";
 import { Component, useEffect, useRef, useState } from "@odoo/owl";
 import { useHotkey } from "@web/core/hotkeys/hotkey_hook";
 import { unaccent } from "@web/core/utils/strings";
+import { debounce } from "@web/core/utils/timing";
 
 export class PartnerList extends Component {
     static components = { PartnerLine, Dialog, Input };
@@ -27,16 +28,17 @@ export class PartnerList extends Component {
         this.notification = useService("notification");
         this.dialog = useService("dialog");
         this.list = useRef("partner-list");
-
         this.state = useState({
-            initialPartners: new Set(this.pos.models["res.partner"].getAll()),
-            loadedPartners: new Set(),
+            initialPartners: this.pos.models["res.partner"].getAll(),
+            loadedPartners: [],
             query: "",
             loading: false,
         });
+        this.loadedPartnerIds = new Set(this.state.initialPartners.map((p) => p.id));
         useHotkey("enter", () => this.onEnter(), {
             bypassEditableProtection: true,
         });
+        this.onScroll = debounce(this.onScroll.bind(this), 200);
 
         useEffect(
             () => {
@@ -57,10 +59,15 @@ export class PartnerList extends Component {
         return this.pos.screenState.partnerList;
     }
     onScroll(ev) {
+        // Prevent multiple fetches if a fetch is already in progress
+        if (this.state.loading) {
+            return;
+        }
         const height = this.list.el.offsetHeight;
-        const bottomScrollPosition = Math.ceil(this.list.el.scrollTop + height);
+        const scrollTop = this.list.el.scrollTop;
+        const scrollHeight = this.list.el.scrollHeight;
 
-        if (this.list.el.scrollHeight === bottomScrollPosition) {
+        if (scrollTop + height >= scrollHeight * 0.8) {
             this.getNewPartners();
         }
     }
@@ -104,8 +111,7 @@ export class PartnerList extends Component {
         this.props.resolve({ confirmed: true, payload: this.state.selectedPartner });
         this.pos.closeTempScreen();
     }
-    getPartners(partnersSet) {
-        const partners = Array.from(partnersSet);
+    getPartners(partners) {
         const searchWord = unaccent((this.state.query || "").trim(), false);
         const exactMatches = partners.filter((partner) => partner.exactMatch(searchWord));
 
@@ -141,7 +147,6 @@ export class PartnerList extends Component {
     async getNewPartners() {
         let domain = [];
         const offset = this.globalState.offsetBySearch[this.state.query] || 0;
-
         if (this.state.query) {
             const search_fields = [
                 "name",
@@ -164,23 +169,26 @@ export class PartnerList extends Component {
 
         try {
             this.state.loading = true;
-            const result = await this.pos.data.callRelated("res.partner", "get_new_partner", [
-                this.pos.config.id,
-                domain,
-                offset,
-            ]);
 
-            this.globalState.offsetBySearch[this.state.query] =
-                offset + (result["res.partner"].length || 100);
-            this.state.loadedPartners = new Set([
-                ...this.state.loadedPartners,
-                ...result["res.partner"],
-            ]);
+            const result = await this.pos.data.searchRead("res.partner", domain, [], {
+                limit: 100,
+                offset: offset,
+            });
+
+            this.globalState.offsetBySearch[this.state.query] = offset + (result.length || 100);
+
+            for (const partner of result) {
+                if (!this.loadedPartnerIds.has(partner.id)) {
+                    this.loadedPartnerIds.add(partner.id);
+                    this.state.loadedPartners.push(partner);
+                }
+            }
 
             return result;
         } catch {
-            this.state.loading = false;
             return [];
+        } finally {
+            this.state.loading = false;
         }
     }
 }
