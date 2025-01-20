@@ -95,9 +95,12 @@ def empty_pipe(fd):
 
 
 def cron_database_list():
-    if db_names := config['db_name']:
-        return db_names
-    return odoo.service.db.list_dbs(True)
+    db_names = list(config['db_name']) or odoo.service.db.list_dbs(True)
+    # When listing databases for cron jobs, return them in a random order.
+    # This avoids that all triggered workers start with the same database
+    # list in the same order.
+    random.shuffle(db_names)
+    return db_names
 
 
 #----------------------------------------------------------
