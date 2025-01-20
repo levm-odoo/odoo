@@ -59,7 +59,7 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
         // Hide address bar on iOS devices with small screens by adjusting body height and scrolling
         if (isIOS()) {
             window.addEventListener('load', this._requestFullscreen.bind(this));
-            window.addEventListener('orientationchange', this._requestFullscreen.bind(this));
+            window.addEventListener('orientationchange', this._hideAddressBar.bind(this));
         }
 
         return this._super.apply(this, arguments);
@@ -86,7 +86,7 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
         document.body.style.height = '101vh'; // Slightly higher than the viewport
         window.scrollTo(0, 1); // Scroll to hide the address bar
         document.body.style.overflow = 'hidden'; // Disable scrolling   \
-        document.body.height = window.innerHeight;
+        document.body.height = window.innerHeight + "px";
     },
 
     /**
