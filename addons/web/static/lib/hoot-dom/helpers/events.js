@@ -1407,6 +1407,7 @@ const _pointerDown = async (target, options) => {
     }
 
     runTime.touchStartPosition = { ...runTime.position };
+    runTime.touchStartTime = Date.now();
     const prevented = await dispatchPointerEvent(pointerDownTarget, "pointerdown", eventInit, {
         mouse: !pointerDownTarget.disabled && [
             "mousedown",
@@ -1440,6 +1441,7 @@ const _pointerDown = async (target, options) => {
  * @param {PointerOptions} options
  */
 const _pointerUp = async (target, options) => {
+    const isLongPress = (Date.now() - runTime.touchStartTime) > 500;
     const pointerDownTarget = runTime.pointerDownTarget;
     const eventInit = {
         ...runTime.position,
@@ -1476,9 +1478,10 @@ const _pointerUp = async (target, options) => {
     const touchStartPosition = runTime.touchStartPosition;
     runTime.touchStartPosition = {};
 
-    if (hasTouch() && isDifferentPosition(touchStartPosition)) {
-        // No further event is trigger: there was a swiping motion since the "touchstart"
-        // event.
+    if (hasTouch() && (isDifferentPosition(touchStartPosition) || isLongPress)) {
+        // No further event is trigger:
+        // there was a swiping motion since the "touchstart" event
+        // or a long press was detected.
         return;
     }
 
