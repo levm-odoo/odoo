@@ -40,12 +40,10 @@ registry.category("fields").add("dynamic_selection", {
     displayName: _t("Dynamic Selection"),
     supportedTypes: ["char"],
     isEmpty: (record, fieldName) => !record.data[fieldName],
-    isEmpty: (record, fieldName) => record.data[fieldName] === false,
     extractProps({ attrs, options }, dynamicInfo) {
-        const props = {
+        return {
             placeholder: attrs.placeholder,
+            selectionField: options.selection_field,
         };
-        props.selectionField = options.selection_field;
-        return props;
-    },
+    }
 })

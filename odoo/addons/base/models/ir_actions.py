@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from lxml import etree
+import inspect
 import odoo
 from odoo import api, fields, models, tools, _, Command
+from odoo.models import check_method_name
 from odoo.exceptions import MissingError, ValidationError, AccessError, UserError
 from odoo.tools import frozendict
 from odoo.tools.safe_eval import safe_eval, test_python_expr
@@ -1080,13 +1082,42 @@ class IrActionsServer(models.Model):
 
     @api.depends("model_name")
     def _compute_public_method_selection(self):
-        for ba in self:
-            ba.public_method_selection = json.dumps(self._get_model_buttons(ba.model_name))
+        for act in self:
+            act.public_method_selection = json.dumps(list(self._get_model_buttons(act.model_name).items()))
+
+    @api.constrains("public_method")
+    def _validate_method(self):
+        for act in self:
+            self._validate_model_method(act.model_name, act.public_method, raise_if_invalid=True)
+
+    def _validate_model_method(self, model_name, method_name, raise_if_invalid=False):
+        invalid = False, ""
+
+        try:
+            check_method_name(method_name)
+        except ValidationError:
+            invalid = True,  _("Only public methods are authorized")
+
+        if method_name in ("create", "write","unlink"):
+            invalid = True, _("CRUD methods are not authorized")
+        model = self.env[model_name]
+        if not hasattr(model, method_name):
+            invalid = True, _("Method %s.%s doesn't exist", model_name, method_name)
+        method_obj = getattr(model, method_name)
+        arg_spec = inspect.getfullargspec(method_obj).args
+        if len(arg_spec) != 1 or arg_spec[0] != "self":
+            invalid = True, _("Only methods taking only a recordset are allowed")
+        
+        if not invalid[0]:
+            return True
+        if not raise_if_invalid:
+            return False
+        raise ValidationError(invalid[1])
 
     @api.model
     def _get_model_buttons(self, model_name):
         if not model_name:
-            return []
+            return {}
 
         ctx = {k: v for k, v in self._context.items() if "_view_ref" not in k}
         form = self.env[model_name].with_context(ctx).sudo().get_view(view_type="form")["arch"]
@@ -1096,8 +1127,28 @@ class IrActionsServer(models.Model):
             if node.tag == "field":
                 node.getparent().remove(node)
             if node.tag in ("a", "button") and node.get("type") == "object":
-                results[node.get("name")] = node.get("string") or node.get("title") or node.text or node.get("name")
-        return list(results.items())
+                method = node.get("name")
+                if self._validate_model_method(model_name, method):
+                    human_string = ""
+                    for string in [node.get("string"), node.get("title"), node.text, method.replace("_", " ").title()]:
+                        string = (string or "").strip()
+                        if string:
+                            human_string = string
+                            break
+                    results[method] =  human_string
+        return results
+
+    def _run_action_public_method_multi(self, eval_context=None):
+        method_name = self.public_method
+        if not method_name:
+            return
+        check_method_name(method_name)
+        record = self.env[self.model_name]
+        if eval_context:
+            record = eval_context.get("record") or record
+        method = getattr(record, method_name)
+        if method:
+            method()
 
 class IrActionsTodo(models.Model):
     """
