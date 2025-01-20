@@ -69,21 +69,7 @@ export const WebsiteRoot = publicRootData.PublicRoot.extend(KeyboardNavigationMi
 
         // Hide address bar on iOS devices with small screens by adjusting body height and scrolling
         if (isIOS()) {
-            // window.addEventListener('load', this._hideAddressBar.bind(this));
-            // window.addEventListener('orientationchange', this._hideAddressBar.bind(this));
-            // document.documentElement.webkitRequestFullScreen();
-            let top = 1000000; // Value larger than maximum scroll
-            const maxScroll = getPageMaxScroll();
-
-            // Fix for bug on iOS devices
-            // When top was larger than maximum page scroll
-            // "getBoundingClientRect" would take that value into calculations
-            if (top > maxScroll) {
-                top = maxScroll;
-            }
-
-            // Scroll the window to the new position
-            window.scrollTo(0, top);
+            $('#wrapwrap').css('max-height', (window.innerHeight + "px"));
         }
 
         return this._super.apply(this, arguments);
